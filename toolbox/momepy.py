@@ -1,6 +1,7 @@
 from area import object_area
+from rectangularity_idx import *
 
 path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
 
-column_name = 'area2'
-object_area(path, column_name)
+rectangularity_idx(path)
+object_area(path, 'area2')

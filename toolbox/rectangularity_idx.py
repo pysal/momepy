@@ -7,6 +7,8 @@ rectangularity_idx = Area/(Area of the rotated bounding recatngle)
 '''
 
 import geopandas as gpd
+from tqdm import tqdm  # progress bar
+
 
 # set path to shapefile
 path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
@@ -21,7 +23,7 @@ def rectangularity_idx(path):
     print('Column ready.')
 
     # fill new column with the value of area, iterating over rows one by one
-    for index, row in objects.iterrows():
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         objects.loc[index, 'rectIdx'] = (row['geometry'].area)/(row['geometry'].convex_hull.area)
 
     print('Rectangularity index calculated.')
