@@ -1,9 +1,9 @@
 '''
-Calculate rectangularity index of each object in given shapefile.
+Calculate convexity index of each object in given shapefile.
 
-Formula described by Dibble (2016).
+Formula described by Steiniger et al. (2008).
 
-rectangularity_idx = Area/(Area of the rotated bounding rectangle)
+object_convexity_idx = Area/(Area of the convex hull around the object)
 '''
 
 import geopandas as gpd
@@ -14,8 +14,8 @@ from tqdm import tqdm  # progress bar
 path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
 
 
-def object_rectangularity_idx(path, column_name):
-    print('Calculating rectangularity index.')
+def object_convexity_idx(path, column_name):
+    print('Calculating convexity index.')
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
@@ -26,9 +26,9 @@ def object_rectangularity_idx(path, column_name):
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = (row['geometry'].area)/(row['geometry'].minimum_rotated_rectangle.area)
+        objects.loc[index, column_name] = (row['geometry'].area)/(row['geometry'].convex_hull.area)
 
-    print('Rectangularity index calculated. Saving file.')
+    print('Convexity index calculated. Saving file.')
 
     # save dataframe back to file
     objects.to_file(path)
