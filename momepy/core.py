@@ -6,6 +6,7 @@ Open/close calls on files always in core.py. Calculations always in helpers.
 import geopandas as gpd
 
 from .dimension import *
+from .shape import *
 
 
 # to be removed
@@ -16,6 +17,20 @@ def gethead(path):
 
 
 # dimension characters
+'''
+Dimension characters:
+
+    plot scale:
+
+        building_area
+        building_perimeter
+        building_height_os
+        building_volume
+        building_floor_area
+        building_courtyard_area
+        cell_longest_axis_length (TBD)
+'''
+
 '''
 building_area:
     character id: pdbAre
@@ -104,7 +119,7 @@ building_volume:
                                   previously calculated and stored in separate column.
                                   Default value 'True'. If set to 'False', function
                                   will calculate areas during the process without
-                                  saving them separately.
+                                  saving them separately. (optional)
 '''
 
 
@@ -137,7 +152,7 @@ building_floor_area:
                                   previously calculated and stored in separate column.
                                   Default value 'True'. If set to 'False', function
                                   will calculate areas during the process without
-                                  saving them separately.
+                                  saving them separately. (optional)
 '''
 
 
@@ -147,6 +162,217 @@ def building_floor_area(path, column_name='pdbFlA', area_column='pdbAre', height
     print('Shapefile loaded.')
 
     object_floor_area(objects, column_name, area_column, height_column, area_calculated)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+'''
+building_courtyard_area:
+    character id: pdbCoA
+
+    Return areas of building courtyards (sum).
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'pdbCoA' (optional)
+                area_column = name of column where is stored area value. Default
+                              value 'pdbAre' (optional)
+                area_calculated = boolean value checking whether area has been
+                                  previously calculated and stored in separate column.
+                                  Default value 'True'. If set to 'False', function
+                                  will calculate areas during the process without
+                                  saving them separately. (optional)
+'''
+
+
+def building_courtyard_area(path, column_name='pdbCoA', area_column='pdbAre', area_calculated=True):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    courtyard_area(objects, column_name, area_column, area_calculated)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+
+'''
+building_dimensions:
+    Calculate characters building_area, building_perimeter, building_height_os,
+    building_volume, building_floor_area and building_courtyard_area.
+
+    Uses default values.
+'''
+
+
+def building_dimensions(path):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    object_area(objects, 'pdbAre')
+    object_perimeter(objects, 'pdbPer')
+    object_height_os(objects, 'pdbHei')
+    object_volume(objects, column_name='pdbVol', area_column='pdbAre', height_column='pdbHei', area_calculated=True)
+    object_floor_area(objects, column_name='pdbFlA', area_column='pdbAre', height_column='pdbHei', area_calculated=True)
+    courtyard_area(objects, column_name='pdbCoA', area_column='pdbAre', area_calculated=True)
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+
+# shape characters
+'''
+Shape characters:
+
+    plot scale:
+
+        building_form_factor
+'''
+
+'''
+building_form_factor:
+    character id: psbFoF
+
+    Return form factor of building.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'psbFoF' (optional)
+                area_column = name of column where is stored area value. Default
+                              value 'pdbAre' (optional)
+                volume_column = name of the column where is stored volume value.
+                                Default value 'pdbVol' (optional)
+
+    Missing: Option to calculate without area and volume being calculated beforehand.
+'''
+
+
+def building_form_factor(path, column_name='psbFoF', area_column='pdbAre', volume_column='pdbVol'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    form_factor(objects, column_name, area_column, volume_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+'''
+building_fractal_dimension:
+    character id: psbFra
+
+    Return fractal dimension of building.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'psbFrA' (optional)
+                area_column = name of column where is stored area value. Default
+                              value 'pdbAre' (optional)
+                perimeter_column = name of the column where is stored volume value.
+                                Default value 'pdbPer' (optional)
+
+    Missing: Option to calculate without area and perimeter being calculated beforehand.
+'''
+
+
+def building_fractal_dimension(path, column_name='psbFra', area_column='pdbAre', perimeter_column='pdbPer'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    fractal_dimension(objects, column_name, area_column, perimeter_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+'''
+building_volume_facade_ratio:
+    character id: psbVFR
+
+    Return volume / facade ratio of building.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'pdbVFR' (optional)
+                volume_column = name of column where is stored volume value. Default
+                              value 'pdbVol' (optional)
+                perimeter_column = name of the column where is stored volume value.
+                                Default value 'pdbPer' (optional)
+                height_column = name of the column where is stored heigth value.
+                                Default value 'pdbHei' (optional)
+
+    Missing: Option to calculate without values being calculated beforehand.
+
+'''
+
+
+def building_volume_facade_ratio(path, column_name='psbVFR', volume_column='pdbVol', perimeter_column='pdbPer', height_column='pdbHei'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    volume_facade_ratio(objects, column_name, volume_column, perimeter_column, height_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+'''
+building_compactness_index:
+    character id: psbCom
+
+    Return compactness index of building.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'psbCom' (optional)
+                area_column = name of column where is stored area value. Default
+                              value 'pdbAre' (optional)
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def building_compactness_index(path, column_name='psbCom', area_column='pdbAre'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    compactness_index(objects, column_name, area_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+'''
+building_convexeity:
+    character id: psbCom
+
+    Return convexeity of building.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'psbCon' (optional)
+                area_column = name of column where is stored area value. Default
+                              value 'pdbAre' (optional)
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def building_convexeity(path, column_name='psbCon', area_column='pdbAre'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    convexeity(objects, column_name, area_column)  # call function from dimension
 
     # save dataframe back to file
     print('Saving file.')

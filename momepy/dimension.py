@@ -3,6 +3,7 @@
 
 import geopandas as gpd
 from tqdm import tqdm  # progress bar
+from shapely.geometry import Polygon
 
 '''
 object_area:
@@ -18,7 +19,7 @@ def object_area(objects, column_name):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Column ready. Calculating.')
+    print('Calculating areas.')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -40,7 +41,7 @@ def object_perimeter(objects, column_name):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Column ready. Calculating.')
+    print('Calculating perimeters.')
 
     # fill new column with the value of perimeter, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -65,7 +66,7 @@ def object_height_os(objects, column_name, original_column='relh2'):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Column ready. Calculating.')
+    print('Calculating heights.')
 
     # fill new column with the value of perimeter, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -92,14 +93,14 @@ def object_volume(objects, column_name, area_column, height_column, area_calcula
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Column ready. Calculating.')
+    print('Calculating volumes.')
 
     if area_calculated:
         try:
             # fill new column with the value of perimeter, iterating over rows one by one
             for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
                 objects.loc[index, column_name] = row[area_column] * row[height_column]
-                print('Volumes calculated.')
+            print('Volumes calculated.')
 
         except KeyError:
             print('ERROR: Building area column named', area_column, 'not found. Define area_column or set area_calculated to False.')
@@ -131,7 +132,7 @@ def object_floor_area(objects, column_name, area_column, height_column, area_cal
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Column ready. Calculating.')
+    print('Calculating floor areas.')
 
     if area_calculated:
         try:
@@ -149,3 +150,48 @@ def object_floor_area(objects, column_name, area_column, height_column, area_cal
             objects.loc[index, column_name] = row['geometry'].area * (row[height_column] // 3)
 
         print('Floor areas calculated.')
+
+'''
+courtyard_area:
+    Calculate area of holes within geometry - area of courtyards.
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save the volume values
+                area_column = name of column where is stored area value
+                area_calculated = boolean value checking whether area has been
+                                  previously calculated and stored in separate column.
+                                  If set to FALSE, function will calculate areas
+                                  during the process without saving them separately.
+'''
+
+
+def courtyard_area(objects, column_name, area_column, area_calculated):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating courtyard areas.')
+
+    if area_calculated:
+        try:
+            for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+                objects.loc[index, column_name] = Polygon(row['geometry'].exterior).area - row[area_column]
+
+            print('Core area indices calculated.')
+        except KeyError:
+            print('ERROR: Building area column named', area_column, 'not found. Define area_column or set area_calculated to False.')
+    else:
+        for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+            objects.loc[index, column_name] = Polygon(row['geometry'].exterior).area - row['geometry'].area
+
+        print('Core area indices calculated.')
+
+
+# to be deleted, keep at the end
+
+# path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
+# objects = gpd.read_file(path)
+#
+# courtyard_area(objects, 'ca4', 'pdbAre')
+#
+# objects.head
+# objects.to_file(path)
