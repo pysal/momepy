@@ -277,7 +277,7 @@ def compactness_index(objects, column_name, area_column):
 '''
 convexeity:
     Calculate convexeity of each object in given shapefile. It can be used for any
-    suitable element (building, plot, voronoi cell block).
+    suitable element (building, plot, voronoi cell, block).
 
     Formula: area/convex hull area
 
@@ -303,6 +303,39 @@ def convexeity(objects, column_name, area_column):
             objects.loc[index, column_name] = row[area_column] / (row['geometry'].convex_hull.area)
 
     print('Convexeity calculated.')
+
+'''
+courtyard_index:
+    Calculate courtyard index of each object in given shapefile. It can be used for any
+    suitable element (building, block).
+
+    Formula: area/convex hull area
+
+    Reference: Schirmer, P. M. and Axhausen, K. W. (2015) ‘A multiscale classification
+               of urban morphology’, Journal of Transport and Land Use, 9(1),
+               pp. 101–130. doi: 10.5198/jtlu.2015.667.
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save calculated values
+                area_column = name of column where is stored area value
+                courtyard_column = name of the column where is stored courtyard area
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def courtyard_index(objects, column_name, area_column, courtyard_column):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating courtyard index.')
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+            objects.loc[index, column_name] = row[courtyard_column] / row[area_column]
+
+    print('Courtyard index calculated.')
+
 
 # to be deleted, keep at the end
 

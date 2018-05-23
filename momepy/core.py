@@ -378,3 +378,32 @@ def building_convexeity(path, column_name='psbCon', area_column='pdbAre'):
     print('Saving file.')
     objects.to_file(path)
     print('File saved.')
+
+'''
+building_courtyard_index:
+    character id: psbCoI
+
+    Return courtyard index of building.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'psbCon' (optional)
+                area_column = name of column where is stored area value. Default
+                              value 'pdbAre' (optional)
+                courtyard_column = name of the column where is stored cortyard area
+                                   Default value 'psbCoI'
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def building_courtyard_index(path, column_name='psbCoI', area_column='pdbAre', courtyard_column='pdbCoA'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    courtyard_index(objects, column_name, area_column, courtyard_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
