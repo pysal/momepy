@@ -1,9 +1,11 @@
 # dimension.py
 # definitons of dimension characters
 
-import geopandas as gpd
+import geopandas as gpd  # to remove in the end
 from tqdm import tqdm  # progress bar
 from shapely.geometry import Polygon
+import shapely.ops
+from .shape import make_circle
 
 '''
 object_area:
@@ -184,6 +186,41 @@ def courtyard_area(objects, column_name, area_column, area_calculated):
             objects.loc[index, column_name] = Polygon(row['geometry'].exterior).area - row['geometry'].area
 
         print('Core area indices calculated.')
+
+'''
+longest_axis_length:
+    Calculate the length of the longest axis of object.
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save the volume values
+'''
+
+
+def longest_axis_length(objects, column_name):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating the longest axis.')
+
+    # calculate the area of circumcircle
+    def longest_axis(points):
+        circ = make_circle(points)
+        return(circ[2] * 2)
+
+    def sort_NoneType(geom):
+        if geom is not None:
+            if geom.type is not 'Polygon':
+                return(0)
+            else:
+                return(longest_axis(list(geom.exterior.coords)))
+        else:
+            return(0)
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        objects.loc[index, column_name] = sort_NoneType(row['geometry'])
+
+    print('The longest axis calculated.')
 
 
 # to be deleted, keep at the end

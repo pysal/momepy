@@ -7,6 +7,7 @@ import geopandas as gpd
 
 from .dimension import *
 from .shape import *
+from .intensity import *
 
 
 # to be removed
@@ -198,6 +199,28 @@ def building_courtyard_area(path, column_name='pdbCoA', area_column='pdbAre', ar
     objects.to_file(path)
     print('File saved.')
 
+'''
+cell_longest_axis_length:
+    character id: pdcLAL
+
+    Return the length of the longest axis of each cell.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'pdcLAL' (optional)
+'''
+
+
+def cell_longest_axis_length(path, column_name='pdcLAL'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    longest_axis_length(objects, column_name)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
 
 '''
 building_dimensions:
@@ -402,6 +425,20 @@ def building_courtyard_index(path, column_name='psbCoI', area_column='pdbAre', c
     print('Shapefile loaded.')
 
     courtyard_index(objects, column_name, area_column, courtyard_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+
+# divide, comment
+def cell_frequency(path, column_name='vicFre'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    frequency(objects, objects, column_name)  # call function from dimension
 
     # save dataframe back to file
     print('Saving file.')
