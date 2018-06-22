@@ -9,6 +9,6 @@ mm.gethead(path)
 
 #
 objects = gpd.read_file(path)
-del objects['pdcLAL']
-objects.head
+del objects['vicFre']
+objects
 objects.to_file(path)

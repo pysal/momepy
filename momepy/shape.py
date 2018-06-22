@@ -7,7 +7,7 @@ import math
 import random
 
 '''
-form_factor:
+form_factor():
     Calculate form factor of each object in given shapefile. It can be used for any
     suitable element (building, block).
 
@@ -43,7 +43,7 @@ def form_factor(objects, column_name, area_column, volume_column):
     print('Form factor calculated.')
 
 '''
-fractal_dimension:
+fractal_dimension():
     Calculate fractal dimension of each object in given shapefile. It can be used for any
     suitable element (building, plot, voronoi cell, block).
 
@@ -75,7 +75,7 @@ def fractal_dimension(objects, column_name, area_column, perimeter_column):
     print('Fractal dimension calculated.')
 
 '''
-volume_facade_ratio:
+volume_facade_ratio():
     Calculate volume/facade ratio of each object in given shapefile. It can be used for any
     suitable element (building, block).
 
@@ -108,7 +108,7 @@ def volume_facade_ratio(objects, column_name, volume_column, perimeter_column, h
     print('Volume/facade ratio calculated.')
 
 '''
-compactness_index:
+compactness_index():
     Calculate compactness index of each object in given shapefile. It can be used for any
     suitable element (building, plot, voronoi cell, block).
 
@@ -275,7 +275,7 @@ def compactness_index(objects, column_name, area_column):
     print('Compactness index calculated.')
 
 '''
-convexeity:
+convexeity():
     Calculate convexeity of each object in given shapefile. It can be used for any
     suitable element (building, plot, voronoi cell, block).
 
@@ -305,7 +305,7 @@ def convexeity(objects, column_name, area_column):
     print('Convexeity calculated.')
 
 '''
-courtyard_index:
+courtyard_index():
     Calculate courtyard index of each object in given shapefile. It can be used for any
     suitable element (building, block).
 

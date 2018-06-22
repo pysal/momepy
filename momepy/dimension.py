@@ -8,7 +8,7 @@ import shapely.ops
 from .shape import make_circle
 
 '''
-object_area:
+object_area():
     Calculate area of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, voronoi cell, block).
 
@@ -30,7 +30,7 @@ def object_area(objects, column_name):
     print('Areas calculated.')
 
 '''
-object_perimeter:
+object_perimeter():
     Calculate perimeter of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, voronoi cell, block).
 
@@ -52,7 +52,7 @@ def object_perimeter(objects, column_name):
     print('Perimeters calculated.')
 
 '''
-object_height_os:
+object_height_os():
     Function tailored to GB Ordance Survey data of OS Building Heights (Alpha).
     It will copy RelH2 values to new column.
         (relative height from ground level to base of the roof [RelH2])
@@ -77,7 +77,7 @@ def object_height_os(objects, column_name, original_column='relh2'):
     print('Heights defined.')
 
 '''
-object_volume:
+object_volume():
     Calculate volume of each object in given shapefile based on its height and area.
 
     Attributes: objects = geoDataFrame with objects
@@ -114,7 +114,7 @@ def object_volume(objects, column_name, area_column, height_column, area_calcula
         print('Volumes calculated.')
 
 '''
-object_floor_area:
+object_floor_area():
     Calculate floor area of each object based on height and area. Number of floors
     is simplified into formula height//3 (it is assumed that on average one floor
     is approximately 3 metres)
@@ -154,7 +154,7 @@ def object_floor_area(objects, column_name, area_column, height_column, area_cal
         print('Floor areas calculated.')
 
 '''
-courtyard_area:
+courtyard_area():
     Calculate area of holes within geometry - area of courtyards.
 
     Attributes: objects = geoDataFrame with objects
@@ -188,7 +188,7 @@ def courtyard_area(objects, column_name, area_column, area_calculated):
         print('Core area indices calculated.')
 
 '''
-longest_axis_length:
+longest_axis_length():
     Calculate the length of the longest axis of object.
 
     Attributes: objects = geoDataFrame with objects
