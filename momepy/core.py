@@ -8,6 +8,7 @@ import geopandas as gpd
 from .dimension import *
 from .shape import *
 from .intensity import *
+from .diversity import *
 
 
 # to be removed
@@ -436,6 +437,7 @@ def building_courtyard_index(path, column_name='psbCoI', area_column='pdbAre', c
     objects.to_file(path)
     print('File saved.')
 
+
 # intensity characters
 '''
 Intensity characters:
@@ -470,6 +472,49 @@ def cell_frequency(path, column_name='vicFre'):
     print('Shapefile loaded.')
 
     frequency(objects, objects, column_name)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+
+# diversity characters
+'''
+Diversity characters:
+
+    vicinity scale:
+
+        gini_index
+'''
+
+'''
+cell_area_gini():
+    character id: vvcGAr
+
+
+'''
+
+
+def cell_area_gini(path, column_name='vvcGAr', source='ptcAre'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    gini_index(objects, objects, source, column_name)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+
+def cell_area_power(path, source='ptcAre'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    power_law(objects, objects, source)  # call function from dimension
 
     # save dataframe back to file
     print('Saving file.')
