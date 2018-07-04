@@ -5,6 +5,7 @@ from tqdm import tqdm  # progress bar
 import numpy as np
 from .intensity import radius
 import powerlaw
+import pysal
 
 
 '''
@@ -55,22 +56,9 @@ def gini_index(objects, look_for, source, column_name, id_column='uID'):
         values = rows[[source]].values
         objects.loc[index, column_name] = gini(values)
 
-# rows
-# valu = objects[[source]]
-# valulist = valu[source].tolist()
-# valulist
-# results = powerlaw.Fit(valulist)
-# print(results.power_law.alpha)
-# print(results.power_law.xmin)
-# R, p = results.distribution_compare('power_law', 'lognormal')
-# R
-# p
-# np.seterr(divide='ignore', invalid='ignore')
-# plt.show()
-# import matplotlib.pyplot as plt
-#
-# print(R, p)
-# plt.show()
+'''
+Power law calculation.
+'''
 
 
 def power_law(objects, look_for, source, id_column='uID'):
@@ -95,3 +83,58 @@ def power_law(objects, look_for, source, id_column='uID'):
         # R, p = results.distribution_compare('power_law', 'lognormal')
         # objects.loc[index, 'pw_r'] = R
         # objects.loc[index, 'pw_p'] = p
+
+'''
+Spatial autocorrelation.
+'''
+
+import geopandas as gpd
+
+
+path = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single.shp"
+test = gpd.read_file(path)
+testdrop = test.drop(test.index[[1998, 2070, 4216]])  # ignore islands
+W = pysal.weights.Queen.from_dataframe(test)  # weight matrix 'queen'
+Wrook = pysal.weights.Rook.from_dataframe(testdrop)  # weight matrix 'rook'
+y = testdrop[['ptcAre']]  # column to measure LISA
+# y.drop(y.index[[1998, 2070, 4216]])
+lm = pysal.Moran_Local(y, Wrook)  # calculate LISA Local Moran's I
+
+# save LISA values (need to figure out which are useful)
+testdrop['local'] = lm.Is
+testdrop['sig'] = lm.p_sim
+testdrop['lm_q'] = lm.q
+testdrop['lm_sim'] = lm.z_sim
+
+gg = pysal.G_Local(y, Wrook)  # calculate LISA Gettis Ord G
+
+
+# save LISA values (need to figure out which are useful)
+testdrop['g_Gs'] = gg.Gs
+testdrop['g_EGs'] = gg.EGs
+testdrop['g_Zs'] = gg.Zs
+testdrop['g_psim'] = gg.p_sim
+
+
+path2 = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single2.shp"
+testdrop.to_file(path2)
+
+
+'''
+HDBSCAN clustering. Should be in different file than diversity.
+'''
+import hdbscan
+testdrop.columns
+# select columns for analysis
+clustering = testdrop[['pdcLAL', 'vicFre', 'ptcAre', 'vvcGAr', 'pw_alpha', 'local', 'g_Gs']]
+
+
+# make clusterer
+clusterer = hdbscan.HDBSCAN(min_cluster_size=13)
+
+# cluster data
+clusterer.fit(clustering)
+# get number of clusters
+clusterer.labels_.max()
+# save cluster labels to geoDataFrame
+testdrop['cluster'] = clusterer.labels_
