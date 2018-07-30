@@ -87,7 +87,7 @@ def power_law(objects, look_for, source, id_column='uID'):
 '''
 Spatial autocorrelation.
 '''
-
+'''
 import geopandas as gpd
 
 
@@ -118,10 +118,12 @@ testdrop['g_psim'] = gg.p_sim
 
 path2 = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single2.shp"
 testdrop.to_file(path2)
-
+'''
 
 '''
 HDBSCAN clustering. Should be in different file than diversity.
+'''
+
 '''
 import hdbscan
 testdrop.columns
@@ -138,3 +140,4 @@ clusterer.fit(clustering)
 clusterer.labels_.max()
 # save cluster labels to geoDataFrame
 testdrop['cluster'] = clusterer.labels_
+'''
