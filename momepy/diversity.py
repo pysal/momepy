@@ -56,6 +56,7 @@ def gini_index(objects, look_for, source, column_name, id_column='uID'):
         values = rows[[source]].values
         objects.loc[index, column_name] = gini(values)
 
+    print('Gini index calculated.')
 '''
 Power law calculation.
 '''

@@ -62,6 +62,7 @@ def frequency(objects, look_for, column_name, id_column='uID'):
         neighbours = radius(look_for_centroids, row['geometry'], 400)
         objects.loc[index, column_name] = len(neighbours)
 
+    print('Frequency calculated.')
     # objects = objects.merge(objects_centroids[[id_column, column_name]], on=id_column, how='left')
 
 #
