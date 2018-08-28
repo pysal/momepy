@@ -275,6 +275,37 @@ def compactness_index(objects, column_name, area_column):
     print('Compactness index calculated.')
 
 '''
+compactness_index2():
+    Calculate compactness index of each object in given shapefile. It can be used for any
+    suitable element (building, plot, voronoi cell, block).
+
+    Formula: area/perimeter ratio of the block divided by the area/perimeter ratio of a squared block having the same area ~ √a/p
+
+    Reference: Feliciotti A (2018) RESILIENCE AND URBAN DESIGN:A SYSTEMS APPROACH TO THE STUDY OF RESILIENCE IN URBAN FORM.
+               LEARNING FROM THE CASE OF GORBALS. Glasgow.
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save calculated values
+                area_column = name of column where is stored area value
+                perimeter_column = name of the column where is stored perimeter value
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def compactness_index2(objects, column_name, area_column, perimeter_column):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating compactness index.')
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        objects.loc[index, column_name] = (math.sqrt(row[area_column])) / (row[perimeter_column])
+
+    print('Compactness index calculated.')
+
+'''
 convexeity():
     Calculate convexeity of each object in given shapefile. It can be used for any
     suitable element (building, plot, voronoi cell, block).
@@ -335,6 +366,37 @@ def courtyard_index(objects, column_name, area_column, courtyard_column):
             objects.loc[index, column_name] = row[courtyard_column] / row[area_column]
 
     print('Courtyard index calculated.')
+
+
+'''
+rectangularity():
+    Calculate rectangularity of each object in given shapefile. It can be used for any
+    suitable element (building, plot, voronoi cell, block).
+
+    Formula: area/minimum bounding rotated rectangle area
+
+    Reference: Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative
+               Science of Urban Form. University of Strathclyde.
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save calculated values
+                area_column = name of column where is stored area value
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def rectangularity(objects, column_name, area_column):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating rectangularity.')
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+            objects.loc[index, column_name] = row[area_column] / (row['geometry'].minimum_rotated_rectangle.area)
+
+    print('Rectangularity calculated.')
 
 
 # to be deleted, keep at the end
