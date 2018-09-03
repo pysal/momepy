@@ -399,6 +399,36 @@ def rectangularity(objects, column_name, area_column):
     print('Rectangularity calculated.')
 
 
+'''
+shape_index():
+    Calculate shape index of each object in given shapefile. It can be used for any
+    suitable element (building, plot, voronoi cell, block).
+
+    Formula: (sqrt(area/pi))/(0.5*longest axis)
+
+    Reference: Ale?
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save calculated values
+                area_column = name of column where is stored area value
+                longest_axis_column = name of column where is stored longest axis value
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def shape_index(objects, column_name, area_column, longest_axis_column):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating shape index.')
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+            objects.loc[index, column_name] = math.sqrt(row[area_column] / math.pi) / (0.5 * row[longest_axis_column])
+
+    print('Shape index calculated.')
+
 # to be deleted, keep at the end
 
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
