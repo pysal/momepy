@@ -88,6 +88,18 @@ def power_law(objects, look_for, source, id_column='uID'):
 '''
 Spatial autocorrelation.
 '''
+
+
+def moran_i_local(objects, source, column_name):
+    print("Calculating local Moran's I.")
+    print('Calculating weight matrix (rook)... (It might take a while.)')
+    Wrook = pysal.weights.Rook.from_dataframe(objects, silent_island_warning=True)  # weight matrix 'rook'
+    y = objects[[source]]
+    print('Calculating...')
+    lm = pysal.Moran_Local(y, Wrook)
+    objects[column_name] = lm.Is
+    print("Local Moran's I calculated.")
+
 '''
 import geopandas as gpd
 
