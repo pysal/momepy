@@ -223,12 +223,39 @@ def longest_axis_length(objects, column_name):
     print('The longest axis calculated.')
 
 
+def longest_axis_length2(objects, column_name):  # based on convex hull for multipart polygons
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating the longest axis.')
+
+    # calculate the area of circumcircle
+    def longest_axis(points):
+        circ = make_circle(points)
+        return(circ[2] * 2)
+
+    def sort_NoneType(geom):
+        if geom is not None:
+            if geom.type is not 'Polygon':
+                return(0)
+            else:
+                return(longest_axis(list(geom.boundary.coords)))
+        else:
+            return(0)
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        objects.loc[index, column_name] = longest_axis(row['geometry'].convex_hull.exterior.coords)
+
+    print('The longest axis calculated.')
+
+
 # to be deleted, keep at the end
 
-# path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
+# path = "/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/Final data/Voronoi/test/voronoi_10.shp"
 # objects = gpd.read_file(path)
-#
-# courtyard_area(objects, 'ca4', 'pdbAre')
-#
+
+# longest_axis_length2(objects, column_name='longest_axis')
+
 # objects.head
 # objects.to_file(path)
