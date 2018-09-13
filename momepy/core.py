@@ -438,7 +438,36 @@ def building_courtyard_index(path, column_name='psbCoI', area_column='pdbAre', c
     print('File saved.')
 
 
+'''
+building_corners():
+    character id: psbCor
+
+    Return numebr of corners in a building shape.
+
+    Building shape needs to be clean, no points along the line.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'psbCor' (optional)
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def building_corners(path, column_name='psbCor'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    corners(objects, column_name)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+
 # intensity characters
+
 '''
 Intensity characters:
 

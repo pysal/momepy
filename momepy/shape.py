@@ -5,6 +5,8 @@ import geopandas as gpd
 from tqdm import tqdm  # progress bar
 import math
 import random
+import numpy as np
+
 
 '''
 form_factor():
@@ -429,12 +431,82 @@ def shape_index(objects, column_name, area_column, longest_axis_column):
 
     print('Shape index calculated.')
 
+
+'''
+corners():
+    Calculate number of corners...
+
+    Only external shape, courtyards not included.
+'''
+
+
+def corners(objects, column_name):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating corners...')
+
+    # calculate angle between points, return true or false if real corner
+    def angle(a, b, c):
+        ba = a - b
+        bc = c - b
+
+        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+        angle = np.arccos(cosine_angle)
+
+        if np.degrees(angle) <= 170:
+            return True
+        elif np.degrees(angle) >= 190:
+            return True
+        else:
+            return False
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        corners = 0  # define empty variables
+        points = list(row['geometry'].exterior.coords)  # get points of a shape
+        stop = len(points) - 1  # define where to stop
+        for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
+            if i == 0:
+                a = np.asarray(points[-1])
+                b = np.asarray(points[i])
+                c = np.asarray(points[i + 1])
+
+                if angle(a, b, c) is True:
+                    corners = corners + 1
+                else:
+                    continue
+            elif i == stop:
+                a = np.asarray(points[i - 1])
+                b = np.asarray(points[i])
+                c = np.asarray(points[1])
+
+                if angle(a, b, c) is True:
+                    corners = corners + 1
+                else:
+                    continue
+
+            else:
+                a = np.asarray(points[i - 1])
+                b = np.asarray(points[i])
+                c = np.asarray(points[i + 1])
+
+                if angle(a, b, c) is True:
+                    corners = corners + 1
+                else:
+                    continue
+
+        objects.loc[index, column_name] = corners
+
+    print('Corners calculated.')
+
 # to be deleted, keep at the end
 
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
 # objects = gpd.read_file(path)
-#
-# convexeity(objects, 'conv', 'pdbAre')
-#
-# objects.head
-# objects.to_file(path)
+# # #
+# # # convexeity(objects, 'conv', 'pdbAre')
+# # #
+# # # objects.head
+# # # objects.to_file(path)
+# corners(objects, 'corners')
