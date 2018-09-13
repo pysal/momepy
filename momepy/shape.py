@@ -447,7 +447,7 @@ def corners(objects, column_name):
     print('Calculating corners...')
 
     # calculate angle between points, return true or false if real corner
-    def angle(a, b, c):
+    def true_angle(a, b, c):
         ba = a - b
         bc = c - b
 
@@ -468,20 +468,13 @@ def corners(objects, column_name):
         stop = len(points) - 1  # define where to stop
         for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
             if i == 0:
-                a = np.asarray(points[-1])
-                b = np.asarray(points[i])
-                c = np.asarray(points[i + 1])
-
-                if angle(a, b, c) is True:
-                    corners = corners + 1
-                else:
                     continue
             elif i == stop:
                 a = np.asarray(points[i - 1])
                 b = np.asarray(points[i])
                 c = np.asarray(points[1])
 
-                if angle(a, b, c) is True:
+                if true_angle(a, b, c) is True:
                     corners = corners + 1
                 else:
                     continue
@@ -491,7 +484,7 @@ def corners(objects, column_name):
                 b = np.asarray(points[i])
                 c = np.asarray(points[i + 1])
 
-                if angle(a, b, c) is True:
+                if true_angle(a, b, c) is True:
                     corners = corners + 1
                 else:
                     continue
@@ -500,6 +493,81 @@ def corners(objects, column_name):
 
     print('Corners calculated.')
 
+
+'''
+squareness():
+    Calculate squarenss of object
+
+    Only external shape, courtyards not included.
+
+    Formula: mean deviation of all corners from 90
+
+    Reference: Ale?
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save calculated values
+                area_column = name of column where is stored area value
+                longest_axis_column = name of column where is stored longest axis value
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def squareness(objects, column_name):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating squareness...')
+
+    def angle(a, b, c):
+        ba = a - b
+        bc = c - b
+
+        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+        angle = np.degrees(np.arccos(cosine_angle))
+
+        return angle
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        angles = []
+        points = list(row['geometry'].exterior.coords)  # get points of a shape
+        stop = len(points) - 1  # define where to stop
+        for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
+            if i == 0:
+                    continue
+            elif i == stop:
+                a = np.asarray(points[i - 1])
+                b = np.asarray(points[i])
+                c = np.asarray(points[1])
+                ang = angle(a, b, c)
+
+                if ang <= 175:
+                    angles.append(ang)
+                elif angle(a, b, c) >= 185:
+                    angles.append(ang)
+                else:
+                    continue
+
+            else:
+                a = np.asarray(points[i - 1])
+                b = np.asarray(points[i])
+                c = np.asarray(points[i + 1])
+                ang = angle(a, b, c)
+
+                if angle(a, b, c) <= 175:
+                    angles.append(ang)
+                elif angle(a, b, c) >= 185:
+                    angles.append(ang)
+                else:
+                    continue
+        deviations = []
+        for i in angles:
+            dev = abs(90 - i)
+            deviations.append(dev)
+        objects.loc[index, column_name] = np.mean(deviations)
+
+    print('Squareness calculated.')
 # to be deleted, keep at the end
 
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
