@@ -437,19 +437,68 @@ def building_courtyard_index(path, column_name='psbCoI', area_column='pdbAre', c
     objects.to_file(path)
     print('File saved.')
 
+'''
+building_rectangularity():
+    character id: not used as taxonomic character
+
+    Return number of corners in a building shape.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column
+                area_column = name of the column with area values
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def building_rectangularity(path, column_name, area_column):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    corners(objects, column_name, area_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
+
+
+'''
+building_shape_index():
+    character id: psbShI
+
+    Return number of corners in a building shape.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column
+                area_column = name of the column with area values
+                longest_axis_column = name of the column with longest axis values
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def building_shape_index(path, column_name='psbShI', area_column='pdbAre', longest_axis_column='pdcLAL'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    shape_index(objects, column_name, area_column, longest_axis_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
 
 '''
 building_corners():
     character id: psbCor
 
-    Return numebr of corners in a building shape.
-
-    Building shape needs to be clean, no points along the line.
+    Return number of corners in a building shape.
 
     Attributes: path = path to file (tested on shapefile)
                 column_name = name of the column, default 'psbCor' (optional)
-
-    Missing: Option to calculate without values being calculated beforehand.
 '''
 
 
@@ -465,6 +514,29 @@ def building_corners(path, column_name='psbCor'):
     objects.to_file(path)
     print('File saved.')
 
+'''
+building_squareness():
+    character id: psbSqu
+
+    Return squareness of a building shape.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'psbSqu' (optional)
+
+'''
+
+
+def building_squareness(path, column_name='psbSqu'):
+    print('Loading file.')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    squareness(objects, column_name)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
 
 # intensity characters
 
