@@ -500,16 +500,13 @@ squareness():
 
     Only external shape, courtyards not included.
 
-    Formula: mean deviation of all corners from 90
+    Formula: mean deviation of all corners from 90 degrees
 
-    Reference: Ale?
+    Reference: Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative
+               Science of Urban Form. University of Strathclyde.
 
     Attributes: objects = geoDataFrame with objects
                 column_name = name of the column to save calculated values
-                area_column = name of column where is stored area value
-                longest_axis_column = name of column where is stored longest axis value
-
-    Missing: Option to calculate without values being calculated beforehand.
 '''
 
 
