@@ -20,15 +20,46 @@ def angle(a, b, c):
     cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
     angle = np.arccos(cosine_angle)
 
-    if np.degrees(angle) <= 170:
-        return True
-    elif np.degrees(angle) >= 190:
-        return True
+    return angle
+
+
+points = [(0.0, 0.0), (1.0, 2.0), (1.0, 1.0), (1.0, 6.0), (2.0, 0.0)]
+angles = []
+stop = len(points) - 1  # define where to stop
+for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
+    if i == 0:
+            continue
+    elif i == stop:
+        a = np.asarray(points[i - 1])
+        b = np.asarray(points[i])
+        c = np.asarray(points[1])
+        ang = angle(a, b, c)
+
+        if ang <= 170:
+            np.append(angles, ang)
+        elif angle(a, b, c) >= 190:
+            np.append(angles, ang)
+        else:
+            continue
+
     else:
-        return False
+        a = np.asarray(points[i - 1])
+        b = np.asarray(points[i])
+        c = np.asarray(points[i + 1])
+        ang = angle(a, b, c)
+
+        if angle(a, b, c) <= 170:
+            np.append(angles, ang)
+        elif angle(a, b, c) >= 190:
+            np.append(angles, ang)
+        else:
+            continue
+
+
+
 
 corners = 0
-points = [(0.0, 0.0), (1.0, 2.0), (1.0, 1.0), (1.0, 0.0), (2.0, 0.0)]
+
 stop = len(points) - 1
 
 for i in np.arange(len(points)):
