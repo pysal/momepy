@@ -478,6 +478,29 @@ def cell_frequency(path, column_name='vicFre'):
     objects.to_file(path)
     print('File saved.')
 
+'''
+cell_covered_area_ratio():
+    character id: pivCAR
+
+    TODO
+    (objects, look_for, column_name, area_column, look_for_area_column, id_column='uID')
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def cell_covered_area_ratio(path, look_for, column_name='pivCAR', area_column='ptcAre', look_for_area_column="pdbAre", id_column="uID"):
+    print('Loading files...')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('1/2 loaded...')
+    look_for = gpd.read_file(look_for)
+    print('Shapefiles loaded.')
+
+    covered_area_ratio(objects, look_for, column_name, area_column, look_for_area_column, id_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file.')
+    objects.to_file(path)
+    print('File saved.')
 
 # diversity characters
 '''
