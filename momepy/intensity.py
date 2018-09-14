@@ -47,7 +47,7 @@ def radius(gpd_df, cpt, radius):
 def frequency(objects, look_for, column_name, id_column='uID'):
     # define new column
 
-    print('Calculating frequency.')
+    print('Calculating frequency...')
 
     objects_centroids = objects.copy()
     objects_centroids['geometry'] = objects_centroids.centroid

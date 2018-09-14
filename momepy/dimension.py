@@ -21,7 +21,7 @@ def object_area(objects, column_name):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating areas.')
+    print('Calculating areas...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -43,7 +43,7 @@ def object_perimeter(objects, column_name):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating perimeters.')
+    print('Calculating perimeters...')
 
     # fill new column with the value of perimeter, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -68,7 +68,7 @@ def object_height_os(objects, column_name, original_column='relh2'):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating heights.')
+    print('Calculating heights...')
 
     # fill new column with the value of perimeter, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -95,7 +95,7 @@ def object_volume(objects, column_name, area_column, height_column, area_calcula
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating volumes.')
+    print('Calculating volumes...')
 
     if area_calculated:
         try:
@@ -134,7 +134,7 @@ def object_floor_area(objects, column_name, area_column, height_column, area_cal
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating floor areas.')
+    print('Calculating floor areas...')
 
     if area_calculated:
         try:
@@ -171,7 +171,7 @@ def courtyard_area(objects, column_name, area_column, area_calculated):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating courtyard areas.')
+    print('Calculating courtyard areas...')
 
     if area_calculated:
         try:
@@ -200,7 +200,7 @@ def longest_axis_length(objects, column_name):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating the longest axis.')
+    print('Calculating the longest axis...')
 
     # calculate the area of circumcircle
     def longest_axis(points):
@@ -227,7 +227,7 @@ def longest_axis_length2(objects, column_name):  # based on convex hull for mult
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating the longest axis.')
+    print('Calculating the longest axis...')
 
     # calculate the area of circumcircle
     def longest_axis(points):

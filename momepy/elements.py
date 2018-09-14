@@ -15,7 +15,7 @@ Delete building with zero height (to avoid division by 0)
 
 
 def clean_buildings(path, height_column):
-    print('Loading file.')
+    print('Loading file...')
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
@@ -23,7 +23,7 @@ def clean_buildings(path, height_column):
     print('Zero height buildings ommited.')
 
     # save dataframe back to file
-    print('Saving file.')
+    print('Saving file...')
     objects.to_file(path)
     print('File saved.')
 
@@ -37,13 +37,13 @@ Delete rows of GeoDataFrame with null geometry.
 
 
 def clean_null(path):
-    print('Loading file.')
+    print('Loading file...')
     objects = gpd.read_file(path)
     print('Shapefile loaded.')
 
     objects_none = objects[objects['geometry'].notnull()]  # filter nulls
     # save dataframe back to file
-    print('Saving file.')
+    print('Saving file...')
     objects_none.to_file(path)
     print('File saved.')
 
@@ -59,7 +59,7 @@ Optional: Delete all the columns except ID and geometry (set clear to True)
 
 
 def unique_id(path, clear=False, keep=None):
-    print('Loading file.')
+    print('Loading file...')
     objects = gpd.read_file(path)
     print('Shapefile loaded.')
 
@@ -83,6 +83,6 @@ def unique_id(path, clear=False, keep=None):
 
     objects['uID'] = objects['uID'].astype('int16')
     # save dataframe back to file
-    print('Saving file.')
+    print('Saving file...')
     objects.to_file(path)
     print('File saved.')

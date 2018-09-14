@@ -39,7 +39,7 @@ def gini(array):
 def gini_index(objects, look_for, source, column_name, id_column='uID'):
     # define new column
 
-    print('Calculating Gini index.')
+    print('Calculating Gini index...')
 
     objects_centroids = objects.copy()
     objects_centroids['geometry'] = objects_centroids.centroid
@@ -65,7 +65,7 @@ Power law calculation.
 def power_law(objects, look_for, source, id_column='uID'):
     # define new column
 
-    print('Calculating Power law.')
+    print('Calculating Power law...')
 
     objects_centroids = objects.copy()
     objects_centroids['geometry'] = objects_centroids.centroid
@@ -91,7 +91,7 @@ Spatial autocorrelation.
 
 
 def moran_i_local(objects, source, column_name):
-    print("Calculating local Moran's I.")
+    print("Calculating local Moran's I...")
     print('Calculating weight matrix (rook)... (It might take a while.)')
     Wrook = pysal.weights.Rook.from_dataframe(objects, silent_island_warning=True)  # weight matrix 'rook'
     y = objects[[source]]
