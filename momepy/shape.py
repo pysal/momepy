@@ -32,7 +32,7 @@ def form_factor(objects, column_name, area_column, volume_column):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating form factor.')
+    print('Calculating form factor...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -68,7 +68,7 @@ def fractal_dimension(objects, column_name, area_column, perimeter_column):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating fractal dimension.')
+    print('Calculating fractal dimension...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -101,7 +101,7 @@ def volume_facade_ratio(objects, column_name, volume_column, perimeter_column, h
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating volume/facade ratio.')
+    print('Calculating volume/facade ratio...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -263,7 +263,7 @@ def compactness_index(objects, column_name, area_column):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating compactness index.')
+    print('Calculating compactness index...')
 
     # calculate the area of circumcircle
     def circle_area(points):
@@ -299,7 +299,7 @@ def compactness_index2(objects, column_name, area_column, perimeter_column):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating compactness index.')
+    print('Calculating compactness index...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -329,7 +329,7 @@ def convexeity(objects, column_name, area_column):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating convexeity.')
+    print('Calculating convexeity...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -361,7 +361,7 @@ def courtyard_index(objects, column_name, area_column, courtyard_column):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating courtyard index.')
+    print('Calculating courtyard index...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -392,7 +392,7 @@ def rectangularity(objects, column_name, area_column):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating rectangularity.')
+    print('Calculating rectangularity...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -423,7 +423,7 @@ def shape_index(objects, column_name, area_column, longest_axis_column):
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating shape index.')
+    print('Calculating shape index...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -496,7 +496,7 @@ def corners(objects, column_name):
 
 '''
 squareness():
-    Calculate squarenss of object
+    Calculate squareness of object
 
     Only external shape, courtyards not included.
 
@@ -565,6 +565,42 @@ def squareness(objects, column_name):
         objects.loc[index, column_name] = np.mean(deviations)
 
     print('Squareness calculated.')
+
+
+'''
+equivalent_rectangular_index():
+    Calculate equivalent rectangular index
+
+    Formula: sqrt(area/area of bounding rectangle) * (perimeter of bounding rectangle / perimeter)
+
+    Reference: Basaraner M and Cetinkaya S (2017) Performance of shape indices and classification
+               schemes for characterising perceptual shape complexity of building footprints in GIS.
+               2nd ed. International Journal of Geographical Information Science, Taylor & Francis
+               31(10): 1952–1977. Available from:
+               https://www.tandfonline.com/doi/full/10.1080/13658816.2017.1346257.
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save calculated values
+                area_column = name of column where is stored area value
+                perimeter_column = name of column where is stored perimeter value
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def equivalent_rectangular_index(objects, column_name, area_column, perimeter_column):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating equivalent rectangular index...')
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+            bbox = row['geometry'].minimum_rotated_rectangle
+            objects.loc[index, column_name] = math.sqrt(row[area_column] / bbox.area) * (bbox.length / row[perimeter_column])
+
+    print('Equivalent rectangular index calculated.')
+
 # to be deleted, keep at the end
 
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
