@@ -601,6 +601,49 @@ def equivalent_rectangular_index(objects, column_name, area_column, perimeter_co
 
     print('Equivalent rectangular index calculated.')
 
+'''
+elongation():
+    ...
+
+    Formula: ((P-√(P^2 - 16A))/4)/((P/2)-((P-√(P^2 - 16A))/4))
+
+    Reference: Gil J, Montenegro N, Beirão JN, et al. (2012) On the Discovery of
+               Urban Typologies: Data Mining the Multi-dimensional Character of
+               Neighbourhoods. Urban Morphology 16(1): 27–40.
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save calculated values
+                area_column = name of column where is stored area value
+                perimeter_column = name of column where is stored perimeter value
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def elongation(objects, column_name):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating elongation...')
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+            bbox = row['geometry'].minimum_rotated_rectangle
+            a = bbox.area
+            p = bbox.length
+
+            # calculate both width/length and length/width
+            elo1 = ((p - math.sqrt((p ** 2) - (16 * a))) / 4) / ((p / 2) - ((p - math.sqrt(p ** 2 - 16 * a)) / 4))
+            elo2 = ((p + math.sqrt((p ** 2) - (16 * a))) / 4) / ((p / 2) - ((p + math.sqrt(p ** 2 - 16 * a)) / 4))
+            # use the smaller one (e.g. shorter/longer)
+            if elo1 <= elo2:
+                elo = elo1
+            else:
+                elo = elo2
+
+            objects.loc[index, column_name] = elo
+
+    print('Elongation calculated.')
 # to be deleted, keep at the end
 
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"

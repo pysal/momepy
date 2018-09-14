@@ -562,6 +562,30 @@ def building_equivalent_rectangular_index(path, column_name='psbERI', area_colum
     objects.to_file(path)
     print('File saved.')
 
+
+'''
+building_elongation():
+    character id: psbElo
+
+    Return Elongation of a building shape.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'psbElo' (optional)
+
+'''
+
+
+def building_elongation(path, column_name='psbElo'):
+    print('Loading file...')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    elongation(objects, column_name)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file...')
+    objects.to_file(path)
+    print('File saved.')
 # intensity characters
 
 '''
