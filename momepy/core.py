@@ -382,6 +382,33 @@ def building_compactness_index(path, column_name='psbCom', area_column='pdbAre')
     print('File saved.')
 
 '''
+cell_compactness_index():
+    character id: pscCom
+
+    Return compactness index of voronoi cell.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'pscCom' (optional)
+                area_column = name of column where is stored area value. Default
+                              value 'ptcAre' (optional)
+
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def cell_compactness_index(path, column_name='pscCom', area_column='ptcAre'):
+    print('Loading file...')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    compactness_index(objects, column_name, area_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file...')
+    objects.to_file(path)
+    print('File saved.')
+
+'''
 building_convexeity():
     character id: psbCom
 
@@ -567,7 +594,7 @@ def building_equivalent_rectangular_index(path, column_name='psbERI', area_colum
 building_elongation():
     character id: psbElo
 
-    Return Elongation of a building shape.
+    Return elongation of a building shape.
 
     Attributes: path = path to file (tested on shapefile)
                 column_name = name of the column, default 'psbElo' (optional)
@@ -581,6 +608,54 @@ def building_elongation(path, column_name='psbElo'):
     print('Shapefile loaded.')
 
     elongation(objects, column_name)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file...')
+    objects.to_file(path)
+    print('File saved.')
+
+'''
+cell_elongation():
+    character id: pscElo
+
+    Return elongation of a voronoi cell.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'pscElo' (optional)
+
+'''
+
+
+def cell_elongation(path, column_name='pscElo'):
+    print('Loading file...')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    elongation(objects, column_name)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file...')
+    objects.to_file(path)
+    print('File saved.')
+
+'''
+building_centroid_corners():
+    character id: psbCCD
+
+    Return mean centroid - corner distance of building.
+
+    Attributes: path = path to file (tested on shapefile)
+                column_name = name of the column, default 'psbCCD' (optional)
+
+'''
+
+
+def building_centroid_corners(path, column_name='psbCCD'):
+    print('Loading file...')
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Shapefile loaded.')
+
+    centroid_corners(objects, column_name)  # call function from dimension
 
     # save dataframe back to file
     print('Saving file...')
