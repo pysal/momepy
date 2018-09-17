@@ -1,8 +1,23 @@
 import momepy as mm
 import geopandas as gpd
+import pandas as pd
 import pysal
 # from tqdm import tqdm  # progress bar
 
+cells = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single2.shp"
+buildings = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
+
+
+mm.building_centroid_corners(buildings)
+
+objects.columns
+look_for = gpd.read_file(buildings)
+look_for.columns
+look_for = look_for[['uID', 'pdbAre']]
+look_for
+objects = objects.merge(look_for, on='uID')
+objects.columns
+'''
 voronoi10 = "/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/Final data/Voronoi/voronoi_10.shp"
 voronoi15 = "/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/Final data/Voronoi/voronoi_15.shp"
 voronoi20 = "/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/Final data/Voronoi/voronoi_20.shp"
@@ -26,15 +41,8 @@ buildings_merged = buildings_clean.groupby(['uID']).sum()
 test = "/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/Final data/Voronoi/test/voronoi_10.shp"
 tests = [test]
 files = [voronoi10, voronoi20, voronoi15, voronoi25, voronoi30, voronoi40, voronoi50, voronoi60, voronoi70, voronoi80, voronoi90, voronoi100, plots]
+index = 1
 
-objects = gpd.read_file(test)
-
-Wrook = pysal.weights.Rook.from_dataframe(objects, silent_island_warning=True)  # weight matrix 'rook'
-y = objects[['car']]
-moran = pysal.Moran(y, Wrook)
-moran.I
-moran.EI
-moran.p_norm
 
 for f in files:
     print('Loading file', f)
@@ -50,7 +58,7 @@ for f in files:
 
 # mm.unique_id(plots, clear=True)
 # mm.gethead(path)
-
+'''
 #
 # #
 # objects = gpd.read_file(path)
