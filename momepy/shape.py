@@ -6,6 +6,7 @@ from tqdm import tqdm  # progress bar
 import math
 import random
 import numpy as np
+from shapely.geometry import Point
 
 
 '''
@@ -603,7 +604,7 @@ def equivalent_rectangular_index(objects, column_name, area_column, perimeter_co
 
 '''
 elongation():
-    ...
+    Calculate elongation of object seen as elongation of its minimum bounding rectangle
 
     Formula: ((P-√(P^2 - 16A))/4)/((P/2)-((P-√(P^2 - 16A))/4))
 
@@ -613,10 +614,8 @@ elongation():
 
     Attributes: objects = geoDataFrame with objects
                 column_name = name of the column to save calculated values
-                area_column = name of column where is stored area value
-                perimeter_column = name of column where is stored perimeter value
 
-    Missing: Option to calculate without values being calculated beforehand.
+
 '''
 
 
@@ -644,6 +643,78 @@ def elongation(objects, column_name):
             objects.loc[index, column_name] = elo
 
     print('Elongation calculated.')
+
+'''
+centroid_corners():
+    Calculate mean distance centroid - corner
+
+    Formula: mean distance centroid - corner
+
+    Reference: Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
+               Journal of Transport and Land Use 9(1): 101–130.
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save calculated values
+
+
+'''
+
+
+def centroid_corners(objects, column_name):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating mean distance centroid - corner...')
+
+    # calculate angle between points, return true or false if real corner
+    def true_angle(a, b, c):
+        ba = a - b
+        bc = c - b
+
+        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+        angle = np.arccos(cosine_angle)
+
+        if np.degrees(angle) <= 170:
+            return True
+        elif np.degrees(angle) >= 190:
+            return True
+        else:
+            return False
+
+    # iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        distances = []  # set empty list of distances
+        centroid = row['geometry'].centroid  # define centroid
+        points = list(row['geometry'].exterior.coords)  # get points of a shape
+        stop = len(points) - 1  # define where to stop
+        for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
+            if i == 0:
+                    continue
+            elif i == stop:
+                a = np.asarray(points[i - 1])
+                b = np.asarray(points[i])
+                c = np.asarray(points[1])
+                p = Point(points[i])
+
+                if true_angle(a, b, c) is True:
+                    distance = centroid.distance(p)  # calculate distance point - centroid
+                    distances.append(distance)  # add distance to the list
+                else:
+                    continue
+
+            else:
+                a = np.asarray(points[i - 1])
+                b = np.asarray(points[i])
+                c = np.asarray(points[i + 1])
+                p = Point(points[i])
+
+                if true_angle(a, b, c) is True:
+                    distance = centroid.distance(p)
+                    distances.append(distance)
+                else:
+                    continue
+
+        objects.loc[index, column_name] = np.mean(distances)  # calculate mean and sve it to DF
 # to be deleted, keep at the end
 
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
