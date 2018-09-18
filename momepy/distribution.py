@@ -51,8 +51,9 @@ def orientation(objects, column_name):
         else:
             objects.loc[index, column_name] = math.sin(math.radians(azimuth(centroid_ab, centroid_cd)))
 
+    print('Orientations calculated.')
 # to be deleted, keep at the end
-# 
+#
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
 # objects = gpd.read_file(path)
 #
