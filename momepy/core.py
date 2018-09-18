@@ -7,6 +7,7 @@ import geopandas as gpd
 
 from .dimension import *
 from .shape import *
+from .distribution import *
 from .intensity import *
 from .diversity import *
 
@@ -46,14 +47,14 @@ building_area():
 
 
 def building_area(path, column_name='pdbAre'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     object_area(objects, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -71,14 +72,14 @@ building_perimeter():
 
 
 def building_perimeter(path, column_name='pdbPer'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     object_perimeter(objects, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -94,14 +95,14 @@ building_height_os():
 
 
 def building_height_os(path, column_name='pdbHei'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     object_height_os(objects, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -126,14 +127,14 @@ building_volume():
 
 
 def building_volume(path, column_name='pdbVol', area_column='pdbAre', height_column='pdbHei', area_calculated=True):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     object_volume(objects, column_name, area_column, height_column, area_calculated)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -159,14 +160,14 @@ building_floor_area():
 
 
 def building_floor_area(path, column_name='pdbFlA', area_column='pdbAre', height_column='pdbHei', area_calculated=True):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     object_floor_area(objects, column_name, area_column, height_column, area_calculated)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -189,14 +190,14 @@ building_courtyard_area():
 
 
 def building_courtyard_area(path, column_name='pdbCoA', area_column='pdbAre', area_calculated=True):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     courtyard_area(objects, column_name, area_column, area_calculated)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -212,14 +213,14 @@ cell_longest_axis_length():
 
 
 def cell_longest_axis_length(path, column_name='pdcLAL'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     longest_axis_length(objects, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -233,7 +234,7 @@ building_dimensions():
 
 
 def building_dimensions(path):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
@@ -245,7 +246,7 @@ def building_dimensions(path):
     courtyard_area(objects, column_name='pdbCoA', area_column='pdbAre', area_calculated=True)
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -282,14 +283,14 @@ building_form_factor():
 
 
 def building_form_factor(path, column_name='psbFoF', area_column='pdbAre', volume_column='pdbVol'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     form_factor(objects, column_name, area_column, volume_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -311,14 +312,14 @@ building_fractal_dimension():
 
 
 def building_fractal_dimension(path, column_name='psbFra', area_column='pdbAre', perimeter_column='pdbPer'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     fractal_dimension(objects, column_name, area_column, perimeter_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -343,14 +344,14 @@ building_volume_facade_ratio():
 
 
 def building_volume_facade_ratio(path, column_name='psbVFR', volume_column='pdbVol', perimeter_column='pdbPer', height_column='pdbHei'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     volume_facade_ratio(objects, column_name, volume_column, perimeter_column, height_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -370,14 +371,14 @@ building_compactness_index():
 
 
 def building_compactness_index(path, column_name='psbCom', area_column='pdbAre'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     compactness_index(objects, column_name, area_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -397,14 +398,14 @@ cell_compactness_index():
 
 
 def cell_compactness_index(path, column_name='pscCom', area_column='ptcAre'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     compactness_index(objects, column_name, area_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -424,14 +425,14 @@ building_convexeity():
 
 
 def building_convexeity(path, column_name='psbCon', area_column='pdbAre'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     convexeity(objects, column_name, area_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -453,14 +454,14 @@ building_courtyard_index():
 
 
 def building_courtyard_index(path, column_name='psbCoI', area_column='pdbAre', courtyard_column='pdbCoA'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     courtyard_index(objects, column_name, area_column, courtyard_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -479,14 +480,14 @@ building_rectangularity():
 
 
 def building_rectangularity(path, column_name, area_column):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     corners(objects, column_name, area_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -507,14 +508,14 @@ building_shape_index():
 
 
 def building_shape_index(path, column_name='psbShI', area_column='pdbAre', longest_axis_column='pdcLAL'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     shape_index(objects, column_name, area_column, longest_axis_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -530,14 +531,14 @@ building_corners():
 
 
 def building_corners(path, column_name='psbCor'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     corners(objects, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -554,14 +555,14 @@ building_squareness():
 
 
 def building_squareness(path, column_name='psbSqu'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     squareness(objects, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -578,14 +579,14 @@ building_equivalent_rectangular_index():
 
 
 def building_equivalent_rectangular_index(path, column_name='psbERI', area_column='pdbAre', perimeter_column='pdbPer'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     equivalent_rectangular_index(objects, column_name, area_column, perimeter_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -603,14 +604,14 @@ building_elongation():
 
 
 def building_elongation(path, column_name='psbElo'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     elongation(objects, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -627,14 +628,14 @@ cell_elongation():
 
 
 def cell_elongation(path, column_name='pscElo'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     elongation(objects, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -651,16 +652,27 @@ building_centroid_corners():
 
 
 def building_centroid_corners(path, column_name='psbCCD'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     centroid_corners(objects, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
+
+# spatial distribution characters
+'''
+Spatial distribution characters:
+
+    plot scale:
+
+        orientation
+'''
+
+
 # intensity characters
 
 '''
@@ -691,14 +703,14 @@ cell_frequency():
 
 
 def cell_frequency(path, column_name='vicFre'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     frequency(objects, objects, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -722,7 +734,7 @@ def cell_covered_area_ratio(path, look_for, column_name='pivCAR', area_column='p
     covered_area_ratio(objects, look_for, column_name, area_column, look_for_area_column, id_column)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
@@ -744,26 +756,26 @@ cell_area_gini():
 
 
 def cell_area_gini(path, column_name='vvcGAr', source='ptcAre'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     gini_index(objects, objects, source, column_name)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
 
 
 def cell_area_power(path, source='ptcAre'):
-    print('Loading file...')
+    print('Loading file', path)
     objects = gpd.read_file(path)  # load file into geopandas
     print('Shapefile loaded.')
 
     power_law(objects, objects, source)  # call function from dimension
 
     # save dataframe back to file
-    print('Saving file...')
+    print('Saving file to', path)
     objects.to_file(path)
     print('File saved.')
