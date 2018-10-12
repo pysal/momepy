@@ -725,13 +725,37 @@ cell_covered_area_ratio():
 
 
 def cell_covered_area_ratio(path, look_for, column_name='pivCAR', area_column='ptcAre', look_for_area_column="pdbAre", id_column="uID"):
-    print('Loading files...')
+    print('Loading file (1/2)', path)
     objects = gpd.read_file(path)  # load file into geopandas
-    print('1/2 loaded...')
+    print('Loading file (2/2)', look_for)
     look_for = gpd.read_file(look_for)
     print('Shapefiles loaded.')
 
     covered_area_ratio(objects, look_for, column_name, area_column, look_for_area_column, id_column)  # call function from dimension
+
+    # save dataframe back to file
+    print('Saving file to', path)
+    objects.to_file(path)
+    print('File saved.')
+
+'''
+cell_covered_area_ratio():
+    character id: pivCAR
+
+    TODO
+    (objects, look_for, column_name, area_column, look_for_area_column, id_column='uID')
+    Missing: Option to calculate without values being calculated beforehand.
+'''
+
+
+def cell_floor_area_ratio(path, look_for, column_name='pivFAR', area_column='ptcAre', look_for_area_column='pdbFlA', id_column="uID"):
+    print('Loading file (1/2)', path)
+    objects = gpd.read_file(path)  # load file into geopandas
+    print('Loading file (2/2)', look_for)
+    look_for = gpd.read_file(look_for)
+    print('Shapefiles loaded.')
+
+    floor_area_ratio(objects, look_for, column_name, area_column, look_for_area_column, id_column)  # call function from dimension
 
     # save dataframe back to file
     print('Saving file to', path)
