@@ -273,7 +273,7 @@ def compactness_index(objects, column_name, area_column):
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = (row[area_column]) / (circle_area(list(row['geometry'].exterior.coords)))
+        objects.loc[index, column_name] = (row[area_column]) / (circle_area(list(row['geometry'].convex_hull.exterior.coords)))
 
     print('Compactness index calculated.')
 
@@ -630,10 +630,16 @@ def elongation(objects, column_name):
             bbox = row['geometry'].minimum_rotated_rectangle
             a = bbox.area
             p = bbox.length
+            cond1 = (p ** 2)
+            cond2 = (16 * a)
+            if cond1 >= cond2:
+                sqrt = cond1 - cond2
+            else:
+                sqrt = 0
 
             # calculate both width/length and length/width
-            elo1 = ((p - math.sqrt((p ** 2) - (16 * a))) / 4) / ((p / 2) - ((p - math.sqrt(p ** 2 - 16 * a)) / 4))
-            elo2 = ((p + math.sqrt((p ** 2) - (16 * a))) / 4) / ((p / 2) - ((p + math.sqrt(p ** 2 - 16 * a)) / 4))
+            elo1 = ((p - math.sqrt(sqrt)) / 4) / ((p / 2) - ((p - math.sqrt(sqrt)) / 4))
+            elo2 = ((p + math.sqrt(sqrt)) / 4) / ((p / 2) - ((p + math.sqrt(sqrt)) / 4))
             # use the smaller one (e.g. shorter/longer)
             if elo1 <= elo2:
                 elo = elo1
