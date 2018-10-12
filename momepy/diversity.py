@@ -92,65 +92,81 @@ Spatial autocorrelation.
 
 def moran_i_local(objects, source, column_name):
     print("Calculating local Moran's I...")
-    print('Calculating weight matrix (rook)... (It might take a while.)')
-    Wrook = pysal.weights.Rook.from_dataframe(objects, silent_island_warning=True)  # weight matrix 'rook'
+    print('Calculating weight matrix... (It might take a while.)')
+    # Wrook = pysal.weights.Distance.DistanceBand.from_dataframe(objects, 400)  # weight matrix 'rook'
+    Wrook = pysal.weights.Distance.DistanceBand.from_dataframe(objects, 400)  # weight matrix 'rook'
     y = objects[[source]]
     print('Calculating...')
     lm = pysal.Moran_Local(y, Wrook)
     objects[column_name] = lm.Is
     print("Local Moran's I calculated.")
 
-'''
-import geopandas as gpd
 
+# import geopandas as gpd
+#
+#
+# path = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/P7/p7_voro_single2.shp"
+# test = gpd.read_file(path)
+# test.columns
+# # testdrop = test.drop(test.index[[1998, 2070, 4216]])  # ignore islands
+# W = pysal.weights.Distance.DistanceBand.from_dataframe(test, 400)  # weight matrix 'queen'
+# W
+# Wqueen = pysal.weights.Queen.from_dataframe(test)  # weight matrix 'rook'
+# y = test[['ptcAre']]  # column to measure LISA
+# # y.drop(y.index[[1998, 2070, 4216]])
+# lm = pysal.Moran_Local(y, W)  # calculate LISA Local Moran's I
+#
+# # save LISA values (need to figure out which are useful)
+# test['400local'] = lm.Is
+# test['sig'] = lm.p_sim
+# test['lm_q'] = lm.q
+# test['lm_sim'] = lm.z_sim
+#
+# gg = pysal.G_Local(y, Wrook)  # calculate LISA Gettis Ord G
+#
+# test['5local']
+# # save LISA values (need to figure out which are useful)
+# testdrop['g_Gs'] = gg.Gs
+# testdrop['g_EGs'] = gg.EGs
+# testdrop['g_Zs'] = gg.Zs
+# testdrop['g_psim'] = gg.p_sim
+#
+#
+# path2 = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single2.shp"
+# test.to_file(path)
 
-path = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single.shp"
-test = gpd.read_file(path)
-testdrop = test.drop(test.index[[1998, 2070, 4216]])  # ignore islands
-W = pysal.weights.Queen.from_dataframe(test)  # weight matrix 'queen'
-Wrook = pysal.weights.Rook.from_dataframe(testdrop)  # weight matrix 'rook'
-y = testdrop[['ptcAre']]  # column to measure LISA
-# y.drop(y.index[[1998, 2070, 4216]])
-lm = pysal.Moran_Local(y, Wrook)  # calculate LISA Local Moran's I
-
-# save LISA values (need to figure out which are useful)
-testdrop['local'] = lm.Is
-testdrop['sig'] = lm.p_sim
-testdrop['lm_q'] = lm.q
-testdrop['lm_sim'] = lm.z_sim
-
-gg = pysal.G_Local(y, Wrook)  # calculate LISA Gettis Ord G
-
-
-# save LISA values (need to figure out which are useful)
-testdrop['g_Gs'] = gg.Gs
-testdrop['g_EGs'] = gg.EGs
-testdrop['g_Zs'] = gg.Zs
-testdrop['g_psim'] = gg.p_sim
-
-
-path2 = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single2.shp"
-testdrop.to_file(path2)
-'''
 
 '''
 HDBSCAN clustering. Should be in different file than diversity.
 '''
 
-'''
-import hdbscan
-testdrop.columns
-# select columns for analysis
-clustering = testdrop[['pdcLAL', 'vicFre', 'ptcAre', 'vvcGAr', 'pw_alpha', 'local', 'g_Gs']]
-
-
-# make clusterer
-clusterer = hdbscan.HDBSCAN(min_cluster_size=13)
-
-# cluster data
-clusterer.fit(clustering)
-# get number of clusters
-clusterer.labels_.max()
-# save cluster labels to geoDataFrame
-testdrop['cluster'] = clusterer.labels_
-'''
+# import pandas as pd
+# values = pd.read_csv('/Users/martin/Strathcloud/Personal Folders/Test data/Prague/Prague/CSV/prg.csv')
+#
+# import hdbscan
+# values.columns
+#
+# # select columns for analysis
+# clustering = values[['pdbHei', 'pdbAre', 'uID',
+#                      'pdbFlA', 'pdbVol', 'pdbPer', 'pdbCoA', 'pdbLAL', 'psbFoF', 'psbFra',
+#                      'psbVFR', 'psbCom', 'psbCom2', 'psbCon', 'psbCoI', 'psbCor', 'psbShI',
+#                      'psbSqu', 'psbERI', 'psbElo', 'ptbOri', 'pdcLAL', 'ptcAre',
+#                      'pscCom', 'pscElo', 'pivCAR', 'vicFre', 'vvcGAr', 'vvvGCA', 'uvvMCA',
+#                      'pivFAR', 'bID', 'bdkAre', 'bdkPer', 'bdkSec', 'bskElo', 'bskFra',
+#                      'bskCom', 'bskCom2', 'bskCon', 'bskShI', 'bskERI', 'btkOri']]
+# clustering[['pivFAR', 'bID', 'bdkAre', 'bdkPer', 'bdkSec', 'bskElo', 'bskFra']].isnull().sum().sum()
+# clustering.isnull().sum().sum()
+# nan_rows = clustering[clustering['bskFra'].isnull()]
+# nan_rows
+# # make clusterer
+# clusterer = hdbscan.HDBSCAN(min_cluster_size=3)
+#
+# # cluster data
+# clusterer.fit(clustering)
+# # get number of clusters
+# clusterer.labels_.max()
+# # save cluster labels to geoDataFrame
+# values['cluster'] = clusterer.labels_
+# values['cluster']
+# togis = values[['uID', 'cluster']]
+# togis.to_csv('/Users/martin/Strathcloud/Personal Folders/Test data/Prague/Prague/CSV/prg_clustered.csv')
