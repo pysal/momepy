@@ -77,6 +77,40 @@ def object_height_os(objects, column_name, original_column='relh2'):
     print('Heights defined.')
 
 '''
+object_height_prg():
+    Function tailored to Geoportal Prague.
+    It will calculate estimated building heights based on floor number and type.
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save the height values
+                floors_column = name of column where is stored original height
+                                  value. Default value 'od_POCET_P' (optional)
+                floor_type = name of the column deifing buildings type (to
+                             differentiate height of the floor). Def = 'od_TYP'
+'''
+
+
+def object_height_prg(objects, column_name, floors_column='od_POCET_P', floor_type='od_TYP'):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating heights...')
+
+    # fill new column with the value of perimeter, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        if row[floor_type] == 7:
+            height = row[floors_column] * 3.5  # old buildings with high ceiling
+        elif row[floor_type] == 3:
+            height = row[floors_column] * 5  # warehouses
+        else:
+            height = row[floors_column] * 3  # standard buildings
+
+        objects.loc[index, column_name] = height
+
+    print('Heights defined.')
+
+'''
+
 object_volume():
     Calculate volume of each object in given shapefile based on its height and area.
 
