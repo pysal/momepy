@@ -5,10 +5,10 @@ import pysal
 # from tqdm import tqdm  # progress bar
 #
 # cells = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single2.shp"
-# buildings = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
-#
-#
-# mm.building_centroid_corners(buildings)
+buildings = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
+objects = gpd.read_file(buildings)
+objects.columns
+mm.moran_i_local(buildings, 'pdbFlA', column_name='moran')
 #
 # objects.columns
 # look_for = gpd.read_file(buildings)
