@@ -81,7 +81,7 @@ def unique_id(path, clear=False, keep=None):
             keep_col = objects.columns.get_loc(keep)
             objects = objects.iloc[:, [-2, keep_col, -1]]
 
-    objects['uID'] = objects['uID'].astype('int16')
+    # objects['uID'] = objects['uID'].astype('int16') - it is making weird errors
     # save dataframe back to file
     print('Saving file...')
     objects.to_file(path)
