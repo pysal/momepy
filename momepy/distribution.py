@@ -89,8 +89,8 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
             objects.loc[index, column_name] = 0
         else:
             for i in neighbors:
-                subset = objects.loc[objects[unique_id] == i]['geometry']
-                length = length + row.geometry.intersection(subset.iloc[0]).length
+                subset = objects.loc[objects[unique_id] == i]
+                length = length + row.geometry.intersection(subset.iloc[0]['geometry']).length
                 objects.loc[index, column_name] = length / row[perimeter_column]
 
 
