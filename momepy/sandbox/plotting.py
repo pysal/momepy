@@ -4,6 +4,7 @@ import pysal as ps
 import matplotlib.pyplot as plt
 import numpy as np
 import palettable as pal
+import mapclassify
 %matplotlib inline
 
 prague = gpd.read_file("/Users/martin/Dropbox/StrathUni/PhD/Sample data/Prague/Prague/Buildings/prg_buildings_values_bID.shp")
@@ -535,7 +536,7 @@ def __pysal_choro(values, scheme, k=5):
         class identifier and the bins.
     """
     try:
-        from pysal.esda.mapclassify import (
+        from mapclassify import (
             Quantiles, Equal_Interval, Fisher_Jenks, Fisher_Jenks_Sampled)
         schemes = {}
         schemes['equal_interval'] = Equal_Interval
@@ -613,11 +614,12 @@ scalebar5 = AnchoredSizeBar(ax.transData,
                             )
 ax.add_artist(scalebar5)
 
+
 l_ax = legendgram(plt.gcf(),  # get current figure (map defined above)
                   ax,  # the axis to add the legend
                   prague.psbERI,  # the attribute to map
-                  ps.esda.mapclassify.Fisher_Jenks_Sampled(prague['psbERI'].values, k=11).bins,  # the breaks to induce color differences
-                                                                                           # (https://pysal.readthedocs.io/en/latest/library/esda/mapclassify.html)
+                  mapclassify.Fisher_Jenks_Sampled(prague['psbERI'].values, k=11).bins,  # the breaks to induce color differences
+                                                                                         # (https://pysal.readthedocs.io/en/latest/library/esda/mapclassify.html)
                   pal.colorbrewer.diverging.RdBu_11,  # the palette to use (https://jiffyclub.github.io/palettable/)
                   legend_size=(.2, .15),  # the size of the subplot, in fractions of the original axis of map
                   loc= 'lower right',  # the location on the axis

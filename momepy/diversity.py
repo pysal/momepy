@@ -88,33 +88,37 @@ def power_law(objects, look_for, source, id_column='uID'):
 '''
 Spatial autocorrelation.
 '''
+from libpysal.weights import DistanceBand
+import esda
 
 
 def moran_i_local(objects, source, column_name):
     print("Calculating local Moran's I...")
     print('Calculating weight matrix... (It might take a while.)')
-    # Wrook = pysal.weights.Distance.DistanceBand.from_dataframe(objects, 400)  # weight matrix 'rook'
-    Wrook = pysal.weights.Distance.DistanceBand.from_dataframe(objects, 400)  # weight matrix 'rook'
+    W = DistanceBand.from_dataframe(objects, 400)  # weight matrix
     y = objects[[source]]
     print('Calculating...')
-    lm = pysal.Moran_Local(y, Wrook)
+    lm = esda.Moran_Local(y, W)
     objects[column_name] = lm.Is
     print("Local Moran's I calculated.")
 
 
 # import geopandas as gpd
+# import esda
+# from pysal.lib import weights, examples
 #
 #
-# path = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/P7/p7_voro_single2.shp"
+#
+# path = "/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/p7_voro_single2.shp"
 # test = gpd.read_file(path)
 # test.columns
 # # testdrop = test.drop(test.index[[1998, 2070, 4216]])  # ignore islands
-# W = pysal.weights.Distance.DistanceBand.from_dataframe(test, 400)  # weight matrix 'queen'
-# W
-# Wqueen = pysal.weights.Queen.from_dataframe(test)  # weight matrix 'rook'
+# W = pysal.lib.weights.Distance.DistanceBand.from_dataframe(test, 400)  # weight matrix 'queen'
+# Wqueen
+# Wqueen = Queen.from_dataframe(test)  # weight matrix 'rook'
 # y = test[['ptcAre']]  # column to measure LISA
 # # y.drop(y.index[[1998, 2070, 4216]])
-# lm = pysal.Moran_Local(y, W)  # calculate LISA Local Moran's I
+# lm = esda.Moran_Local(y, Wqueen)  # calculate LISA Local Moran's I
 #
 # # save LISA values (need to figure out which are useful)
 # test['400local'] = lm.Is
