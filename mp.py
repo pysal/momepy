@@ -1,7 +1,7 @@
 import momepy as mm
 import geopandas as gpd
-import pandas as pd
-import pysal
+# import pandas as pd
+# import pysal
 # from tqdm import tqdm  # progress bar
 #
 # cells = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single2.shp"
@@ -58,10 +58,26 @@ for f in files:
 
 # mm.unique_id(plots, clear=True)
 # mm.gethead(path)
-
+tessel = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Prague/Cells/prg_tesselation50_IDs.shp'
+bl = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Prague/Buildings/prg_buildings_IDs.shp'
+mm.unique_id('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Prague/Street Network/prg_street_network.shp', id_name='nID')
+blg = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Prague/Buildings/prg_buildings_values_bID.shp')
+tess = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Prague/Cells/prg_tesselation50_values_bID.shp')
+str = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Prague/Street Network/prg_street_network.shp')
+save_path = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Prague/Street Edges/prg_edges_IDs.shp'
+mm.street_edges(blg, str, tess, 'MKN_1', 'uID', 'bID', 'nID', tessel, bl, save_path)
 #
 # #
 # objects = gpd.read_file(path)
 # del objects['vicFre']
 # objects
 # objects.to_file(path)
+
+cells = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/tess.shp')
+streets = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/str.shp')
+buildings = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blg.shp')
+cells_to = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/tessPY.shp'
+buildings_to = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blgPY.shp'
+blocks_to = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blocksPY.shp'
+
+mm.blocks(cells, streets, buildings, 'bID', 'uID', cells_to, buildings_to, blocks_to)
