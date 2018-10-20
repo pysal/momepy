@@ -11,18 +11,21 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 import matplotlib.pyplot as plt
 import shapefile
 
+path = "/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blg.shp"
+# buildings with uID
+temp_obj = "/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/temp_obj.shp"
+temp_points = "/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/temp_points.shp"
+tesselation = "/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/tess_scipy.shp"
 
-path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/Tess/bul.shp"
-objects_used = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/Tess/for_convert.shp"
-points_used = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/Tess/points.shp"
-voronoi_network = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/Tess/voronoi.shp"
 print('Loading file.')
 objects = gpd.read_file(path)  # load file into geopandas
 print('Shapefile loaded.')
 
-objects['geometry'] = tqdm(objects.buffer(-0.1, resolution=1))  # change original geometry with buffered one
+# objects['geometry'] = tqdm(objects.buffer(-0.2, resolution=1, join_style=2, cap_style=2))  # change original geometry with buffered one
+objects['geometry'] = objects.geometry.apply(lambda g: g.buffer(-0.5, cap_style=2, join_style=2))
 print('Buffered.')
 
+objects['geometry'] = objects.simplify(0.25, preserve_topology=True)
 
 # densify geometry beforo Voronoi tesselation
 def densify(geom):
@@ -39,6 +42,22 @@ print('Densified.')
 
 # define new numpy.array
 voronoi_points = np.empty([1, 2])
+
+def multi2single(gpdf):
+    gpdf_singlepoly = gpdf[gpdf.geometry.type == 'Polygon']
+    gpdf_multipoly = gpdf[gpdf.geometry.type == 'MultiPolygon']
+
+    for i, row in gpdf_multipoly.iterrows():
+        Series_geometries = pd.Series(row.geometry)
+        df = pd.concat([gpd.GeoDataFrame(row, crs=gpdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
+        df['geometry'] = Series_geometries
+        gpdf_singlepoly = pd.concat([gpdf_singlepoly, df])
+
+    gpdf_singlepoly.reset_index(inplace=True, drop=True)
+    return gpdf_singlepoly
+
+
+objects = multi2single(objects)
 
 # fill array with all points from densified geometry
 for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -60,31 +79,13 @@ result = pd.DataFrame({'geometry':
                       [poly.intersection(convex_hull) for poly in shapely.ops.polygonize(lines)]})
 # generate geoDataFrame of Voronoi polygons
 voronoi_polygons = gpd.GeoDataFrame(result, geometry='geometry')
+
 print('Voronoi polygons ready')
-voronoi_polygons.crs = {'init': 'epsg:102065'}
-#
-# df = pd.DataFrame({'id':
-#                   [row['OBJECTID'] for index, row in objects.iterrows()], 'geometry':
-#                   [row['geometry'].exterior.coords for index, row in objects.iterrows()]})
-# gdf = gpd.GeoDataFrame(df, geometry='geometry')
-#
-# voronoi_with_id = gpd.sjoin(voronoi_polygons, objects, how='inner', op='intersects')
-# voronoi_with_id.crs = {'proj': 'tmerc', 'lat_0': 49, 'lon_0': -2, 'k': 0.9996012717, 'x_0':
-#                        400000, 'y_0': -100000, 'datum': 'OSGB36', 'units': 'm', 'no_defs': True}
-#
 
-# voronoi_plots.crs = {'proj': 'tmerc', 'lat_0': 49, 'lon_0': -2, 'k': 0.9996012717, 'x_0':
-#                      400000, 'y_0': -100000, 'datum': 'OSGB36', 'units': 'm', 'no_defs': True}
+voronoi_polygons.crs = objects.crs  # ok up to here, then gaps
+objects.to_file(temp_obj)
 
-#
-#
-# voronoi_polygons.to_file("/Users/martin/Strathcloud/Personal Folders/Test data/Royston/Tess/test_vor2.shp")
-#
-#
-
-objects.to_file(objects_used)
-
-sf = shapefile.Reader(objects_used)
+sf = shapefile.Reader(temp_obj)
 
 newType = shapefile.MULTIPOINT
 w = shapefile.Writer(newType)
@@ -93,29 +94,31 @@ for s in w.shapes():
     s.shapeType = newType
 w.fields = list(sf.fields)
 w.records.extend(sf.records())
-w.save(points_used)
+w.save(temp_points)
 print('Points ready.')
-points = gpd.read_file(points_used)
-points.crs = {'init': 'epsg:102065'}
-voronoi_with_id = gpd.sjoin(voronoi_polygons, points, how='inner', op='intersects')
-voronoi_with_id.crs = {'init': 'epsg:102065'}
+
+
+points = gpd.read_file(temp_points)
+points.crs = objects.crs
+points['geometry'] = points.buffer(0.28)
+voronoi_with_id = gpd.sjoin(voronoi_polygons, points, how='left', op='intersects')
+voronoi_with_id.crs = objects.crs
 # voronoi_with_id.to_file(voronoi_network)
 # objects = gpd.read_file(path)
 # objects.crs = {'init': 'epsg:27700'}
 # # vor_w_holes = gpd.overlay(voronoi_with_id, objects, how='difference')
 # df = gpd.GeoDataFrame(pd.concat([objects, voronoi_with_id], ignore_index=True))
 
-
 # print('Holes cutted.')
 # merged = gpd.overlay(vor_w_holes, objects, how='union')
 print('Joined.')
-voronoi_plots = voronoi_with_id.dissolve(by='OBJECTID')
+voronoi_plots = voronoi_with_id.dissolve(by='uID')
 print('Dissolved.')
 
 # usedpoints = MultiPoint(voronoi_points)
 # df = pd.DataFrame({'geometry': [usedpoints]})
 # gdf = gpd.GeoDataFrame(df, geometry='geometry')
-voronoi_plots.to_file("/Users/martin/Strathcloud/Personal Folders/Test data/Royston/Tess/uaaaa.shp")
+voronoi_plots.to_file(tesselation)
 print('Saved.')
 #
 # merged = voronoi_with_id.append(objects)
