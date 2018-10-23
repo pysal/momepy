@@ -101,9 +101,7 @@ def unique_id(path, clear=False, keep=None, id_name='uID'):
 '''
 tesselation():
 
-Generate tessellation
-
-UNFINISHED - ADD PROPER COMMENTS
+Generate tessellation ADD DESCRIPTION
 
 Optional:
 '''
@@ -157,9 +155,10 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
     # fill array with all points from densified geometry
     for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         poly_ext = row['geometry'].exterior
-        point_coords = poly_ext.coords
-        row_array = np.array(point_coords)
-        voronoi_points = np.concatenate((voronoi_points, row_array))
+        if poly_ext is not None:
+            point_coords = poly_ext.coords
+            row_array = np.array(point_coords)
+            voronoi_points = np.concatenate((voronoi_points, row_array))
 
     # delete initial row of array to keep only points from geometry
     voronoi_points = voronoi_points[1:]
