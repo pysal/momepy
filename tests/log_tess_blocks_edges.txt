@@ -1,0 +1,121 @@
+/Users/martin/anaconda3/envs/geo/lib/python3.6/site-packages/libpysal/io/iohandlers/__init__.py:25: UserWarning: SQLAlchemy and Geomet not installed, database I/O disabled
+  warnings.warn('SQLAlchemy and Geomet not installed, database I/O disabled')
+100%|██████████| 3224/3224 [00:02<00:00, 1589.46it/s]
+Loading file /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blg5.shp
+Shapefile loaded.
+Loading file /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/str.shp
+Shapefile loaded.
+Generating tessellation.
+Bufferring geometry... 3.329769242554903e-07
+Simplifying geometry... 0.8755182289751247
+Densifying geometry... 1.1615292489877902
+Converting multipart geometry to singlepart... 1.9740254859789275
+Generating input point array... 2.0161268779775128
+Generating Voronoi diagram... 4.048584639996989
+Generating Voronoi ridges... 6.88070495397551
+Generating Voronoi geometry... 14.474409577000188
+Generating GeoDataFrame of Voronoi polygons... 20.957021267997334
+Saving to temporary file... 20.980621417984366
+Generating MultiPoint geometry... 23.009785186994122
+Buffering MultiPoint geometry... 24.71559367098962
+Spatial join of MultiPoint geometry and Voronoi polygons... 33.36270793699077
+Fixing unjoined geometry: 11 problems... 63.34910512997885
+Dissolving Voronoi polygons... 70.41813442198327
+Preparing buffer zone for edge resolving (buffering)... 88.60231236499385
+Preparing buffer zone for edge resolving (dissolving)... 89.24792531097773
+Preparing buffer zone for edge resolving (quadrat cut)... 91.43913609097945
+Building R-tree... 91.59762743799365
+Cutting... 92.33793528197566
+Saving morphological tessellation to /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/mm_g_tesselation.shp 93.2144046399917
+Done. 95.68562788498821
+Tesselation finished in 97.39727649098495
+
+3219 buildings
+
+---
+
+149.6892590940115 if sjoin() buffered points
+45.497154310985934 if sjoin() points
+fix for first option (7 problems) 14.900420835998375
+fix for second option (24 problems) 42.1519746829872
++ buffering time
+ have equal len keys and value when setting with an iterable
+
+ ---
+Loading file /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/p7-6.shp
+Shapefile loaded.
+Loading file /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/itn.shp
+Shapefile loaded.
+Generating tessellation.
+Bufferring geometry... 4.259636625647545e-07
+Simplifying geometry... 1.079844832944218
+Densifying geometry... 1.6194581000017934
+Converting multipart geometry to singlepart... 3.129039882973302
+Generating input point array... 3.276384894968942
+Generating Voronoi diagram... 11.733397280971985
+Generating Voronoi ridges... 17.068321726983413
+Generating Voronoi geometry... 34.10658580897143
+Generating GeoDataFrame of Voronoi polygons... 48.911763510957826
+Saving to temporary file... 49.80639945395524
+Generating MultiPoint geometry... 55.60250302194618
+Buffering MultiPoint geometry... 59.75600625597872
+Spatial join of MultiPoint geometry and Voronoi polygons... 80.47402977396268
+Fixing unjoined geometry: 7 problems... 154.6425065259682
+Dissolving Voronoi polygons... 166.38172602595296
+Preparing buffer zone for edge resolving (buffering)... 225.1916029349668
+Preparing buffer zone for edge resolving (dissolving)... 226.94792201399105
+Preparing buffer zone for edge resolving (quadrat cut)... 231.30575532198418
+Building R-tree... 232.61544365796726
+Cutting... 237.03046114294557
+Saving morphological tessellation to /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/mm_g_tesselation.shp 245.93279894598527
+Done. 252.52901168598328
+Tesselation finished in 259.18536906299414
+Loading file /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/p7-6.shp
+Shapefile loaded.
+Loading file /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/mm_g_tesselation.shp
+Generating blocks.
+Dissolving tesselation...
+Buffering streets...
+Dissolving streets...
+Defining street-based blocks...
+Multipart to singlepart...
+Defining block ID...
+Generating centroids...
+Spatial join...
+Warning: CRS does not match!
+Attribute join (buildings)...
+Attribute join (tesselation)...
+Generating blocks...
+Saving buildings to /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/p7-6.shp
+Saving tesselation to /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/mm_g_tesselation.shp
+Saving blocks to /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/mm_g_blocks.shp
+Done
+Blocks finished in 152.918334166985
+Loading file /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/mm_g_tesselation.shp
+Generating street edges.
+Generating centroids...
+Generating list of points...
+Generating list of lines...
+Generating rtree...
+Snapping...
+Forming DataFrame...
+Joining DataFrames...
+Cleaning DataFrames...
+Merging with tesselation...
+Defining merge ID...
+Dissolving...
+Generating unique edge ID...
+Cleaning edges...
+Saving street edges to /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/mm_g_edges.shp
+Cleaning tesselation...
+Tesselation spatial join [1/3]...
+Tesselation spatial join [2/3]...
+Tesselation spatial join [3/3]...
+Saving tesselation to /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/mm_g_tesselation.shp
+Buildings attribute join...
+Saving buildings to /Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/p7-6.shp
+Done.
+Blocks finished in 37.45895678002853
+Script finished in 452.1038749489817
+
+7617 buildings
