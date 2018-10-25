@@ -91,19 +91,19 @@ def power_law(objects, look_for, source, id_column='uID'):
 '''
 Spatial autocorrelation.
 '''
-from libpysal.weights import DistanceBand
-import esda
-
-
-def moran_i_local(objects, source, column_name):
-    print("Calculating local Moran's I...")
-    print('Calculating weight matrix... (It might take a while.)')
-    W = DistanceBand.from_dataframe(objects, 400)  # weight matrix
-    y = objects[[source]]
-    print('Calculating...')
-    lm = esda.Moran_Local(y, W)
-    objects[column_name] = lm.Is
-    print("Local Moran's I calculated.")
+# from libpysal.weights import DistanceBand
+# import esda
+#
+#
+# def moran_i_local(objects, source, column_name):
+#     print("Calculating local Moran's I...")
+#     print('Calculating weight matrix... (It might take a while.)')
+#     W = DistanceBand.from_dataframe(objects, 400)  # weight matrix
+#     y = objects[[source]]
+#     print('Calculating...')
+#     lm = esda.Moran_Local(y, W)
+#     objects[column_name] = lm.Is
+#     print("Local Moran's I calculated.")
 
 
 # import geopandas as gpd
