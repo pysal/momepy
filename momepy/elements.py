@@ -386,8 +386,9 @@ def blocks(cells, streets, buildings, id_name, unique_id, cells_to, buildings_to
         blocks.loc[idx, 'geometry'] = Polygon(row['geometry'])
 
     blocks_save = blocks[[id_name, 'geometry']]
+    blocks_save_clean = blocks_save.buffer(0.000000001)
 
-    centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks_save, how='inner', op='intersects')
+    centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks_save_clean, how='inner', op='intersects')
     bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
 
     print('Attribute join (buildings)...')
@@ -403,7 +404,7 @@ def blocks(cells, streets, buildings, id_name, unique_id, cells_to, buildings_to
     cells.to_file(cells_to)
 
     print('Saving blocks to', blocks_to)
-    blocks_save.to_file(blocks_to)
+    blocks_save_clean.to_file(blocks_to)
 
     print('Done')
 
@@ -574,9 +575,10 @@ def street_edges(buildings, streets, tesselation, street_name_column,
 
     print('Cleaning edges...')
     edges_clean = edges_single[['geometry', 'eID', block_id_column]]
+    edges_save = edges_clean.buffer(0.000000001)
 
     print('Saving street edges to', save_to)
-    edges_clean.to_file(save_to)
+    edges_save.to_file(save_to)
 
     print('Cleaning tesselation...')
     tesselation = tesselation.drop(['street', 'mergeID'], axis=1)
@@ -585,7 +587,7 @@ def street_edges(buildings, streets, tesselation, street_name_column,
     tess_centroid = tesselation.copy()
     tess_centroid['geometry'] = tess_centroid.centroid
 
-    edg_join = edges_clean.drop(['bID'], axis=1)
+    edg_join = edges_save.drop(['bID'], axis=1)
 
     print('Tesselation spatial join [2/3]...')
     tess_with_eID = gpd.sjoin(tess_centroid, edg_join, how='inner', op='intersects')
