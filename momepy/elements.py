@@ -108,7 +108,7 @@ Generate tessellation ADD DESCRIPTION
 FIX TEMPDIR DELETION
 MAKE IT FASTER - RTREE IN SPATIAL JOINS AND INTERSECTIONS
 FIX SAW GEOMETRY BY CUT OUT JOIN (VIA RTREE)
-FIX MESSY GEOMETRY AFTER DISSOLVE
+
 Optional:
 '''
 
@@ -215,8 +215,8 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
     points = gpd.read_file('tempDir/temp_file.shp')
 
     # delete tempDir
-    # print('Cleaning temporary files...')
-    # shutil.rmtree('tempDir')
+    print('Cleaning temporary files...')
+    shutil.rmtree('tempDir')
 
     # set CRS
     points.crs = objects.crs
@@ -259,7 +259,6 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
     voronoi_with_id['geometry'] = voronoi_with_id.buffer(0)
     voronoi_plots = voronoi_with_id.dissolve(by=unique_id)
     voronoi_plots[unique_id] = voronoi_plots.index.astype('float')  # save unique id to column from index
-
 
     # generate built_up area around buildings to resolve the edge
     print('Preparing buffer zone for edge resolving (buffering)...', timer() - start)
@@ -349,7 +348,7 @@ def blocks(cells, streets, buildings, id_name, unique_id, cells_to, buildings_to
     print('Multipart to singlepart...')
     blocks_single = multi2single(blocks_gdf)
 
-    print('Defining block ID...')
+    print('Defining block ID...')  # street based
     blocks_single[id_name] = None
     blocks_single[id_name] = blocks_single[id_name].astype('float')
     id = 1
@@ -565,12 +564,13 @@ def street_edges(buildings, streets, tesselation, street_name_column,
         return gpdf_singlepoly
 
     edges_single = multi2single(edges)
-
+    edges_single['geometry'] = edges_single.exterior
     print('Generating unique edge ID...')
     id = 1
     for idx, row in tqdm(edges_single.iterrows(), total=edges_single.shape[0]):
         edges_single.loc[idx, 'eID'] = id
         id = id + 1
+        edges_single.loc[idx, 'geometry'] = Polygon(row['geometry'])
 
     print('Cleaning edges...')
     edges_clean = edges_single[['geometry', 'eID', block_id_column]]
