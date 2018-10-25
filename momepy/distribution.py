@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # distribution.py
 # definitons of spatial distribution characters
 

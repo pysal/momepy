@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # elements.py
 # generating derived elements (street edge, block)
 import os
