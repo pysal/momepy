@@ -360,23 +360,42 @@ def blocks(cells, streets, buildings, id_name, unique_id, cells_to, buildings_to
     print('Generating centroids...')
     buildings_c = buildings.copy()
     buildings_c['geometry'] = buildings_c.centroid  # make centroids
+    blocks_single.crs = buildings.crs
 
     print('Spatial join...')
-    centroids_w_bl_ID = gpd.sjoin(buildings_c, blocks_single, how='inner', op='intersects')
+    centroids_tempID = gpd.sjoin(buildings_c, blocks_single, how='inner', op='intersects')
 
-    bl_ID_to_uID = centroids_w_bl_ID[[unique_id, id_name]]
+    tempID_to_uID = centroids_tempID[[unique_id, id_name]]
+
+    print('Attribute join (tesselation)...')
+    cells = cells.merge(tempID_to_uID, on=unique_id)
+    cells = cells.drop(['diss'], axis=1)
+
+    print('Generating blocks...')
+    blocks = cells.dissolve(by=id_name)
+    cells = cells.drop([id_name], axis=1)
+
+    print('Multipart to singlepart...')
+    blocks = multi2single(blocks)
+
+    blocks['geometry'] = blocks.exterior
+
+    id = 1
+    for idx, row in tqdm(blocks.iterrows(), total=blocks.shape[0]):
+        blocks.loc[idx, id_name] = id
+        id = id + 1
+        blocks.loc[idx, 'geometry'] = Polygon(row['geometry'])
+
+    blocks_save = blocks[[id_name, 'geometry']]
+
+    centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks_save, how='inner', op='intersects')
+    bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
 
     print('Attribute join (buildings)...')
     buildings = buildings.merge(bl_ID_to_uID, on=unique_id)
 
     print('Attribute join (tesselation)...')
     cells = cells.merge(bl_ID_to_uID, on=unique_id)
-    cells = cells.drop(['diss'], axis=1)
-
-    print('Generating blocks...')
-    blocks = cells.dissolve(by=id_name)
-    blocks[id_name] = blocks.index
-    blocks_save = blocks[[id_name, 'geometry']]
 
     print('Saving buildings to', buildings_to)
     buildings.to_file(buildings_to)
