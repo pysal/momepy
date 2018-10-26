@@ -117,14 +117,15 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
     objects = buildings
 
     from timeit import default_timer as timer
-
+    tqdm.pandas()
     start = timer()
-
+    start_ = timer()
     # buffer geometry to resolve shared walls
-    print('Bufferring geometry...', timer() - start)
-    objects['geometry'] = objects.geometry.apply(lambda g: g.buffer(-0.5, cap_style=2, join_style=2))
-
-    print('Simplifying geometry...', timer() - start)
+    print('Bufferring geometry...')
+    objects['geometry'] = objects.geometry.progress_apply(lambda g: g.buffer(-0.5, cap_style=2, join_style=2))
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Simplifying geometry...')
     # simplify geometry before Voronoi
     objects['geometry'] = objects.simplify(0.25, preserve_topology=True)
     obj_simple = objects.copy()
@@ -138,11 +139,10 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
         new = loads(wkt2)  # wkt to shapely Polygon
         return new
 
-    print('Densifying geometry...', timer() - start)
-    objects['geometry'] = objects['geometry'].map(densify)
-
-    # define new numpy.array
-    voronoi_points = np.empty([1, 2])
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Densifying geometry...')
+    objects['geometry'] = objects['geometry'].progress_map(densify)
 
     # resolve multipart polygons, singlepart are needed
     def multi2single(gpdf):
@@ -158,38 +158,67 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
         gpdf_singlepoly.reset_index(inplace=True, drop=True)
         return gpdf_singlepoly
 
-    print('Converting multipart geometry to singlepart...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Converting multipart geometry to singlepart...')
     objects = multi2single(objects)
 
-    print('Generating input point array...', timer() - start)
-    # fill array with all points from densified geometry
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Generating input point array...')
+    # define new numpy.array
+    # voronoi_points = np.empty([1, 2])
+    # # fill array with all points from densified geometry
+    # for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    #     poly_ext = row['geometry'].exterior
+    #     if poly_ext is not None:
+    #         point_coords = poly_ext.coords
+    #         row_array = np.array(point_coords)
+    #         voronoi_points = np.concatenate((voronoi_points, row_array))
+    #         # it might be faster to use python list.append(a) and then l = np.array(l)
+    #
+    # # delete initial row of array to keep only points from geometry
+    # voronoi_points = voronoi_points[1:]
+
+    list_points = []
     for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         poly_ext = row['geometry'].exterior
         if poly_ext is not None:
             point_coords = poly_ext.coords
-            row_array = np.array(point_coords)
-            voronoi_points = np.concatenate((voronoi_points, row_array))
-            # it might be faster to use python list.append(a) and then l = np.array(l)
+            row_array = np.array(point_coords).tolist()
+            for i in range(len(row_array)):
+                list_points.append(row_array[i])
 
-    # delete initial row of array to keep only points from geometry
-    voronoi_points = voronoi_points[1:]
+    voronoi_points = np.array(list_points)
+
     # make voronoi diagram
-    print('Generating Voronoi diagram...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Generating Voronoi diagram...')
     voronoi_diagram = Voronoi(voronoi_points)
     # generate lines from scipy voronoi output
-    print('Generating Voronoi ridges...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Generating Voronoi ridges...')
     lines = [LineString(voronoi_diagram.vertices[line]) for line in voronoi_diagram.ridge_vertices if -1 not in line]
 
     # generate dataframe with polygons clipped by built_up
-    print('Generating Voronoi geometry...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Generating Voronoi geometry...')
     result = pd.DataFrame({'geometry':
                           [poly for poly in shapely.ops.polygonize(lines)]})
 
     # generate geoDataFrame of Voronoi polygons
-    print('Generating GeoDataFrame of Voronoi polygons...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Generating GeoDataFrame of Voronoi polygons...')
     voronoi_polygons = gpd.GeoDataFrame(result, geometry='geometry')
     voronoi_polygons = voronoi_polygons.loc[voronoi_polygons['geometry'].length < 1000000]
-    print('Saving to temporary file...', timer() - start)
+
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Saving to temporary file...')
 
     # set crs
     voronoi_polygons.crs = objects.crs
@@ -201,7 +230,9 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
     sf = shapefile.Reader('tempDir/temp_file.shp')
 
     # convert geometry to points
-    print('Generating MultiPoint geometry...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Generating MultiPoint geometry...')
     newType = shapefile.MULTIPOINT
     w = shapefile.Writer(newType)
     w._shapes.extend(sf.shapes())
@@ -215,6 +246,8 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
     points = gpd.read_file('tempDir/temp_file.shp')
 
     # delete tempDir
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
     print('Cleaning temporary files...')
     shutil.rmtree('tempDir')
 
@@ -222,30 +255,38 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
     points.crs = objects.crs
 
     # buffer points to capture unprecision caused by scipy Voronoi function
-    print('Buffering MultiPoint geometry...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Buffering MultiPoint geometry...')
     points = points.dropna()
-    points['geometry'] = points.buffer(0.25)
+    # points['geometry'] = points.buffer(0.25)
     # join attributes from buildings to new voronoi cells
-    print('Spatial join of MultiPoint geometry and Voronoi polygons...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Spatial join of MultiPoint geometry and Voronoi polygons...')
     # spatial join is super slow, it might be better to try rtree
-    voronoi_with_id = gpd.sjoin(voronoi_polygons, points, how='left', op='intersects')
+    voronoi_with_id = gpd.sjoin(voronoi_polygons, points, how='left')
     voronoi_with_id.crs = objects.crs
 
     # resolve thise cells which were not joined spatially (again, due to unprecision caused by scipy Voronoi function)
     # select those unjoined
     unjoined = voronoi_with_id[voronoi_with_id[unique_id].isnull()]
-
-    print('Fixing unjoined geometry:', len(unjoined.index), 'problems...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Fixing unjoined geometry:', len(unjoined.index), 'problems...')
     # for each polygon, find neighbours, measure boundary and set uID to the most neighbouring one
-
-    for idx, row in unjoined.iterrows():
-        neighbors = voronoi_with_id[~voronoi_with_id.geometry.disjoint(row.geometry)][unique_id].tolist()  # find neigbours
-        neighbors = [x for x in neighbors if str(x) != 'nan']  # remove polygon itself
+    join_index = voronoi_with_id.sindex
+    for idx, row in tqdm(unjoined.iterrows(), total=unjoined.shape[0]):
+        neighbors = list(join_index.intersection(row.geometry.bounds))  # find neigbours
+        neighbors_ids = []
+        for n in neighbors:
+            neighbors_ids.append(voronoi_with_id.iloc[n][unique_id])
+        neighbors_ids = [x for x in neighbors_ids if str(x) != 'nan']  # remove polygon itself
 
         import operator
         global boundaries
         boundaries = {}
-        for i in neighbors:
+        for i in neighbors_ids:
             subset = voronoi_with_id.loc[voronoi_with_id[unique_id] == i]['geometry']
             l = 0
             for s in subset:
@@ -253,36 +294,44 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
             boundaries[i] = l
 
         voronoi_with_id.loc[idx, unique_id] = max(boundaries.items(), key=operator.itemgetter(1))[0]
-
     # dissolve polygons by unique_id
-    print('Dissolving Voronoi polygons...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Dissolving Voronoi polygons...')
     voronoi_with_id['geometry'] = voronoi_with_id.buffer(0)
     voronoi_plots = voronoi_with_id.dissolve(by=unique_id)
     voronoi_plots[unique_id] = voronoi_plots.index.astype('float')  # save unique id to column from index
 
     # generate built_up area around buildings to resolve the edge
-    print('Preparing buffer zone for edge resolving (buffering)...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Preparing buffer zone for edge resolving (buffering)...')
     obj_simple['geometry'] = obj_simple.buffer(cut_buffer)
-    print('Preparing buffer zone for edge resolving (dissolving)...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Preparing buffer zone for edge resolving (dissolving)...')
     obj_simple['diss'] = 0
     built_up = obj_simple.dissolve(by='diss')
 
     # cut infinity of voronoi by set buffer (thanks for script to Geoff Boeing)
     import osmnx as ox
-    print('Preparing buffer zone for edge resolving (quadrat cut)...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Preparing buffer zone for edge resolving (quadrat cut)...')
     geometry = built_up['geometry'].iloc[0].boundary
     # quadrat_width is in the units the geometry is in
     geometry_cut = ox.quadrat_cut_geometry(geometry, quadrat_width=100)
 
     # build the r-tree index
-    print('Building R-tree...', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Building R-tree...')
     sindex = voronoi_plots.sindex
     # find the points that intersect with each subpolygon and add them to points_within_geometry
     to_cut = pd.DataFrame()
     for poly in geometry_cut:
         # find approximate matches with r-tree, then precise matches from those approximate ones
         possible_matches_index = list(sindex.intersection(poly.bounds))
-        possible_matches_index
         possible_matches = voronoi_plots.iloc[possible_matches_index]
         precise_matches = possible_matches[possible_matches.intersects(poly)]
         to_cut = to_cut.append(precise_matches)
@@ -290,17 +339,22 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
     # delete duplicates
     to_cut = to_cut.drop_duplicates(subset=[unique_id])
     subselection = list(to_cut.index)
-    print('Cutting...', timer() - start)
-    for idx, row in voronoi_plots.loc[subselection].iterrows():
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Cutting...')
+    for idx, row in tqdm(voronoi_plots.loc[subselection].iterrows(), total=voronoi_plots.loc[subselection].shape[0]):
         wkt = row.geometry.intersection(built_up['geometry'].iloc[0]).wkt
         new = loads(wkt)
         voronoi_plots.loc[idx, 'geometry'] = new
 
     voronoi_plots = voronoi_plots.drop(['index_right'], axis=1)
 
-    print('Saving morphological tessellation to', save_tessellation, timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    start = timer()
+    print('Saving morphological tessellation to', save_tessellation)
     voronoi_plots.to_file(save_tessellation)
-    print('Done.', timer() - start)
+    print('Done in', timer() - start, 'seconds')
+    print('Done. Tessellation finished in', timer() - start_, 'seconds.')
 
 '''
 blocks():
@@ -386,9 +440,9 @@ def blocks(cells, streets, buildings, id_name, unique_id, cells_to, buildings_to
         blocks.loc[idx, 'geometry'] = Polygon(row['geometry'])
 
     blocks_save = blocks[[id_name, 'geometry']]
-    blocks_save_clean = blocks_save.buffer(0.000000001)
+    blocks_save['geometry'] = blocks_save.buffer(0.000000001)
 
-    centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks_save_clean, how='inner', op='intersects')
+    centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks_save, how='inner', op='intersects')
     bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
 
     print('Attribute join (buildings)...')
@@ -404,7 +458,7 @@ def blocks(cells, streets, buildings, id_name, unique_id, cells_to, buildings_to
     cells.to_file(cells_to)
 
     print('Saving blocks to', blocks_to)
-    blocks_save_clean.to_file(blocks_to)
+    blocks_save.to_file(blocks_to)
 
     print('Done')
 
@@ -575,10 +629,10 @@ def street_edges(buildings, streets, tesselation, street_name_column,
 
     print('Cleaning edges...')
     edges_clean = edges_single[['geometry', 'eID', block_id_column]]
-    edges_save = edges_clean.buffer(0.000000001)
+    edges_clean['geometry'] = edges_clean.buffer(0.000000001)
 
     print('Saving street edges to', save_to)
-    edges_save.to_file(save_to)
+    edges_clean.to_file(save_to)
 
     print('Cleaning tesselation...')
     tesselation = tesselation.drop(['street', 'mergeID'], axis=1)
@@ -587,7 +641,7 @@ def street_edges(buildings, streets, tesselation, street_name_column,
     tess_centroid = tesselation.copy()
     tess_centroid['geometry'] = tess_centroid.centroid
 
-    edg_join = edges_save.drop(['bID'], axis=1)
+    edg_join = edges_clean.drop(['bID'], axis=1)
 
     print('Tesselation spatial join [2/3]...')
     tess_with_eID = gpd.sjoin(tess_centroid, edg_join, how='inner', op='intersects')
