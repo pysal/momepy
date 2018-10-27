@@ -75,9 +75,59 @@ mm.street_edges(blg, str, tess, 'MKN_1', 'uID', 'bID', 'nID', tessel, bl, save_p
 
 cells = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/tess.shp')
 streets = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/str.shp')
-buildings = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blg.shp')
+buildings = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/blg.shp')
 cells_to = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/tessPY.shp'
 buildings_to = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blgPY.shp'
 blocks_to = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blocksPY.shp'
 
 mm.blocks(cells, streets, buildings, 'bID', 'uID', cells_to, buildings_to, blocks_to)
+
+from timeit import default_timer as timer
+start = timer()
+mm.tessellation(buildings, '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/p7/tess_enlarged2.shp')
+end = timer()
+print(end - start)
+
+
+import momepy as mm
+import geopandas as gpd
+from timeit import default_timer as timer
+
+start = timer()
+
+buildings = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/blg.shp'
+streets = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Prague/Street Network/prg_street_network.shp'
+cells = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/tess_enlarged2.shp'
+blocks = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/mm_g_blocks_tod.shp'
+edges = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/mm_g_edges_tod.shp'
+# p7 = "/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7-6.shp"
+
+# load
+print('Loading file', buildings)
+blg = gpd.read_file(buildings)  # load file into geopandas
+print('Shapefile loaded.')
+
+print('Loading file', streets)
+str = gpd.read_file(streets)  # load file into geopandas
+print('Shapefile loaded.')
+
+print('Loading file', cells)
+tess = gpd.read_file(cells)
+
+blo_start = timer()
+
+print('Generating blocks.')
+mm.blocks(tess, str, blg, id_name='bID', unique_id='uID', cells_to=cells, buildings_to=buildings, blocks_to=blocks)
+
+blo_end = timer()
+print('Blocks finished in', blo_end - blo_start)
+
+print('Loading file', cells)
+tess = gpd.read_file(cells)
+
+edg_start = timer()
+print('Generating street edges.')
+mm.street_edges(blg, str, tess, street_name_column='MKN_1', unique_id_column='uID', block_id_column='bID', network_id_column='nID',
+                tesselation_to=cells, buildings_to=buildings, save_to=edges)
+edg_end = timer()
+print('Edges finished in', edg_end - edg_start)

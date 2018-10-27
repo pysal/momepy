@@ -4,24 +4,24 @@ from timeit import default_timer as timer
 
 start = timer()
 
-buildings = 'files/mm_buildings.shp'
-streets = 'files/mm_streets.shp'
-cells = 'files/mm_g_tesselation.shp'
-blocks = 'files/mm_g_blocks.shp'
-edges = 'files/mm_g_edges.shp'
+buildings = 'files/vinohrady_buildings.shp'
+streets = 'files/vinohrady_streets.shp'
+cells = 'files/vinohrady_g_tesselation.shp'
+blocks = 'files/vinohrady_g_blocks.shp'
+edges = 'files/vinohrady_g_edges.shp'
 
 # load
-# print('Loading file', buildings)
-# blg = gpd.read_file(buildings)  # load file into geopandas
-# print('Shapefile loaded.')
-#
-# tess_start = timer()
-#
-# print('Generating tessellation.')
-# mm.tessellation(blg, cells)
-#
-# tess_end = timer()
-# print('Tesselation finished in', tess_end - tess_start)
+print('Loading file', buildings)
+blg = gpd.read_file(buildings)  # load file into geopandas
+print('Shapefile loaded.')
+
+tess_start = timer()
+
+print('Generating tessellation.')
+mm.tessellation(blg, cells)
+
+tess_end = timer()
+print('Tesselation finished in', tess_end - tess_start)
 
 print('Loading file', streets)
 str = gpd.read_file(streets)  # load file into geopandas
