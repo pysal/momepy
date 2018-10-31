@@ -72,10 +72,7 @@ Optional: Delete all the columns except ID and geometry (set clear to True)
 '''
 
 
-def unique_id(path, clear=False, keep=None, id_name='uID'):
-    print('Loading file...')
-    objects = gpd.read_file(path)
-    print('Shapefile loaded.')
+def unique_id(objects, clear=False, keep=None, id_name='uID'):
 
     objects[id_name] = None
     objects[id_name] = objects[id_name].astype('float')
@@ -96,10 +93,6 @@ def unique_id(path, clear=False, keep=None, id_name='uID'):
             objects = objects.iloc[:, [-2, keep_col, -1]]
 
     # objects['uID'] = objects['uID'].astype('int16') - it is making weird errors
-    # save dataframe back to file
-    print('Saving file...')
-    objects.to_file(path)
-    print('File saved.')
 
 
 '''
