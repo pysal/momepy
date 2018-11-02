@@ -131,3 +131,14 @@ mm.street_edges(blg, str, tess, street_name_column='MKN_1', unique_id_column='uI
                 tesselation_to=cells, buildings_to=buildings, save_to=edges)
 edg_end = timer()
 print('Edges finished in', edg_end - edg_start)
+
+
+path = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/P7/blg.shp'
+objects = gpd.read_file(path)
+objects.columns
+mm.unique_id(objects, id_name='testID')
+
+
+vino = mm.load('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blg_add.shp')
+mm.building_dimensions(vino)
+mm.save(vino, '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blg_add2.shp')
