@@ -3,7 +3,6 @@
 
 # elements.py
 # generating derived elements (street edge, block)
-import os
 import geopandas as gpd
 import pandas as pd
 from tqdm import tqdm  # progress bar
@@ -15,8 +14,6 @@ import numpy as np
 from scipy.spatial import Voronoi
 from shapely.geometry import MultiPoint, Point, Polygon, LineString, MultiPolygon
 import shapely.ops
-import shapefile
-import shutil
 import osmnx as ox
 
 '''
@@ -99,7 +96,6 @@ def unique_id(objects, clear=False, keep=None, id_name='uID'):
 tesselation():
 
 Generate tessellation ADD DESCRIPTION
-FIX TEMPDIR DELETION
 MAKE IT FASTER - RTREE IN SPATIAL JOINS AND INTERSECTIONS
 FIX SAW GEOMETRY BY CUT OUT JOIN (VIA RTREE)
 
@@ -230,51 +226,38 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
     print('Generating GeoDataFrame of Voronoi polygons...')
     voronoi_polygons = gpd.GeoDataFrame(result, geometry='geometry')
     voronoi_polygons = voronoi_polygons.loc[voronoi_polygons['geometry'].length < 1000000]
-
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
-    print('Saving to temporary file...')
-
     # set crs
     voronoi_polygons.crs = objects.crs
-    # make temporary directory
-    os.mkdir('tempDir')
-    # save temp file to tempDir
-    objects.to_file('tempDir/temp_file.shp')
-    # read temp file to shapefile
-    sf = shapefile.Reader('tempDir/temp_file.shp')
-
-    # convert geometry to points
     print('Done in', timer() - start, 'seconds')
+
     start = timer()
     print('Generating MultiPoint geometry...')
-    newType = shapefile.MULTIPOINT
-    w = shapefile.Writer(newType)
-    w._shapes.extend(sf.shapes())
-    for s in w.shapes():
-        s.shapeType = newType
-    w.fields = list(sf.fields)
-    w.records.extend(sf.records())
-    w.save('tempDir/temp_file.shp')
 
-    # load points to GDF
-    points = gpd.read_file('tempDir/temp_file.shp')
+    def pointize(geom):
+        multipoint = []
+        if geom.boundary.type is 'MultiLineString':
+            for line in geom.boundary:
+                arr = line.coords.xy
+                for p in range(len(arr[0])):
+                    point = (arr[0][p], arr[1][p])
+                    multipoint.append(point)
+        elif geom.boundary.type is 'LineString':
+            arr = geom.boundary.coords.xy
+            for p in range(len(arr[0])):
+                point = (arr[0][p], arr[1][p])
+                multipoint.append(point)
+        else:
+            raise Exception('Boundary type is {}'.format(geom.boundary.type))
+        new = MultiPoint(multipoint)
+        return new
 
-    # delete tempDir
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
-    print('Cleaning temporary files...')
-    shutil.rmtree('tempDir')
-
-    # set CRS
-    points.crs = objects.crs
-    # join attributes from buildings to new voronoi cells
+    objects['geometry'] = objects['geometry'].progress_map(pointize)
     print('Done in', timer() - start, 'seconds')
     start = timer()
     print('Spatial join of MultiPoint geometry and Voronoi polygons...')
     # spatial join
-    points = points.dropna()
-    voronoi_with_id = gpd.sjoin(voronoi_polygons, points, how='left')
+    objects = objects.dropna()
+    voronoi_with_id = gpd.sjoin(voronoi_polygons, objects, how='left')
     voronoi_with_id.crs = objects.crs
 
     # resolve thise cells which were not joined spatially (again, due to unprecision caused by scipy Voronoi function)
