@@ -11,17 +11,21 @@ blocks = 'files/mm_g_blocks.shp'
 edges = 'files/mm_g_edges.shp'
 
 # load
-# print('Loading file', buildings)
-# blg = gpd.read_file(buildings)  # load file into geopandas
-# print('Shapefile loaded.')
-#
-# tess_start = timer()
-#
-# print('Generating tessellation.')
-# mm.tessellation(blg, cells)
-#
-# tess_end = timer()
-# print('Tesselation finished in', tess_end - tess_start)
+print('Loading file', buildings)
+blg = gpd.read_file(buildings)  # load file into geopandas
+print('Shapefile loaded.')
+
+print('Generating unique ID for buildings.')
+mm.unique_id(blg)
+blg.to_file(buildings)
+
+tess_start = timer()
+
+print('Generating tessellation.')
+mm.tessellation(blg, cells)
+
+tess_end = timer()
+print('Tesselation finished in', tess_end - tess_start)
 
 print('Loading file', streets)
 str = gpd.read_file(streets)  # load file into geopandas
@@ -35,16 +39,28 @@ print('Loading file', cells)
 tess = gpd.read_file(cells)
 print('Shapefile loaded.')
 
+print('Fixing street network...')
+fixed_streets = mm.snap_street_network_edge(str, blg, tess, 20, 70)
+
 blo_start = timer()
 
 print('Generating blocks.')
-mm.blocks(tess, str, blg, id_name='bID', unique_id='uID', cells_to=cells, buildings_to=buildings, blocks_to=blocks)
+mm.blocks(tess, fixed_streets, blg, id_name='bID', unique_id='uID', cells_to=cells, buildings_to=buildings, blocks_to=blocks)
 
 blo_end = timer()
 print('Blocks finished in', blo_end - blo_start)
 
 print('Loading file', cells)
 tess = gpd.read_file(cells)
+print('Shapefile loaded.')
+
+print('Loading file', buildings)
+blg = gpd.read_file(buildings)  # load file into geopandas
+print('Shapefile loaded.')
+
+print('Generating unique ID for street network.')
+mm.unique_id(str, id_name='nID')
+str.to_file(streets)
 
 edg_start = timer()
 print('Generating street edges.')
