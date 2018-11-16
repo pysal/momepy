@@ -801,8 +801,21 @@ def street_edges(buildings, streets, tesselation, street_name_column,
         id = id + 1
         edges_single.loc[idx, 'geometry'] = Polygon(row['geometry'])
 
-    print('Cleaning edges...')
     edges_clean = edges_single[['geometry', 'eID', block_id_column]]
+
+    print('Isolating islands...')
+    sindex = edges_clean.sindex
+    islands = []
+    for idx, row in edges_clean.iterrows():
+        possible_matches_index = list(sindex.intersection(row['geometry'].bounds))
+        possible_matches = edges_clean.iloc[possible_matches_index]
+        possible_matches = possible_matches.drop([idx], axis=0)
+        if possible_matches.contains(row['geometry']).any():
+            islands.append(idx)
+
+    edges_clean = edges_clean.drop(islands, axis=0)
+    print(len(islands), 'islands deleted.')
+    print('Cleaning edges...')
     edges_clean['geometry'] = edges_clean.buffer(0.000000001)
 
     print('Saving street edges to', save_to)
