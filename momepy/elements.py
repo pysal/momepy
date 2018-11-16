@@ -244,16 +244,17 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
                 multipoint.append(point)
         else:
             raise Exception('Boundary type is {}'.format(geom.boundary.type))
-        new = MultiPoint(multipoint)
+        new = MultiPoint(list(set(multipoint)))
         return new
 
-    objects['geometry'] = objects['geometry'].progress_map(pointize)
+    objects_none = objects[objects['geometry'].notnull()]
+    objects_none['geometry'] = objects_none['geometry'].progress_map(pointize)
     print('Done in', timer() - start, 'seconds')
     start = timer()
     print('Spatial join of MultiPoint geometry and Voronoi polygons...')
     # spatial join
-    objects = objects.dropna()
-    voronoi_with_id = gpd.sjoin(voronoi_polygons, objects, how='left')
+    objects_none = objects_none.dropna()
+    voronoi_with_id = gpd.sjoin(voronoi_polygons, objects_none, how='left')
     voronoi_with_id.crs = objects.crs
 
     # resolve thise cells which were not joined spatially (again, due to unprecision caused by scipy Voronoi function)
