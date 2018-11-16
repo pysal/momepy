@@ -174,12 +174,21 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
 
     list_points = []
     for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        poly_ext = row['geometry'].exterior
+        poly_ext = row['geometry'].boundary
         if poly_ext is not None:
-            point_coords = poly_ext.coords
-            row_array = np.array(point_coords).tolist()
-            for i in range(len(row_array)):
-                list_points.append(row_array[i])
+            if poly_ext.type is 'MultiLineString':
+                for line in poly_ext:
+                    point_coords = line.coords
+                    row_array = np.array(point_coords).tolist()
+                    for i in range(len(row_array)):
+                        list_points.append(row_array[i])
+            elif poly_ext.type is 'LineString':
+                point_coords = poly_ext.coords
+                row_array = np.array(point_coords).tolist()
+                for i in range(len(row_array)):
+                    list_points.append(row_array[i])
+            else:
+                raise Exception('Boundary type is {}'.format(poly_ext.type))
 
     # add hull
     point_coords = hull[0].boundary.coords
