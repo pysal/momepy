@@ -285,6 +285,10 @@ def tessellation(buildings, save_tessellation, unique_id='uID', cut_buffer=50):
             boundaries[i] = l
 
         voronoi_with_id.loc[idx, unique_id] = max(boundaries.items(), key=operator.itemgetter(1))[0]
+
+    unjoined2 = voronoi_with_id[voronoi_with_id[unique_id].isnull()]
+    if len(unjoined2.index) is not 0:
+        raise Exception('Some geometry remained unfinxed: {} problems'.format(len(unjoined2.index)))
     # dissolve polygons by unique_id
     print('Done in', timer() - start, 'seconds')
     start = timer()
