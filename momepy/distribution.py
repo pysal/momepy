@@ -5,7 +5,7 @@
 # definitons of spatial distribution characters
 
 from tqdm import tqdm  # progress bar
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 import numpy as np
 import geopandas as gpd
 import math
@@ -128,6 +128,57 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
                 length = length + row.geometry.intersection(subset).length
                 objects.loc[index, column_name] = length / row[perimeter_column] - 1
 
+'''
+street_alignment():
+    Calculate the difference between street orientation and  orientation (azimuth) of object
+
+    Formula: orientation of the longext axis of bounding rectangle expressed by sin(x)
+
+    Reference:
+
+    Attributes: objects = geoDataFrame with objects
+                column_name = name of the column to save calculated values
+
+
+'''
+
+
+def street_alignment(objects, streets, column_name, orientation_column, network_id_column):
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+
+    print('Calculating street alignments...')
+
+    def azimuth(point1, point2):
+        '''azimuth between 2 shapely points (interval 0 - 180)'''
+        angle = np.arctan2(point2.x - point1.x, point2.y - point1.y)
+        return np.degrees(angle)if angle > 0 else np.degrees(angle) + 180
+
+    # iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        network_id = row[network_id_column]
+        streetssub = streets.loc[streets[network_id_column] == network_id]
+        start = Point(streetssub.iloc[0]['geometry'].coords[0])
+        end = Point(streetssub.iloc[0]['geometry'].coords[-1])
+        az = azimuth(start, end)
+        if 90 > az >= 45:
+            diff = az - 45
+            az = az - 2 * diff
+        elif 135 > az >= 90:
+            diff = az - 90
+            az = az - 2 * diff
+            diff = az - 45
+            az = az - 2 * diff
+        elif 181 > az >= 135:
+            diff = az - 135
+            az = az - 2 * diff
+            diff = az - 90
+            az = az - 2 * diff
+            diff = az - 45
+            az = az - 2 * diff
+        objects.loc[index, column_name] = abs(row[orientation_column] - az)
+    print('Street alignments calculated.')
 
 # to be deleted, keep at the end
 #
