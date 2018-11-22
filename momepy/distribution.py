@@ -50,9 +50,42 @@ def orientation(objects, column_name):
         axis2 = centroid_bc.distance(centroid_da)
 
         if axis1 <= axis2:
-            objects.loc[index, column_name] = math.sin(math.radians(azimuth(centroid_bc, centroid_da)))
+            az = azimuth(centroid_bc, centroid_da)
+            if 90 > az >= 45:
+                diff = az - 45
+                az = az - 2 * diff
+            elif 135 > az >= 90:
+                diff = az - 90
+                az = az - 2 * diff
+                diff = az - 45
+                az = az - 2 * diff
+            elif 181 > az >= 135:
+                diff = az - 135
+                az = az - 2 * diff
+                diff = az - 90
+                az = az - 2 * diff
+                diff = az - 45
+                az = az - 2 * diff
+            objects.loc[index, column_name] = az
         else:
-            objects.loc[index, column_name] = math.sin(math.radians(azimuth(centroid_ab, centroid_cd)))
+            az = 170
+            az = azimuth(centroid_ab, centroid_cd)
+            if 90 > az >= 45:
+                diff = az - 45
+                az = az - 2 * diff
+            elif 135 > az >= 90:
+                diff = az - 90
+                az = az - 2 * diff
+                diff = az - 45
+                az = az - 2 * diff
+            elif 181 > az >= 135:
+                diff = az - 135
+                az = az - 2 * diff
+                diff = az - 90
+                az = az - 2 * diff
+                diff = az - 45
+                az = az - 2 * diff
+            objects.loc[index, column_name] = az
 
     print('Orientations calculated.')
 
