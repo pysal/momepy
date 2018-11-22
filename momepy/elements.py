@@ -576,6 +576,8 @@ def blocks(cells, streets, buildings, id_name, unique_id, cells_to, buildings_to
     print('Multipart to singlepart...')
     blocks_single = multi2single(blocks_gdf)
 
+    blocks_single['geometry'] = blocks_single.buffer(0.1)
+
     print('Defining block ID...')  # street based
     blocks_single[id_name] = None
     blocks_single[id_name] = blocks_single[id_name].astype('float')
@@ -590,7 +592,7 @@ def blocks(cells, streets, buildings, id_name, unique_id, cells_to, buildings_to
     blocks_single.crs = buildings.crs
 
     print('Spatial join...')
-    centroids_tempID = gpd.sjoin(buildings_c, blocks_single, how='inner', op='intersects')
+    centroids_tempID = gpd.sjoin(buildings_c, blocks_single, how='left', op='intersects')
 
     tempID_to_uID = centroids_tempID[[unique_id, id_name]]
 
@@ -616,7 +618,7 @@ def blocks(cells, streets, buildings, id_name, unique_id, cells_to, buildings_to
     blocks_save = blocks[[id_name, 'geometry']]
     blocks_save['geometry'] = blocks_save.buffer(0.000000001)
 
-    centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks_save, how='inner', op='intersects')
+    centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks_save, how='left', op='intersects')
     bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
 
     print('Attribute join (buildings)...')
