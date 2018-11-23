@@ -10,23 +10,31 @@ import numpy as np
 import geopandas as gpd
 import math
 
-'''
-orientation():
-    Calculate orientation (azimuth) of object
-
-    Formula: orientation of the longext axis of bounding rectangle expressed by sin(x)
-
-    Reference: Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
-               Journal of Transport and Land Use 9(1): 101–130.
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save calculated values
-
-
-'''
-
 
 def orientation(objects, column_name):
+    """
+    Calculate orientation (azimuth) of object
+
+    Defined as an orientation of the longext axis of bounding rectangle in range 0 - 45.
+    It captures the deviation of orientation from cardinal directions.
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    column_name : str
+        name of the column to save the values
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+
+    Reference
+    ---------
+    Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
+    Journal of Transport and Land Use 9(1): 101–130.
+    """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
@@ -88,26 +96,40 @@ def orientation(objects, column_name):
             objects.loc[index, column_name] = az
 
     print('Orientations calculated.')
-
-'''
-shared_walls_ratio():
-    Calculate shared walls ratio
-
-    Formula: length of shared walls / perimeter
-
-    Reference: Hamaina R, Leduc T and Moreau G (2012) Towards Urban Fabrics Characterization
-               Based on Buildings Footprints. In: Lecture Notes in Geoinformation and Cartography,
-               Berlin, Heidelberg: Springer Berlin Heidelberg, pp. 327–346. Available from:
-               https://link.springer.com/chapter/10.1007/978-3-642-29063-3_18.
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save calculated values
-                perimeter_column = name of the column where is stored perimeter value
-                unique_id = name of the column with unique id
-'''
+    return objects
 
 
 def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
+    """
+    Calculate shared walls ratio
+
+    Formula
+    -------
+    length of shared walls / perimeter
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    column_name : str
+        name of the column to save the values
+    perimeter_column : str
+        name of the column where is stored perimeter value
+    unique_id : str
+        name of the column with unique id
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+
+    Reference
+    ---------
+    Hamaina R, Leduc T and Moreau G (2012) Towards Urban Fabrics Characterization
+    Based on Buildings Footprints. In: Lecture Notes in Geoinformation and Cartography,
+    Berlin, Heidelberg: Springer Berlin Heidelberg, pp. 327–346. Available from:
+    https://link.springer.com/chapter/10.1007/978-3-642-29063-3_18.
+    """
     sindex = objects.sindex  # define rtree index
     # define new column
     objects[column_name] = None
@@ -127,23 +149,36 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
                 subset = objects.loc[i]['geometry']
                 length = length + row.geometry.intersection(subset).length
                 objects.loc[index, column_name] = length / row[perimeter_column] - 1
-
-'''
-street_alignment():
-    Calculate the difference between street orientation and  orientation (azimuth) of object
-
-    Formula: orientation of the longext axis of bounding rectangle expressed by sin(x)
-
-    Reference:
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save calculated values
-
-
-'''
+    print('Shared walls ratio calculated.')
+    return objects
 
 
 def street_alignment(objects, streets, column_name, orientation_column, network_id_column):
+    """
+    Calculate the difference between street orientation and orientation of object
+
+    Orientation of street segment is represented by the orientation of line
+    connecting first and last point of the segment.
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    streets : GeoDataFrame
+        geopandas gdf containing street network
+    column_name : str
+        name of the column to save the values
+    orientation_column : str
+        name of the column where is stored object orientation value
+    network_id_column : str
+        name of the column with unique network id (has to be defined beforehand)
+        (can be defined using unique_id())
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
@@ -179,6 +214,7 @@ def street_alignment(objects, streets, column_name, orientation_column, network_
             az = az - 2 * diff
         objects.loc[index, column_name] = abs(row[orientation_column] - az)
     print('Street alignments calculated.')
+    return objects
 
 # to be deleted, keep at the end
 #

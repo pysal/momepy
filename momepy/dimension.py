@@ -10,17 +10,24 @@ from shapely.geometry import Polygon
 import shapely.ops
 from .shape import make_circle
 
-'''
-object_area():
-    Calculate area of each object in given shapefile. It can be used for any
-    suitable element (building footprint, plot, voronoi cell, block).
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save the area values
-'''
-
 
 def object_area(objects, column_name):
+    """
+    Calculate area of each object in given shapefile. It can be used for any
+    suitable element (building footprint, plot, tessellation, block).
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    column_name : str
+        name of the column to save the values
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
@@ -31,18 +38,26 @@ def object_area(objects, column_name):
         objects.loc[index, column_name] = row['geometry'].area
 
     print('Areas calculated.')
-
-'''
-object_perimeter():
-    Calculate perimeter of each object in given shapefile. It can be used for any
-    suitable element (building footprint, plot, voronoi cell, block).
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save the perimeter values
-'''
+    return objects
 
 
 def object_perimeter(objects, column_name):
+    """
+    Calculate perimeter of each object in given shapefile. It can be used for any
+    suitable element (building footprint, plot, tessellation, block).
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    column_name : str
+        name of the column to save the values
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
@@ -53,21 +68,32 @@ def object_perimeter(objects, column_name):
         objects.loc[index, column_name] = row['geometry'].length
 
     print('Perimeters calculated.')
+    return objects
 
-'''
-object_height_os():
+
+def object_height_os(objects, column_name, original_column='relh2'):
+    """
+    Copy values from GB Ordance Survey data.
+
     Function tailored to GB Ordance Survey data of OS Building Heights (Alpha).
     It will copy RelH2 values to new column.
         (relative height from ground level to base of the roof [RelH2])
 
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save the height values
-                original_column = name of column where is stored original height
-                                  value. Default value 'relh2' (optional)
-'''
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    column_name : str
+        name of the column to save the values
+    original_column : str
+        name of column where is stored original height value
 
 
-def object_height_os(objects, column_name, original_column='relh2'):
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
@@ -78,22 +104,30 @@ def object_height_os(objects, column_name, original_column='relh2'):
         objects.loc[index, column_name] = row[original_column]
 
     print('Heights defined.')
-
-'''
-object_height_prg():
-    Function tailored to Geoportal Prague.
-    It will calculate estimated building heights based on floor number and type.
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save the height values
-                floors_column = name of column where is stored original height
-                                  value. Default value 'od_POCET_P' (optional)
-                floor_type = name of the column deifing buildings type (to
-                             differentiate height of the floor). Def = 'od_TYP'
-'''
+    return objects
 
 
 def object_height_prg(objects, column_name, floors_column='od_POCET_P', floor_type='od_TYP'):
+    """
+    Define building heights based on Geoportal Prague Data.
+
+    Function tailored to Geoportal Prague.
+    It will calculate estimated building heights based on floor number and type.
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    column_name : str
+        name of the column to save the values
+    floor_type : str
+        name of the column defining buildings type (to differentiate height of the floor)
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
@@ -111,24 +145,33 @@ def object_height_prg(objects, column_name, floors_column='od_POCET_P', floor_ty
         objects.loc[index, column_name] = height
 
     print('Heights defined.')
-
-'''
-
-object_volume():
-    Calculate volume of each object in given shapefile based on its height and area.
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save the volume values
-                area_column = name of column where is stored area value.
-                height_column = name of column where is stored height value.
-                area_calculated = boolean value checking whether area has been
-                                  previously calculated and stored in separate column.
-                                  If set to FALSE, function will calculate areas
-                                  during the process without saving them separately.
-'''
+    return objects
 
 
 def object_volume(objects, column_name, area_column, height_column, area_calculated):
+    """
+    Calculate volume of each object in given shapefile based on its height and area.
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    column_name : str
+        name of the column to save the values
+    area_column : str
+        name of column where is stored area value
+    height_column : str
+        name of column where is stored height value
+    area_calculated : bool
+        boolean value checking whether area has been previously calculated and
+        stored in separate column. If set to False, function will calculate areas
+        during the process without saving them separately.
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
@@ -149,25 +192,36 @@ def object_volume(objects, column_name, area_column, height_column, area_calcula
             objects.loc[index, column_name] = row['geometry'].area * row[height_column]
 
         print('Volumes calculated.')
-
-'''
-object_floor_area():
-    Calculate floor area of each object based on height and area. Number of floors
-    is simplified into formula height//3 (it is assumed that on average one floor
-    is approximately 3 metres)
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save the volume values
-                area_column = name of column where is stored area value.
-                height_column = name of column where is stored height value.
-                area_calculated = boolean value checking whether area has been
-                                  previously calculated and stored in separate column.
-                                  If set to FALSE, function will calculate areas
-                                  during the process without saving them separately.
-'''
+        return objects
 
 
 def object_floor_area(objects, column_name, area_column, height_column, area_calculated):
+    """
+    Calculate floor area of each object based on height and area.
+
+    Number of floors is simplified into formula height / 3
+    (it is assumed that on average one floor is approximately 3 metres)
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    column_name : str
+        name of the column to save the values
+    area_column : str
+        name of column where is stored area value
+    height_column : str
+        name of column where is stored height value
+    area_calculated : bool
+        boolean value checking whether area has been previously calculated and
+        stored in separate column. If set to False, function will calculate areas
+        during the process without saving them separately.
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
@@ -189,22 +243,31 @@ def object_floor_area(objects, column_name, area_column, height_column, area_cal
             objects.loc[index, column_name] = row['geometry'].area * (row[height_column] // 3)
 
         print('Floor areas calculated.')
-
-'''
-courtyard_area():
-    Calculate area of holes within geometry - area of courtyards.
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save the volume values
-                area_column = name of column where is stored area value
-                area_calculated = boolean value checking whether area has been
-                                  previously calculated and stored in separate column.
-                                  If set to FALSE, function will calculate areas
-                                  during the process without saving them separately.
-'''
+    return objects
 
 
 def courtyard_area(objects, column_name, area_column, area_calculated):
+    """
+    Calculate area of holes within geometry - area of courtyards.
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    column_name : str
+        name of the column to save the values
+    area_column : str
+        name of column where is stored area value
+    area_calculated : bool
+        boolean value checking whether area has been previously calculated and
+        stored in separate column. If set to False, function will calculate areas
+        during the process without saving them separately.
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
@@ -223,44 +286,28 @@ def courtyard_area(objects, column_name, area_column, area_calculated):
             objects.loc[index, column_name] = Polygon(row['geometry'].exterior).area - row['geometry'].area
 
         print('Core area indices calculated.')
-
-'''
-longest_axis_length():
-    Calculate the length of the longest axis of object.
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save the volume values
-'''
+    return objects
 
 
 def longest_axis_length(objects, column_name):
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
-    print('Calculating the longest axis...')
+    """
+    Calculate the length of the longest axis of object.
 
-    # calculate the area of circumcircle
-    def longest_axis(points):
-        circ = make_circle(points)
-        return(circ[2] * 2)
+    Axis is defined as a diameter of minimal circumscribed circle around the convex hull.
+    It does not have to be fully inside an object.
 
-    def sort_NoneType(geom):
-        if geom is not None:
-            if geom.type is not 'Polygon':
-                return(0)
-            else:
-                return(longest_axis(list(geom.exterior.coords)))
-        else:
-            return(0)
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        geopandas gdf containing objects to analyse
+    column_name : str
+        name of the column to save the values
 
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = sort_NoneType(row['geometry'])
-
-    print('The longest axis calculated.')
-
-
-def longest_axis_length2(objects, column_name):  # based on convex hull for multipart polygons
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
@@ -285,7 +332,7 @@ def longest_axis_length2(objects, column_name):  # based on convex hull for mult
         objects.loc[index, column_name] = longest_axis(row['geometry'].convex_hull.exterior.coords)
 
     print('The longest axis calculated.')
-
+    return objects
 
 # to be deleted, keep at the end
 
