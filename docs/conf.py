@@ -25,9 +25,9 @@ copyright = '2018, Martin Fleischmann'
 author = 'Martin Fleischmann'
 
 # The short X.Y version
-version = ''
+version = '0.1'
 # The full version, including alpha/beta/rc tags
-release = ''
+release = '0.1alpha'
 
 
 # -- General configuration ---------------------------------------------------

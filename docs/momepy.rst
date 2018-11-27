@@ -1,9 +1,6 @@
 momepy package
 ==============
 
-Submodules
-----------
-
 momepy.connectivity module
 --------------------------
 
@@ -64,15 +61,6 @@ momepy.shape module
 -------------------
 
 .. automodule:: momepy.shape
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: momepy
     :members:
     :undoc-members:
     :show-inheritance:
