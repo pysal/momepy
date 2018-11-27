@@ -15,7 +15,7 @@
 import os
 import sys
 # sys.path.insert(0, os.path.abspath('.'))
-sys.path.append(os.path.abspath('../momepy'))
+sys.path.append(os.path.abspath('../../momepy'))
 
 
 # -- Project information -----------------------------------------------------
@@ -44,6 +44,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
+    'sphinx.ext.mathjax',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -51,9 +51,8 @@ def frequency(objects, look_for, column_name, id_column='uID'):
     """
     Calculate frequency (count) of objects in a given radius.
 
-    Formula
-    -------
-    count
+    .. math::
+        count
 
     Parameters
     ----------
@@ -101,10 +100,8 @@ def covered_area_ratio(objects, look_for, column_name, area_column, look_for_are
     """
     Calculate covered area ratio of objects.
 
-    Formula
-    -------
-    covering object area /covered object area
-        (e.g. building area / cell area)
+    .. math::
+        \\textit{covering object area} \over \\textit{covered object area}
 
     Parameters
     ----------
@@ -158,10 +155,8 @@ def floor_area_ratio(objects, look_for, column_name, area_column, look_for_area_
     """
     Calculate floor area ratio of objects.
 
-    Formula
-    -------
-    covering object floor area /covered object area
-        (e.g. building floor area / cell area)
+    .. math::
+        \\textit{covering object floor area} \over \\textit{covered object area}
 
     Parameters
     ----------

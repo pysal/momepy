@@ -11,7 +11,7 @@ import shapely.ops
 from .shape import make_circle
 
 
-def object_area(objects, column_name):
+def area(objects, column_name):
     """
     Calculate area of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
@@ -41,7 +41,7 @@ def object_area(objects, column_name):
     return objects
 
 
-def object_perimeter(objects, column_name):
+def perimeter(objects, column_name):
     """
     Calculate perimeter of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
@@ -71,7 +71,7 @@ def object_perimeter(objects, column_name):
     return objects
 
 
-def object_height_os(objects, column_name, original_column='relh2'):
+def height_os(objects, column_name, original_column='relh2'):
     """
     Copy values from GB Ordance Survey data.
 
@@ -106,7 +106,7 @@ def object_height_os(objects, column_name, original_column='relh2'):
     return objects
 
 
-def object_height_prg(objects, column_name, floors_column='od_POCET_P', floor_type='od_TYP'):
+def height_prg(objects, column_name, floors_column='od_POCET_P', floor_type='od_TYP'):
     """
     Define building heights based on Geoportal Prague Data.
 
@@ -147,7 +147,7 @@ def object_height_prg(objects, column_name, floors_column='od_POCET_P', floor_ty
     return objects
 
 
-def object_volume(objects, column_name, area_column, height_column, area_calculated):
+def volume(objects, column_name, area_column, height_column, area_calculated):
     """
     Calculate volume of each object in given shapefile based on its height and area.
 
@@ -194,7 +194,7 @@ def object_volume(objects, column_name, area_column, height_column, area_calcula
         return objects
 
 
-def object_floor_area(objects, column_name, area_column, height_column, area_calculated):
+def floor_area(objects, column_name, area_column, height_column, area_calculated):
     """
     Calculate floor area of each object based on height and area.
 
@@ -332,6 +332,7 @@ def longest_axis_length(objects, column_name):
 
     print('The longest axis calculated.')
     return objects
+
 
 # to be deleted, keep at the end
 

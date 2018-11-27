@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''
-Core of the momepy. From here everything will be called.
-
-Open/close calls on files always in core.py. Calculations always in helpers.
-'''
 import geopandas as gpd
 
 from .dimension import *
@@ -51,10 +46,10 @@ building_dimensions():
 
 def building_dimensions(objects):
 
-    object_area(objects, 'pdbAre')
-    object_perimeter(objects, 'pdbPer')
-    object_volume(objects, column_name='pdbVol', area_column='pdbAre', height_column='pdbHei', area_calculated=True)
-    object_floor_area(objects, column_name='pdbFlA', area_column='pdbAre', height_column='pdbHei', area_calculated=True)
+    area(objects, 'pdbAre')
+    perimeter(objects, 'pdbPer')
+    volume(objects, column_name='pdbVol', area_column='pdbAre', height_column='pdbHei', area_calculated=True)
+    floor_area(objects, column_name='pdbFlA', area_column='pdbAre', height_column='pdbHei', area_calculated=True)
     courtyard_area(objects, column_name='pdbCoA', area_column='pdbAre', area_calculated=True)
 
     # return objects

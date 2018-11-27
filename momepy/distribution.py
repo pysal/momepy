@@ -103,9 +103,8 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
     """
     Calculate shared walls ratio
 
-    Formula
-    -------
-    length of shared walls / perimeter
+    .. math::
+        \\textit{length of shared walls} \over perimeter
 
     Parameters
     ----------
@@ -159,6 +158,9 @@ def street_alignment(objects, streets, column_name, orientation_column, network_
 
     Orientation of street segment is represented by the orientation of line
     connecting first and last point of the segment.
+
+    .. math::
+        \\left|{\\textit{building orientation} - \\textit{street orientation}}\\right|
 
     Parameters
     ----------

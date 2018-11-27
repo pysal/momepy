@@ -16,9 +16,8 @@ def form_factor(objects, column_name, area_column, volume_column):
     """
     Calculate form factor of each object in given geoDataFrame.
 
-    Formula
-    -------
-    area/(volume^(2/3))
+    .. math::
+        area \over {volume^{2 \over 3}}
 
     Parameters
     ----------
@@ -67,9 +66,8 @@ def fractal_dimension(objects, column_name, area_column, perimeter_column):
     """
     Calculate fractal dimension of each object in given geoDataFrame.
 
-    Formula
-    -------
-    log(perimeter/4)/log(area)
+    .. math::
+        {log({{perimeter} \over {4}})} \over log(area)
 
     Parameters
     ----------
@@ -114,9 +112,8 @@ def volume_facade_ratio(objects, column_name, volume_column, perimeter_column, h
     """
     Calculate volume/facade ratio of each object in given geoDataFrame.
 
-    Formula
-    -------
-    volume/(perimeter * heigth)
+    .. math::
+        volume \over perimeter * heigth
 
     Parameters
     ----------
@@ -139,13 +136,13 @@ def volume_facade_ratio(objects, column_name, volume_column, perimeter_column, h
         GeoDataFrame with new column [column_name] containing resulting values.
 
     References
-    ---------
+    ----------
     Schirmer, P. M. and Axhausen, K. W. (2015) ‘A multiscale classification of
     urban morphology’, Journal of Transport and Land Use, 9(1), pp. 101–130.
     doi: 10.5198/jtlu.2015.667.
 
     Notes
-    -------
+    -----
     Option to calculate without area and volume being calculated beforehand.
     """
     # define new column
@@ -298,9 +295,8 @@ def compactness_index(objects, column_name, area_column):
     """
     Calculate compactness index of each object in given geoDataFrame.
 
-    Formula
-    -------
-    area/area of enclosing circle
+    .. math::
+        area \over \\textit{area of enclosing circle}
 
     Parameters
     ----------
@@ -347,9 +343,8 @@ def compactness_index2(objects, column_name, area_column, perimeter_column):
     """
     Calculate compactness index of each object in given geoDataFrame.
 
-    Formula
-    -------
-    √a/p
+    .. math::
+        {\\sqrt{area}} \over {perimeter}
 
     Parameters
     ----------
@@ -393,9 +388,8 @@ def convexeity(objects, column_name, area_column):
     """
     Calculate convexeity index of each object in given geoDataFrame.
 
-    Formula
-    -------
-    area/convex hull area
+    .. math::
+        area \over \\textit{convex hull area}
 
     Parameters
     ----------
@@ -437,9 +431,8 @@ def courtyard_index(objects, column_name, area_column, courtyard_column):
     """
     Calculate courtyard index of each object in given geoDataFrame.
 
-    Formula
-    -------
-    area of courtyards / total area
+    .. math::
+        \\textit{area of courtyards} \over \\textit{total area}
 
     Parameters
     ----------
@@ -484,9 +477,8 @@ def rectangularity(objects, column_name, area_column):
     """
     Calculate rectangularity of each object in given geoDataFrame.
 
-    Formula
-    -------
-    area/minimum bounding rotated rectangle area
+    .. math::
+        {area \over \\textit{minimum bounding rotated rectangle area}}
 
     Parameters
     ----------
@@ -528,9 +520,8 @@ def shape_index(objects, column_name, area_column, longest_axis_column):
     """
     Calculate shape index of each object in given geoDataFrame.
 
-    Formula
-    -------
-    (sqrt(area/pi))/(0.5*longest axis)
+    .. math::
+        {\\sqrt{{area} \over {\\pi}}} \over {0.5 * \\textit{longest axis}}
 
     Parameters
     ----------
@@ -575,9 +566,8 @@ def corners(objects, column_name):
 
     Uses only external shape (shapely.geometry.exterior), courtyards are not included.
 
-    Formula
-    -------
-    count
+    .. math::
+        count
 
     Parameters
     ----------
@@ -655,9 +645,8 @@ def squareness(objects, column_name):
 
     Uses only external shape (shapely.geometry.exterior), courtyards are not included.
 
-    Formula
-    -------
-    mean deviation of all corners from 90 degrees
+    .. math::
+        \\textit{mean deviation of all corners from 90 degrees}
 
     Parameters
     ----------
@@ -672,7 +661,7 @@ def squareness(objects, column_name):
         GeoDataFrame with new column [column_name] containing resulting values.
 
     References
-    ---------
+    ----------
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
     """
@@ -737,9 +726,8 @@ def equivalent_rectangular_index(objects, column_name, area_column, perimeter_co
     """
     Calculate equivalent rectangular index of each object in given geoDataFrame.
 
-    Formula
-    -------
-    sqrt(area/area of bounding rectangle) * (perimeter of bounding rectangle / perimeter)
+    .. math::
+        \\sqrt{{area} \over \\textit{area of bounding rectangle}} * {\\textit{perimeter of bounding rectangle} \over {perimeter}}
 
     Parameters
     ----------
@@ -787,9 +775,8 @@ def elongation(objects, column_name):
     """
     Calculate elongation of object seen as elongation of its minimum bounding rectangle.
 
-    Formula
-    -------
-    ((P-√(P^2 - 16A))/4)/((P/2)-((P-√(P^2 - 16A))/4))
+    .. math::
+        {{p - \\sqrt{p^2 - 16a}} \over {4}} \over {{{p} \over {2}} - {{p - \\sqrt{p^2 - 16a}} \over {4}}}
 
     Parameters
     ----------
@@ -839,29 +826,14 @@ def elongation(objects, column_name):
 
     print('Elongation calculated.')
     return objects
-'''
-centroid_corners():
-    Calculate mean distance centroid - corner
-
-    Formula: mean distance centroid - corner
-
-    References: Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
-               Journal of Transport and Land Use 9(1): 101–130.
-
-    Attributes: objects = geoDataFrame with objects
-                column_name = name of the column to save calculated values
-
-
-'''
 
 
 def centroid_corners(objects, column_name):
     """
     Calculate mean distance centroid - corners.
 
-    Formula
-    -------
-    mean distance centroid - corners
+    .. math::
+        \\textit{mean distance centroid - corners}
 
     Parameters
     ----------
@@ -935,6 +907,55 @@ def centroid_corners(objects, column_name):
 
         objects.loc[index, column_name] = np.mean(distances)  # calculate mean and sve it to DF
     print('Mean distances centroid - corner calculated.')
+    return objects
+
+
+def linearity(objects, column_name, length_column):
+    """
+    Calculate linearity of each LineString object in given geoDataFrame.
+
+    .. math::
+        Ratio between Euclidean distance and segment length.
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects
+    column_name : str
+        name of the column to save the values
+    area_column : str
+        name of the column of objects gdf where is stored area value
+    perimeter_column : str
+        name of the column of objects gdf where is stored perimeter value
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+
+    References
+    ---------
+    Basaraner M and Cetinkaya S (2017) Performance of shape indices and classification
+    schemes for characterising perceptual shape complexity of building footprints in GIS.
+    2nd ed. International Journal of Geographical Information Science, Taylor & Francis
+    31(10): 1952–1977. Available from:
+    https://www.tandfonline.com/doi/full/10.1080/13658816.2017.1346257.
+
+    Notes
+    -------
+    Option to calculate without area and volume being calculated beforehand.
+    """
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+    print('Calculating equivalent rectangular index...')
+
+    # fill new column with the value of area, iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+            bbox = row['geometry'].minimum_rotated_rectangle
+            objects.loc[index, column_name] = math.sqrt(row[area_column] / bbox.area) * (bbox.length / row[perimeter_column])
+
+    print('Equivalent rectangular index calculated.')
     return objects
 # to be deleted, keep at the end
 
