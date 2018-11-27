@@ -26,7 +26,7 @@ def radius(gpd_df, cpt, radius):
     list
         Return only the neighbour indices, sorted by distance in ascending order
 
-    Reference
+    Notes
     ---------
     https://stackoverflow.com/questions/44622233/rtree-count-points-in-the-neighbourhoods-within-each-point-of-another-set-of-po
 
@@ -71,7 +71,7 @@ def frequency(objects, look_for, column_name, id_column='uID'):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
 
     """
@@ -126,7 +126,7 @@ def covered_area_ratio(objects, look_for, column_name, area_column, look_for_are
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
 
     """
@@ -183,7 +183,7 @@ def floor_area_ratio(objects, look_for, column_name, area_column, look_for_area_
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
 
     """

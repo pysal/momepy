@@ -36,13 +36,13 @@ def form_factor(objects, column_name, area_column, volume_column):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Bourdic, L., Salat, S. and Nowacki, C. (2012) ‘Assessing cities: a new system
     of cross-scale spatial indicators’, Building Research & Information, 40(5),
     pp. 592–605. doi: 10.1080/09613218.2012.703488self.
 
-    Missing
+    Notes
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
@@ -87,13 +87,13 @@ def fractal_dimension(objects, column_name, area_column, perimeter_column):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Hermosilla, T. et al. (2014) ‘Using street based metrics to characterize urban
     typologies’, Computers, Environment and Urban Systems, 44, pp. 68–79.
     doi: 10.1016/j.compenvurbsys.2013.12.002.
 
-    Missing
+    Notes
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
@@ -138,13 +138,13 @@ def volume_facade_ratio(objects, column_name, volume_column, perimeter_column, h
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Schirmer, P. M. and Axhausen, K. W. (2015) ‘A multiscale classification of
     urban morphology’, Journal of Transport and Land Use, 9(1), pp. 101–130.
     doi: 10.5198/jtlu.2015.667.
 
-    Missing
+    Notes
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
@@ -316,12 +316,12 @@ def compactness_index(objects, column_name, area_column):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
 
-    Missing
+    Notes
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
@@ -367,12 +367,12 @@ def compactness_index2(objects, column_name, area_column, perimeter_column):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Feliciotti A (2018) RESILIENCE AND URBAN DESIGN:A SYSTEMS APPROACH TO THE
     STUDY OF RESILIENCE IN URBAN FORM. LEARNING FROM THE CASE OF GORBALS. Glasgow.
 
-    Missing
+    Notes
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
@@ -411,12 +411,12 @@ def convexeity(objects, column_name, area_column):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
 
-    Missing
+    Notes
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
@@ -457,13 +457,13 @@ def courtyard_index(objects, column_name, area_column, courtyard_column):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Schirmer, P. M. and Axhausen, K. W. (2015) ‘A multiscale classification of
     urban morphology’, Journal of Transport and Land Use, 9(1), pp. 101–130.
     doi: 10.5198/jtlu.2015.667.
 
-    Missing
+    Notes
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
@@ -502,12 +502,12 @@ def rectangularity(objects, column_name, area_column):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
 
-    Missing
+    Notes
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
@@ -548,11 +548,11 @@ def shape_index(objects, column_name, area_column, longest_axis_column):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Ale?
 
-    Missing
+    Notes
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
@@ -591,7 +591,7 @@ def corners(objects, column_name):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
 
     """
@@ -671,7 +671,7 @@ def squareness(objects, column_name):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
@@ -757,7 +757,7 @@ def equivalent_rectangular_index(objects, column_name, area_column, perimeter_co
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Basaraner M and Cetinkaya S (2017) Performance of shape indices and classification
     schemes for characterising perceptual shape complexity of building footprints in GIS.
@@ -765,7 +765,7 @@ def equivalent_rectangular_index(objects, column_name, area_column, perimeter_co
     31(10): 1952–1977. Available from:
     https://www.tandfonline.com/doi/full/10.1080/13658816.2017.1346257.
 
-    Missing
+    Notes
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
@@ -803,7 +803,7 @@ def elongation(objects, column_name):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Gil J, Montenegro N, Beirão JN, et al. (2012) On the Discovery of
     Urban Typologies: Data Mining the Multi-dimensional Character of
@@ -845,7 +845,7 @@ centroid_corners():
 
     Formula: mean distance centroid - corner
 
-    Reference: Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
+    References: Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
                Journal of Transport and Land Use 9(1): 101–130.
 
     Attributes: objects = geoDataFrame with objects
@@ -875,8 +875,8 @@ def centroid_corners(objects, column_name):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
-    ---------
+    References
+    ----------
     Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
     Journal of Transport and Land Use 9(1): 101–130.
     """

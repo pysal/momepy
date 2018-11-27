@@ -17,15 +17,15 @@ buildings_path_all = 'files/mm_buildings_all.shp'
 tessellation_path_all = 'files/mm_g_tesselation_all.shp'
 
 
-tess_start = timer()
-print('Generating tessellation.')
-
+# tess_start = timer()
+# print('Generating tessellation.')
+#
 buildings = gpd.read_file(buildings_path)
-
-mm.tessellation(buildings, tessellation_path)
-
-tess_end = timer()
-print('Tesselation finished in', tess_end - tess_start)
+#
+# mm.tessellation(buildings, tessellation_path)
+#
+# tess_end = timer()
+# print('Tesselation finished in', tess_end - tess_start)
 
 blo_start = timer()
 print('Generating blocks.')
