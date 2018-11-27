@@ -76,8 +76,7 @@ def object_height_os(objects, column_name, original_column='relh2'):
     Copy values from GB Ordance Survey data.
 
     Function tailored to GB Ordance Survey data of OS Building Heights (Alpha).
-    It will copy RelH2 values to new column.
-        (relative height from ground level to base of the roof [RelH2])
+    It will copy RelH2 (relative height from ground level to base of the roof) values to new column.
 
     Parameters
     ----------

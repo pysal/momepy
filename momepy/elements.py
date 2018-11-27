@@ -122,7 +122,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50):
     GeoDataFrame
         GeoDataFrame of morphological tessellation with the unique id based on original buildings.
 
-    Missing
+    Notes
     -------
     Fix saw-like geometry.
     """
@@ -595,8 +595,7 @@ def blocks(cells, streets, buildings, id_name, unique_id):
 
     Returns
     -------
-    tuple
-        (buildings, cells, blocks)
+    buildings, cells, blocks : tuple
 
     buildings : GeoDataFrame
         geopandas gdf containing buildings with added block ID
@@ -934,8 +933,7 @@ def get_network_id(buildings, streets, tesselation, unique_id_column, network_id
 
     Returns
     -------
-    tuple
-        (buildings, tesselation)
+    buildings, tesselation : tuple
 
     buildings : GeoDataFrame
         geopandas gdf containing buildings with added network ID

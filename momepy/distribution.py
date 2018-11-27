@@ -30,7 +30,7 @@ def orientation(objects, column_name):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
     Journal of Transport and Land Use 9(1): 101–130.
@@ -123,7 +123,7 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
     GeoDataFrame
         GeoDataFrame with new column [column_name] containing resulting values.
 
-    Reference
+    References
     ---------
     Hamaina R, Leduc T and Moreau G (2012) Towards Urban Fabrics Characterization
     Based on Buildings Footprints. In: Lecture Notes in Geoinformation and Cartography,
