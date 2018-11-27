@@ -8,6 +8,45 @@ from tqdm import tqdm  # progress bar
 import geopandas as gpd
 
 
+def radius(gpd_df, cpt, radius):
+    """
+    Get a list of indices of objects within radius.
+
+    Parameters
+    ----------
+    gpd_df : GeoDataFrame
+        geopandas gdf containing point objects to analyse
+    cpt : shapely.Point
+        shapely point representing the center of radius
+    radius : float
+        radius
+
+    Returns
+    -------
+    list
+        Return only the neighbour indices, sorted by distance in ascending order
+
+    Reference
+    ---------
+    https://stackoverflow.com/questions/44622233/rtree-count-points-in-the-neighbourhoods-within-each-point-of-another-set-of-po
+
+    """
+    # Spatial index
+    sindex = gpd_df.sindex
+    # Bounding box of rtree search (West, South, East, North)
+    bbox = (cpt.x - radius, cpt.y - radius, cpt.x + radius, cpt.y + radius)
+    # Potential neighbours
+    good = []
+    for n in sindex.intersection(bbox):
+        dist = cpt.distance(gpd_df['geometry'][n])
+        if dist < radius:
+            good.append((dist, n))
+    # Sort list in ascending order by `dist`, then `n`
+    good.sort()
+    # Return only the neighbour indices, sorted by distance in ascending order
+    return [x[1] for x in good]
+
+
 def frequency(objects, look_for, column_name, id_column='uID'):
     """
     Calculate frequency (count) of objects in a given radius.
@@ -36,43 +75,7 @@ def frequency(objects, look_for, column_name, id_column='uID'):
     ---------
 
     """
-    def radius(gpd_df, cpt, radius):
-        """
-        Get a list of indices of objects within radius.
 
-        Parameters
-        ----------
-        gpd_df : GeoDataFrame
-            geopandas gdf containing point objects to analyse
-        cpt : shapely.Point
-            shapely point representing the center of radius
-        radius : float
-            radius
-
-        Returns
-        -------
-        list
-            Return only the neighbour indices, sorted by distance in ascending order
-
-        Reference
-        ---------
-        https://stackoverflow.com/questions/44622233/rtree-count-points-in-the-neighbourhoods-within-each-point-of-another-set-of-po
-
-        """
-        # Spatial index
-        sindex = gpd_df.sindex
-        # Bounding box of rtree search (West, South, East, North)
-        bbox = (cpt.x - radius, cpt.y - radius, cpt.x + radius, cpt.y + radius)
-        # Potential neighbours
-        good = []
-        for n in sindex.intersection(bbox):
-            dist = cpt.distance(gpd_df['geometry'][n])
-            if dist < radius:
-                good.append((dist, n))
-        # Sort list in ascending order by `dist`, then `n`
-        good.sort()
-        # Return only the neighbour indices, sorted by distance in ascending order
-        return [x[1] for x in good]
     # define new column
 
     print('Calculating frequency...')
