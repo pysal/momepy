@@ -393,7 +393,9 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
     """
     # extrapolating function - makes line as a extrapolation of existing with set length (tolerance)
     def getExtrapoledLine(p1, p2, tolerance):
-        'Creates a line extrapoled in p1->p2 direction'
+        """
+        Creates a line extrapoled in p1->p2 direction.
+        """
         EXTRAPOL_RATIO = tolerance  # length of a line
         a = p2
 
@@ -414,6 +416,9 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
 
     # function extending line to closest object within set distance
     def extend_line(tolerance):
+        """
+        Extends a line geometry withing GeoDataFrame to snap on itself withing tolerance.
+        """
         if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
             extra = l_coords[-3:-1]
         else:
@@ -464,6 +469,9 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
 
     # function extending line to closest object within set distance to edge defined by tessellation
     def extend_line_edge(tolerance):
+        """
+        Extends a line geometry withing GeoDataFrame to snap on the boundary of tessellation withing tolerance.
+        """
         if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
             extra = l_coords[-3:-1]
         else:
