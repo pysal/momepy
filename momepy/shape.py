@@ -23,7 +23,7 @@ def form_factor(objects, column_name, area_column, volume_column):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
     area_column : str
@@ -74,7 +74,7 @@ def fractal_dimension(objects, column_name, area_column, perimeter_column):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
     area_column : str
@@ -121,7 +121,7 @@ def volume_facade_ratio(objects, column_name, volume_column, perimeter_column, h
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
     area_column : str
@@ -305,7 +305,7 @@ def compactness_index(objects, column_name, area_column):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
     area_column : str
@@ -354,7 +354,7 @@ def compactness_index2(objects, column_name, area_column, perimeter_column):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
     area_column : str
@@ -400,7 +400,7 @@ def convexeity(objects, column_name, area_column):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
     area_column : str
@@ -444,7 +444,7 @@ def courtyard_index(objects, column_name, area_column, courtyard_column):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
     area_column : str
@@ -491,7 +491,7 @@ def rectangularity(objects, column_name, area_column):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
     area_column : str
@@ -535,7 +535,7 @@ def shape_index(objects, column_name, area_column, longest_axis_column):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
     area_column : str
@@ -582,7 +582,7 @@ def corners(objects, column_name):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
 
@@ -662,7 +662,7 @@ def squareness(objects, column_name):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
 
@@ -744,7 +744,7 @@ def equivalent_rectangular_index(objects, column_name, area_column, perimeter_co
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
     area_column : str
@@ -794,7 +794,7 @@ def elongation(objects, column_name):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
 
@@ -866,7 +866,7 @@ def centroid_corners(objects, column_name):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects
+        GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
 

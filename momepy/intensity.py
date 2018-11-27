@@ -15,7 +15,7 @@ def radius(gpd_df, cpt, radius):
     Parameters
     ----------
     gpd_df : GeoDataFrame
-        geopandas gdf containing point objects to analyse
+        GeoDataFrame containing point objects to analyse
     cpt : shapely.Point
         shapely point representing the center of radius
     radius : float
@@ -58,9 +58,9 @@ def frequency(objects, look_for, column_name, id_column='uID'):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     look_for : GeoDataFrame
-        geopandas gdf with measured objects (could be the same as objects)
+        GeoDataFrame with measured objects (could be the same as objects)
     column_name : str
         name of the column to save the values
     id_column : str
@@ -109,9 +109,9 @@ def covered_area_ratio(objects, look_for, column_name, area_column, look_for_are
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects being covered (e.g. land unit)
+        GeoDataFrame containing objects being covered (e.g. land unit)
     look_for : GeoDataFrame
-        geopandas gdf with covering objects (e.g. building)
+        GeoDataFrame with covering objects (e.g. building)
     column_name : str
         name of the column to save the values
     area_column : str
@@ -166,9 +166,9 @@ def floor_area_ratio(objects, look_for, column_name, area_column, look_for_area_
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects being covered (e.g. land unit)
+        GeoDataFrame containing objects being covered (e.g. land unit)
     look_for : GeoDataFrame
-        geopandas gdf with covering objects (e.g. building)
+        GeoDataFrame with covering objects (e.g. building)
     column_name : str
         name of the column to save the values
     area_column : str

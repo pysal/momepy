@@ -19,7 +19,7 @@ def object_area(objects, column_name):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     column_name : str
         name of the column to save the values
 
@@ -49,7 +49,7 @@ def object_perimeter(objects, column_name):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     column_name : str
         name of the column to save the values
 
@@ -81,7 +81,7 @@ def object_height_os(objects, column_name, original_column='relh2'):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     column_name : str
         name of the column to save the values
     original_column : str
@@ -116,7 +116,7 @@ def object_height_prg(objects, column_name, floors_column='od_POCET_P', floor_ty
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     column_name : str
         name of the column to save the values
     floor_type : str
@@ -154,7 +154,7 @@ def object_volume(objects, column_name, area_column, height_column, area_calcula
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     column_name : str
         name of the column to save the values
     area_column : str
@@ -204,7 +204,7 @@ def object_floor_area(objects, column_name, area_column, height_column, area_cal
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     column_name : str
         name of the column to save the values
     area_column : str
@@ -252,7 +252,7 @@ def courtyard_area(objects, column_name, area_column, area_calculated):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     column_name : str
         name of the column to save the values
     area_column : str
@@ -298,7 +298,7 @@ def longest_axis_length(objects, column_name):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     column_name : str
         name of the column to save the values
 

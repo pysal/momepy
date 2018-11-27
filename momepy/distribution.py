@@ -21,7 +21,7 @@ def orientation(objects, column_name):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     column_name : str
         name of the column to save the values
 
@@ -110,7 +110,7 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     column_name : str
         name of the column to save the values
     perimeter_column : str
@@ -163,9 +163,9 @@ def street_alignment(objects, streets, column_name, orientation_column, network_
     Parameters
     ----------
     objects : GeoDataFrame
-        geopandas gdf containing objects to analyse
+        GeoDataFrame containing objects to analyse
     streets : GeoDataFrame
-        geopandas gdf containing street network
+        GeoDataFrame containing street network
     column_name : str
         name of the column to save the values
     orientation_column : str
