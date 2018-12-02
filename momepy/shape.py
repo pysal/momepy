@@ -291,7 +291,7 @@ def _cross_product(x0, y0, x1, y1, x2, y2):
 # end of Nayuiki script to define the smallest enclosing circle
 
 
-def compactness_index(objects, column_name, area_column):
+def circular_compactness(objects, column_name, area_column):
     """
     Calculate compactness index of each object in given geoDataFrame.
 
