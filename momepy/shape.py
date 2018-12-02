@@ -339,12 +339,14 @@ def circular_compactness(objects, column_name, area_column):
     return objects
 
 
-def compactness_index2(objects, column_name, area_column, perimeter_column):
+def square_compactness(objects, column_name, area_column, perimeter_column):
     """
     Calculate compactness index of each object in given geoDataFrame.
 
     .. math::
-        {\\sqrt{area}} \over {perimeter}
+        \\begin{equation*}
+        \\left(\\frac{4 \\sqrt{area}}{perimeter}\\right) ^ 2
+        \\end{equation*}
 
     Parameters
     ----------
@@ -378,7 +380,7 @@ def compactness_index2(objects, column_name, area_column, perimeter_column):
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = (math.sqrt(row[area_column])) / (row[perimeter_column])
+        objects.loc[index, column_name] = ((4 * math.sqrt(row[area_column])) / (row[perimeter_column])) ** 2
 
     print('Compactness index calculated.')
     return objects
