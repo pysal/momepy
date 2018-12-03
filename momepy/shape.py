@@ -912,12 +912,12 @@ def centroid_corners(objects, column_name):
     return objects
 
 
-def linearity(objects, column_name, length_column):
+def linearity(objects, column_name):
     """
     Calculate linearity of each LineString object in given geoDataFrame.
 
     .. math::
-        Ratio between Euclidean distance and segment length.
+        \\frac{l_{euclidean}}{l_{segment}}
 
     Parameters
     ----------
@@ -925,10 +925,6 @@ def linearity(objects, column_name, length_column):
         GeoDataFrame containing objects
     column_name : str
         name of the column to save the values
-    area_column : str
-        name of the column of objects gdf where is stored area value
-    perimeter_column : str
-        name of the column of objects gdf where is stored perimeter value
 
     Returns
     -------
@@ -937,27 +933,22 @@ def linearity(objects, column_name, length_column):
 
     References
     ---------
-    Basaraner M and Cetinkaya S (2017) Performance of shape indices and classification
-    schemes for characterising perceptual shape complexity of building footprints in GIS.
-    2nd ed. International Journal of Geographical Information Science, Taylor & Francis
-    31(10): 1952–1977. Available from:
-    https://www.tandfonline.com/doi/full/10.1080/13658816.2017.1346257.
+    Araldi A and Fusco G (2017) Decomposing and Recomposing Urban Fabric:
+    The City from the Pedestrian Point of View. In:, pp. 365–376. Available
+    from: http://link.springer.com/10.1007/978-3-319-62407-5.
 
-    Notes
-    -------
-    Option to calculate without area and volume being calculated beforehand.
     """
     # define new column
     objects[column_name] = None
     objects[column_name] = objects[column_name].astype('float')
-    print('Calculating equivalent rectangular index...')
+    print('Calculating linearity...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            bbox = row['geometry'].minimum_rotated_rectangle
-            objects.loc[index, column_name] = math.sqrt(row[area_column] / bbox.area) * (bbox.length / row[perimeter_column])
+            euclidean = Point(row['geometry'].coords[0]).distance(Point(row['geometry'].coords[-1]))
+            objects.loc[index, column_name] = euclidean / row['geometry'].length
 
-    print('Equivalent rectangular index calculated.')
+    print('Linearity calculated.')
     return objects
 # to be deleted, keep at the end
 
