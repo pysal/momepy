@@ -8,7 +8,7 @@ from tqdm import tqdm  # progress bar
 from shapely.geometry import LineString, Point
 import numpy as np
 import geopandas as gpd
-import math
+import statistics
 
 
 def orientation(objects, column_name):
@@ -217,6 +217,72 @@ def street_alignment(objects, streets, column_name, orientation_column, network_
         objects.loc[index, column_name] = abs(row[orientation_column] - az)
     print('Street alignments calculated.')
     return objects
+
+
+def alignment(objects, column_name, orientation_column, tessellation, weights_matrix=None):
+    """
+    Calculate the mean deviation of solar orientation of objects on adjacent cells from object
+
+    .. math::
+        \\frac{1}{n}\\sum_{i=1}^n dev_i=\\frac{dev_1+dev_2+\\cdots+dev_n}{n}
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    column_name : str
+        name of the column to save the values
+    orientation_column : str
+        name of the column where is stored object orientation value
+    tessellation : GeoDataFrame
+        GeoDataFrame containing morphological tessellation - source of weights_matrix.
+        It is crucial to use exactly same input as was used durign the calculation of weights matrix.
+        If weights_matrix is None, tessellation is used to calulate it.
+    weights_matrix : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix will be calculated
+        based on tessellation
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+
+    print('Calculating alignments...')
+
+    if weights_matrix is None:
+        print('Calculating spatial weights...')
+        from libpysal.weights import Queen
+        weights_matrix = Queen.from_dataframe(tessellation)
+        print('Spatial weights ready...')
+
+    # iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
+        neighbours = weights_matrix.neighbors[id]
+        neighbours_ids = []
+
+        for n in neighbours:
+            uniq = tessellation.iloc[n]['uID']
+            neighbours_ids.append(uniq)
+
+        orientations = []
+        for i in neighbours_ids:
+            ori = objects.loc[objects['uID'] == i].iloc[0][orientation_column]
+            orientations.append(ori)
+
+        deviations = []
+        for o in orientations:
+            dev = abs(o - row[orientation_column])
+            deviations.append(dev)
+
+        objects.loc[index, column_name] = statistics.mean(deviations)
+    print('Street alignments calculated.')
+    return objects
+
 
 # to be deleted, keep at the end
 #
