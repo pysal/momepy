@@ -260,6 +260,69 @@ def block_density(objects, column_name, blocks, block_id, unique_id):
 
     print('Block density calculated.')
     return objects
+
+
+def courtyards(objects, column_name, block_id, weights_matrix=None):
+    """
+    Calculate the number of courtyards within the joined structure.
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    column_name : str
+        name of the column to save the values
+    block_id : str
+        name of the column where is stored block ID
+    weights_matrix : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix will be calculated
+        based on objects. It is to denote adjacent buildings.
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+    """
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+
+    print('Calculating courtyards...')
+
+    if weights_matrix is None:
+        print('Calculating spatial weights...')
+        from libpysal.weights import Queen
+        weights_matrix = Queen.from_dataframe(objects)
+        print('Spatial weights ready...')
+
+    courtyards = {}
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        if index in courtyards:
+            continue
+        else:
+            to_join = [index]
+            neighbours = []
+            weights = weights_matrix.neighbors[index]
+            for w in weights:
+                neighbours.append(w)
+
+            for n in neighbours:
+                while n not in to_join:
+                    to_join.append(n)
+                    weights = weights_matrix.neighbors[n]
+                    for w in weights:
+                        neighbours.append(w)
+            joined = objects.iloc[to_join]
+            joined['geometry'] = joined.buffer(0.01)
+            dissolved = joined.dissolve(by='bID')
+            interiors = len(list(dissolved.iloc[0]['geometry'].interiors))
+            for b in to_join:
+                courtyards[b] = interiors
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        objects.loc[index, column_name] = courtyards[index]
+
+    print('Courtyards calculated.')
+    return objects
 # objects.to_file("/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single4.shp")
 #
 # objects = gpd.read_file("/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single.shp")
