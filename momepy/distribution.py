@@ -284,6 +284,67 @@ def alignment(objects, column_name, orientation_column, tessellation, weights_ma
     return objects
 
 
+def neighbour_distance(objects, column_name, tessellation, weights_matrix=None):
+    """
+    Calculate the mean distance to buildings on adjacent cells
+
+    .. math::
+        \\frac{1}{n}\\sum_{i=1}^n dist_i=\\frac{dist_1+dist_2+\\cdots+dist_n}{n}
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    column_name : str
+        name of the column to save the values
+    tessellation : GeoDataFrame
+        GeoDataFrame containing morphological tessellation - source of weights_matrix.
+        It is crucial to use exactly same input as was used durign the calculation of weights matrix.
+        If weights_matrix is None, tessellation is used to calulate it.
+    weights_matrix : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix will be calculated
+        based on tessellation
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+
+    References
+    ---------
+    Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
+    Journal of Transport and Land Use 9(1): 101–130.
+    """
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+
+    print('Calculating distances...')
+
+    if weights_matrix is None:
+        print('Calculating spatial weights...')
+        from libpysal.weights import Queen
+        weights_matrix = Queen.from_dataframe(tessellation)
+        print('Spatial weights ready...')
+
+    # iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
+        neighbours = weights_matrix.neighbors[id]
+        neighbours_ids = []
+
+        for n in neighbours:
+            uniq = tessellation.iloc[n]['uID']
+            neighbours_ids.append(uniq)
+
+        distances = []
+        for i in neighbours_ids:
+            dist = objects.loc[objects['uID'] == i].iloc[0]['geometry'].distance(row['geometry'])
+            distances.append(dist)
+
+        objects.loc[index, column_name] = statistics.mean(distances)
+    print('Distances calculated.')
+    return objects
 # to be deleted, keep at the end
 #
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
