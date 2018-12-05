@@ -1,44 +1,53 @@
 import libpysal
 import geopandas as gpd
-from tqdm import tqdm
-import statistics
-import momepy as mm
 
 tessellation = gpd.read_file("/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Tests/181122/tess_oldtown_nid.shp")
 
-weights_queen = libpysal.weights.Queen.from_dataframe(tessellation)
+weights_queen = libpysal.weights.Queen.from_dataframe(tessellation)  # classic queen of 1st order
+second_order = libpysal.weights.higher_order(weights_queen, k=2)  # second order neighbours (only)
+joined_weights = libpysal.weights.w_union(weights_queen, second_order)  # joined together
 
-objects = gpd.read_file("/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Tests/181122/blg_oldtown_nid.shp")
-column_name = 'dist'
-weights_matrix = weights_queen
+weights_queen.neighbors[10]
+second_order.neighbors[10]
+joined_weights.neighbors[10]
 
+
+def Queen_higher(dataframe, k):
+    first_order = libpysal.weights.Queen.from_dataframe(dataframe)
+    joined = first_order
+    for i in list(range(2, k + 1)):
+        i_order = libpysal.weights.higher_order(first_order, k=i)
+        joined = libpysal.weights.w_union(joined, i_order)
+    return joined
+
+fourth = Queen_higher(tessellation, k=4)
+fourth.mean_neighbors
+
+first = libpysal.weights.Queen.from_dataframe(tessellation)
+first.mean_neighbors
+
+objects = tessellation
+column_name = 'mesh2'
+area_column = 'area'
+from tqdm import tqdm
+import momepy as mm
+tessellation = mm.area(tessellation, 'area')
+
+
+# define new column
 objects[column_name] = None
 objects[column_name] = objects[column_name].astype('float')
 
-print('Calculating distances...')
+print('Calculating effective mesh size...')
 
-if weights_matrix is None:
-    print('Calculating spatial weights...')
-    from libpysal.weights import Queen
-    weights_matrix = Queen.from_dataframe(tessellation)
-    print('Spatial weights ready...')
-
-# iterating over rows one by one
 for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-    id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
-    neighbours = weights_matrix.neighbors[id]
-    neighbours_ids = []
-
+    neighbours = spatial_weights.neighbors[index]
+    total_area = row[area_column]
     for n in neighbours:
-        uniq = tessellation.iloc[n]['uID']
-        neighbours_ids.append(uniq)
+        n_area = objects.iloc[n][area_column]
+        total_area = total_area + n_area
 
-    distances = []
-    for i in neighbours_ids:
-        dist = objects.loc[objects['uID'] == i].iloc[0]['geometry'].distance(row['geometry'])
-        distances.append(dist)
+    objects.loc[index, column_name] = total_area / (len(neighbours) + 1)
 
-    objects.loc[index, column_name] = statistics.mean(distances)
-print('Distances calculated.')
-
-objects.to_file("/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Tests/181204/blg_oldtown_nid.shp")
+objects.plot(column='mesh2', cmap='Spectral')
+objects.to_file("/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Tests/181205/tess_oldtown.shp")

@@ -1,50 +1,31 @@
 import momepy as mm
 import geopandas as gpd
-from timeit import default_timer as timer
+import statistics
+from tqdm import tqdm
 
-start = timer()
+buildings = gpd.read_file("/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Tests/181204/blg.shp")
+streets = gpd.read_file("/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Tests/181204/str.shp")
 
-buildings_path = 'files/prg_buildings.shp'
-tessellation_path = 'files/mm_g_tesselation.shp'
-streets_path = 'files/prg_street_network.shp'
-blocks_path = 'files/mm_g_blocks.shp'
-edges_path = 'files/mm_g_edges.shp'
+tessellation = mm.tessellation(buildings)
 
-buildings_path_bid = 'files/mm_buildings_bID.shp'
-tessellation_path_bid = 'files/mm_g_tesselation_bID.shp'
+buildings, tessellation, blocks = mm.blocks(tessellation, streets, buildings, 'bID', 'uID')
 
-buildings_path_all = 'files/mm_buildings_all.shp'
-tessellation_path_all = 'files/mm_g_tesselation_all.shp'
+buildings, tessellation = mm.get_network_id(buildings, streets, tessellation, 'uID', 'nID')
 
+# from here
+block_ids = buildings['bID'].tolist()
 
-# tess_start = timer()
-# print('Generating tessellation.')
-#
-buildings = gpd.read_file(buildings_path)
-#
-# mm.tessellation(buildings, tessellation_path)
-#
-# tess_end = timer()
-# print('Tesselation finished in', tess_end - tess_start)
+unique_block_ids = list(set(block_ids))
 
-blo_start = timer()
-print('Generating blocks.')
+cells = {}
+areas = {}
 
-streets = gpd.read_file(streets_path)
-tessellation = gpd.read_file(tessellation_path)
-fixed_streets = mm.snap_street_network_edge(streets, buildings, tessellation, 20, 70)
-mm.blocks(tessellation, fixed_streets, buildings, 'bID', 'uID', tessellation_path_bid, buildings_path_bid, blocks_path)
+for id in unique_block_ids:
+    unique_IDs = len(set(buildings.loc[buildings['bID'] == id]['uID'].tolist()))
+    cells[id] = unique_IDs
+    areas[id] = blocks.loc[blocks['bID'] == id].iloc[0]['geometry'].area
 
-blo_end = timer()
-print('Blocks finished in', blo_end - blo_start)
-edg_start = timer()
-print('Generating street edges.')
+for index, row in tqdm(buildings.iterrows(), total=buildings.shape[0]):
+    buildings.loc[index, 'gran'] = 10000 * cells[row["bID"]] / areas[row["bID"]]
 
-buildings_bid = gpd.read_file(buildings_path_bid)
-tessellation_bid = gpd.read_file(tessellation_path_bid)
-
-mm.street_edges(buildings_bid, streets, tessellation_bid, 'MKN_1', 'uID', 'bID', 'nID', tessellation_path_all, buildings_path_all, edges_path)
-edg_end = timer()
-print('Street edges finished in', edg_end - edg_start)
-end = timer()
-print('Script finished in', end - start)
+buildings.to_file("/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Tests/181204/blg2.shp")
