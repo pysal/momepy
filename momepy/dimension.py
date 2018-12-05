@@ -334,6 +334,55 @@ def longest_axis_length(objects, column_name):
     return objects
 
 
+def effective_mesh(objects, column_name, spatial_weights, area_column):
+    """
+    Calculate the effective mesh size
+
+    Effective mesh size of the area within k topological steps defined in spatial_weights.
+
+    .. math::
+        \\
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    column_name : str
+        name of the column to save the values
+    spatial_weights : libpysal.weights
+        spatial weights matrix
+    area_column : str
+        name of the column of objects gdf where is stored area value
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with new column [column_name] containing resulting values.
+
+    References
+    ----------
+    Hausleitner B and Berghauser Pont M (2017) Development of a configurational
+    typology for micro-businesses integrating geometric and configurational variables.
+
+    Notes
+    -----
+    Resolve the issues if there is no spatial weights matrix.
+
+    """
+    # define new column
+    objects[column_name] = None
+    objects[column_name] = objects[column_name].astype('float')
+
+    print('Calculating effective mesh size...')
+
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        neighbours = spatial_weights.neighbors[index]
+        total_area = row[area_column]
+        for n in neighbours:
+            n_area = objects.iloc[n][area_column]
+            total_area = total_area + n_area
+
+        objects.loc[index, column_name] = total_area / (len(neighbours) + 1)
 # to be deleted, keep at the end
 
 # path = "/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/Final data/Voronoi/test/voronoi_10.shp"
