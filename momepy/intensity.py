@@ -243,17 +243,17 @@ def block_density(objects, column_name, blocks, block_id, unique_id):
     objects[column_name] = objects[column_name].astype('float')
     print('Calculating block density...')
 
-    block_ids = objects[block_id].tolist()
+    block_ids = objects[block_id].tolist()  # list all block IDs
 
-    unique_block_ids = list(set(block_ids))
+    unique_block_ids = list(set(block_ids))  # delete duplications
 
     cells = {}
     areas = {}
 
     for id in unique_block_ids:
-        unique_IDs = len(set(objects.loc[objects[block_id] == id][unique_id].tolist()))
-        cells[id] = unique_IDs
-        areas[id] = blocks.loc[blocks[block_id] == id].iloc[0]['geometry'].area
+        unique_IDs = len(set(objects.loc[objects[block_id] == id][unique_id].tolist()))  # get number of cells within each block
+        cells[id] = unique_IDs  # save to dict
+        areas[id] = blocks.loc[blocks[block_id] == id].iloc[0]['geometry'].area  # save block area to dict
 
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         objects.loc[index, column_name] = 10000 * cells[row[block_id]] / areas[row[block_id]]
@@ -289,35 +289,40 @@ def courtyards(objects, column_name, block_id, weights_matrix=None):
 
     print('Calculating courtyards...')
 
+    # if weights matrix is not passed, generate it from objects
     if weights_matrix is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
         weights_matrix = Queen.from_dataframe(objects)
         print('Spatial weights ready...')
 
+    # dict to store nr of courtyards for each uID
     courtyards = {}
+
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        # if the id is already present in courtyards, continue (avoid repetition)
         if index in courtyards:
             continue
         else:
-            to_join = [index]
-            neighbours = []
-            weights = weights_matrix.neighbors[index]
+            to_join = [index]  # list of indices which should be joined together
+            neighbours = []  # list of neighbours
+            weights = weights_matrix.neighbors[index]  # neighbours from spatial weights
             for w in weights:
-                neighbours.append(w)
+                neighbours.append(w)  # make a list from weigths
 
             for n in neighbours:
-                while n not in to_join:
+                while n not in to_join:  # until there is some neighbour which is not in to_join
                     to_join.append(n)
                     weights = weights_matrix.neighbors[n]
                     for w in weights:
-                        neighbours.append(w)
+                        neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
             joined = objects.iloc[to_join]
-            joined['geometry'] = joined.buffer(0.01)
+            joined['geometry'] = joined.buffer(0.01)  # buffer to avoid multipolygons where buildings touch by corners only
             dissolved = joined.dissolve(by='bID')
             interiors = len(list(dissolved.iloc[0]['geometry'].interiors))
             for b in to_join:
-                courtyards[b] = interiors
+                courtyards[b] = interiors  # fill dict with values
+    # copy values from dict to gdf
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         objects.loc[index, column_name] = courtyards[index]
 
