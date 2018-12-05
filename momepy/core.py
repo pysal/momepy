@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import geopandas as gpd
+import libpysal
 
 from .dimension import *
 from .shape import *
@@ -53,3 +54,37 @@ def building_dimensions(objects):
     courtyard_area(objects, column_name='pdbCoA', area_column='pdbAre', area_calculated=True)
 
     # return objects
+
+
+def Queen_higher(dataframe, k):
+    """
+    Generate spatial weights based on Queen contiguity of order k
+
+    Parameters
+    ----------
+    dataframe : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    k : int
+        order of contiguity
+
+    Returns
+    -------
+    W
+        libpysal.weights object
+
+    Examples
+    --------
+    >>> first_order = libpysal.weights.Queen.from_dataframe(dataframe)
+    >>> first_order.mean_neighbors
+    5.848032564450475
+    >>> fourth_order = Queen_higher(dataframe, k=4)
+    >>> fourth.mean_neighbors
+    85.73188602442333
+
+    """
+    first_order = libpysal.weights.Queen.from_dataframe(dataframe)
+    joined = first_order
+    for i in list(range(2, k + 1)):
+        i_order = libpysal.weights.higher_order(first_order, k=i)
+        joined = libpysal.weights.w_union(joined, i_order)
+    return joined
