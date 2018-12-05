@@ -250,7 +250,7 @@ def block_density(objects, column_name, blocks, block_id, unique_id):
     cells = {}
     areas = {}
 
-    for id in unique_block_ids:
+    for id in tqdm(unique_block_ids):
         unique_IDs = len(set(objects.loc[objects[block_id] == id][unique_id].tolist()))  # get number of cells within each block
         cells[id] = unique_IDs  # save to dict
         areas[id] = blocks.loc[blocks[block_id] == id].iloc[0]['geometry'].area  # save block area to dict
