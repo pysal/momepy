@@ -69,7 +69,7 @@ def Queen_higher(dataframe, k):
 
     Returns
     -------
-    W
+    libpysal.weights
         libpysal.weights object
 
     Examples
