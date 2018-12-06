@@ -606,6 +606,9 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     """
 
     print('Dissolving tesselation...')
+    cells = cells.drop(['bID'], axis=1)
+    buildings = buildings.drop(['bID'], axis=1)
+
     cells['diss'] = 0
     built_up = cells.dissolve(by='diss')
 
@@ -677,6 +680,19 @@ def blocks(cells, streets, buildings, id_name, unique_id):
         blocks.loc[idx, id_name] = id
         id = id + 1
         blocks.loc[idx, 'geometry'] = Polygon(row['geometry'])
+
+    # if polygon is within another one, delete it
+    sindex = blocks.sindex
+    for idx, row in tqdm(blocks.iterrows(), total=blocks.shape[0]):
+        possible_matches = list(sindex.intersection(row.geometry.bounds))
+        possible_matches.remove(idx)
+        possible = blocks.iloc[possible_matches]
+
+        for idx2, row2 in possible.iterrows():
+            if row['geometry'].within(row2['geometry']):
+                blocks.loc[idx, 'delete'] = True
+
+    blocks = blocks.drop(list(blocks.loc[blocks['delete'] == True].index))
 
     blocks_save = blocks[[id_name, 'geometry']]
     blocks_save['geometry'] = blocks_save.buffer(0.000000001)
