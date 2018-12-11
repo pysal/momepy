@@ -366,7 +366,7 @@ def effective_mesh(objects, column_name, spatial_weights, area_column):
 
     Notes
     -----
-    Resolve the issues if there is no spatial weights matrix.
+    Resolve the issues if there is no spatial weights matrix. Corellation with block_density()
 
     """
     # define new column
