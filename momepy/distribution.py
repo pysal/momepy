@@ -129,6 +129,7 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
     Berlin, Heidelberg: Springer Berlin Heidelberg, pp. 327–346. Available from:
     https://link.springer.com/chapter/10.1007/978-3-642-29063-3_18.
     """
+    print('Generating spatial index...')
     sindex = objects.sindex  # define rtree index
     # define new column
     objects[column_name] = None
