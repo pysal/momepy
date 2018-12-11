@@ -38,7 +38,7 @@ def radius(gpd_df, cpt, radius):
     # Potential neighbours
     good = []
     for n in sindex.intersection(bbox):
-        dist = cpt.distance(gpd_df['geometry'][n])
+        dist = cpt.distance(gpd_df['geometry'].iloc[n])
         if dist < radius:
             good.append((dist, n))
     # Sort list in ascending order by `dist`, then `n`
