@@ -7,38 +7,7 @@ import palettable as pal
 import mapclassify
 %matplotlib inline
 
-prague = gpd.read_file("/Users/martin/Dropbox/StrathUni/PhD/Sample data/Prague/Prague/Buildings/prg_buildings_values_bID.shp")
-prague.columns
-# plot the map itself
-ax = prague.plot('bskERI',  # define the data column
-                 cmap=pal.colorbrewer.diverging.RdBu_9.mpl_colormap,  # define the color map (https://jiffyclub.github.io/palettable/)
-                 scheme='fisher_jenks',  # define the scheme of classification ‘equal_interval’, ‘quantiles’ or 'fisher_jenks'
-                 )
-ax.axis('off')  # turn off the axes
-legendgram(plt.gcf(),  # get current figure (map defined above)
-           ax,  # the axis to add the legend
-           prague.bskERI,  # the attribute to map
-           ps.esda.mapclassify.Fisher_Jenks_Sampled(prague['bskERI'].values, k=9).bins,  # the breaks to induce color differences (https://pysal.readthedocs.io/en/latest/library/esda/mapclassify.html)
-           pal.colorbrewer.diverging.RdBu_9,  # the palette to use (https://jiffyclub.github.io/palettable/)
-           legend_size=(1, .7),  # the size of the subplot, in fractions of the original axis of map
-           loc= 'lower left',  # the location on the axis
-           # clip=(0, 5000)  # bounds to clip the view of the histogram
-           )
-plt.savefig('/Users/martin/Dropbox/StrathUni/PhD/Reviews/12 months/Maps/legedgrams/pdcLAL.svg', dpi=900)
-plt.gcf().clear()
 
-
-legendgram(plt.gcf(),  # get current figure (map defined above)
-           ax,  # the axis to add the legend
-           prague.bskERI,  # the attribute to map
-           ps.esda.mapclassify.Fisher_Jenks_Sampled(prague['bskERI'].values, k=9).bins,  # the breaks to induce color differences (https://pysal.readthedocs.io/en/latest/library/esda/mapclassify.html)
-           pal.colorbrewer.diverging.RdBu_9,  # the palette to use (https://jiffyclub.github.io/palettable/)
-           legend_size=(1, .7),  # the size of the subplot, in fractions of the original axis of map
-           loc= 'lower left',  # the location on the axis
-           # clip=(0, 5000)  # bounds to clip the view of the histogram
-           )
-plt.savefig('/Users/martin/Dropbox/StrathUni/PhD/Reviews/12 months/Maps/legendgrams/bskERI.pdf', dpi=300)
-plt.gcf().clear()
 
 
 import numpy as np
@@ -61,9 +30,6 @@ def _flatten_multi_geoms(geoms, colors=None):
         colors = [None] * len(geoms)
 
     components, component_colors = [], []
-
-    if not geoms.geom_type.str.startswith('Multi').any():
-        return geoms, colors
 
     # precondition, so zip can't short-circuit
     assert len(geoms) == len(colors)
@@ -322,7 +288,9 @@ def plot_series(s, cmap=None, color=None, ax=None, figsize=None, **style_kwds):
     plt.draw()
     return ax
 
-
+column = 'cluster_id'
+edgecolor = 'k'
+cmap = 'YlOrRd'
 def plot_dataframe(df, column=None, cmap=None, color=None, ax=None,
                    categorical=False, legend=False, scheme=None, k=5,
                    vmin=None, vmax=None, markersize=None, figsize=None,
@@ -435,6 +403,7 @@ def plot_dataframe(df, column=None, cmap=None, color=None, ax=None,
 
     # Define `values` as a Series
     if categorical:
+        print('cat')
         if cmap is None:
             if LooseVersion(matplotlib.__version__) >= '2.0.1':
                 cmap = 'tab10'
@@ -445,7 +414,7 @@ def plot_dataframe(df, column=None, cmap=None, color=None, ax=None,
                 cmap = 'Set1'
         categories = list(set(values))
         categories.sort()
-        valuemap = dict((k, v) for (v, k) in enumerate(categories))
+        valuemap = dict([(k, v) for (v, k) in enumerate(categories)])
         values = np.array([valuemap[k] for k in values])
 
     if scheme is not None:
@@ -502,8 +471,7 @@ def plot_dataframe(df, column=None, cmap=None, color=None, ax=None,
                 patches.append(
                     Line2D([0], [0], linestyle="none", marker="o",
                            alpha=style_kwds.get('alpha', 1), markersize=10,
-                           markerfacecolor=n_cmap.to_rgba(value),
-                           markeredgewidth=0))
+                           markerfacecolor=n_cmap.to_rgba(value)))
             if legend_kwds is None:
                 legend_kwds = {}
             legend_kwds.setdefault('numpoints', 1)
@@ -517,115 +485,252 @@ def plot_dataframe(df, column=None, cmap=None, color=None, ax=None,
     return ax
 
 
-def __pysal_choro(values, scheme, k=5):
+def _mapclassify_choro(values, scheme, **classification_kwds):
     """
-    Wrapper for choropleth schemes from PySAL for use with plot_dataframe
+    Wrapper for choropleth schemes from mapclassify for use with plot_dataframe
+
     Parameters
     ----------
     values
         Series to be plotted
     scheme : str
-        One of pysal.esda.mapclassify classification schemes
-        Options are 'Equal_interval', 'Quantiles', 'Fisher_Jenks'
-    k : int
-        number of classes (2 <= k <=9)
+        One of mapclassify classification schemes
+        Options are 'Box_Plot', 'Equal_Interval', Fisher_Jenks, Fisher_Jenks_Sampled,
+        HeadTail_Breaks, Jenks_Caspall, Jenks_Caspall_Forced,
+        Jenks_Caspall_Sampled, Max_P_Classifier, Maximum_Breaks,
+        Natural_Breaks, Quantiles, Percentiles, Std_Mean, User_Defined
+
+    **classification_kwds : dict
+        Keyword arguments for classification scheme
+        For details see mapclassify documentation:
+        https://mapclassify.readthedocs.io/en/latest/api.html
+
     Returns
     -------
     binning
         Binning objects that holds the Series with values replaced with
         class identifier and the bins.
+
     """
     try:
         from mapclassify import (
-            Quantiles, Equal_Interval, Fisher_Jenks, Fisher_Jenks_Sampled)
-        schemes = {}
-        schemes['equal_interval'] = Equal_Interval
-        schemes['quantiles'] = Quantiles
-        schemes['fisher_jenks'] = Fisher_Jenks
-        schemes['fisher_jenks_sampled'] = Fisher_Jenks_Sampled
-        scheme = scheme.lower()
-        if scheme not in schemes:
-            raise ValueError("Invalid scheme. Scheme must be in the"
-                             " set: %r" % schemes.keys())
-        binning = schemes[scheme](values, k)
-        return binning
+            Box_Plot, Equal_Interval, Fisher_Jenks, Fisher_Jenks_Sampled,
+            HeadTail_Breaks, Jenks_Caspall, Jenks_Caspall_Forced,
+            Jenks_Caspall_Sampled, Max_P_Classifier, Maximum_Breaks,
+            Natural_Breaks, Quantiles, Percentiles, Std_Mean, User_Defined)
     except ImportError:
-        raise ImportError("PySAL is required to use the 'scheme' keyword")
+        try:
+            from mapclassify.api import (
+                Box_Plot, Equal_Interval, Fisher_Jenks, Fisher_Jenks_Sampled,
+                HeadTail_Breaks, Jenks_Caspall, Jenks_Caspall_Forced,
+                Jenks_Caspall_Sampled, Max_P_Classifier, Maximum_Breaks,
+                Natural_Breaks, Quantiles, Percentiles, Std_Mean, User_Defined)
+        except ImportError:
+            raise ImportError(
+                "The 'mapclassify' package is required to use the 'scheme' "
+                "keyword")
+
+    schemes = {}
+    schemes['box_plot'] = Box_Plot
+    schemes['equal_interval'] = Equal_Interval
+    schemes['fisher_jenks'] = Fisher_Jenks
+    schemes['fisher_jenks_sampled'] = Fisher_Jenks_Sampled
+    schemes['headtail_breaks'] = HeadTail_Breaks
+    schemes['jenks_caspall'] = Jenks_Caspall
+    schemes['jenks_caspall_forced'] = Jenks_Caspall_Forced
+    schemes['jenks_caspall_sampled'] = Jenks_Caspall_Sampled
+    schemes['max_p_classifier'] = Max_P_Classifier
+    schemes['maximum_breaks'] = Maximum_Breaks
+    schemes['natural_breaks'] = Natural_Breaks
+    schemes['quantiles'] = Quantiles
+    schemes['percentiles'] = Percentiles
+    schemes['std_mean'] = Std_Mean
+    schemes['user_defined'] = User_Defined
+
+    scheme = scheme.lower()
+    if scheme not in schemes:
+        raise ValueError("Invalid scheme. Scheme must be in the"
+                         " set: %r" % schemes.keys())
+    try:
+        binning = schemes[scheme](values, **classification_kwds)
+    except TypeError as err:
+        raise TypeError("Invalid keyword argument for %r " % scheme)
+    return binning
 
 
-# Plot map, legendgram and scalebar
+prague = gpd.read_file("/Users/martin/Dropbox/StrathUni/PhD/Sample data/Prague/archive/Vinohrady/blg.shp")
+scheme = 'std_mean'
+# prague.plot(column='psbFra', scheme=scheme, k=3, cmap='OrRd', legend=True, multiples = [-3, -1.5, 1.5, 3])
 
-from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
-ax = plot_dataframe(prague, 'psbERI',  # define the data column
-                    cmap=pal.colorbrewer.diverging.RdBu_11.mpl_colormap,  # define the color map (https://jiffyclub.github.io/palettable/)
-                    scheme='fisher_jenks_sampled',  # define the scheme of classification ‘equal_interval’, ‘quantiles’ or 'fisher_jenks'
-                    alpha=1)
-ax.axis('off')  # turn off the axes
-import matplotlib.font_manager as fm
-fontprops = fm.FontProperties(size=3)
-scalebar = AnchoredSizeBar(ax.transData,
-                           5000, '5 km', 'lower left',
-                           pad=0.3,
-                           borderpad=-1.7,
-                           color='k',
-                           frameon=False,
-                           size_vertical=0,
-                           fontproperties=fontprops,
-                           )
-ax.add_artist(scalebar)
-scalebar2 = AnchoredSizeBar(ax.transData,
-                            4000, '', 'lower left',
-                            pad=0.3,
-                            borderpad=-1.7,
-                            color='w',
-                            frameon=False,
-                            size_vertical=0,
-                            fontproperties=fontprops,
-                            )
-ax.add_artist(scalebar2)
-scalebar3 = AnchoredSizeBar(ax.transData,
-                            3000, '', 'lower left',
-                            pad=0.3,
-                            borderpad=-1.7,
-                            color='k',
-                            frameon=False,
-                            size_vertical=0,
-                            fontproperties=fontprops,
-                            )
-ax.add_artist(scalebar3)
-scalebar4 = AnchoredSizeBar(ax.transData,
-                            2000, '', 'lower left',
-                            pad=0.3,
-                            borderpad=-1.7,
-                            color='w',
-                            frameon=False,
-                            size_vertical=0,
-                            fontproperties=fontprops,
-                            )
-ax.add_artist(scalebar4)
-scalebar5 = AnchoredSizeBar(ax.transData,
-                            1000, '', 'lower left',
-                            pad=0.3,
-                            borderpad=-1.7,
-                            color='k',
-                            frameon=False,
-                            size_vertical=0,
-                            fontproperties=fontprops,
-                            )
-ax.add_artist(scalebar5)
+ax = plot_dataframe(exam, column='pop_est', scheme='Quantiles', k=3,
+                  classification_kwds={'k': 6}, cmap='OrRd',
+                  legend=True)
 
 
-l_ax = legendgram(plt.gcf(),  # get current figure (map defined above)
-                  ax,  # the axis to add the legend
-                  prague.psbERI,  # the attribute to map
-                  mapclassify.Fisher_Jenks_Sampled(prague['psbERI'].values, k=11).bins,  # the breaks to induce color differences
-                                                                                         # (https://pysal.readthedocs.io/en/latest/library/esda/mapclassify.html)
-                  pal.colorbrewer.diverging.RdBu_11,  # the palette to use (https://jiffyclub.github.io/palettable/)
-                  legend_size=(.2, .15),  # the size of the subplot, in fractions of the original axis of map
-                  loc= 'lower right',  # the location on the axis
-                  # clip=(0, 5000)  # bounds to clip the view of the histogram
-                  )
-l_ax.tick_params(direction='out', length=2, width=.3,
-                 labelsize=3, pad=2)
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import matplotlib
 
-plt.savefig('/Users/martin/Dropbox/StrathUni/PhD/Reviews/12 months/Maps/test19.png', dpi=900)
+print(gpd.__version__)
+print(matplotlib.__version__)
+df = gpd.read_file('tar:///Users/martin/Downloads/clusters.tar.gz')
+df.plot()
+df['cluster_id']
+ax = plot_dataframe(df, column='cluster_id', edgecolor='k', cmap='YlOrRd')
+
+nonna = df.dropna(subset=['cluster_id'])
+
+
+values = np.asarray(df['cluster_id'])
+list(set(values))
+list(set(df['cluster_id'].values))
+df[column]
+# path = gpd.datasets.get_path('naturalearth_lowres')
+# df = gpd.read_file(path)
+#
+#
+# ax = plot_dataframe(exam, column='gdp_md_est', scheme='FISHER_JENKS', k=3,
+#                   cmap='OrRd', legend=True)
+# labels = [t.get_text() for t in ax.get_legend().get_texts()]
+# ['-10.00 - -3.41', '-3.41 - 3.30', '3.30 - 10.00']
+#
+#
+# class TestPySALPlotting:
+#
+#     @classmethod
+    def setup_class(cls):
+        pth = gpd.datasets.get_path('naturalearth_lowres')
+        exam = gpd.read_file(pth)
+        ax = exam.plot(column='pop_est', scheme='percentiles', k=3,
+                          classification_kwds={'pct': [50, 100]}, cmap='OrRd',
+                          legend=True)
+        labels = [t.get_text() for t in ax.get_legend().get_texts()]
+#
+#     def test_legend(self):
+#         with warnings.catch_warnings(record=True) as _:  # don't print warning
+#             # warning coming from pysal / scipy.stats
+#             ax = exam.plot(column='pop_est', scheme='QUANTILES', k=3,
+#                               cmap='OrRd', legend=True)
+#         labels = [t.get_text() for t in ax.get_legend().get_texts()]
+#         expected = [u'-99.00 - 4579438.67', u'4579438.67 - 16639804.33', u'16639804.33 - 1338612970.00']
+#         assert labels == expected
+#
+#     def test_negative_legend(self):
+#         ax = self.df.plot(column='NEGATIVES', scheme='FISHER_JENKS', k=3,
+#                           cmap='OrRd', legend=True)
+#         labels = [t.get_text() for t in ax.get_legend().get_texts()]
+#         expected = [u'-10.00 - -3.41', u'-3.41 - 3.30', u'3.30 - 10.00']
+#         assert labels == expected
+#
+#     def test_invalid_scheme(self):
+#         with pytest.raises(ValueError):
+#             scheme = 'invalid_scheme_*#&)(*#'
+#             self.df.plot(column='gdp_md_est', scheme=scheme, k=3,
+#                          cmap='OrRd', legend=True)
+#
+# # prague.columns
+# # # plot the map itself
+# # ax = prague.plot('bskERI',  # define the data column
+# #                  cmap=pal.colorbrewer.diverging.RdBu_9.mpl_colormap,  # define the color map (https://jiffyclub.github.io/palettable/)
+# #                  scheme='fisher_jenks',  # define the scheme of classification ‘equal_interval’, ‘quantiles’ or 'fisher_jenks'
+# #                  )
+# # ax.axis('off')  # turn off the axes
+# # legendgram(plt.gcf(),  # get current figure (map defined above)
+# #            ax,  # the axis to add the legend
+# #            prague.bskERI,  # the attribute to map
+# #            ps.esda.mapclassify.Fisher_Jenks_Sampled(prague['bskERI'].values, k=9).bins,  # the breaks to induce color differences (https://pysal.readthedocs.io/en/latest/library/esda/mapclassify.html)
+# #            pal.colorbrewer.diverging.RdBu_9,  # the palette to use (https://jiffyclub.github.io/palettable/)
+# #            legend_size=(1, .7),  # the size of the subplot, in fractions of the original axis of map
+# #            loc= 'lower left',  # the location on the axis
+# #            # clip=(0, 5000)  # bounds to clip the view of the histogram
+# #            )
+# # # plt.savefig('/Users/martin/Dropbox/StrathUni/PhD/Reviews/12 months/Maps/legedgrams/pdcLAL.svg', dpi=900)
+# # plt.gcf().clear()
+# #
+# #
+# # legendgram(plt.gcf(),  # get current figure (map defined above)
+# #            ax,  # the axis to add the legend
+# #            prague.bskERI,  # the attribute to map
+# #            ps.esda.mapclassify.Fisher_Jenks_Sampled(prague['bskERI'].values, k=9).bins,  # the breaks to induce color differences (https://pysal.readthedocs.io/en/latest/library/esda/mapclassify.html)
+# #            pal.colorbrewer.diverging.RdBu_9,  # the palette to use (https://jiffyclub.github.io/palettable/)
+# #            legend_size=(1, .7),  # the size of the subplot, in fractions of the original axis of map
+# #            loc= 'lower left',  # the location on the axis
+# #            # clip=(0, 5000)  # bounds to clip the view of the histogram
+# #            )
+# # plt.savefig('/Users/martin/Dropbox/StrathUni/PhD/Reviews/12 months/Maps/legendgrams/bskERI.pdf', dpi=300)
+# # plt.gcf().clear()
+#
+#
+# # Plot map, legendgram and scalebar
+#
+# from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
+#
+# ax.axis('off')  # turn off the axes
+# import matplotlib.font_manager as fm
+# fontprops = fm.FontProperties(size=3)
+# scalebar = AnchoredSizeBar(ax.transData,
+#                            5000, '5 km', 'lower left',
+#                            pad=0.3,
+#                            borderpad=-1.7,
+#                            color='k',
+#                            frameon=False,
+#                            size_vertical=0,
+#                            fontproperties=fontprops,
+#                            )
+# ax.add_artist(scalebar)
+# scalebar2 = AnchoredSizeBar(ax.transData,
+#                             4000, '', 'lower left',
+#                             pad=0.3,
+#                             borderpad=-1.7,
+#                             color='w',
+#                             frameon=False,
+#                             size_vertical=0,
+#                             fontproperties=fontprops,
+#                             )
+# ax.add_artist(scalebar2)
+# scalebar3 = AnchoredSizeBar(ax.transData,
+#                             3000, '', 'lower left',
+#                             pad=0.3,
+#                             borderpad=-1.7,
+#                             color='k',
+#                             frameon=False,
+#                             size_vertical=0,
+#                             fontproperties=fontprops,
+#                             )
+# ax.add_artist(scalebar3)
+# scalebar4 = AnchoredSizeBar(ax.transData,
+#                             2000, '', 'lower left',
+#                             pad=0.3,
+#                             borderpad=-1.7,
+#                             color='w',
+#                             frameon=False,
+#                             size_vertical=0,
+#                             fontproperties=fontprops,
+#                             )
+# ax.add_artist(scalebar4)
+# scalebar5 = AnchoredSizeBar(ax.transData,
+#                             1000, '', 'lower left',
+#                             pad=0.3,
+#                             borderpad=-1.7,
+#                             color='k',
+#                             frameon=False,
+#                             size_vertical=0,
+#                             fontproperties=fontprops,
+#                             )
+# ax.add_artist(scalebar5)
+#
+#
+# l_ax = legendgram(plt.gcf(),  # get current figure (map defined above)
+#                   ax,  # the axis to add the legend
+#                   prague.psbERI,  # the attribute to map
+#                   mapclassify.Fisher_Jenks_Sampled(prague['psbERI'].values, k=11).bins,  # the breaks to induce color differences
+#                                                                                          # (https://pysal.readthedocs.io/en/latest/library/esda/mapclassify.html)
+#                   pal.colorbrewer.diverging.RdBu_11,  # the palette to use (https://jiffyclub.github.io/palettable/)
+#                   legend_size=(.2, .15),  # the size of the subplot, in fractions of the original axis of map
+#                   loc= 'lower right',  # the location on the axis
+#                   # clip=(0, 5000)  # bounds to clip the view of the histogram
+#                   )
+# l_ax.tick_params(direction='out', length=2, width=.3,
+#                  labelsize=3, pad=2)
+#
+# plt.savefig('/Users/martin/Dropbox/StrathUni/PhD/Reviews/12 months/Maps/test19.png', dpi=900)

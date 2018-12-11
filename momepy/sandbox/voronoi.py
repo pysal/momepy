@@ -1,4 +1,3 @@
-import os
 import geopandas as gpd
 import pandas as pd
 from tqdm import tqdm  # progress bar
@@ -8,17 +7,21 @@ from osgeo import ogr
 from shapely.wkt import loads
 import numpy as np
 from scipy.spatial import Voronoi
-from shapely.geometry import MultiPoint, Point, Polygon, LineString, MultiPolygon
+from shapely.geometry import *
 import shapely.ops
-import shapefile
-import shutil
+import osmnx as ox
+import operator
 
-buildings = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/blg_add.shp')
-save_tessellation = '/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Vinohrady/tess_testing_add.shp'
+buildings = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/_momepy/blg_sample.shp')
 unique_id = 'uID'
-cut_buffer = 50
+cut_buffer = 10
 
-objects = buildings
+reprojected_crs = buildings.crs.copy()
+
+reprojected_crs['x_0'] = 0
+reprojected_crs['y_0'] = 0
+
+objects = buildings.to_crs(reprojected_crs)
 
 from timeit import default_timer as timer
 tqdm.pandas()
@@ -44,9 +47,12 @@ start = timer()
 print('Preparing buffer zone for edge resolving (dissolving)...')
 obj_simple['diss'] = 0
 built_up = obj_simple.dissolve(by='diss')
+print('Done in', timer() - start, 'seconds')
+start = timer()
 print('Preparing buffer zone for edge resolving (convex hull)...')
 hull = built_up.convex_hull.buffer(cut_buffer)
 print('Done in', timer() - start, 'seconds')
+
 # densify geometry before Voronoi tesselation
 def densify(geom):
     wkt = geom.wkt  # shapely Polygon to wkt
@@ -56,7 +62,6 @@ def densify(geom):
     new = loads(wkt2)  # wkt to shapely Polygon
     return new
 
-print('Done in', timer() - start, 'seconds')
 start = timer()
 print('Densifying geometry...')
 objects['geometry'] = objects['geometry'].progress_map(densify)
@@ -83,28 +88,25 @@ objects = multi2single(objects)
 print('Done in', timer() - start, 'seconds')
 start = timer()
 print('Generating input point array...')
-# define new numpy.array
-# voronoi_points = np.empty([1, 2])
-# # fill array with all points from densified geometry
-# for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-#     poly_ext = row['geometry'].exterior
-#     if poly_ext is not None:
-#         point_coords = poly_ext.coords
-#         row_array = np.array(point_coords)
-#         voronoi_points = np.concatenate((voronoi_points, row_array))
-#         # it might be faster to use python list.append(a) and then l = np.array(l)
-#
-# # delete initial row of array to keep only points from geometry
-# voronoi_points = voronoi_points[1:]
 
 list_points = []
 for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-    poly_ext = row['geometry'].exterior
+    poly_ext = row['geometry'].boundary
     if poly_ext is not None:
-        point_coords = poly_ext.coords
-        row_array = np.array(point_coords).tolist()
-        for i in range(len(row_array)):
-            list_points.append(row_array[i])
+        if poly_ext.type is 'MultiLineString':
+            for line in poly_ext:
+                point_coords = line.coords
+                row_array = np.array(point_coords).tolist()
+                for i in range(len(row_array)):
+                    list_points.append(row_array[i])
+        elif poly_ext.type is 'LineString':
+            point_coords = poly_ext.coords
+            row_array = np.array(point_coords).tolist()
+            for i in range(len(row_array)):
+                list_points.append(row_array[i])
+        else:
+            raise Exception('Boundary type is {}'.format(poly_ext.type))
+
 # add hull
 point_coords = hull[0].boundary.coords
 row_array = np.array(point_coords).tolist()
@@ -136,59 +138,40 @@ print('Done in', timer() - start, 'seconds')
 start = timer()
 print('Generating GeoDataFrame of Voronoi polygons...')
 voronoi_polygons = gpd.GeoDataFrame(result, geometry='geometry')
-
 voronoi_polygons = voronoi_polygons.loc[voronoi_polygons['geometry'].length < 1000000]
-
-print('Done in', timer() - start, 'seconds')
-start = timer()
-print('Saving to temporary file...')
-
 # set crs
 voronoi_polygons.crs = objects.crs
-# make temporary directory
-os.mkdir('tempDir')
-# save temp file to tempDir
-objects.to_file('tempDir/temp_file.shp')
-# read temp file to shapefile
-sf = shapefile.Reader('tempDir/temp_file.shp')
-
-# convert geometry to points
 print('Done in', timer() - start, 'seconds')
+
 start = timer()
 print('Generating MultiPoint geometry...')
-newType = shapefile.MULTIPOINT
-w = shapefile.Writer(newType)
-w._shapes.extend(sf.shapes())
-for s in w.shapes():
-    s.shapeType = newType
-w.fields = list(sf.fields)
-w.records.extend(sf.records())
-w.save('tempDir/temp_file.shp')
 
-# load points to GDF
-points = gpd.read_file('tempDir/temp_file.shp')
+def pointize(geom):
+    multipoint = []
+    if geom.boundary.type is 'MultiLineString':
+        for line in geom.boundary:
+            arr = line.coords.xy
+            for p in range(len(arr[0])):
+                point = (arr[0][p], arr[1][p])
+                multipoint.append(point)
+    elif geom.boundary.type is 'LineString':
+        arr = geom.boundary.coords.xy
+        for p in range(len(arr[0])):
+            point = (arr[0][p], arr[1][p])
+            multipoint.append(point)
+    else:
+        raise Exception('Boundary type is {}'.format(geom.boundary.type))
+    new = MultiPoint(list(set(multipoint)))
+    return new
 
-# delete tempDir
-print('Done in', timer() - start, 'seconds')
-start = timer()
-print('Cleaning temporary files...')
-shutil.rmtree('tempDir')
-
-# set CRS
-points.crs = objects.crs
-
-# buffer points to capture unprecision caused by scipy Voronoi function
-print('Done in', timer() - start, 'seconds')
-start = timer()
-print('Buffering MultiPoint geometry...')
-points = points.dropna()
-# points['geometry'] = points.buffer(0.25)
-# join attributes from buildings to new voronoi cells
+objects_none = objects[objects['geometry'].notnull()]
+objects_none['geometry'] = objects_none['geometry'].progress_map(pointize)
 print('Done in', timer() - start, 'seconds')
 start = timer()
 print('Spatial join of MultiPoint geometry and Voronoi polygons...')
-# spatial join is super slow, it might be better to try rtree
-voronoi_with_id = gpd.sjoin(voronoi_polygons, points, how='left')
+# spatial join
+objects_none = objects_none.dropna(subset=['geometry'])
+voronoi_with_id = gpd.sjoin(voronoi_polygons, objects_none, how='left')
 voronoi_with_id.crs = objects.crs
 
 # resolve thise cells which were not joined spatially (again, due to unprecision caused by scipy Voronoi function)
@@ -198,23 +181,10 @@ print('Done in', timer() - start, 'seconds')
 start = timer()
 print('Fixing unjoined geometry:', len(unjoined.index), 'problems...')
 # for each polygon, find neighbours, measure boundary and set uID to the most neighbouring one
-
-# for idx, row in tqdm(unjoined.iterrows(), total=unjoined.shape[0]):
-#     neighbors = voronoi_with_id[~voronoi_with_id.geometry.disjoint(row.geometry)][unique_id].tolist()  # find neigbours
-#     neighbors = [x for x in neighbors if str(x) != 'nan']  # remove polygon itself
-#
-#     import operator
-#     global boundaries
-#     boundaries = {}
-#     for i in neighbors:
-#         subset = voronoi_with_id.loc[voronoi_with_id[unique_id] == i]['geometry']
-#         l = 0
-#         for s in subset:
-#             l = l + row.geometry.intersection(s).length
-#         boundaries[i] = l
-#
-#     voronoi_with_id.loc[idx, unique_id] = max(boundaries.items(), key=operator.itemgetter(1))[0]
+print(' Building R-tree...')
 join_index = voronoi_with_id.sindex
+print(' Done in', timer() - start, 'seconds')
+start = timer()
 for idx, row in tqdm(unjoined.iterrows(), total=unjoined.shape[0]):
     neighbors = list(join_index.intersection(row.geometry.bounds))  # find neigbours
     neighbors_ids = []
@@ -222,7 +192,6 @@ for idx, row in tqdm(unjoined.iterrows(), total=unjoined.shape[0]):
         neighbors_ids.append(voronoi_with_id.iloc[n][unique_id])
     neighbors_ids = [x for x in neighbors_ids if str(x) != 'nan']  # remove polygon itself
 
-    import operator
     global boundaries
     boundaries = {}
     for i in neighbors_ids:
@@ -234,7 +203,9 @@ for idx, row in tqdm(unjoined.iterrows(), total=unjoined.shape[0]):
 
     voronoi_with_id.loc[idx, unique_id] = max(boundaries.items(), key=operator.itemgetter(1))[0]
 
-
+unjoined2 = voronoi_with_id[voronoi_with_id[unique_id].isnull()]
+if len(unjoined2.index) is not 0:
+    raise Exception('Some geometry remained unfinxed: {} problems'.format(len(unjoined2.index)))
 # dissolve polygons by unique_id
 print('Done in', timer() - start, 'seconds')
 start = timer()
@@ -243,10 +214,8 @@ voronoi_with_id['geometry'] = voronoi_with_id.buffer(0)
 voronoi_plots = voronoi_with_id.dissolve(by=unique_id)
 voronoi_plots[unique_id] = voronoi_plots.index.astype('float')  # save unique id to column from index
 
-
 # cut infinity of voronoi by set buffer (thanks for script to Geoff Boeing)
-import osmnx as ox
-
+print('Done in', timer() - start, 'seconds')
 start = timer()
 print('Preparing buffer zone for edge resolving (quadrat cut)...')
 geometry = built_up['geometry'].iloc[0].boundary
@@ -263,7 +232,6 @@ to_cut = pd.DataFrame()
 for poly in geometry_cut:
     # find approximate matches with r-tree, then precise matches from those approximate ones
     possible_matches_index = list(sindex.intersection(poly.bounds))
-    possible_matches_index
     possible_matches = voronoi_plots.iloc[possible_matches_index]
     precise_matches = possible_matches[possible_matches.intersects(poly)]
     to_cut = to_cut.append(precise_matches)
@@ -275,24 +243,26 @@ print('Done in', timer() - start, 'seconds')
 start = timer()
 print('Cutting...')
 for idx, row in tqdm(voronoi_plots.loc[subselection].iterrows(), total=voronoi_plots.loc[subselection].shape[0]):
-    # wkt = row.geometry.intersection(built_up['geometry'].iloc[0]).wkt
-    # new = loads(wkt)
     intersection = row.geometry.intersection(built_up['geometry'].iloc[0])
     if intersection.type == 'MultiPolygon':
         areas = {}
         for p in range(len(intersection)):
             area = intersection[p].area
             areas[p] = area
-        max = max(areas.items(), key=operator.itemgetter(1))[0]
-        voronoi_plots.loc[idx, 'geometry'] = intersection[max]
+        maximal = max(areas.items(), key=operator.itemgetter(1))[0]
+        voronoi_plots.loc[idx, 'geometry'] = intersection[maximal]
+    elif intersection.type == 'GeometryCollection':
+        for geom in list(intersection.geoms):
+                if geom.type != 'Polygon':
+                    pass
+                else:
+                    voronoi_plots.loc[idx, 'geometry'] = geom
     else:
         voronoi_plots.loc[idx, 'geometry'] = intersection
 
 voronoi_plots = voronoi_plots.drop(['index_right'], axis=1)
 
-print('Done in', timer() - start, 'seconds')
-start = timer()
-print('Saving morphological tessellation to', save_tessellation)
-voronoi_plots.to_file(save_tessellation)
+morphological_tessellation = voronoi_plots.to_crs(buildings.crs)
+
 print('Done in', timer() - start, 'seconds')
 print('Done. Tessellation finished in', timer() - start_, 'seconds.')

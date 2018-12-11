@@ -27,12 +27,12 @@ first = libpysal.weights.Queen.from_dataframe(tessellation)
 first.mean_neighbors
 
 objects = tessellation
-column_name = 'mesh2'
+column_name = 'mesh3'
 area_column = 'area'
 from tqdm import tqdm
 import momepy as mm
 tessellation = mm.area(tessellation, 'area')
-
+spatial_weights = fourth
 
 # define new column
 objects[column_name] = None
@@ -42,12 +42,14 @@ print('Calculating effective mesh size...')
 
 for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
     neighbours = spatial_weights.neighbors[index]
+    neighbour_areas = [row[area_column] ** 2]
     total_area = row[area_column]
     for n in neighbours:
         n_area = objects.iloc[n][area_column]
         total_area = total_area + n_area
+        neighbour_areas.append(n_area ** 2)
 
-    objects.loc[index, column_name] = total_area / (len(neighbours) + 1)
+    objects.loc[index, column_name] = (1 / total_area) * sum(neighbour_areas)
 
-objects.plot(column='mesh2', cmap='Spectral')
+objects.plot(column='mesh3', cmap='Spectral')
 objects.to_file("/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Tests/181205/tess_oldtown.shp")
