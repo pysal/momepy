@@ -8,7 +8,6 @@ from tqdm import tqdm  # progress bar
 import numpy as np
 from .intensity import radius
 import powerlaw
-import pysal
 
 
 '''
@@ -60,6 +59,7 @@ def gini_index(objects, look_for, source, column_name, id_column='uID'):
         objects.loc[index, column_name] = gini(values)
 
     print('Gini index calculated.')
+    return objects
 '''
 Power law calculation.
 '''
@@ -87,7 +87,7 @@ def power_law(objects, look_for, source, id_column='uID'):
         # R, p = results.distribution_compare('power_law', 'lognormal')
         # objects.loc[index, 'pw_r'] = R
         # objects.loc[index, 'pw_p'] = p
-
+    return objects
 '''
 Spatial autocorrelation.
 '''
