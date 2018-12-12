@@ -131,7 +131,7 @@ def covered_area_ratio(objects, look_for, column_name, area_column, look_for_are
 
     print('Merging DataFrames...')
     look_for = look_for[[id_column, look_for_area_column]]  # keeping only necessary columns
-    objects_merged = objects.merge(look_for, on='uID')  # merging dataframes together
+    objects_merged = objects.merge(look_for, on=id_column)  # merging dataframes together
 
     print('Calculating CAR...')
 
@@ -186,7 +186,7 @@ def floor_area_ratio(objects, look_for, column_name, area_column, look_for_area_
 
     print('Merging DataFrames...')
     look_for = look_for[[id_column, look_for_area_column]]  # keeping only necessary columns
-    objects_merged = objects.merge(look_for, on='uID')  # merging dataframes together
+    objects_merged = objects.merge(look_for, on=id_column)  # merging dataframes together
 
     print('Calculating FAR...')
 
