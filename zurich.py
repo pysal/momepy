@@ -2,7 +2,7 @@ import momepy as mm
 import geopandas as gpd
 import multiprocessing
 
-buildings = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Prague/Jizak/buildigns.shp')
+buildings = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Prague/Jizak/buildings.shp')
 
 # cadastre = gpd.read_file('files/zurich/cadastre_values.shp')
 # cadastre = cadastre.rename(index=str, columns={"uID": 'cID'})
