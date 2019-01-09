@@ -109,12 +109,18 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50):
     -------
     Fix saw-like geometry.
     """
-    reprojected_crs = buildings.crs.copy()
+    # reprojected_crs = buildings.crs.copy()
+    #
+    # reprojected_crs['x_0'] = 0
+    # reprojected_crs['y_0'] = 0
 
-    reprojected_crs['x_0'] = 0
-    reprojected_crs['y_0'] = 0
+    bounds = buildings['geometry'].bounds
+    centre_x = -(bounds['maxx'].max() + bounds['minx'].min()) / 2
+    centre_y = -(bounds['maxy'].max() + bounds['miny'].min()) / 2
+    objects = buildings.copy()
+    objects['geometry'] = objects['geometry'].translate(xoff=centre_x, yoff=centre_y)
 
-    objects = buildings.to_crs(reprojected_crs)
+    # objects = buildings.to_crs(reprojected_crs)
 
     from timeit import default_timer as timer
     tqdm.pandas()
@@ -356,7 +362,9 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50):
 
     voronoi_plots = voronoi_plots.drop(['index_right'], axis=1)
 
-    morphological_tessellation = voronoi_plots.to_crs(buildings.crs)
+    voronoi_plots['geometry'] = voronoi_plots['geometry'].translate(xoff=-centre_x, yoff=-centre_y)
+
+    morphological_tessellation = voronoi_plots
 
     print('Done in', timer() - start, 'seconds')
     print('Done. Tessellation finished in', timer() - start_, 'seconds.')
