@@ -7,7 +7,8 @@
 from tqdm import tqdm  # progress bar
 import numpy as np
 from .intensity import radius
-import powerlaw
+import pandas as pd
+# import powerlaw
 
 
 '''
@@ -39,7 +40,6 @@ def gini(array):
 
 
 def gini_index(objects, look_for, source, column_name, id_column='uID'):
-    # define new column
 
     print('Calculating Gini index...')
 
@@ -49,17 +49,19 @@ def gini_index(objects, look_for, source, column_name, id_column='uID'):
     look_for_centroids = objects.copy()
     look_for_centroids['geometry'] = look_for_centroids.centroid
 
-    objects_centroids[column_name] = None
-    objects_centroids[column_name] = objects_centroids[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     for index, row in tqdm(objects_centroids.iterrows(), total=objects_centroids.shape[0]):
         neighbours = radius(look_for_centroids, row['geometry'], 400)
         rows = objects.iloc[neighbours]
         values = rows[[source]].values
-        objects.loc[index, column_name] = gini(values)
+        results_list.append(gini(values))
+
+    series = pd.Series(results_list)
 
     print('Gini index calculated.')
-    return objects
+    return series
 '''
 Power law calculation.
 '''

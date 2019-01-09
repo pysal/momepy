@@ -5,7 +5,7 @@
 # definitons of intensity characters
 
 from tqdm import tqdm  # progress bar
-import geopandas as gpd
+import pandas as pd
 
 
 def radius(gpd_df, cpt, radius):
@@ -47,7 +47,7 @@ def radius(gpd_df, cpt, radius):
     return [x[1] for x in good]
 
 
-def frequency(objects, look_for, column_name, id_column='uID'):
+def frequency(objects, look_for, id_column='uID', rad=400):
     """
     Calculate frequency (count) of objects in a given radius.
 
@@ -60,22 +60,18 @@ def frequency(objects, look_for, column_name, id_column='uID'):
         GeoDataFrame containing objects to analyse
     look_for : GeoDataFrame
         GeoDataFrame with measured objects (could be the same as objects)
-    column_name : str
-        name of the column to save the values
     id_column : str
         name of the column with unique id
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
 
     """
-
-    # define new column
 
     print('Calculating frequency...')
 
@@ -85,18 +81,20 @@ def frequency(objects, look_for, column_name, id_column='uID'):
     look_for_centroids = look_for.copy()
     look_for_centroids['geometry'] = look_for_centroids.centroid
 
-    objects_centroids[column_name] = None
-    objects_centroids[column_name] = objects_centroids[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     for index, row in tqdm(objects_centroids.iterrows(), total=objects_centroids.shape[0]):
-        neighbours = radius(look_for_centroids, row['geometry'], 400)
-        objects.loc[index, column_name] = len(neighbours)
+        neighbours = radius(look_for_centroids, row['geometry'], rad)
+        results_list.append(len(neighbours))
+
+    series = pd.Series(results_list)
 
     print('Frequency calculated.')
-    return objects
+    return series
 
 
-def covered_area_ratio(objects, look_for, column_name, area_column, look_for_area_column, id_column="uID"):
+def covered_area_ratio(objects, look_for, area_column, look_for_area_column, id_column="uID"):
     """
     Calculate covered area ratio of objects.
 
@@ -109,8 +107,6 @@ def covered_area_ratio(objects, look_for, column_name, area_column, look_for_are
         GeoDataFrame containing objects being covered (e.g. land unit)
     look_for : GeoDataFrame
         GeoDataFrame with covering objects (e.g. building)
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
     look_for_area_column : str
@@ -120,8 +116,8 @@ def covered_area_ratio(objects, look_for, column_name, area_column, look_for_are
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -135,23 +131,20 @@ def covered_area_ratio(objects, look_for, column_name, area_column, look_for_are
 
     print('Calculating CAR...')
 
-    # define new column
-    objects_merged[column_name] = None
-    objects_merged[column_name] = objects_merged[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects_merged.iterrows(), total=objects_merged.shape[0]):
-            objects_merged.loc[index, column_name] = row[look_for_area_column] / row[area_column]
+            results_list.append(row[look_for_area_column] / row[area_column])
 
-    # transfer data from merged df to original df
-    print('Merging data...')
-    objects[column_name] = objects_merged[column_name]
+    series = pd.Series(results_list)
 
     print('Covered area ratio calculated.')
-    return objects
+    return series
 
 
-def floor_area_ratio(objects, look_for, column_name, area_column, look_for_area_column, id_column="uID"):
+def floor_area_ratio(objects, look_for, area_column, look_for_area_column, id_column="uID"):
     """
     Calculate floor area ratio of objects.
 
@@ -164,8 +157,6 @@ def floor_area_ratio(objects, look_for, column_name, area_column, look_for_area_
         GeoDataFrame containing objects being covered (e.g. land unit)
     look_for : GeoDataFrame
         GeoDataFrame with covering objects (e.g. building)
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
     look_for_area_column : str
@@ -175,8 +166,8 @@ def floor_area_ratio(objects, look_for, column_name, area_column, look_for_area_
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -190,23 +181,20 @@ def floor_area_ratio(objects, look_for, column_name, area_column, look_for_area_
 
     print('Calculating FAR...')
 
-    # define new column
-    objects_merged[column_name] = None
-    objects_merged[column_name] = objects_merged[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects_merged.iterrows(), total=objects_merged.shape[0]):
-            objects_merged.loc[index, column_name] = row[look_for_area_column] / row[area_column]
+            results_list.append(row[look_for_area_column] / row[area_column])
 
-    # transfer data from merged df to original df
-    print('Merging data...')
-    objects[column_name] = objects_merged[column_name]
+    series = pd.Series(results_list)
 
     print('Floor area ratio calculated.')
-    return objects
+    return series
 
 
-def block_density(objects, column_name, blocks, block_id, unique_id):
+def block_density(objects, blocks, block_id, unique_id):
     """
     Calculate the density of tessellation cells in a block.
 
@@ -219,8 +207,6 @@ def block_density(objects, column_name, blocks, block_id, unique_id):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     blocks : GeoDataFrame
         GeoDataFrame containing blocks
     block_id : str
@@ -230,17 +216,16 @@ def block_density(objects, column_name, blocks, block_id, unique_id):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
     Feliciotti A (2018) RESILIENCE AND URBAN DESIGN:A SYSTEMS APPROACH TO THE
     STUDY OF RESILIENCE IN URBAN FORM. LEARNING FROM THE CASE OF GORBALS. Glasgow.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating block density...')
 
     block_ids = objects[block_id].tolist()  # list all block IDs
@@ -256,13 +241,13 @@ def block_density(objects, column_name, blocks, block_id, unique_id):
         areas[id] = blocks.loc[blocks[block_id] == id].iloc[0]['geometry'].area  # save block area to dict
 
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = 10000 * cells[row[block_id]] / areas[row[block_id]]
-
+        results_list.append(10000 * cells[row[block_id]] / areas[row[block_id]])
+    series = pd.Series(results_list)
     print('Block density calculated.')
-    return objects
+    return series
 
 
-def courtyards(objects, column_name, block_id, weights_matrix=None):
+def courtyards(objects, block_id, weights_matrix=None):
     """
     Calculate the number of courtyards within the joined structure.
 
@@ -270,8 +255,6 @@ def courtyards(objects, column_name, block_id, weights_matrix=None):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     block_id : str
         name of the column where is stored block ID
     weights_matrix : libpysal.weights, optional
@@ -280,12 +263,11 @@ def courtyards(objects, column_name, block_id, weights_matrix=None):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     print('Calculating courtyards...')
 
@@ -324,10 +306,11 @@ def courtyards(objects, column_name, block_id, weights_matrix=None):
                 courtyards[b] = interiors  # fill dict with values
     # copy values from dict to gdf
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = courtyards[index]
+        results_list.append(courtyards[index])
 
+    series = pd.Series(results_list)
     print('Courtyards calculated.')
-    return objects
+    return series
 # objects.to_file("/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single4.shp")
 #
 # objects = gpd.read_file("/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single.shp")

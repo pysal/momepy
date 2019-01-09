@@ -7,11 +7,11 @@
 from tqdm import tqdm  # progress bar
 from shapely.geometry import LineString, Point
 import numpy as np
-import geopandas as gpd
+import pandas as pd
 import statistics
 
 
-def orientation(objects, column_name):
+def orientation(objects):
     """
     Calculate orientation (azimuth) of object
 
@@ -22,22 +22,19 @@ def orientation(objects, column_name):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
     Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
     Journal of Transport and Land Use 9(1): 101–130.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     print('Calculating orientations...')
 
@@ -74,7 +71,7 @@ def orientation(objects, column_name):
                 az = az - 2 * diff
                 diff = az - 45
                 az = az - 2 * diff
-            objects.loc[index, column_name] = az
+            results_list.append(az)
         else:
             az = 170
             az = azimuth(centroid_ab, centroid_cd)
@@ -93,13 +90,14 @@ def orientation(objects, column_name):
                 az = az - 2 * diff
                 diff = az - 45
                 az = az - 2 * diff
-            objects.loc[index, column_name] = az
+            results_list.append(az)
 
+    series = pd.Series(results_list)
     print('Orientations calculated.')
-    return objects
+    return series
 
 
-def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
+def shared_walls_ratio(objects, perimeter_column, unique_id):
     """
     Calculate shared walls ratio
 
@@ -110,8 +108,6 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     perimeter_column : str
         name of the column where is stored perimeter value
     unique_id : str
@@ -119,8 +115,8 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -131,9 +127,8 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
     """
     print('Generating spatial index...')
     sindex = objects.sindex  # define rtree index
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     print('Calculating shared walls ratio...')
 
@@ -143,17 +138,18 @@ def shared_walls_ratio(objects, column_name, perimeter_column, unique_id):
         global length
         length = 0
         if len(neighbors) is 0:
-            objects.loc[index, column_name] = 0
+            results_list.append(0)
         else:
             for i in neighbors:
                 subset = objects.loc[i]['geometry']
                 length = length + row.geometry.intersection(subset).length
-                objects.loc[index, column_name] = length / row[perimeter_column] - 1
+                results_list.append(length / row[perimeter_column] - 1)
+    series = pd.Series(results_list)
     print('Shared walls ratio calculated.')
-    return objects
+    return series
 
 
-def street_alignment(objects, streets, column_name, orientation_column, network_id_column):
+def street_alignment(objects, streets, orientation_column, network_id_column):
     """
     Calculate the difference between street orientation and orientation of object
 
@@ -169,8 +165,6 @@ def street_alignment(objects, streets, column_name, orientation_column, network_
         GeoDataFrame containing objects to analyse
     streets : GeoDataFrame
         GeoDataFrame containing street network
-    column_name : str
-        name of the column to save the values
     orientation_column : str
         name of the column where is stored object orientation value
     network_id_column : str
@@ -179,12 +173,11 @@ def street_alignment(objects, streets, column_name, orientation_column, network_
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     print('Calculating street alignments...')
 
@@ -215,12 +208,13 @@ def street_alignment(objects, streets, column_name, orientation_column, network_
             az = az - 2 * diff
             diff = az - 45
             az = az - 2 * diff
-        objects.loc[index, column_name] = abs(row[orientation_column] - az)
+        results_list.append(abs(row[orientation_column] - az))
+    series = pd.Series(results_list)
     print('Street alignments calculated.')
-    return objects
+    return series
 
 
-def alignment(objects, column_name, orientation_column, tessellation, weights_matrix=None):
+def alignment(objects, orientation_column, tessellation, weights_matrix=None):
     """
     Calculate the mean deviation of solar orientation of objects on adjacent cells from object
 
@@ -231,8 +225,6 @@ def alignment(objects, column_name, orientation_column, tessellation, weights_ma
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     orientation_column : str
         name of the column where is stored object orientation value
     tessellation : GeoDataFrame
@@ -245,12 +237,11 @@ def alignment(objects, column_name, orientation_column, tessellation, weights_ma
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     print('Calculating alignments...')
 
@@ -280,12 +271,15 @@ def alignment(objects, column_name, orientation_column, tessellation, weights_ma
             dev = abs(o - row[orientation_column])
             deviations.append(dev)
 
-        objects.loc[index, column_name] = statistics.mean(deviations)
+        results_list.append(statistics.mean(deviations))
+
+    series = pd.Series(results_list)
+
     print('Street alignments calculated.')
-    return objects
+    return series
 
 
-def neighbour_distance(objects, column_name, tessellation, weights_matrix=None):
+def neighbour_distance(objects, tessellation, weights_matrix=None):
     """
     Calculate the mean distance to buildings on adjacent cells
 
@@ -296,8 +290,6 @@ def neighbour_distance(objects, column_name, tessellation, weights_matrix=None):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     tessellation : GeoDataFrame
         GeoDataFrame containing morphological tessellation - source of weights_matrix.
         It is crucial to use exactly same input as was used durign the calculation of weights matrix.
@@ -308,17 +300,16 @@ def neighbour_distance(objects, column_name, tessellation, weights_matrix=None):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
     Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
     Journal of Transport and Land Use 9(1): 101–130.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     print('Calculating distances...')
 
@@ -343,9 +334,12 @@ def neighbour_distance(objects, column_name, tessellation, weights_matrix=None):
             dist = objects.loc[objects['uID'] == i].iloc[0]['geometry'].distance(row['geometry'])
             distances.append(dist)
 
-        objects.loc[index, column_name] = statistics.mean(distances)
+        results_list.append(statistics.mean(distances))
+
+    series = pd.Series(results_list)
+
     print('Distances calculated.')
-    return objects
+    return series
 # to be deleted, keep at the end
 #
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"

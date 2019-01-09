@@ -4,14 +4,13 @@
 # dimension.py
 # definitons of dimension characters
 
-import geopandas as gpd  # to remove in the end
 from tqdm import tqdm  # progress bar
 from shapely.geometry import Polygon
-import shapely.ops
 from .shape import make_circle
+import pandas as pd
 
 
-def area(objects, column_name):
+def area(objects):
     """
     Calculate area of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
@@ -20,28 +19,27 @@ def area(objects, column_name):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating areas...')
 
-    # fill new column with the value of area, iterating over rows one by one
+    # fill results_list with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = row['geometry'].area
+        results_list.append(row['geometry'].area)
+
+    series = pd.Series(results_list)
 
     print('Areas calculated.')
-    return objects
+    return series
 
 
-def perimeter(objects, column_name):
+def perimeter(objects):
     """
     Calculate perimeter of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
@@ -50,28 +48,27 @@ def perimeter(objects, column_name):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating perimeters...')
 
     # fill new column with the value of perimeter, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = row['geometry'].length
+        results_list.append(row['geometry'].length)
+
+    series = pd.Series(results_list)
 
     print('Perimeters calculated.')
-    return objects
+    return series
 
 
-def height_os(objects, column_name, original_column='relh2'):
+def height_os(objects, original_column='relh2'):
     """
     Copy values from GB Ordance Survey data.
 
@@ -82,31 +79,30 @@ def height_os(objects, column_name, original_column='relh2'):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     original_column : str
         name of column where is stored original height value
 
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating heights...')
 
     # fill new column with the value of perimeter, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = row[original_column]
+        results_list.append(row[original_column])
+
+    series = pd.Series(results_list)
 
     print('Heights defined.')
-    return objects
+    return series
 
 
-def height_prg(objects, column_name, floors_column='od_POCET_P', floor_type='od_TYP'):
+def height_prg(objects, floors_column='od_POCET_P', floor_type='od_TYP'):
     """
     Define building heights based on Geoportal Prague Data.
 
@@ -117,19 +113,16 @@ def height_prg(objects, column_name, floors_column='od_POCET_P', floor_type='od_
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     floor_type : str
         name of the column defining buildings type (to differentiate height of the floor)
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating heights...')
 
     # fill new column with the value of perimeter, iterating over rows one by one
@@ -141,13 +134,15 @@ def height_prg(objects, column_name, floors_column='od_POCET_P', floor_type='od_
         else:
             height = row[floors_column] * 3  # standard buildings
 
-        objects.loc[index, column_name] = height
+        results_list.append(height)
+
+    series = pd.Series(results_list)
 
     print('Heights defined.')
-    return objects
+    return series
 
 
-def volume(objects, column_name, area_column, height_column, area_calculated):
+def volume(objects, area_column, height_column, area_calculated):
     """
     Calculate volume of each object in given shapefile based on its height and area.
 
@@ -155,8 +150,6 @@ def volume(objects, column_name, area_column, height_column, area_calculated):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of column where is stored area value
     height_column : str
@@ -168,19 +161,20 @@ def volume(objects, column_name, area_column, height_column, area_calculated):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating volumes...')
 
     if area_calculated:
         try:
             # fill new column with the value of perimeter, iterating over rows one by one
             for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-                objects.loc[index, column_name] = row[area_column] * row[height_column]
+                results_list.append(row[area_column] * row[height_column])
+            series = pd.Series(results_list)
+
             print('Volumes calculated.')
 
         except KeyError:
@@ -188,13 +182,15 @@ def volume(objects, column_name, area_column, height_column, area_calculated):
     else:
         # fill new column with the value of perimeter, iterating over rows one by one
         for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            objects.loc[index, column_name] = row['geometry'].area * row[height_column]
+            results_list.append(row['geometry'].area * row[height_column])
+
+        series = pd.Series(results_list)
 
         print('Volumes calculated.')
-        return objects
+        return series
 
 
-def floor_area(objects, column_name, area_column, height_column, area_calculated):
+def floor_area(objects, area_column, height_column, area_calculated):
     """
     Calculate floor area of each object based on height and area.
 
@@ -205,8 +201,6 @@ def floor_area(objects, column_name, area_column, height_column, area_calculated
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of column where is stored area value
     height_column : str
@@ -218,19 +212,20 @@ def floor_area(objects, column_name, area_column, height_column, area_calculated
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating floor areas...')
 
     if area_calculated:
         try:
             # fill new column with the value of perimeter, iterating over rows one by one
             for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-                objects.loc[index, column_name] = row[area_column] * (row[height_column] // 3)
+                results_list.append(row[area_column] * (row[height_column] // 3))
+
+            series = pd.Series(results_list)
 
             print('Floor areas calculated.')
 
@@ -239,13 +234,15 @@ def floor_area(objects, column_name, area_column, height_column, area_calculated
     else:
         # fill new column with the value of perimeter, iterating over rows one by one
         for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            objects.loc[index, column_name] = row['geometry'].area * (row[height_column] // 3)
+            results_list.append(row['geometry'].area * (row[height_column] // 3))
+
+        series = pd.Series(results_list)
 
         print('Floor areas calculated.')
-    return objects
+    return series
 
 
-def courtyard_area(objects, column_name, area_column, area_calculated):
+def courtyard_area(objects, area_column, area_calculated):
     """
     Calculate area of holes within geometry - area of courtyards.
 
@@ -253,8 +250,6 @@ def courtyard_area(objects, column_name, area_column, area_calculated):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of column where is stored area value
     area_calculated : bool
@@ -264,31 +259,34 @@ def courtyard_area(objects, column_name, area_column, area_calculated):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating courtyard areas...')
 
     if area_calculated:
         try:
             for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-                objects.loc[index, column_name] = Polygon(row['geometry'].exterior).area - row[area_column]
+                results_list.append(Polygon(row['geometry'].exterior).area - row[area_column])
+
+            series = pd.Series(results_list)
 
             print('Core area indices calculated.')
         except KeyError:
             print('ERROR: Building area column named', area_column, 'not found. Define area_column or set area_calculated to False.')
     else:
         for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            objects.loc[index, column_name] = Polygon(row['geometry'].exterior).area - row['geometry'].area
+            results_list.append(Polygon(row['geometry'].exterior).area - row['geometry'].area)
+
+        series = pd.Series(results_list)
 
         print('Core area indices calculated.')
-    return objects
+    return series
 
 
-def longest_axis_length(objects, column_name):
+def longest_axis_length(objects):
     """
     Calculate the length of the longest axis of object.
 
@@ -299,17 +297,14 @@ def longest_axis_length(objects, column_name):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating the longest axis...')
 
     # calculate the area of circumcircle
@@ -328,13 +323,15 @@ def longest_axis_length(objects, column_name):
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = longest_axis(row['geometry'].convex_hull.exterior.coords)
+        results_list.append(longest_axis(row['geometry'].convex_hull.exterior.coords))
+
+    series = pd.Series(results_list)
 
     print('The longest axis calculated.')
-    return objects
+    return series
 
 
-def effective_mesh(objects, column_name, spatial_weights, area_column):
+def effective_mesh(objects, spatial_weights, area_column):
     """
     Calculate the effective mesh size
 
@@ -347,8 +344,6 @@ def effective_mesh(objects, column_name, spatial_weights, area_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    column_name : str
-        name of the column to save the values
     spatial_weights : libpysal.weights
         spatial weights matrix
     area_column : str
@@ -356,8 +351,8 @@ def effective_mesh(objects, column_name, spatial_weights, area_column):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ----------
@@ -369,9 +364,8 @@ def effective_mesh(objects, column_name, spatial_weights, area_column):
     Resolve the issues if there is no spatial weights matrix. Corellation with block_density()
 
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
 
     print('Calculating effective mesh size...')
 
@@ -382,13 +376,17 @@ def effective_mesh(objects, column_name, spatial_weights, area_column):
             n_area = objects.iloc[n][area_column]
             total_area = total_area + n_area
 
-        objects.loc[index, column_name] = total_area / (len(neighbours) + 1)
+        results_list.append(total_area / (len(neighbours) + 1))
+
+    series = pd.Series(results_list)
+    return series
+
 # to be deleted, keep at the end
 
 # path = "/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/Final data/Voronoi/test/voronoi_10.shp"
 # objects = gpd.read_file(path)
 
-# longest_axis_length2(objects, column_name='longest_axis')
+# longest_axis_length2(objects='longest_axis')
 
 # objects.head
 # objects.to_file(path)

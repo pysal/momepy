@@ -69,39 +69,22 @@ def unique_id(objects, clear=False, keep=None, id_name='uID'):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    clear : boolean
-        if True, delete all the columns except ID and geometry
-    keep : str
-        to keep some of the columns and delete rest with clear=True, pass them to keep.
-        (Typically we want to keep building height and get rid of the rest.)
-    id_name : str
-        name of the unique id column
+
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [id_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     """
-    objects[id_name] = None
-    objects[id_name] = objects[id_name].astype('float')
+    # define empty list for results
+    id_list = []
     id = 1
     for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[idx, id_name] = id
+        id_list.append(id)
         id = id + 1
 
-    cols = objects.columns.tolist()
-    cols = cols[-1:] + cols[:-1]
-    if clear is False:
-        objects = objects[cols]
-    else:
-        if keep is None:
-            objects = objects.iloc[:, [-2, -1]]
-        else:
-            keep_col = objects.columns.get_loc(keep)
-            objects = objects.iloc[:, [-2, keep_col, -1]]
-
-    # objects['uID'] = objects['uID'].astype('int16') - it is making weird errors
-    return objects
+    series = pd.Series(id_list)
+    return series
 
 
 def tessellation(buildings, unique_id='uID', cut_buffer=50):

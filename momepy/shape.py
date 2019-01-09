@@ -4,7 +4,7 @@
 # shape.py
 # definitons of shape characters
 
-import geopandas as gpd
+import pandas as pd
 from tqdm import tqdm  # progress bar
 import math
 import random
@@ -12,7 +12,7 @@ import numpy as np
 from shapely.geometry import Point
 
 
-def form_factor(objects, column_name, area_column, volume_column):
+def form_factor(objects, area_column, volume_column):
     """
     Calculate form factor of each object in given geoDataFrame.
 
@@ -23,8 +23,6 @@ def form_factor(objects, column_name, area_column, volume_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
     volume_column : str
@@ -32,8 +30,8 @@ def form_factor(objects, column_name, area_column, volume_column):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -45,24 +43,25 @@ def form_factor(objects, column_name, area_column, volume_column):
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating form factor...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         if row[volume_column] is not 0:
-            objects.loc[index, column_name] = row[area_column] / (row[volume_column] ** (2 / 3))
+            results_list.append(row[area_column] / (row[volume_column] ** (2 / 3)))
 
         else:
-            objects.loc[index, column_name] = 0
+            results_list.append(0)
+
+    series = pd.Series(results_list)
 
     print('Form factor calculated.')
-    return objects
+    return series
 
 
-def fractal_dimension(objects, column_name, area_column, perimeter_column):
+def fractal_dimension(objects, area_column, perimeter_column):
     """
     Calculate fractal dimension of each object in given geoDataFrame.
 
@@ -73,8 +72,6 @@ def fractal_dimension(objects, column_name, area_column, perimeter_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
     perimeter_column : str
@@ -82,8 +79,8 @@ def fractal_dimension(objects, column_name, area_column, perimeter_column):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -95,20 +92,21 @@ def fractal_dimension(objects, column_name, area_column, perimeter_column):
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating fractal dimension...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            objects.loc[index, column_name] = math.log(row[perimeter_column] / 4) / math.log(row[area_column])
+            results_list.append(math.log(row[perimeter_column] / 4) / math.log(row[area_column]))
+
+    series = pd.Series(results_list)
 
     print('Fractal dimension calculated.')
-    return objects
+    return series
 
 
-def volume_facade_ratio(objects, column_name, volume_column, perimeter_column, height_column):
+def volume_facade_ratio(objects, volume_column, perimeter_column, height_column):
     """
     Calculate volume/facade ratio of each object in given geoDataFrame.
 
@@ -119,8 +117,6 @@ def volume_facade_ratio(objects, column_name, volume_column, perimeter_column, h
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
     volume_column : str
@@ -132,8 +128,8 @@ def volume_facade_ratio(objects, column_name, volume_column, perimeter_column, h
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ----------
@@ -145,17 +141,18 @@ def volume_facade_ratio(objects, column_name, volume_column, perimeter_column, h
     -----
     Option to calculate without area and volume being calculated beforehand.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating volume/facade ratio...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            objects.loc[index, column_name] = row[volume_column] / (row[perimeter_column] * row[height_column])
+            results_list.append(row[volume_column] / (row[perimeter_column] * row[height_column]))
+
+    series = pd.Series(results_list)
 
     print('Volume/facade ratio calculated.')
-    return objects
+    return series
 
 
 # Smallest enclosing circle - Library (Python)
@@ -291,7 +288,7 @@ def _cross_product(x0, y0, x1, y1, x2, y2):
 # end of Nayuiki script to define the smallest enclosing circle
 
 
-def circular_compactness(objects, column_name, area_column):
+def circular_compactness(objects, area_column):
     """
     Calculate compactness index of each object in given geoDataFrame.
 
@@ -302,15 +299,13 @@ def circular_compactness(objects, column_name, area_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -321,9 +316,8 @@ def circular_compactness(objects, column_name, area_column):
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating compactness index...')
 
     # calculate the area of circumcircle
@@ -333,13 +327,15 @@ def circular_compactness(objects, column_name, area_column):
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = (row[area_column]) / (circle_area(list(row['geometry'].convex_hull.exterior.coords)))
+        results_list.append((row[area_column]) / (circle_area(list(row['geometry'].convex_hull.exterior.coords))))
+
+    series = pd.Series(results_list)
 
     print('Compactness index calculated.')
-    return objects
+    return series
 
 
-def square_compactness(objects, column_name, area_column, perimeter_column):
+def square_compactness(objects, area_column, perimeter_column):
     """
     Calculate compactness index of each object in given geoDataFrame.
 
@@ -352,8 +348,6 @@ def square_compactness(objects, column_name, area_column, perimeter_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
     perimeter_column : str
@@ -361,8 +355,8 @@ def square_compactness(objects, column_name, area_column, perimeter_column):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -373,20 +367,21 @@ def square_compactness(objects, column_name, area_column, perimeter_column):
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating compactness index...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        objects.loc[index, column_name] = ((4 * math.sqrt(row[area_column])) / (row[perimeter_column])) ** 2
+        results_list.append(((4 * math.sqrt(row[area_column])) / (row[perimeter_column])) ** 2)
+
+    series = pd.Series(results_list)
 
     print('Compactness index calculated.')
-    return objects
+    return series
 
 
-def convexeity(objects, column_name, area_column):
+def convexeity(objects, area_column):
     """
     Calculate convexeity index of each object in given geoDataFrame.
 
@@ -397,15 +392,13 @@ def convexeity(objects, column_name, area_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -416,20 +409,21 @@ def convexeity(objects, column_name, area_column):
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating convexeity...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            objects.loc[index, column_name] = row[area_column] / (row['geometry'].convex_hull.area)
+            results_list.append(row[area_column] / (row['geometry'].convex_hull.area))
+
+    series = pd.Series(results_list)
 
     print('Convexeity calculated.')
-    return objects
+    return series
 
 
-def courtyard_index(objects, column_name, area_column, courtyard_column):
+def courtyard_index(objects, area_column, courtyard_column):
     """
     Calculate courtyard index of each object in given geoDataFrame.
 
@@ -440,8 +434,6 @@ def courtyard_index(objects, column_name, area_column, courtyard_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
     courtyard_column : str
@@ -449,8 +441,8 @@ def courtyard_index(objects, column_name, area_column, courtyard_column):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -462,20 +454,21 @@ def courtyard_index(objects, column_name, area_column, courtyard_column):
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating courtyard index...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            objects.loc[index, column_name] = row[courtyard_column] / row[area_column]
+            results_list.append(row[courtyard_column] / row[area_column])
+
+    series = pd.Series(results_list)
 
     print('Courtyard index calculated.')
-    return objects
+    return series
 
 
-def rectangularity(objects, column_name, area_column):
+def rectangularity(objects, area_column):
     """
     Calculate rectangularity of each object in given geoDataFrame.
 
@@ -486,15 +479,13 @@ def rectangularity(objects, column_name, area_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -505,20 +496,21 @@ def rectangularity(objects, column_name, area_column):
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating rectangularity...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            objects.loc[index, column_name] = row[area_column] / (row['geometry'].minimum_rotated_rectangle.area)
+            results_list.append(row[area_column] / (row['geometry'].minimum_rotated_rectangle.area))
+
+    series = pd.Series(results_list)
 
     print('Rectangularity calculated.')
-    return objects
+    return series
 
 
-def shape_index(objects, column_name, area_column, longest_axis_column):
+def shape_index(objects, area_column, longest_axis_column):
     """
     Calculate shape index of each object in given geoDataFrame.
 
@@ -529,8 +521,6 @@ def shape_index(objects, column_name, area_column, longest_axis_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
     longest_axis_column : str
@@ -538,8 +528,8 @@ def shape_index(objects, column_name, area_column, longest_axis_column):
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -549,20 +539,21 @@ def shape_index(objects, column_name, area_column, longest_axis_column):
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating shape index...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            objects.loc[index, column_name] = math.sqrt(row[area_column] / math.pi) / (0.5 * row[longest_axis_column])
+            results_list.append(math.sqrt(row[area_column] / math.pi) / (0.5 * row[longest_axis_column]))
+
+    series = pd.Series(results_list)
 
     print('Shape index calculated.')
-    return objects
+    return series
 
 
-def corners(objects, column_name):
+def corners(objects):
     """
     Calculate number of corners of each object in given geoDataFrame.
 
@@ -575,21 +566,18 @@ def corners(objects, column_name):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
 
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating corners...')
 
     # calculate angle between points, return true or false if real corner
@@ -635,13 +623,15 @@ def corners(objects, column_name):
                 else:
                     continue
 
-        objects.loc[index, column_name] = corners
+        results_list.append(corners)
+
+    series = pd.Series(results_list)
 
     print('Corners calculated.')
-    return objects
+    return series
 
 
-def squareness(objects, column_name):
+def squareness(objects):
     """
     Calculate squareness of each object in given geoDataFrame.
 
@@ -654,22 +644,19 @@ def squareness(objects, column_name):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ----------
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating squareness...')
 
     def angle(a, b, c):
@@ -718,13 +705,15 @@ def squareness(objects, column_name):
         for i in angles:
             dev = abs(90 - i)
             deviations.append(dev)
-        objects.loc[index, column_name] = np.mean(deviations)
+        results_list.append(np.mean(deviations))
+
+    series = pd.Series(results_list)
 
     print('Squareness calculated.')
-    return objects
+    return series
 
 
-def equivalent_rectangular_index(objects, column_name, area_column, perimeter_column):
+def equivalent_rectangular_index(objects, area_column, perimeter_column):
     """
     Calculate equivalent rectangular index of each object in given geoDataFrame.
 
@@ -735,8 +724,6 @@ def equivalent_rectangular_index(objects, column_name, area_column, perimeter_co
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
     area_column : str
         name of the column of objects gdf where is stored area value
     perimeter_column : str
@@ -744,8 +731,8 @@ def equivalent_rectangular_index(objects, column_name, area_column, perimeter_co
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -759,21 +746,22 @@ def equivalent_rectangular_index(objects, column_name, area_column, perimeter_co
     -------
     Option to calculate without area and volume being calculated beforehand.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating equivalent rectangular index...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
             bbox = row['geometry'].minimum_rotated_rectangle
-            objects.loc[index, column_name] = math.sqrt(row[area_column] / bbox.area) * (bbox.length / row[perimeter_column])
+            results_list.append(math.sqrt(row[area_column] / bbox.area) * (bbox.length / row[perimeter_column]))
+
+    series = pd.Series(results_list)
 
     print('Equivalent rectangular index calculated.')
-    return objects
+    return series
 
 
-def elongation(objects, column_name):
+def elongation(objects):
     """
     Calculate elongation of object seen as elongation of its minimum bounding rectangle.
 
@@ -784,13 +772,11 @@ def elongation(objects, column_name):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -798,9 +784,8 @@ def elongation(objects, column_name):
     Urban Typologies: Data Mining the Multi-dimensional Character of
     Neighbourhoods. Urban Morphology 16(1): 27–40.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating elongation...')
 
     # fill new column with the value of area, iterating over rows one by one
@@ -824,13 +809,15 @@ def elongation(objects, column_name):
             else:
                 elo = elo2
 
-            objects.loc[index, column_name] = elo
+            results_list.append(elo)
+
+    series = pd.Series(results_list)
 
     print('Elongation calculated.')
-    return objects
+    return series
 
 
-def centroid_corners(objects, column_name):
+def centroid_corners(objects):
     """
     Calculate mean distance centroid - corners.
 
@@ -841,22 +828,19 @@ def centroid_corners(objects, column_name):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ----------
     Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
     Journal of Transport and Land Use 9(1): 101–130.
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating mean distance centroid - corner...')
 
     # calculate angle between points, return true or false if real corner
@@ -907,12 +891,15 @@ def centroid_corners(objects, column_name):
                 else:
                     continue
 
-        objects.loc[index, column_name] = np.mean(distances)  # calculate mean and sve it to DF
+        results_list.append(np.mean(distances))  # calculate mean and sve it to DF
+
+    series = pd.Series(results_list)
+
     print('Mean distances centroid - corner calculated.')
-    return objects
+    return series
 
 
-def linearity(objects, column_name):
+def linearity(objects):
     """
     Calculate linearity of each LineString object in given geoDataFrame.
 
@@ -923,13 +910,11 @@ def linearity(objects, column_name):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    column_name : str
-        name of the column to save the values
 
     Returns
     -------
-    GeoDataFrame
-        GeoDataFrame with new column [column_name] containing resulting values.
+    Series
+        Series containing resulting values.
 
     References
     ---------
@@ -938,18 +923,19 @@ def linearity(objects, column_name):
     from: http://link.springer.com/10.1007/978-3-319-62407-5.
 
     """
-    # define new column
-    objects[column_name] = None
-    objects[column_name] = objects[column_name].astype('float')
+    # define empty list for results
+    results_list = []
     print('Calculating linearity...')
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
             euclidean = Point(row['geometry'].coords[0]).distance(Point(row['geometry'].coords[-1]))
-            objects.loc[index, column_name] = euclidean / row['geometry'].length
+            results_list.append(euclidean / row['geometry'].length)
+
+    series = pd.Series(results_list)
 
     print('Linearity calculated.')
-    return objects
+    return series
 # to be deleted, keep at the end
 
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
