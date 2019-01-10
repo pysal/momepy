@@ -134,8 +134,9 @@ def shared_walls_ratio(objects, perimeter_column, unique_id):
 
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         neighbors = list(sindex.intersection(row.geometry.bounds))
+        neighbors.remove(index)
+
         # if no neighbour exists
-        global length
         length = 0
         if len(neighbors) is 0:
             results_list.append(0)
@@ -143,7 +144,7 @@ def shared_walls_ratio(objects, perimeter_column, unique_id):
             for i in neighbors:
                 subset = objects.loc[i]['geometry']
                 length = length + row.geometry.intersection(subset).length
-                results_list.append(length / row[perimeter_column] - 1)
+            results_list.append(length / row[perimeter_column])
     series = pd.Series(results_list)
     print('Shared walls ratio calculated.')
     return series
