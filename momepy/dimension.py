@@ -176,7 +176,8 @@ def volume(objects, area_column, height_column, area_calculated):
             series = pd.Series(results_list)
 
             print('Volumes calculated.')
-
+            return series
+            
         except KeyError:
             print('ERROR: Building area column named', area_column, 'not found. Define area_column or set area_calculated to False.')
     else:
