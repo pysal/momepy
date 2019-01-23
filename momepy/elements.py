@@ -366,6 +366,20 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50):
 
     morphological_tessellation = voronoi_plots
 
+    ids_original = list(buildings[unique_id])
+    ids_generated = list(morphological_tessellation[unique_id])
+    if len(ids_original) != len(ids_generated):
+        import warnings
+        diff = set(ids_original).difference(ids_generated)
+        warnings.warn("Tessellation does not fully match buildings. {len} element(s) collapsed "
+                      "during generation - unique_id: {i}".format(len=len(diff), i=diff))
+
+    uids = morphological_tessellation[morphological_tessellation.geometry.type == 'MultiPolygon'][unique_id]
+    if len(uids) is not 0:
+        import warnings
+        warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
+                      'unique_id of affected elements: {}'.format(list(uids)))
+
     print('Done in', timer() - start, 'seconds')
     print('Done. Tessellation finished in', timer() - start_, 'seconds.')
     return morphological_tessellation
