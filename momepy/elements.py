@@ -625,9 +625,9 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     """
 
     print('Dissolving tesselation...')
-
-    cells['diss'] = 0
-    built_up = cells.dissolve(by='diss')
+    cells_copy = cells.copy()
+    cells_copy['diss'] = 0
+    built_up = cells_copy.dissolve(by='diss')
 
     print('Buffering streets...')
     street_buff = streets.copy()
@@ -680,12 +680,12 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     tempID_to_uID = centroids_tempID[[unique_id, id_name]]
 
     print('Attribute join (tesselation)...')
-    cells = cells.merge(tempID_to_uID, on=unique_id)
-    cells = cells.drop(['diss'], axis=1)
+    cells_copy = cells_copy.merge(tempID_to_uID, on=unique_id)
+    cells_copy = cells_copy.drop(['diss'], axis=1)
 
     print('Generating blocks...')
-    blocks = cells.dissolve(by=id_name)
-    cells = cells.drop([id_name], axis=1)
+    blocks = cells_copy.dissolve(by=id_name)
+    cells_copy = cells_copy.drop([id_name], axis=1)
 
     print('Multipart to singlepart...')
     blocks = multi2single(blocks)
@@ -709,7 +709,8 @@ def blocks(cells, streets, buildings, id_name, unique_id):
             if row['geometry'].within(row2['geometry']):
                 blocks.loc[idx, 'delete'] = 1
 
-    blocks = blocks.drop(list(blocks.loc[blocks['delete'] == 1].index))
+    if 'delete' in blocks.columns:
+        blocks = blocks.drop(list(blocks.loc[blocks['delete'] == 1].index))
 
     blocks_save = blocks[[id_name, 'geometry']]
     blocks_save['geometry'] = blocks_save.buffer(0.000000001)
