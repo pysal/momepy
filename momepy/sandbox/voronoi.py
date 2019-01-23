@@ -12,16 +12,19 @@ import shapely.ops
 import osmnx as ox
 import operator
 
-buildings = gpd.read_file('/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/_momepy/blg_sample.shp')
+buildings = gpd.read_file("/Users/martin/Dropbox/StrathUni/PhD/Sample Data/Prague/Tests/190122/blg.shp")
+
 unique_id = 'uID'
 cut_buffer = 10
 
-reprojected_crs = buildings.crs.copy()
 
-reprojected_crs['x_0'] = 0
-reprojected_crs['y_0'] = 0
+bounds = buildings['geometry'].bounds
+centre_x = -(bounds['maxx'].max() + bounds['minx'].min()) / 2
+centre_y = -(bounds['maxy'].max() + bounds['miny'].min()) / 2
+objects = buildings.copy()
+objects['geometry'] = objects['geometry'].translate(xoff=centre_x, yoff=centre_y)
 
-objects = buildings.to_crs(reprojected_crs)
+# objects = buildings.to_crs(reprojected_crs)
 
 from timeit import default_timer as timer
 tqdm.pandas()
@@ -178,36 +181,37 @@ voronoi_with_id.crs = objects.crs
 # select those unjoined
 unjoined = voronoi_with_id[voronoi_with_id[unique_id].isnull()]
 print('Done in', timer() - start, 'seconds')
-start = timer()
-print('Fixing unjoined geometry:', len(unjoined.index), 'problems...')
-# for each polygon, find neighbours, measure boundary and set uID to the most neighbouring one
-print(' Building R-tree...')
-join_index = voronoi_with_id.sindex
-print(' Done in', timer() - start, 'seconds')
-start = timer()
-for idx, row in tqdm(unjoined.iterrows(), total=unjoined.shape[0]):
-    neighbors = list(join_index.intersection(row.geometry.bounds))  # find neigbours
-    neighbors_ids = []
-    for n in neighbors:
-        neighbors_ids.append(voronoi_with_id.iloc[n][unique_id])
-    neighbors_ids = [x for x in neighbors_ids if str(x) != 'nan']  # remove polygon itself
+if len(unjoined.index) > 0:
+    start = timer()
+    print('Fixing unjoined geometry:', len(unjoined.index), 'problems...')
+    # for each polygon, find neighbours, measure boundary and set uID to the most neighbouring one
+    print(' Building R-tree...')
+    join_index = voronoi_with_id.sindex
+    print(' Done in', timer() - start, 'seconds')
+    start = timer()
+    for idx, row in tqdm(unjoined.iterrows(), total=unjoined.shape[0]):
+        neighbors = list(join_index.intersection(row.geometry.bounds))  # find neigbours
+        neighbors_ids = []
+        for n in neighbors:
+            neighbors_ids.append(voronoi_with_id.iloc[n][unique_id])
+        neighbors_ids = [x for x in neighbors_ids if str(x) != 'nan']  # remove polygon itself
 
-    global boundaries
-    boundaries = {}
-    for i in neighbors_ids:
-        subset = voronoi_with_id.loc[voronoi_with_id[unique_id] == i]['geometry']
-        l = 0
-        for s in subset:
-            l = l + row.geometry.intersection(s).length
-        boundaries[i] = l
+        global boundaries
+        boundaries = {}
+        for i in neighbors_ids:
+            subset = voronoi_with_id.loc[voronoi_with_id[unique_id] == i]['geometry']
+            l = 0
+            for s in subset:
+                l = l + row.geometry.intersection(s).length
+            boundaries[i] = l
 
-    voronoi_with_id.loc[idx, unique_id] = max(boundaries.items(), key=operator.itemgetter(1))[0]
+        voronoi_with_id.loc[idx, unique_id] = max(boundaries.items(), key=operator.itemgetter(1))[0]
 
-unjoined2 = voronoi_with_id[voronoi_with_id[unique_id].isnull()]
-if len(unjoined2.index) is not 0:
-    raise Exception('Some geometry remained unfinxed: {} problems'.format(len(unjoined2.index)))
-# dissolve polygons by unique_id
-print('Done in', timer() - start, 'seconds')
+    unjoined2 = voronoi_with_id[voronoi_with_id[unique_id].isnull()]
+    if len(unjoined2.index) is not 0:
+        raise Exception('Some geometry remained unfinxed: {} problems'.format(len(unjoined2.index)))
+    # dissolve polygons by unique_id
+    print('Done in', timer() - start, 'seconds')
 start = timer()
 print('Dissolving Voronoi polygons...')
 voronoi_with_id['geometry'] = voronoi_with_id.buffer(0)
@@ -262,7 +266,24 @@ for idx, row in tqdm(voronoi_plots.loc[subselection].iterrows(), total=voronoi_p
 
 voronoi_plots = voronoi_plots.drop(['index_right'], axis=1)
 
-morphological_tessellation = voronoi_plots.to_crs(buildings.crs)
+voronoi_plots['geometry'] = voronoi_plots['geometry'].translate(xoff=-centre_x, yoff=-centre_y)
+
+morphological_tessellation = voronoi_plots
+
+ids_original = list(buildings[unique_id])
+ids_generated = list(morphological_tessellation[unique_id])
+if len(ids_original) != len(ids_generated):
+    import warnings
+    diff = set(ids_original).difference(ids_generated)
+    warnings.warn("Tessellation does not fully match buildings. {len} element(s) collapsed "
+                  "during generation - unique_id: {i}".format(len=len(diff), i=diff))
+
+uids = morphological_tessellation[morphological_tessellation.geometry.type == 'MultiPolygon'][unique_id]
+if len(uids) is not 0:
+    import warnings
+    warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
+                  'unique_id of affected elements: {}'.format(list(uids)))
 
 print('Done in', timer() - start, 'seconds')
 print('Done. Tessellation finished in', timer() - start_, 'seconds.')
+# return morphological_tessellation
