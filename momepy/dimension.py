@@ -177,7 +177,7 @@ def volume(objects, area_column, height_column, area_calculated):
 
             print('Volumes calculated.')
             return series
-            
+
         except KeyError:
             print('ERROR: Building area column named', area_column, 'not found. Define area_column or set area_calculated to False.')
     else:
@@ -287,6 +287,12 @@ def courtyard_area(objects, area_column, area_calculated):
     return series
 
 
+# calculate the area of circumcircle
+def _longest_axis(points):
+    circ = make_circle(points)
+    return(circ[2] * 2)
+
+
 def longest_axis_length(objects):
     """
     Calculate the length of the longest axis of object.
@@ -308,23 +314,18 @@ def longest_axis_length(objects):
     results_list = []
     print('Calculating the longest axis...')
 
-    # calculate the area of circumcircle
-    def longest_axis(points):
-        circ = make_circle(points)
-        return(circ[2] * 2)
-
     def sort_NoneType(geom):
         if geom is not None:
             if geom.type is not 'Polygon':
                 return(0)
             else:
-                return(longest_axis(list(geom.boundary.coords)))
+                return(_longest_axis(list(geom.boundary.coords)))
         else:
             return(0)
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        results_list.append(longest_axis(row['geometry'].convex_hull.exterior.coords))
+        results_list.append(_longest_axis(row['geometry'].convex_hull.exterior.coords))
 
     series = pd.Series(results_list)
 
