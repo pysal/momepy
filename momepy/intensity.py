@@ -127,6 +127,7 @@ def covered_area_ratio(objects, look_for, area_column, look_for_area_column, id_
 
     print('Merging DataFrames...')
     look_for = look_for[[id_column, look_for_area_column]]  # keeping only necessary columns
+    look_for.rename(index=str, columns={look_for_area_column: 'lf_area'}, inplace=True)
     objects_merged = objects.merge(look_for, on=id_column)  # merging dataframes together
 
     print('Calculating CAR...')
@@ -136,7 +137,7 @@ def covered_area_ratio(objects, look_for, area_column, look_for_area_column, id_
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects_merged.iterrows(), total=objects_merged.shape[0]):
-            results_list.append(row[look_for_area_column] / row[area_column])
+            results_list.append(row['lf_area'] / row[area_column])
 
     series = pd.Series(results_list)
 
@@ -177,6 +178,7 @@ def floor_area_ratio(objects, look_for, area_column, look_for_area_column, id_co
 
     print('Merging DataFrames...')
     look_for = look_for[[id_column, look_for_area_column]]  # keeping only necessary columns
+    look_for.rename(index=str, columns={look_for_area_column: 'lf_area'}, inplace=True)
     objects_merged = objects.merge(look_for, on=id_column)  # merging dataframes together
 
     print('Calculating FAR...')
@@ -186,7 +188,7 @@ def floor_area_ratio(objects, look_for, area_column, look_for_area_column, id_co
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects_merged.iterrows(), total=objects_merged.shape[0]):
-            results_list.append(row[look_for_area_column] / row[area_column])
+            results_list.append(row['lf_area'] / row[area_column])
 
     series = pd.Series(results_list)
 
