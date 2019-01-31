@@ -315,11 +315,14 @@ def alignment(objects, orientation_column, tessellation, weights_matrix=None):
             dev = abs(o - row[orientation_column])
             deviations.append(dev)
 
-        results_list.append(statistics.mean(deviations))
+        if len(deviations) > 0:
+            results_list.append(statistics.mean(deviations))
+        else:
+            results_list.append(0)
 
     series = pd.Series(results_list)
 
-    print('Street alignments calculated.')
+    print('Alignments calculated.')
     return series
 
 
