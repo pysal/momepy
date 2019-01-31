@@ -106,3 +106,8 @@ venv.bak/
 .mypy_cache/
 
 cache/
+
+# my playing files
+mp.py
+sets_*
+zurich.py
