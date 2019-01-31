@@ -189,29 +189,72 @@ def street_alignment(objects, streets, orientation_column, network_id_column):
 
     # iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        network_id = row[network_id_column]
-        streetssub = streets.loc[streets[network_id_column] == network_id]
-        start = Point(streetssub.iloc[0]['geometry'].coords[0])
-        end = Point(streetssub.iloc[0]['geometry'].coords[-1])
-        az = azimuth(start, end)
-        if 90 > az >= 45:
-            diff = az - 45
-            az = az - 2 * diff
-        elif 135 > az >= 90:
-            diff = az - 90
-            az = az - 2 * diff
-            diff = az - 45
-            az = az - 2 * diff
-        elif 181 > az >= 135:
-            diff = az - 135
-            az = az - 2 * diff
-            diff = az - 90
-            az = az - 2 * diff
-            diff = az - 45
-            az = az - 2 * diff
-        results_list.append(abs(row[orientation_column] - az))
+        if pd.isnull(row[network_id_column]):
+            results_list.append(0)
+        else:
+            network_id = row[network_id_column]
+            streetssub = streets.loc[streets[network_id_column] == network_id]
+            start = Point(streetssub.iloc[0]['geometry'].coords[0])
+            end = Point(streetssub.iloc[0]['geometry'].coords[-1])
+            az = azimuth(start, end)
+            if 90 > az >= 45:
+                diff = az - 45
+                az = az - 2 * diff
+            elif 135 > az >= 90:
+                diff = az - 90
+                az = az - 2 * diff
+                diff = az - 45
+                az = az - 2 * diff
+            elif 181 > az >= 135:
+                diff = az - 135
+                az = az - 2 * diff
+                diff = az - 90
+                az = az - 2 * diff
+                diff = az - 45
+                az = az - 2 * diff
+            results_list.append(abs(row[orientation_column] - az))
     series = pd.Series(results_list)
     print('Street alignments calculated.')
+    return series
+
+
+def cell_alignment(objects, tessellation, orientation_column, cell_orientation_column, unique_id):
+    """
+    Calculate the difference between cell orientation and orientation of object
+
+    .. math::
+        \\left|{\\textit{building orientation} - \\textit{cell orientation}}\\right|
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    tessellation : GeoDataFrame
+        GeoDataFrame containing street network
+    orientation_column : str
+        name of the column where is stored object orientation value
+    cell_orientation_column : str
+        name of the column where is stored cell orientation value in tessellation gdf
+    unique_id : str
+        name of the column with unique id
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+    """
+    # define empty list for results
+    results_list = []
+
+    print('Calculating cell alignments...')
+
+    # iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+
+        results_list.append(abs(row[orientation_column] - tessellation[tessellation[unique_id] == row[unique_id]][cell_orientation_column].iloc[0]))
+
+    series = pd.Series(results_list)
+    print('Cell alignments calculated.')
     return series
 
 
