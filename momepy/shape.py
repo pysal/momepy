@@ -890,8 +890,11 @@ def centroid_corners(objects):
                     distances.append(distance)
                 else:
                     continue
-
-        results_list.append(np.mean(distances))  # calculate mean and sve it to DF
+        if len(distances) == 0:
+            from momepy.dimension import _longest_axis
+            results_list.append(_longest_axis(row['geometry'].convex_hull.exterior.coords) / 2)
+        else:
+            results_list.append(np.mean(distances))  # calculate mean and sve it to DF
 
     series = pd.Series(results_list)
 
