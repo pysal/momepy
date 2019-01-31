@@ -108,8 +108,5 @@ venv.bak/
 cache/
 
 # my playing files
-mp.py
-sets_*
-zurich.py
-momepy/sandbox/
+sandbox/
 run/
