@@ -267,6 +267,10 @@ def courtyards(objects, block_id, weights_matrix=None):
     -------
     Series
         Series containing resulting values.
+
+    Notes
+    -----
+    Script is not optimised at all, so it is currently extremely slow.
     """
     # define empty list for results
     results_list = []
@@ -277,7 +281,7 @@ def courtyards(objects, block_id, weights_matrix=None):
     if weights_matrix is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
-        weights_matrix = Queen.from_dataframe(objects)
+        weights_matrix = Queen.from_dataframe(objects, silence_warnings=True)
         print('Spatial weights ready...')
 
     # dict to store nr of courtyards for each uID
@@ -301,9 +305,11 @@ def courtyards(objects, block_id, weights_matrix=None):
                     for w in weights:
                         neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
             joined = objects.iloc[to_join]
-            joined['geometry'] = joined.buffer(0.01)  # buffer to avoid multipolygons where buildings touch by corners only
-            dissolved = joined.dissolve(by='bID')
-            interiors = len(list(dissolved.iloc[0]['geometry'].interiors))
+            dissolved = joined.geometry.buffer(0.01).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
+            try:
+                interiors = len(list(dissolved.interiors))
+            except:
+                print('Something happened.')
             for b in to_join:
                 courtyards[b] = interiors  # fill dict with values
     # copy values from dict to gdf
