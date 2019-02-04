@@ -365,6 +365,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50):
     voronoi_plots['geometry'] = voronoi_plots['geometry'].translate(xoff=-centre_x, yoff=-centre_y)
 
     morphological_tessellation = voronoi_plots
+    morphological_tessellation.reset_index(drop=True, inplace=True)
 
     ids_original = list(buildings[unique_id])
     ids_generated = list(morphological_tessellation[unique_id])
