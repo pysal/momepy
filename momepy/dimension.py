@@ -375,11 +375,7 @@ def effective_mesh(objects, spatial_weights, area_column):
 
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         neighbours = spatial_weights.neighbors[index]
-        total_area = row[area_column]
-        for n in neighbours:
-            n_area = objects.iloc[n][area_column]
-            total_area = total_area + n_area
-
+        total_area = sum(objects.iloc[neighbours][area_column]) + row[area_column]
         results_list.append(total_area / (len(neighbours) + 1))
 
     series = pd.Series(results_list)
