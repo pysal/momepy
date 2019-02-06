@@ -568,6 +568,63 @@ def street_profile(streets, buildings, height_column=None, distance=10, tick_len
     print('Street profile calculated.')
 
 
+def weighted_character(objects, tessellation, spatial_weights, character_column, area_column):
+    """
+    Calculate the weighted character
+
+    Character weighted by the area of the objects of the area within `k` topological steps defined in spatial_weights.
+
+    .. math::
+        \\
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    spatial_weights : libpysal.weights
+        spatial weights matrix
+    character_column : str
+        name of the column of objects gdf where is stored character
+    area_column : str
+        name of the column of objects gdf where is stored area value
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    References
+    ----------
+    Jacob
+
+    Notes
+    -----
+    Resolve the issues if there is no spatial weights matrix.
+
+    """
+    # define empty list for results
+    results_list = []
+    weights_matrix = spatial_weights
+    print('Calculating weighted {}...'.format(character_column))
+
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
+        neighbours = weights_matrix.neighbors[id]
+
+        if len(neighbours) > 0:
+            neighbours_ids = tessellation.iloc[neighbours]['uID']
+            building_neighbours = objects.loc[objects['uID'].isin(neighbours_ids)]
+
+            results_list.append((sum(building_neighbours[character_column] *
+                                     building_neighbours[area_column]) +
+                                (row[character_column] * row[area_column])) /
+                                (sum(building_neighbours[area_column]) + row[area_column]))
+        else:
+            results_list.append(row[character_column])
+    series = pd.Series(results_list)
+
+    print('Weighted {} calculated.'.format(character_column))
+    return series
 # to be deleted, keep at the end
 
 # path = "/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/Final data/Voronoi/test/voronoi_10.shp"
