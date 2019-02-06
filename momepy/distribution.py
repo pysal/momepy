@@ -384,6 +384,94 @@ def neighbour_distance(objects, tessellation, weights_matrix=None):
     return series
 
 
+def mean_interbuilding_distance(objects, tessellation, weights_matrix=None, weights_matrix_higher=None, order=3):
+    """
+    Calculate the mean interbuilding distance within x topological steps
+
+    Interbuilding distances are calculated between buildings on adjacent cells based on `weights_matrix`.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    tessellation : GeoDataFrame
+        GeoDataFrame containing morphological tessellation - source of weights_matrix and weights_matrix_higher.
+        It is crucial to use exactly same input as was used durign the calculation of weights matrix and weights_matrix_higher.
+        If weights_matrix or weights_matrix_higher is None, tessellation is used to calulate it.
+    weights_matrix : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix will be calculated
+        based on tessellation
+    weights_matrix_higher : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity of higher order will be calculated
+        based on tessellation
+    order : int
+        Order of Queen contiguity
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    References
+    ---------
+    ADD, but it is adapted quite a lot.
+    """
+
+    print('Calculating mean interbuilding distances...')
+    if weights_matrix is None:
+        print('Generating weights matrix (Queen)...')
+        from libpysal.weights import Queen
+        # matrix to capture interbuilding relationship
+        weights_matrix = Queen.from_dataframe(tessellation)
+
+    if weights_matrix_higher is None:
+        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
+        from momepy import Queen_higher
+        # matrix to define area of analysis (more steps)
+        weights_matrix_higher = Queen_higher(tessellation, k=order)
+
+    # define empty list for results
+    results_list = []
+
+    print('Generating adjacency matrix based on weights matrix...')
+    # define adjacency list from lipysal
+    adj_list = weights_matrix.to_adjlist()
+    adj_list['distance'] = -1
+
+    print('Computing interbuilding distances...')
+    # measure each interbuilding distance of neighbours and save them to adjacency list
+    for index, row in tqdm(adj_list.iterrows(), total=adj_list.shape[0]):
+        inverted = adj_list[(adj_list.focal == row.neighbor)][(adj_list.neighbor == row.focal)].iloc[0]['distance']
+        if inverted == -1:
+            object_id = tessellation.iloc[row.focal.astype(int)]['uID']
+            building_object = objects.loc[objects['uID'] == object_id]
+
+            neighbours_id = tessellation.iloc[row.neighbor.astype(int)]['uID']
+            building_neighbour = objects.loc[objects['uID'] == neighbours_id]
+            adj_list.loc[index, 'distance'] = building_neighbour.iloc[0].geometry.distance(building_object.iloc[0].geometry)
+        else:
+            adj_list.at[index, 'distance'] = inverted
+
+    print('Computing mean interbuilding distances...')
+    # iterate over objects to get the final values
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        # id to match spatial weights
+        id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
+        # define neighbours based on weights matrix defining analysis area
+        neighbours = weights_matrix_higher.neighbors[id]
+        neighbours.append(id)
+        if len(neighbours) > 0:
+            selection = adj_list[adj_list.focal.isin(neighbours)][adj_list.neighbor.isin(neighbours)]
+            results_list.append(np.nanmean(selection.distance))
+
+    series = pd.Series(results_list)
+    print('Mean interbuilding distances calculated.')
+    return series
+
+
 def neighbouring_street_orientation_deviation(objects):
     """
     Calculate the mean deviation of solar orientation of adjacent streets
