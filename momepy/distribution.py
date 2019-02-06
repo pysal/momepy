@@ -370,16 +370,6 @@ def neighbour_distance(objects, tessellation, weights_matrix=None):
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
         neighbours = weights_matrix.neighbors[id]
-        neighbours_ids = []
-
-        for n in neighbours:
-            uniq = tessellation.iloc[n]['uID']
-            neighbours_ids.append(uniq)
-
-        distances = []
-        for i in neighbours_ids:
-            dist = objects.loc[objects['uID'] == i].iloc[0]['geometry'].distance(row['geometry'])
-            distances.append(dist)
 
         neighbours_ids = tessellation.iloc[neighbours]['uID']
         building_neighbours = objects.loc[objects['uID'].isin(neighbours_ids)]
