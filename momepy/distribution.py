@@ -381,8 +381,10 @@ def neighbour_distance(objects, tessellation, weights_matrix=None):
             dist = objects.loc[objects['uID'] == i].iloc[0]['geometry'].distance(row['geometry'])
             distances.append(dist)
 
-        if len(distances) > 0:
-            results_list.append(statistics.mean(distances))
+        neighbours_ids = tessellation.iloc[neighbours]['uID']
+        building_neighbours = objects.loc[objects['uID'].isin(neighbours_ids)]
+        if len(building_neighbours) > 0:
+            results_list.append(np.mean(building_neighbours.geometry.distance(row['geometry'])))
         else:
             results_list.append(0)
 
