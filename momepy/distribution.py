@@ -556,6 +556,107 @@ def neighbouring_street_orientation_deviation(objects):
     series = pd.Series(results_list)
     objects.drop(['tmporient'], axis=1)
     return series
+
+
+def building_adjacency(objects, tessellation, weights_matrix=None, weights_matrix_higher=None, order=3, unique_id='uID'):
+    """
+    Calculate the level of building adjacency
+
+    Building adjacency reflects how much buildings tend to join together into larger structures.
+    It is calculated as a ratio of buildings within k topological steps and joined built-up structures.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    tessellation : GeoDataFrame
+        GeoDataFrame containing morphological tessellation - source of weights_matrix and weights_matrix_higher.
+        It is crucial to use exactly same input as was used durign the calculation of weights matrix and weights_matrix_higher.
+        If weights_matrix or weights_matrix_higher is None, tessellation is used to calulate it.
+    weights_matrix : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix will be calculated
+        based on tessellation
+    weights_matrix_higher : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity of higher order will be calculated
+        based on tessellation
+    order : int
+        Order of Queen contiguity
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    References
+    ---------
+    Vanderhaegen S and Canters F (2017) Mapping urban form and function at city
+    block level using spatial metrics. Landscape and Urban Planning 167: 399–409.
+    """
+    # define empty list for results
+    results_list = []
+
+    print('Calculating adjacency...')
+
+    # if weights matrix is not passed, generate it from objects
+    if weights_matrix is None:
+        print('Calculating spatial weights...')
+        from libpysal.weights import Queen
+        weights_matrix = Queen.from_dataframe(objects, silence_warnings=True)
+        print('Spatial weights ready...')
+
+    if weights_matrix_higher is None:
+        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
+        from momepy import Queen_higher
+        # matrix to define area of analysis (more steps)
+        weights_matrix_higher = Queen_higher(tessellation, k=order)
+
+    print('Generating dictionary of built-up patches...')
+    # dict to store nr of courtyards for each uID
+    patches = {}
+    jID = 1
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+
+        # if the id is already present in courtyards, continue (avoid repetition)
+        if index in patches:
+            continue
+        else:
+            to_join = [index]  # list of indices which should be joined together
+            neighbours = []  # list of neighbours
+            weights = weights_matrix.neighbors[index]  # neighbours from spatial weights
+            for w in weights:
+                neighbours.append(w)  # make a list from weigths
+
+            for n in neighbours:
+                while n not in to_join:  # until there is some neighbour which is not in to_join
+                    to_join.append(n)
+                    weights = weights_matrix.neighbors[n]
+                    for w in weights:
+                        neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
+            for b in to_join:
+                patches[b] = jID  # fill dict with values
+            jID = jID + 1
+
+    print('Calculating adjacency within k steps...')
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        id = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+        neighbours = weights_matrix_higher.neighbors[id]
+
+        neighbours_ids = tessellation.iloc[neighbours][unique_id]
+        neighbours_ids = neighbours_ids.append(pd.Series(row[unique_id], index=[index]))
+        building_neighbours = objects.loc[objects[unique_id].isin(neighbours_ids)]
+        indices = list(building_neighbours.index)
+        patches_sub = [patches[x] for x in indices]
+        patches_nr = len(set(patches_sub))
+
+        results_list.append(len(building_neighbours) / patches_nr)
+
+    series = pd.Series(results_list)
+
+    print('Adjacency calculated.')
+    return series
 # to be deleted, keep at the end
 #
 # path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
