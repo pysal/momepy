@@ -296,10 +296,10 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50):
             boundaries = {}
             for i in neighbors_ids:
                 subset = voronoi_with_id.loc[voronoi_with_id[unique_id] == i]['geometry']
-                l = 0
+                le = 0
                 for s in subset:
-                    l = l + row.geometry.intersection(s).length
-                boundaries[i] = l
+                    le = le + row.geometry.intersection(s).length
+                boundaries[i] = le
 
             voronoi_with_id.loc[idx, unique_id] = max(boundaries.items(), key=operator.itemgetter(1))[0]
 
