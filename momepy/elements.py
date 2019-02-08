@@ -12,7 +12,7 @@ from osgeo import ogr
 from shapely.wkt import loads
 import numpy as np
 from scipy.spatial import Voronoi
-from shapely.geometry import *
+from shapely.geometry import Point, LineString, Polygon
 import shapely.ops
 import osmnx as ox
 import operator
@@ -625,10 +625,9 @@ def blocks(cells, streets, buildings, id_name, unique_id):
         GeoDataFrame containing generated blocks
     """
 
-    print('Dissolving tesselation...')
     cells_copy = cells.copy()
-    cells_copy['diss'] = 0
-    built_up = cells_copy.dissolve(by='diss')
+    print('Dissolving tesselation...')
+    built_up = cells.geometry.unary_union
 
     print('Buffering streets...')
     street_buff = streets.copy()
@@ -638,11 +637,9 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     street_cut = street_buff.unary_union
 
     print('Defining street-based blocks...')
-    street_blocks = built_up['geometry'].difference(street_cut)
+    street_blocks = built_up.difference(street_cut)
 
-    blocks_gdf = gpd.GeoDataFrame(street_blocks)
-
-    blocks_gdf = blocks_gdf.rename(columns={0: 'geometry'}).set_geometry('geometry')
+    blocks_gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(street_blocks))
 
     def multi2single(gpdf):
         gpdf_singlepoly = gpdf[gpdf.geometry.type == 'Polygon']
@@ -682,7 +679,6 @@ def blocks(cells, streets, buildings, id_name, unique_id):
 
     print('Attribute join (tesselation)...')
     cells_copy = cells_copy.merge(tempID_to_uID, on=unique_id)
-    cells_copy = cells_copy.drop(['diss'], axis=1)
 
     print('Generating blocks...')
     blocks = cells_copy.dissolve(by=id_name)
@@ -714,7 +710,7 @@ def blocks(cells, streets, buildings, id_name, unique_id):
         blocks = blocks.drop(list(blocks.loc[blocks['delete'] == 1].index))
 
     blocks_save = blocks[[id_name, 'geometry']]
-    blocks_save['geometry'] = blocks_save.buffer(0.000000001)
+    # blocks_save['geometry'] = blocks_save.buffer(0.000000001)
 
     centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks_save, how='left', op='intersects')
     bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
