@@ -175,19 +175,18 @@ def floor_area(objects, height_column, area_column=None):
     return series
 
 
-def courtyard_area(objects, area_column, area_calculated):
+def courtyard_area(objects, area_column=None):
     """
     Calculate area of holes within geometry - area of courtyards.
+
+    Ensure that your geometry is shapely Polygon.
 
     Parameters
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    area_column : str
-        name of column where is stored area value
-    area_calculated : bool
-        boolean value checking whether area has been previously calculated and
-        stored in separate column. If set to False, function will calculate areas
+    area_column : str, optional
+        name of column where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Returns
@@ -195,31 +194,23 @@ def courtyard_area(objects, area_column, area_calculated):
     Series
         Series containing resulting values.
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating courtyard areas...')
 
-    if area_calculated:
+    if area_column is not None:
         try:
-            for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-                results_list.append(Polygon(row['geometry'].exterior).area - row[area_column])
+            series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row[area_column], axis=1)
 
-            series = pd.Series(results_list)
-
-            print('Core area indices calculated.')
         except KeyError:
-            print('ERROR: Building area column named', area_column, 'not found. Define area_column or set area_calculated to False.')
+            raise KeyError('ERROR: Building area column named', area_column, 'not found. Define area_column or set area_calculated to False.')
     else:
-        for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            results_list.append(Polygon(row['geometry'].exterior).area - row['geometry'].area)
+        series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row.geometry.area, axis=1)
 
-        series = pd.Series(results_list)
-
-        print('Core area indices calculated.')
+    print('Courtyard areas calculated.')
     return series
 
 
-# calculate the area of circumcircle
+# calculate the radius of circumcircle
 def _longest_axis(points):
     circ = make_circle(points)
     return(circ[2] * 2)
