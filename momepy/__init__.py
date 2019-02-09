@@ -4,3 +4,5 @@ from .core import *
 from .elements import *
 from .diversity import *
 from .distribution import *
+
+import momepy.datasets
