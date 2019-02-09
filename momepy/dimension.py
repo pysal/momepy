@@ -325,14 +325,14 @@ def street_profile(streets, buildings, height_column=None, distance=10, tick_len
 
     Returns
     -------
-    widths, heights, profile_ratio : tuple
+    widths, (heights, profile_ratio) : tuple
 
     widths : Series
         Series containing street profile width values.
-    heights : Series
-        Series containing street profile heights values.
-    profile_ratio : Series
-        Series containing street profile height/width ratio values.
+    heights : Series, optional
+        Series containing street profile heights values. Returned only when height_column is set.
+    profile_ratio : Series, optional
+        Series containing street profile height/width ratio values. Returned only when height_column is set.
 
     References
     ----------
