@@ -104,7 +104,7 @@ def _height_prg(objects, floors_column='od_POCET_P', floor_type='od_TYP'):
     return series
 
 
-def volume(objects, area_column, height_column, area_calculated):
+def volume(objects, height_column, area_column=None):
     """
     Calculate volume of each object in given shapefile based on its height and area.
 
@@ -112,13 +112,10 @@ def volume(objects, area_column, height_column, area_calculated):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    area_column : str
-        name of column where is stored area value
     height_column : str
         name of column where is stored height value
-    area_calculated : bool
-        boolean value checking whether area has been previously calculated and
-        stored in separate column. If set to False, function will calculate areas
+    area_column : str
+        name of column where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Returns
@@ -126,31 +123,19 @@ def volume(objects, area_column, height_column, area_calculated):
     Series
         Series containing resulting values.
     """
-    # define empty list for results
-    results_list = []
     print('Calculating volumes...')
 
-    if area_calculated:
+    if area_column is not None:
         try:
-            # fill new column with the value of perimeter, iterating over rows one by one
-            for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-                results_list.append(row[area_column] * row[height_column])
-            series = pd.Series(results_list)
-
-            print('Volumes calculated.')
-            return series
+            series = objects[area_column] * objects[height_column]
 
         except KeyError:
-            print('ERROR: Building area column named', area_column, 'not found. Define area_column or set area_calculated to False.')
+            raise KeyError('ERROR: Column not found. Define height_column and area_column or set area_calculated to None.')
     else:
-        # fill new column with the value of perimeter, iterating over rows one by one
-        for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            results_list.append(row['geometry'].area * row[height_column])
+        series = objects.geometry.area * objects[height_column]
 
-        series = pd.Series(results_list)
-
-        print('Volumes calculated.')
-        return series
+    print('Volumes calculated.')
+    return series
 
 
 def floor_area(objects, area_column, height_column, area_calculated):
