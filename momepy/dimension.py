@@ -233,24 +233,10 @@ def longest_axis_length(objects):
     Series
         Series containing resulting values.
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating the longest axis...')
 
-    def sort_NoneType(geom):
-        if geom is not None:
-            if geom.type is not 'Polygon':
-                return(0)
-            else:
-                return(_longest_axis(list(geom.boundary.coords)))
-        else:
-            return(0)
-
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        results_list.append(_longest_axis(row['geometry'].convex_hull.exterior.coords))
-
-    series = pd.Series(results_list)
+    series = objects.apply(lambda row: _longest_axis(row['geometry'].convex_hull.exterior.coords), axis=1)
 
     print('The longest axis calculated.')
     return series
