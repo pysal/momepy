@@ -487,7 +487,7 @@ def street_profile(streets, buildings, height_column=None, distance=10, tick_len
     print('Street profile calculated.')
 
 
-def weighted_character(objects, tessellation, spatial_weights, character_column, area_column):
+def weighted_character(objects, tessellation, character_column, spatial_weights=None, area_column=None, order=3):
     """
     Calculate the weighted character
 
@@ -500,12 +500,18 @@ def weighted_character(objects, tessellation, spatial_weights, character_column,
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    spatial_weights : libpysal.weights
-        spatial weights matrix
+    tessellation : GeoDataFrame
+        GeoDataFrame containing morphological tessellation
     character_column : str
         name of the column of objects gdf where is stored character
-    area_column : str
+    spatial_weights : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
+        based on objects.
+    area_column : str, optional
         name of the column of objects gdf where is stored area value
+    order : int
+        order of Queen contiguity
+
 
     Returns
     -------
@@ -523,21 +529,33 @@ def weighted_character(objects, tessellation, spatial_weights, character_column,
     """
     # define empty list for results
     results_list = []
-    weights_matrix = spatial_weights
+
+    if spatial_weights is None:
+        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
+        from momepy import Queen_higher
+        # matrix to define area of analysis (more steps)
+        spatial_weights = Queen_higher(tessellation, k=order)
+
     print('Calculating weighted {}...'.format(character_column))
 
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
-        neighbours = weights_matrix.neighbors[id]
+        neighbours = spatial_weights.neighbors[id]
 
         if len(neighbours) > 0:
             neighbours_ids = tessellation.iloc[neighbours]['uID']
             building_neighbours = objects.loc[objects['uID'].isin(neighbours_ids)]
 
-            results_list.append((sum(building_neighbours[character_column] *
-                                     building_neighbours[area_column]) +
-                                (row[character_column] * row[area_column])) /
-                                (sum(building_neighbours[area_column]) + row[area_column]))
+            if area_column is not None:
+                results_list.append((sum(building_neighbours[character_column]
+                                         * building_neighbours[area_column])
+                                    + (row[character_column] * row[area_column]))
+                                    / (sum(building_neighbours[area_column]) + row[area_column]))
+            else:
+                results_list.append((sum(building_neighbours[character_column]
+                                         * building_neighbours.geometry.area)
+                                    + (row[character_column] * row.geometry.area))
+                                    / (sum(building_neighbours.geometry.area) + row.geometry.area))
         else:
             results_list.append(row[character_column])
     series = pd.Series(results_list)
