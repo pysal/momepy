@@ -17,6 +17,8 @@ def area(objects):
     Calculate area of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
+    It is a simple wrapper for geopandas gdf.geometry.area for consistency of momepy.
+
     Parameters
     ----------
     objects : GeoDataFrame
@@ -27,15 +29,10 @@ def area(objects):
     Series
         Series containing resulting values.
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating areas...')
 
-    # fill results_list with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        results_list.append(row['geometry'].area)
-
-    series = pd.Series(results_list)
+    series = objects.geometry.area
 
     print('Areas calculated.')
     return series
@@ -46,6 +43,8 @@ def perimeter(objects):
     Calculate perimeter of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
+    It is a simple wrapper for geopandas gdf.geometry.length for consistency of momepy.
+
     Parameters
     ----------
     objects : GeoDataFrame
@@ -56,55 +55,16 @@ def perimeter(objects):
     Series
         Series containing resulting values.
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating perimeters...')
 
-    # fill new column with the value of perimeter, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        results_list.append(row['geometry'].length)
-
-    series = pd.Series(results_list)
+    series = objects.geometry.length
 
     print('Perimeters calculated.')
     return series
 
 
-def height_os(objects, original_column='relh2'):
-    """
-    Copy values from GB Ordance Survey data.
-
-    Function tailored to GB Ordance Survey data of OS Building Heights (Alpha).
-    It will copy RelH2 (relative height from ground level to base of the roof) values to new column.
-
-    Parameters
-    ----------
-    objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
-    original_column : str
-        name of column where is stored original height value
-
-
-    Returns
-    -------
-    Series
-        Series containing resulting values.
-    """
-    # define empty list for results
-    results_list = []
-    print('Calculating heights...')
-
-    # fill new column with the value of perimeter, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        results_list.append(row[original_column])
-
-    series = pd.Series(results_list)
-
-    print('Heights defined.')
-    return series
-
-
-def height_prg(objects, floors_column='od_POCET_P', floor_type='od_TYP'):
+def _height_prg(objects, floors_column='od_POCET_P', floor_type='od_TYP'):
     """
     Define building heights based on Geoportal Prague Data.
 
