@@ -242,7 +242,7 @@ def longest_axis_length(objects):
     return series
 
 
-def effective_mesh(objects, spatial_weights, area_column):
+def effective_mesh(objects, spatial_weights=None, area_column=None, order=3):
     """
     Calculate the effective mesh size
 
@@ -254,11 +254,14 @@ def effective_mesh(objects, spatial_weights, area_column):
     Parameters
     ----------
     objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
-    spatial_weights : libpysal.weights
-        spatial weights matrix
-    area_column : str
+        GeoDataFrame containing morphological tessellation
+    spatial_weights : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
+        based on objects.
+    area_column : str, optional
         name of the column of objects gdf where is stored area value
+    order : int
+        order of Queen contiguity
 
     Returns
     -------
@@ -272,7 +275,7 @@ def effective_mesh(objects, spatial_weights, area_column):
 
     Notes
     -----
-    Resolve the issues if there is no spatial weights matrix. Corellation with block_density()
+    Check corellation with block_density()
 
     """
     # define empty list for results
@@ -280,9 +283,18 @@ def effective_mesh(objects, spatial_weights, area_column):
 
     print('Calculating effective mesh size...')
 
+    if spatial_weights is None:
+        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
+        from momepy import Queen_higher
+        # matrix to define area of analysis (more steps)
+        spatial_weights = Queen_higher(objects, k=order)
+
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         neighbours = spatial_weights.neighbors[index]
-        total_area = sum(objects.iloc[neighbours][area_column]) + row[area_column]
+        if area_column is not None:
+            total_area = sum(objects.iloc[neighbours][area_column]) + row[area_column]
+        else:
+            total_area = sum(objects.iloc[neighbours].geometry.area) + row.geometry.area
         results_list.append(total_area / (len(neighbours) + 1))
 
     series = pd.Series(results_list)
