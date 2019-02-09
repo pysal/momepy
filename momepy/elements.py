@@ -12,7 +12,7 @@ from osgeo import ogr
 from shapely.wkt import loads
 import numpy as np
 from scipy.spatial import Voronoi
-from shapely.geometry import Point, LineString, Polygon
+from shapely.geometry import Point, MultiPoint, LineString, Polygon
 import shapely.ops
 import osmnx as ox
 import operator
@@ -61,7 +61,7 @@ def clean_null(objects):
     return objects_none
 
 
-def unique_id(objects, clear=False, keep=None, id_name='uID'):
+def unique_id(objects):
     """
     Add an attribute with unique ID to each row of GeoDataFrame.
 
