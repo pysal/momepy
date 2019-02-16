@@ -87,7 +87,7 @@ def unique_id(objects):
     return series
 
 
-def tessellation(buildings, unique_id='uID', cut_buffer=50):
+def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False, minimum=2):
     """
     Generate morphological tessellation around given buildings.
 
@@ -380,6 +380,59 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50):
         import warnings
         warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
                       'unique_id of affected elements: {}'.format(list(uids)))
+
+    if queen_corners is True:
+        print('Generating queen corners...')
+        print(' Generating spatial index...')
+        sindex = morphological_tessellation.sindex
+        changes = {}
+        # detect points which should be changed and calculate new coordinates
+        print(' Detecting points of change...')
+        for ix, row in tqdm(morphological_tessellation.iterrows(), total=morphological_tessellation.shape[0]):
+            corners = []
+            change = []
+            cell = row.geometry
+            coords = cell.exterior.coords
+            for i in coords:
+                point = Point(i)
+                possible_matches_index = list(sindex.intersection(point.bounds))
+                possible_matches = morphological_tessellation.iloc[possible_matches_index]
+                precise_matches = sum(possible_matches.intersects(point))
+                if precise_matches > 2:
+                    corners.append(point)
+
+            if len(corners) > 2:
+                for c in range(len(corners)):
+                    next = c + 1
+                    if c == (len(corners) - 1):
+                        next = 0
+                    if corners[c].distance(corners[next]) < minimum:
+                        change.append([corners[c], corners[next]])
+            elif len(corners) == 2:
+                if corners[0].distance(corners[1]) > 0:
+                    if corners[0].distance(corners[1]) < minimum:
+                        change.append([corners[0], corners[1]])
+
+            if len(change) > 0:
+                for points in change:
+                    x_new = np.mean([points[0].x, points[1].x])
+                    y_new = np.mean([points[0].y, points[1].y])
+                    new = (x_new, y_new)
+                    changes[(points[0].x, points[0].y)] = new
+                    changes[(points[1].x, points[1].y)] = new
+
+        print(' Generating new geometry...')
+        for ix, row in tqdm(morphological_tessellation.iterrows(), total=morphological_tessellation.shape[0]):
+            cell = row.geometry
+            coords = list(cell.exterior.coords)
+            newcoords = [changes[x] if x in changes.keys() else x for x in coords]
+            if coords != newcoords:
+                newgeom = Polygon(newcoords).buffer(0)
+                if newgeom.type == 'MultiPolygon':
+                    morphological_tessellation.loc[ix, 'geometry'] = newgeom[0]
+                    print(row.uID)
+                else:
+                    morphological_tessellation.loc[ix, 'geometry'] = newgeom
 
     print('Done in', timer() - start, 'seconds')
     print('Done. Tessellation finished in', timer() - start_, 'seconds.')
