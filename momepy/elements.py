@@ -192,13 +192,13 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
     for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         poly_ext = row['geometry'].boundary
         if poly_ext is not None:
-            if poly_ext.type is 'MultiLineString':
+            if poly_ext.type == 'MultiLineString':
                 for line in poly_ext:
                     point_coords = line.coords
                     row_array = np.array(point_coords).tolist()
                     for i in range(len(row_array)):
                         list_points.append(row_array[i])
-            elif poly_ext.type is 'LineString':
+            elif poly_ext.type == 'LineString':
                 point_coords = poly_ext.coords
                 row_array = np.array(point_coords).tolist()
                 for i in range(len(row_array)):
@@ -247,13 +247,13 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
 
     def pointize(geom):
         multipoint = []
-        if geom.boundary.type is 'MultiLineString':
+        if geom.boundary.type == 'MultiLineString':
             for line in geom.boundary:
                 arr = line.coords.xy
                 for p in range(len(arr[0])):
                     point = (arr[0][p], arr[1][p])
                     multipoint.append(point)
-        elif geom.boundary.type is 'LineString':
+        elif geom.boundary.type == 'LineString':
             arr = geom.boundary.coords.xy
             for p in range(len(arr[0])):
                 point = (arr[0][p], arr[1][p])
@@ -304,7 +304,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
             voronoi_with_id.loc[idx, unique_id] = max(boundaries.items(), key=operator.itemgetter(1))[0]
 
         unjoined2 = voronoi_with_id[voronoi_with_id[unique_id].isnull()]
-        if len(unjoined2.index) is not 0:
+        if len(unjoined2.index) != 0:
             raise Exception('Some geometry remained unfinxed: {} problems'.format(len(unjoined2.index)))
         # dissolve polygons by unique_id
         print('Done in', timer() - start, 'seconds')
@@ -353,10 +353,10 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
             voronoi_plots.loc[idx, 'geometry'] = intersection[maximal]
         elif intersection.type == 'GeometryCollection':
             for geom in list(intersection.geoms):
-                    if geom.type != 'Polygon':
-                        pass
-                    else:
-                        voronoi_plots.loc[idx, 'geometry'] = geom
+                if geom.type != 'Polygon':
+                    pass
+                else:
+                    voronoi_plots.loc[idx, 'geometry'] = geom
         else:
             voronoi_plots.loc[idx, 'geometry'] = intersection
 
@@ -376,7 +376,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                       "during generation - unique_id: {i}".format(len=len(diff), i=diff))
 
     uids = morphological_tessellation[morphological_tessellation.geometry.type == 'MultiPolygon'][unique_id]
-    if len(uids) is not 0:
+    if len(uids) != 0:
         import warnings
         warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
                       'unique_id of affected elements: {}'.format(list(uids)))
