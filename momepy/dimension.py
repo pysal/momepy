@@ -83,7 +83,7 @@ def perimeter(objects):
     return series
 
 
-def _height_prg(objects, floors_column='od_POCET_P', floor_type='od_TYP'):
+def _height_prg(objects, floors='od_POCET_P', floor_type='od_TYP'):
     """
     Define building heights based on Geoportal Prague Data.
 
@@ -109,11 +109,11 @@ def _height_prg(objects, floors_column='od_POCET_P', floor_type='od_TYP'):
     # fill new column with the value of perimeter, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         if row[floor_type] == 7:
-            height = row[floors_column] * 3.5  # old buildings with high ceiling
+            height = row[floors] * 3.5  # old buildings with high ceiling
         elif row[floor_type] == 3:
-            height = row[floors_column] * 5  # warehouses
+            height = row[floors] * 5  # warehouses
         else:
-            height = row[floors_column] * 3  # standard buildings
+            height = row[floors] * 3  # standard buildings
 
         results_list.append(height)
 
@@ -123,7 +123,7 @@ def _height_prg(objects, floors_column='od_POCET_P', floor_type='od_TYP'):
     return series
 
 
-def volume(objects, height_column, area_column=None):
+def volume(objects, heights, areas=None):
     """
     Calculate volume of each object in given shapefile based on its height and area.
 
@@ -131,10 +131,10 @@ def volume(objects, height_column, area_column=None):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    height_column : str
-        name of column where is stored height value
-    area_column : str
-        name of column where is stored area value. If set to None, function will calculate areas
+    heights : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored height value
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Returns
@@ -157,21 +157,32 @@ def volume(objects, height_column, area_column=None):
     7285.5749470443625
     """
     print('Calculating volumes...')
+    if type(heights) is not str:
+        objects['mm_h'] = heights
+        heights = 'mm_h'
 
-    if area_column is not None:
+    if areas is not None:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
         try:
-            series = objects[area_column] * objects[height_column]
+            series = objects[areas] * objects[heights]
 
         except KeyError:
-            raise KeyError('ERROR: Column not found. Define height_column and area_column or set area_calculated to None.')
+            raise KeyError('ERROR: Column not found. Define heights and areas or set areas to None.')
     else:
-        series = objects.geometry.area * objects[height_column]
+        series = objects.geometry.area * objects[heights]
+
+    if 'mm_h' in objects.columns:
+        objects.drop(columns=['mm_h'], inplace=True)
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
 
     print('Volumes calculated.')
     return series
 
 
-def floor_area(objects, height_column, area_column=None):
+def floor_area(objects, heights, areas=None):
     """
     Calculate floor area of each object based on height and area.
 
@@ -182,10 +193,10 @@ def floor_area(objects, height_column, area_column=None):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    height_column : str
-        name of column where is stored height value
-    area_column : str, optional
-        name of column where is stored area value. If set to None, function will calculate areas
+    heights : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored height value
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Returns
@@ -208,21 +219,32 @@ def floor_area(objects, height_column, area_column=None):
     2185.672484113309
     """
     print('Calculating floor areas...')
+    if type(heights) is not str:
+        objects['mm_h'] = heights
+        heights = 'mm_h'
 
-    if area_column is not None:
+    if areas is not None:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
         try:
-            series = objects[area_column] * (objects[height_column] // 3)
+            series = objects[areas] * (objects[heights] // 3)
 
         except KeyError:
-            raise KeyError('ERROR: Column not found. Define height_column amd area_column or set area_calculated to False.')
+            raise KeyError('ERROR: Column not found. Define heights and areas or set areas to None.')
     else:
-        series = objects.geometry.area * (objects[height_column] // 3)
+        series = objects.geometry.area * (objects[heights] // 3)
+
+    if 'mm_h' in objects.columns:
+        objects.drop(columns=['mm_h'], inplace=True)
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
 
     print('Floor areas calculated.')
     return series
 
 
-def courtyard_area(objects, area_column=None):
+def courtyard_area(objects, areas=None):
     """
     Calculate area of holes within geometry - area of courtyards.
 
@@ -232,8 +254,8 @@ def courtyard_area(objects, area_column=None):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    area_column : str, optional
-        name of column where is stored area value. If set to None, function will calculate areas
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Returns
@@ -252,14 +274,20 @@ def courtyard_area(objects, area_column=None):
 
     print('Calculating courtyard areas...')
 
-    if area_column is not None:
+    if areas is not None:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
         try:
-            series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row[area_column], axis=1)
+            series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row[areas], axis=1)
 
         except KeyError:
-            raise KeyError('ERROR: Building area column named', area_column, 'not found. Define area_column or set area_calculated to False.')
+            raise KeyError('ERROR: Building area column named', areas, 'not found. Define areas or set areas to None.')
     else:
         series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row.geometry.area, axis=1)
+
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
 
     print('Courtyard areas calculated.')
     return series
@@ -305,9 +333,9 @@ def longest_axis_length(objects):
     return series
 
 
-def effective_mesh(objects, spatial_weights=None, area_column=None, order=3):
+def effective_mesh(objects, spatial_weights=None, areas=None, order=3):
     """
-    Calculate the effective mesh size
+    Calculate the effective mesh size of morphological tessellation
 
     Effective mesh size of the area within k topological steps defined in spatial_weights.
 
@@ -321,8 +349,9 @@ def effective_mesh(objects, spatial_weights=None, area_column=None, order=3):
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
         based on objects.
-    area_column : str, optional
-        name of the column of objects gdf where is stored area value
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
     order : int
         order of Queen contiguity
 
@@ -334,7 +363,7 @@ def effective_mesh(objects, spatial_weights=None, area_column=None, order=3):
     References
     ----------
     Hausleitner B and Berghauser Pont M (2017) Development of a configurational
-    typology for micro-businesses integrating geometric and configurational variables.
+    typology for micro-businesses integrating geometric and configurational variables. [adapted]
 
     Notes
     -----
@@ -352,20 +381,29 @@ def effective_mesh(objects, spatial_weights=None, area_column=None, order=3):
         # matrix to define area of analysis (more steps)
         spatial_weights = Queen_higher(objects, k=order)
 
+    if areas is not None:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
+
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         neighbours = spatial_weights.neighbors[index]
-        if area_column is not None:
-            total_area = sum(objects.iloc[neighbours][area_column]) + row[area_column]
+        if areas is not None:
+            total_area = sum(objects.iloc[neighbours][areas]) + row[areas]
         else:
             total_area = sum(objects.iloc[neighbours].geometry.area) + row.geometry.area
         results_list.append(total_area / (len(neighbours) + 1))
 
     series = pd.Series(results_list)
+
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
+
     print('Effective mesh size calculated.')
     return series
 
 
-def street_profile(streets, buildings, height_column=None, distance=10, tick_length=50):
+def street_profile(streets, buildings, heights=None, distance=10, tick_length=50):
     """
     Calculate the street profile widths, heights, and ratio height/width
 
@@ -378,8 +416,8 @@ def street_profile(streets, buildings, height_column=None, distance=10, tick_len
         GeoDataFrame containing streets to analyse
     buildings : GeoDataFrame
         GeoDataFrame containing buildings along the streets
-    height_column: str, optional
-        name of the column of buildings gdf where is stored building height. If set to None,
+    heights: str, list, np.array, pd.Series (default None)
+        the name of the buildings dataframe column, np.array, or pd.Series where is stored building height. If set to None,
         height and ratio height/width will not be calculated.
     distance : int, optional
         distance between perpendicular ticks
@@ -393,9 +431,9 @@ def street_profile(streets, buildings, height_column=None, distance=10, tick_len
     widths : Series
         Series containing street profile width values.
     heights : Series, optional
-        Series containing street profile heights values. Returned only when height_column is set.
+        Series containing street profile heights values. Returned only when heights is set.
     profile_ratio : Series, optional
-        Series containing street profile height/width ratio values. Returned only when height_column is set.
+        Series containing street profile height/width ratio values. Returned only when heights is set.
 
     References
     ----------
@@ -442,6 +480,11 @@ def street_profile(streets, buildings, height_column=None, distance=10, tick_len
 
     results_list = []
     heights_list = []
+
+    if heights is not None:
+        if type(heights) is not str:
+            buildings['mm_h'] = heights
+            heights = 'mm_h'
 
     for idx, row in tqdm(streets.iterrows(), total=streets.shape[0]):
         # list to hold all the point coords
@@ -495,7 +538,7 @@ def street_profile(streets, buildings, height_column=None, distance=10, tick_len
                 tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
                 ticks.append([tick1, tick2])
         widths = []
-        heights = []
+        m_heights = []
         for duo in ticks:
             width = []
             for tick in duo:
@@ -525,32 +568,36 @@ def street_profile(streets, buildings, height_column=None, distance=10, tick_len
                         width.append(minimal)
                     else:
                         width.append(true_int[0].distance(Point(tick.coords[-1])))
-                    if height_column is not None:
+                    if heights is not None:
                         indices = {}
                         for idx, row in get_height.iterrows():
                             dist = row.geometry.distance(Point(tick.coords[-1]))
                             indices[idx] = dist
                         minim = min(indices, key=indices.get)
-                        heights.append(buildings.iloc[minim][height_column])
+                        m_heights.append(buildings.iloc[minim][heights])
                 else:
                     width.append(np.nan)
             widths.append(width[0] + width[1])
 
         results_list.append(np.nanmean(widths))
-        if height_column is not None:
-            heights_list.append(np.mean(heights))
+        if heights is not None:
+            heights_list.append(np.mean(m_heights))
 
     widths_series = pd.Series(results_list)
-    if height_column is not None:
+    if heights is not None:
         heights_series = pd.Series(heights_list)
         profile_ratio = heights_series / widths_series
         return widths_series, heights_series, profile_ratio
     else:
         return widths_series
+
+    if 'mm_h' in buildings.columns:
+        buildings.drop(columns=['mm_h'], inplace=True)
+
     print('Street profile calculated.')
 
 
-def weighted_character(objects, tessellation, character_column, spatial_weights=None, area_column=None, order=3):
+def weighted_character(objects, tessellation, characters, unique_id, spatial_weights=None, areas=None, order=3):
     """
     Calculate the weighted character
 
@@ -565,15 +612,15 @@ def weighted_character(objects, tessellation, character_column, spatial_weights=
         GeoDataFrame containing objects to analyse
     tessellation : GeoDataFrame
         GeoDataFrame containing morphological tessellation
-    character_column : str
-        name of the column of objects gdf where is stored character
-    spatial_weights : libpysal.weights, optional
+    characters : str, list, np.array, pd.Series (default None)
+        the name of the objects dataframe column, np.array, or pd.Series where is stored character to be weighted
+    spatial_weights : libpysal.weights (default None)
         spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
         based on objects.
-    area_column : str, optional
-        name of the column of objects gdf where is stored area value
-    order : int
-        order of Queen contiguity
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the objects dataframe column, np.array, or pd.Series where is stored area value
+    order : int (default 3)
+        order of Queen contiguity. Used only when spatial_weights=None.
 
 
     Returns
@@ -599,31 +646,39 @@ def weighted_character(objects, tessellation, character_column, spatial_weights=
         # matrix to define area of analysis (more steps)
         spatial_weights = Queen_higher(tessellation, k=order)
 
-    print('Calculating weighted {}...'.format(character_column))
+    print('Calculating weighted {}...'.format(characters))
+
+    if areas is not None:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
 
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
+        id = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
         neighbours = spatial_weights.neighbors[id]
 
         if len(neighbours) > 0:
-            neighbours_ids = tessellation.iloc[neighbours]['uID']
-            building_neighbours = objects.loc[objects['uID'].isin(neighbours_ids)]
+            neighbours_ids = tessellation.iloc[neighbours][unique_id]
+            building_neighbours = objects.loc[objects[unique_id].isin(neighbours_ids)]
 
-            if area_column is not None:
-                results_list.append((sum(building_neighbours[character_column]
-                                         * building_neighbours[area_column])
-                                    + (row[character_column] * row[area_column]))
-                                    / (sum(building_neighbours[area_column]) + row[area_column]))
+            if areas is not None:
+                results_list.append((sum(building_neighbours[characters]
+                                         * building_neighbours[areas])
+                                    + (row[characters] * row[areas]))
+                                    / (sum(building_neighbours[areas]) + row[areas]))
             else:
-                results_list.append((sum(building_neighbours[character_column]
+                results_list.append((sum(building_neighbours[characters]
                                          * building_neighbours.geometry.area)
-                                    + (row[character_column] * row.geometry.area))
+                                    + (row[characters] * row.geometry.area))
                                     / (sum(building_neighbours.geometry.area) + row.geometry.area))
         else:
-            results_list.append(row[character_column])
+            results_list.append(row[characters])
     series = pd.Series(results_list)
 
-    print('Weighted {} calculated.'.format(character_column))
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
+
+    print('Weighted {} calculated.'.format(characters))
     return series
 # to be deleted, keep at the end
 
