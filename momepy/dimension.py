@@ -28,6 +28,16 @@ def area(objects):
     -------
     Series
         Series containing resulting values.
+
+    Examples
+    --------
+    >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='buildings')
+    >>> buildings['area'] = momepy.area(buildings)
+    Calculating areas...
+    Areas calculated.
+    >>> buildings.area[0]
+    728.5574947044363
+
     """
 
     print('Calculating areas...')
@@ -54,6 +64,15 @@ def perimeter(objects):
     -------
     Series
         Series containing resulting values.
+
+    Examples
+    --------
+    >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='buildings')
+    >>> buildings['perimeter'] = momepy.perimeter(buildings)
+    Calculating perimeters...
+    Perimeters calculated.
+    >>> buildings.perimeter[0]
+    137.18630991119903
     """
 
     print('Calculating perimeters...')
@@ -122,6 +141,20 @@ def volume(objects, height_column, area_column=None):
     -------
     Series
         Series containing resulting values.
+
+    Examples
+    --------
+    >>> buildings['volume'] = momepy.volume(buildings, heights='height_col')
+    Calculating volumes...
+    Volumes calculated.
+    >>> buildings.volume[0]
+    7285.5749470443625
+
+    >>> buildings['volume'] = momepy.volume(buildings, heights='height_col', areas='area_col')
+    Calculating volumes...
+    Volumes calculated.
+    >>> buildings.volume[0]
+    7285.5749470443625
     """
     print('Calculating volumes...')
 
@@ -159,6 +192,20 @@ def floor_area(objects, height_column, area_column=None):
     -------
     Series
         Series containing resulting values.
+
+    Examples
+    --------
+    >>> buildings['floor_area'] = momepy.volume(buildings, heights='height_col')
+    Calculating floor areas...
+    Floor areas calculated.
+    >>> buildings.floor_area[0]
+    2185.672484113309
+
+    >>> buildings['floor_area'] = momepy.volume(buildings, heights='height_col', areas='area_col')
+    Calculating floor areas...
+    Floor areas calculated.
+    >>> buildings.floor_area[0]
+    2185.672484113309
     """
     print('Calculating floor areas...')
 
@@ -193,6 +240,14 @@ def courtyard_area(objects, area_column=None):
     -------
     Series
         Series containing resulting values.
+
+    Examples
+    --------
+    >>> buildings['courtyard_area'] = momepy.courtyard_area(buildings)
+    Calculating courtyard areas...
+    Courtyard areas calculated.
+    >>> buildings.courtyard_area[80]
+    353.33274206543274
     """
 
     print('Calculating courtyard areas...')
@@ -232,6 +287,14 @@ def longest_axis_length(objects):
     -------
     Series
         Series containing resulting values.
+
+    Examples
+    --------
+    >>> buildings['lal'] = momepy.longest_axis_length(buildings)
+    Calculating the longest axis...
+    The longest axis calculated.
+    >>> buildings.lal[0]
+    40.2655616057102
     """
 
     print('Calculating the longest axis...')
