@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, "/Users/martin/Strathcloud/Personal Folders/momepy/momepy")
+
 import pytest
 import momepy as mm
 import geopandas as gpd
@@ -97,14 +100,14 @@ class TestDimensions:
     def test_effective_mesh_area(self):
         self.df_tessellation['area'] = self.df_tessellation.geometry.area
         sw = Queen_higher(self.df_tessellation, k=3)
-        self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation, sw, area_column='area')
+        self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation, sw, areas='area')
         neighbours = sw.neighbors[38]
         total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
         check = total_area / (len(neighbours) + 1)
         assert self.df_tessellation['mesh'][38] == check
 
     def test_street_profile(self):
-        widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, height_column='height')
+        widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights='height')
         assert widths[16] == 34.722744851010795
         assert heights[16] == 16.13286713286713
         assert profile[16] == 0.46461958010780635
@@ -114,16 +117,16 @@ class TestDimensions:
             widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings)
 
     def test_weighted_character(self):
-        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height')
+        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID')
         assert weighted[38] == 18.301521351817303
 
     def test_weighted_character_sw(self):
         sw = Queen_higher(self.df_tessellation, k=3)
-        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', sw)
+        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID', sw)
         assert weighted[38] == 18.301521351817303
 
     def test_weighted_character_area(self):
         self.df_buildings['area'] = self.df_buildings.geometry.area
         sw = Queen_higher(self.df_tessellation, k=3)
-        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', sw, 'area')
+        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID', sw, 'area')
         assert weighted[38] == 18.301521351817303
