@@ -12,7 +12,7 @@ import numpy as np
 from shapely.geometry import Point
 
 
-def form_factor(objects, area_column, volume_column):
+def form_factor(objects, volume_column, area_column=None):
     """
     Calculate form factor of each object in given geoDataFrame.
 
@@ -23,10 +23,10 @@ def form_factor(objects, area_column, volume_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    area_column : str
-        name of the column of objects gdf where is stored area value
     volume_column : str
         name of the column where is stored volume value
+    area_column : str, optional
+        name of the column of objects gdf where is stored area value
 
     Returns
     -------
@@ -41,21 +41,20 @@ def form_factor(objects, area_column, volume_column):
 
     Notes
     -------
-    Option to calculate without area and volume being calculated beforehand.
+    Missing option to calculate without volume being calculated beforehand.
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating form factor...')
+    if type(volume_column) is not str:
+        objects['mm_v'] = volume_column
+        volume_column = 'mm_v'
+    if area_column is None:
+        series = objects.apply(lambda row: row.geometry.area / (row[volume_column] ** (2 / 3)) if row[volume_column] != 0 else 0, axis=1)
+    else:
+        series = objects.apply(lambda row: row[area_column] / (row[volume_column] ** (2 / 3)) if row[volume_column] != 0 else 0, axis=1)
 
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        if row[volume_column] is not 0:
-            results_list.append(row[area_column] / (row[volume_column] ** (2 / 3)))
-
-        else:
-            results_list.append(0)
-
-    series = pd.Series(results_list)
+    if 'mm_v' in objects.columns:
+        objects.drop(columns=['mm_v'], inplace=True)
 
     print('Form factor calculated.')
     return series
