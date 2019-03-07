@@ -427,12 +427,8 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
             coords = list(cell.exterior.coords)
             newcoords = [changes[x] if x in changes.keys() else x for x in coords]
             if coords != newcoords:
-                newgeom = Polygon(newcoords).buffer(0)
-                if newgeom.type == 'MultiPolygon':
-                    morphological_tessellation.loc[ix, 'geometry'] = newgeom[0]
-                    print(row.uID)
-                else:
-                    morphological_tessellation.loc[ix, 'geometry'] = newgeom
+                newgeom = Polygon(newcoords)
+                morphological_tessellation.loc[ix, 'geometry'] = newgeom
 
     print('Done in', timer() - start, 'seconds')
     print('Done. Tessellation finished in', timer() - start_, 'seconds.')
