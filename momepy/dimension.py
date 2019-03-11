@@ -6,7 +6,7 @@
 
 from tqdm import tqdm  # progress bar
 from shapely.geometry import Polygon, LineString, Point
-from .shape import make_circle
+from .shape import _make_circle
 import pandas as pd
 import math
 import numpy as np
@@ -14,7 +14,7 @@ import numpy as np
 
 def area(objects):
     """
-    Calculate area of each object in given shapefile. It can be used for any
+    Calculates area of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
     It is a simple wrapper for geopandas gdf.geometry.area for consistency of momepy.
@@ -50,7 +50,7 @@ def area(objects):
 
 def perimeter(objects):
     """
-    Calculate perimeter of each object in given shapefile. It can be used for any
+    Calculates perimeter of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
     It is a simple wrapper for geopandas gdf.geometry.length for consistency of momepy.
@@ -125,7 +125,10 @@ def _height_prg(objects, floors='od_POCET_P', floor_type='od_TYP'):
 
 def volume(objects, heights, areas=None):
     """
-    Calculate volume of each object in given shapefile based on its height and area.
+    Calculates volume of each object in given shapefile based on its height and area.
+
+    .. math::
+        area * height
 
     Parameters
     ----------
@@ -184,10 +187,13 @@ def volume(objects, heights, areas=None):
 
 def floor_area(objects, heights, areas=None):
     """
-    Calculate floor area of each object based on height and area.
+    Calculates floor area of each object based on height and area.
 
     Number of floors is simplified into formula height / 3
     (it is assumed that on average one floor is approximately 3 metres)
+
+    .. math::
+        area * \\frac{height}{3}
 
     Parameters
     ----------
@@ -246,7 +252,7 @@ def floor_area(objects, heights, areas=None):
 
 def courtyard_area(objects, areas=None):
     """
-    Calculate area of holes within geometry - area of courtyards.
+    Calculates area of holes within geometry - area of courtyards.
 
     Ensure that your geometry is shapely Polygon.
 
@@ -295,16 +301,19 @@ def courtyard_area(objects, areas=None):
 
 # calculate the radius of circumcircle
 def _longest_axis(points):
-    circ = make_circle(points)
+    circ = _make_circle(points)
     return(circ[2] * 2)
 
 
 def longest_axis_length(objects):
     """
-    Calculate the length of the longest axis of object.
+    Calculates the length of the longest axis of object.
 
     Axis is defined as a diameter of minimal circumscribed circle around the convex hull.
     It does not have to be fully inside an object.
+
+    .. math::
+        \\max \\left\\{d_{1}, d_{2}, \\ldots, d_{n}\\right\\}
 
     Parameters
     ----------
@@ -335,12 +344,12 @@ def longest_axis_length(objects):
 
 def effective_mesh(objects, spatial_weights=None, areas=None, order=3):
     """
-    Calculate the effective mesh size of morphological tessellation
+    Calculates the effective mesh size of morphological tessellation
 
     Effective mesh size of the area within k topological steps defined in spatial_weights.
 
     .. math::
-        \\
+        \\frac{1}{n}\\left(\\sum_{i=1}^{n} area_{i}\\right)
 
     Parameters
     ----------
@@ -364,6 +373,24 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3):
     ----------
     Hausleitner B and Berghauser Pont M (2017) Development of a configurational
     typology for micro-businesses integrating geometric and configurational variables. [adapted]
+
+    Examples
+    --------
+    >>> tessellation['mesh'] = momepy.effective_mesh(tessellation)
+    Calculating effective mesh size...
+    Generating weights matrix (Queen) of 3 topological steps...
+    100%|██████████| 144/144 [00:00<00:00, 900.83it/s]
+    Effective mesh size calculated.
+    >>> tessellation.mesh[0]
+    2922.957260196682
+
+    >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True)
+    >>> tessellation['mesh_100'] = momepy.effective_mesh(tessellation, spatial_weights=sw, areas='area')
+    Calculating effective mesh size...
+    100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
+    Effective mesh size calculated.
+    >>> tessellation.mesh_100[0]
+    4823.1334436678835
 
     Notes
     -----
@@ -405,7 +432,7 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3):
 
 def street_profile(streets, buildings, heights=None, distance=10, tick_length=50):
     """
-    Calculate the street profile widths, heights, and ratio height/width
+    Calculates the street profile widths, heights, and ratio height/width
 
     .. math::
         \\
@@ -438,6 +465,16 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
     References
     ----------
     Oliveira V (2013) Morpho: a methodology for assessing urban form. Urban Morphology 17(1): 21–33.
+
+    Examples
+    --------
+    >>> widths, heights, profile = momepy.street_profile(streets_df, buildings_df, heights='height')
+    Calculating street profile...
+    100%|██████████| 33/33 [00:02<00:00, 15.66it/s]
+    Street profile calculated.
+    >>> streets_df['width'] = widths
+    >>> streets_df['height'] = heights
+    >>> streets_df['profile'] = profile
 
     Notes
     -----
@@ -472,10 +509,6 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
         y = pt.y + dist * math.sin(bearing)
         return Point(x, y)
 
-    # distance between each points
-    distance = 10
-    # the length of each tick
-    tick_length = 50
     sindex = buildings.sindex
 
     results_list = []
@@ -587,24 +620,23 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
     if heights is not None:
         heights_series = pd.Series(heights_list)
         profile_ratio = heights_series / widths_series
+        if 'mm_h' in buildings.columns:
+            buildings.drop(columns=['mm_h'], inplace=True)
+        print('Street profile calculated.')
         return widths_series, heights_series, profile_ratio
     else:
+        print('Street profile calculated.')
         return widths_series
-
-    if 'mm_h' in buildings.columns:
-        buildings.drop(columns=['mm_h'], inplace=True)
-
-    print('Street profile calculated.')
 
 
 def weighted_character(objects, tessellation, characters, unique_id, spatial_weights=None, areas=None, order=3):
     """
-    Calculate the weighted character
+    Calculates the weighted character
 
-    Character weighted by the area of the objects of the area within `k` topological steps defined in spatial_weights.
+    Character weighted by the area of the objects within `k` topological steps defined in spatial_weights.
 
     .. math::
-        \\
+        \\frac{\\sum_{i=1}^{n} {character_{i} * area_{i}}}{\\sum_{i=1}^{n} area_{i}}
 
     Parameters
     ----------
@@ -632,10 +664,20 @@ def weighted_character(objects, tessellation, characters, unique_id, spatial_wei
     ----------
     Jacob
 
-    Notes
-    -----
-    Resolve the issues if there is no spatial weights matrix.
+    Examples
+    --------
+    >>> buildings_df['w_height'] = momepy.weighted_character(buildings_df, tessellation_df, characters='height', unique_id='uID')
+    Generating weights matrix (Queen) of 3 topological steps...
+    Calculating weighted height...
+    100%|██████████| 144/144 [00:00<00:00, 385.52it/s]
+    Weighted height calculated.
 
+    >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation_df, threshold=100, silence_warnings=True)
+    >>> buildings_df['w_height_100'] = momepy.weighted_character(buildings_df, tessellation_df, characters='height',
+                                                                 unique_id='uID', spatial_weights=sw)
+    Calculating weighted height...
+    100%|██████████| 144/144 [00:00<00:00, 361.60it/s]
+    Weighted height calculated.
     """
     # define empty list for results
     results_list = []

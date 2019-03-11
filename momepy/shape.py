@@ -12,21 +12,23 @@ import numpy as np
 from shapely.geometry import Point
 
 
-def form_factor(objects, volume_column, area_column=None):
+def form_factor(objects, volumes, areas=None):
     """
-    Calculate form factor of each object in given geoDataFrame.
+    Calculates form factor of each object in given geoDataFrame.
 
     .. math::
-        area \over {volume^{2 \over 3}}
+        area \\over {volume^{2 \\over 3}}
 
     Parameters
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    volume_column : str
-        name of the column where is stored volume value
-    area_column : str, optional
-        name of the column of objects gdf where is stored area value
+    volumes : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored volume value.
+        (To calculate volume you can use :py:func:`momepy.dimension.volume`)
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
 
     Returns
     -------
@@ -39,42 +41,62 @@ def form_factor(objects, volume_column, area_column=None):
     of cross-scale spatial indicators’, Building Research & Information, 40(5),
     pp. 592–605. doi: 10.1080/09613218.2012.703488self.
 
-    Notes
-    -------
-    Missing option to calculate without volume being calculated beforehand.
+    Examples
+    --------
+    >>> buildings_df['formfactor'] = momepy.form_factor(buildings_df, 'volume')
+    Calculating form factor...
+    Form factor calculated.
+    >>> buildings_df.formfactor[0]
+    1.9385988170288635
+
+    >>> buildings_df['formfactor'] = momepy.form_factor(buildings_df, momepy.volume(buildings_df, 'height'))
+    Calculating volumes...
+    Volumes calculated.
+    Calculating form factor...
+    Form factor calculated.
+    >>> buildings_df.formfactor[0]
+    1.9385988170288635
+
     """
 
     print('Calculating form factor...')
-    if type(volume_column) is not str:
-        objects['mm_v'] = volume_column
-        volume_column = 'mm_v'
-    if area_column is None:
-        series = objects.apply(lambda row: row.geometry.area / (row[volume_column] ** (2 / 3)) if row[volume_column] != 0 else 0, axis=1)
+    if type(volumes) is not str:
+        objects['mm_v'] = volumes
+        volumes = 'mm_v'
+    if areas is None:
+        series = objects.apply(lambda row: row.geometry.area / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
     else:
-        series = objects.apply(lambda row: row[area_column] / (row[volume_column] ** (2 / 3)) if row[volume_column] != 0 else 0, axis=1)
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
+        series = objects.apply(lambda row: row[areas] / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
 
     if 'mm_v' in objects.columns:
         objects.drop(columns=['mm_v'], inplace=True)
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
 
     print('Form factor calculated.')
     return series
 
 
-def fractal_dimension(objects, area_column, perimeter_column):
+def fractal_dimension(objects, areas=None, perimeters=None):
     """
-    Calculate fractal dimension of each object in given geoDataFrame.
+    Calculates fractal dimension of each object in given geoDataFrame.
 
     .. math::
-        {log({{perimeter} \over {4}})} \over log(area)
+        {log({{perimeter} \\over {4}})} \\over log(area)
 
     Parameters
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    area_column : str
-        name of the column of objects gdf where is stored area value
-    perimeter_column : str
-        name of the column where is stored perimeter value
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
+    perimeters : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value. If set to None, function will calculate perimeters
+        during the process without saving them separately.
 
     Returns
     -------
@@ -87,43 +109,59 @@ def fractal_dimension(objects, area_column, perimeter_column):
     typologies’, Computers, Environment and Urban Systems, 44, pp. 68–79.
     doi: 10.1016/j.compenvurbsys.2013.12.002.
 
-    Notes
-    -------
-    Option to calculate without area and volume being calculated beforehand.
+    Examples
+    --------
+    >>> buildings_df['fractal'] = momepy.fractal_dimension(buildings_df, 'area', 'peri')
+    Calculating fractal dimension...
+    100%|██████████| 144/144 [00:00<00:00, 3928.09it/s]
+    Fractal dimension calculated.
+    >>> buildings_df.fractal[0]
+    0.5363389283519454
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating fractal dimension...')
 
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            results_list.append(math.log(row[perimeter_column] / 4) / math.log(row[area_column]))
+    if perimeters is None:
+        objects['mm_p'] = objects.geometry.length
+        perimeters = 'mm_p'
+    else:
+        if type(perimeters) is not str:
+            objects['mm_p'] = perimeters
+            perimeters = 'mm_p'
+    if areas is None:
+        series = objects.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row.geometry.area), axis=1)
+    else:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
+        series = objects.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row[areas]), axis=1)
 
-    series = pd.Series(results_list)
-
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
+    if 'mm_p' in objects.columns:
+        objects.drop(columns=['mm_p'], inplace=True)
     print('Fractal dimension calculated.')
     return series
 
 
-def volume_facade_ratio(objects, volume_column, perimeter_column, height_column):
+def volume_facade_ratio(objects, heights, volumes=None, perimeters=None):
     """
-    Calculate volume/facade ratio of each object in given geoDataFrame.
+    Calculates volume/facade ratio of each object in given geoDataFrame.
 
     .. math::
-        volume \over perimeter * heigth
+        volume \\over perimeter * heigth
 
     Parameters
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    area_column : str
-        name of the column of objects gdf where is stored area value
-    volume_column : str
-        name of column where is stored volume value
-    perimeter_column : str
-        name of the column where is stored perimeter value
-    height_column : str
-        name of the column where is stored height value
+    heights : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored height value
+    volumes : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored volume value
+    perimeters : , list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value
+
 
     Returns
     -------
@@ -136,20 +174,38 @@ def volume_facade_ratio(objects, volume_column, perimeter_column, height_column)
     urban morphology’, Journal of Transport and Land Use, 9(1), pp. 101–130.
     doi: 10.5198/jtlu.2015.667.
 
-    Notes
+    Examples
     -----
-    Option to calculate without area and volume being calculated beforehand.
+    >>> buildings_df['vfr'] = momepy.volume_facade_ratio(buildings_df, 'height')
+    Calculating volume/facade ratio...
+    Volume/facade ratio calculated.
+    >>> buildings_df.vfr[0]
+    5.310715735236504
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating volume/facade ratio...')
+    if perimeters is None:
+        objects['mm_p'] = objects.geometry.length
+        perimeters = 'mm_p'
+    else:
+        if type(perimeters) is not str:
+            objects['mm_p'] = perimeters
+            perimeters = 'mm_p'
 
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            results_list.append(row[volume_column] / (row[perimeter_column] * row[height_column]))
+    if volumes is None:
+        objects['mm_v'] = objects.geometry.area * objects[heights]
+        volumes = 'mm_v'
+    else:
+        if type(volumes) is not str:
+            objects['mm_v'] = volumes
+            volumes = 'mm_v'
 
-    series = pd.Series(results_list)
+    series = objects[volumes] / (objects[perimeters] * objects[heights])
 
+    if 'mm_p' in objects.columns:
+        objects.drop(columns=['mm_p'], inplace=True)
+    if 'mm_v' in objects.columns:
+        objects.drop(columns=['mm_v'], inplace=True)
     print('Volume/facade ratio calculated.')
     return series
 
@@ -183,7 +239,7 @@ def volume_facade_ratio(objects, volume_column, perimeter_column, height_column)
 # Initially: No boundary points known
 
 
-def make_circle(points):
+def _make_circle(points):
     # Convert to float and randomize order
     shuffled = [(float(x), float(y)) for (x, y) in points]
     random.shuffle(shuffled)
@@ -191,7 +247,7 @@ def make_circle(points):
     # Progressively add points to circle or recompute circle
     c = None
     for (i, p) in enumerate(shuffled):
-        if c is None or not is_in_circle(c, p):
+        if c is None or not _is_in_circle(c, p):
             c = _make_circle_one_point(shuffled[: i + 1], p)
     return c
 
@@ -200,9 +256,9 @@ def make_circle(points):
 def _make_circle_one_point(points, p):
     c = (p[0], p[1], 0.0)
     for (i, q) in enumerate(points):
-        if not is_in_circle(c, q):
+        if not _is_in_circle(c, q):
             if c[2] == 0.0:
-                c = make_diameter(p, q)
+                c = _make_diameter(p, q)
             else:
                 c = _make_circle_two_points(points[: i + 1], p, q)
     return c
@@ -210,7 +266,7 @@ def _make_circle_one_point(points, p):
 
 # Two boundary points known
 def _make_circle_two_points(points, p, q):
-    circ = make_diameter(p, q)
+    circ = _make_diameter(p, q)
     left = None
     right = None
     px, py = p
@@ -218,12 +274,12 @@ def _make_circle_two_points(points, p, q):
 
     # For each point not in the two-point circle
     for r in points:
-        if is_in_circle(circ, r):
+        if _is_in_circle(circ, r):
             continue
 
         # Form a circumcircle and classify it on left or right side
         cross = _cross_product(px, py, qx, qy, r[0], r[1])
-        c = make_circumcircle(p, q, r)
+        c = _make_circumcircle(p, q, r)
         if c is None:
             continue
         elif cross > 0.0 and (left is None or _cross_product(px, py, qx, qy, c[0], c[1]) > _cross_product(px, py, qx, qy, left[0], left[1])):
@@ -242,7 +298,7 @@ def _make_circle_two_points(points, p, q):
         return left if (left[2] <= right[2]) else right
 
 
-def make_circumcircle(p0, p1, p2):
+def _make_circumcircle(p0, p1, p2):
     # Mathematical algorithm from Wikipedia: Circumscribed circle
     ax, ay = p0
     bx, by = p1
@@ -266,7 +322,7 @@ def make_circumcircle(p0, p1, p2):
     return (x, y, max(ra, rb, rc))
 
 
-def make_diameter(p0, p1):
+def _make_diameter(p0, p1):
     cx = (p0[0] + p1[0]) / 2.0
     cy = (p0[1] + p1[1]) / 2.0
     r0 = math.hypot(cx - p0[0], cy - p0[1])
@@ -277,7 +333,7 @@ def make_diameter(p0, p1):
 _MULTIPLICATIVE_EPSILON = 1 + 1e-14
 
 
-def is_in_circle(c, p):
+def _is_in_circle(c, p):
     return c is not None and math.hypot(p[0] - c[0], p[1] - c[1]) <= c[2] * _MULTIPLICATIVE_EPSILON
 
 
@@ -287,9 +343,15 @@ def _cross_product(x0, y0, x1, y1, x2, y2):
 # end of Nayuiki script to define the smallest enclosing circle
 
 
-def circular_compactness(objects, area_column):
+# calculate the area of circumcircle
+def _circle_area(points):
+    circ = _make_circle(points)
+    return(math.pi * circ[2] ** 2)
+
+
+def circular_compactness(objects, areas=None):
     """
-    Calculate compactness index of each object in given geoDataFrame.
+    Calculates compactness index of each object in given geoDataFrame.
 
     .. math::
         area \over \\textit{area of enclosing circle}
@@ -298,8 +360,9 @@ def circular_compactness(objects, area_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    area_column : str
-        name of the column of objects gdf where is stored area value
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
 
     Returns
     -------
@@ -307,36 +370,39 @@ def circular_compactness(objects, area_column):
         Series containing resulting values.
 
     References
-    ---------
+    ----------
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
 
-    Notes
-    -------
-    Option to calculate without area and volume being calculated beforehand.
+    Examples
+    --------
+    >>> buildings_df['circ_comp'] = momepy.circular_compactness(buildings_df, 'area')
+    Calculating compactness index...
+    100%|██████████| 144/144 [00:00<00:00, 2498.75it/s]
+    Compactness index calculated.
+    >>> buildings_df['circ_comp'][0]
+    0.572145421828038
+
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating compactness index...')
 
-    # calculate the area of circumcircle
-    def circle_area(points):
-        circ = make_circle(points)
-        return(math.pi * circ[2] ** 2)
-
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        results_list.append((row[area_column]) / (circle_area(list(row['geometry'].convex_hull.exterior.coords))))
-
-    series = pd.Series(results_list)
-
+    if areas is None:
+        series = objects.apply(lambda row: (row.geometry.area) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
+    else:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
+        series = objects.apply(lambda row: (row[areas]) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
+        if 'mm_a' in objects.columns:
+            objects.drop(columns=['mm_a'], inplace=True)
     print('Compactness index calculated.')
     return series
 
 
-def square_compactness(objects, area_column, perimeter_column):
+def square_compactness(objects, areas=None, perimeters=None):
     """
-    Calculate compactness index of each object in given geoDataFrame.
+    Calculates compactness index of each object in given geoDataFrame.
 
     .. math::
         \\begin{equation*}
@@ -347,10 +413,12 @@ def square_compactness(objects, area_column, perimeter_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    area_column : str
-        name of the column of objects gdf where is stored area value
-    perimeter_column : str
-        name of the column of objects gdf where is stored perimeter value
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
+    perimeters : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value. If set to None, function will calculate perimeters
+        during the process without saving them separately.
 
     Returns
     -------
@@ -358,31 +426,48 @@ def square_compactness(objects, area_column, perimeter_column):
         Series containing resulting values.
 
     References
-    ---------
+    ----------
     Feliciotti A (2018) RESILIENCE AND URBAN DESIGN:A SYSTEMS APPROACH TO THE
     STUDY OF RESILIENCE IN URBAN FORM. LEARNING FROM THE CASE OF GORBALS. Glasgow.
 
-    Notes
-    -------
-    Option to calculate without area and volume being calculated beforehand.
+    Examples
+    --------
+    >>> buildings_df['squ_comp'] = momepy.square_compactness(buildings_df)
+    Calculating compactness index...
+    Compactness index calculated.
+    >>> buildings_df['squ_comp'][0]
+    0.6193872538650996
+
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating compactness index...')
 
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        results_list.append(((4 * math.sqrt(row[area_column])) / (row[perimeter_column])) ** 2)
+    if perimeters is None:
+        objects['mm_p'] = objects.geometry.length
+        perimeters = 'mm_p'
+    else:
+        if type(perimeters) is not str:
+            objects['mm_p'] = perimeters
+            perimeters = 'mm_p'
+    if areas is None:
+        series = objects.apply(lambda row: ((4 * math.sqrt(row.geometry.area)) / (row[perimeters])) ** 2, axis=1)
+    else:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
+        series = objects.apply(lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1)
 
-    series = pd.Series(results_list)
-
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_p'], inplace=True)
+    if 'mm_p' in objects.columns:
+        objects.drop(columns=['mm_p'], inplace=True)
     print('Compactness index calculated.')
     return series
 
 
-def convexeity(objects, area_column):
+def convexeity(objects, areas=None):
     """
-    Calculate convexeity index of each object in given geoDataFrame.
+    Calculates convexeity index of each object in given geoDataFrame.
 
     .. math::
         area \over \\textit{convex hull area}
@@ -391,8 +476,9 @@ def convexeity(objects, area_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    area_column : str
-        name of the column of objects gdf where is stored area value
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
 
     Returns
     -------
@@ -404,27 +490,34 @@ def convexeity(objects, area_column):
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
 
-    Notes
-    -------
-    Option to calculate without area and volume being calculated beforehand.
+    Examples
+    --------
+    >>> buildings_df['convexeity'] = momepy.convexeity(buildings_df)
+    Calculating convexeity...
+    Convexeity calculated.
+    >>> buildings_df.convexeity[0]
+    0.8151964258521672
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating convexeity...')
 
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            results_list.append(row[area_column] / (row['geometry'].convex_hull.area))
-
-    series = pd.Series(results_list)
+    if areas is None:
+        series = objects.geometry.area / objects.geometry.convex_hull.area
+    else:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
+        series = objects[areas] / objects.geometry.convex_hull.area
+        if 'mm_a' in objects.columns:
+            objects.drop(columns=['mm_a'], inplace=True)
 
     print('Convexeity calculated.')
     return series
 
 
-def courtyard_index(objects, area_column, courtyard_column):
+def courtyard_index(objects, courtyard_areas, areas=None):
     """
-    Calculate courtyard index of each object in given geoDataFrame.
+    Calculates courtyard index of each object in given geoDataFrame.
 
     .. math::
         \\textit{area of courtyards} \over \\textit{total area}
@@ -433,10 +526,12 @@ def courtyard_index(objects, area_column, courtyard_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    area_column : str
-        name of the column of objects gdf where is stored area value
-    courtyard_column : str
-        name of column where is stored courtyard area
+    courtyard_areas : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored area value
+        (To calculate volume you can use :py:func:`momepy.dimension.courtyard_area`)
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
 
     Returns
     -------
@@ -449,27 +544,48 @@ def courtyard_index(objects, area_column, courtyard_column):
     urban morphology’, Journal of Transport and Land Use, 9(1), pp. 101–130.
     doi: 10.5198/jtlu.2015.667.
 
-    Notes
-    -------
-    Option to calculate without area and volume being calculated beforehand.
+    Examples
+    --------
+    >>> buildings_df['courtyard_index'] = momepy.courtyard_index(buildings, 'courtyard_area', 'area')
+    Calculating courtyard index...
+    Courtyard index calculated.
+    >>> buildings_df.courtyard_index[80]
+    0.16605915738643523
+
+    >>> buildings_df['courtyard_index2'] = momepy.courtyard_index(buildings_df, momepy.courtyard_area(buildings_df))
+    Calculating courtyard areas...
+    Courtyard areas calculated.
+    Calculating courtyard index...
+    Courtyard index calculated.
+    >>> buildings_df.courtyard_index2[80]
+    0.16605915738643523
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating courtyard index...')
 
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            results_list.append(row[courtyard_column] / row[area_column])
+    if type(courtyard_areas) is not str:
+        objects['mm_ca'] = courtyard_areas
+        courtyard_areas = 'mm_ca'
+    if areas is None:
+        series = objects[courtyard_areas] / objects.geometry.area
+    else:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
+        series = objects[courtyard_areas] / objects[areas]
 
-    series = pd.Series(results_list)
+    if 'mm_ca' in objects.columns:
+        objects.drop(columns=['mm_ca'], inplace=True)
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
 
     print('Courtyard index calculated.')
     return series
 
 
-def rectangularity(objects, area_column):
+def rectangularity(objects, areas=None):
     """
-    Calculate rectangularity of each object in given geoDataFrame.
+    Calculates rectangularity of each object in given geoDataFrame.
 
     .. math::
         {area \over \\textit{minimum bounding rotated rectangle area}}
@@ -478,8 +594,9 @@ def rectangularity(objects, area_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    area_column : str
-        name of the column of objects gdf where is stored area value
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
 
     Returns
     -------
@@ -487,31 +604,40 @@ def rectangularity(objects, area_column):
         Series containing resulting values.
 
     References
-    ---------
+    ----------
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
 
-    Notes
-    -------
-    Option to calculate without area and volume being calculated beforehand.
+    Examples
+    --------
+    >>> buildings_df['rectangularity'] = momepy.rectangularity(buildings_df, 'area')
+    Calculating rectangularity...
+    100%|██████████| 144/144 [00:00<00:00, 866.62it/s]
+    Rectangularity calculated.
+    >>> buildings_df.rectangularity[0]
+    0.6942676157646379
     """
-    # define empty list for results
-    results_list = []
+
     print('Calculating rectangularity...')
+    if areas is None:
+        series = objects.apply(lambda row: row.geometry.area / (row.geometry.minimum_rotated_rectangle.area), axis=1)
 
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            results_list.append(row[area_column] / (row['geometry'].minimum_rotated_rectangle.area))
+    else:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
+        series = objects.apply(lambda row: row[areas] / (row.geometry.minimum_rotated_rectangle.area), axis=1)
 
-    series = pd.Series(results_list)
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
 
     print('Rectangularity calculated.')
     return series
 
 
-def shape_index(objects, area_column, longest_axis_column):
+def shape_index(objects, longest_axis, areas=None):
     """
-    Calculate shape index of each object in given geoDataFrame.
+    Calculates shape index of each object in given geoDataFrame.
 
     .. math::
         {\\sqrt{{area} \over {\\pi}}} \over {0.5 * \\textit{longest axis}}
@@ -520,10 +646,11 @@ def shape_index(objects, area_column, longest_axis_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    area_column : str
-        name of the column of objects gdf where is stored area value
-    longest_axis_column : str
-        name of column where is stored longest axis value
+    longest_axis : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored longest axis value
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
 
     Returns
     -------
@@ -534,19 +661,33 @@ def shape_index(objects, area_column, longest_axis_column):
     ---------
     Ale?
 
-    Notes
-    -------
-    Option to calculate without area and volume being calculated beforehand.
+    Examples
+    --------
+    >>> buildings_df['shape_index'] = momepy.shape_index(buildings_df, longest_axis='long_ax', areas='area')
+    Calculating shape index...
+    100%|██████████| 144/144 [00:00<00:00, 5558.33it/s]
+    Shape index calculated.
+    >>> buildings_df['shape_index'][0]
+    0.7564029493781987
     """
-    # define empty list for results
-    results_list = []
     print('Calculating shape index...')
 
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            results_list.append(math.sqrt(row[area_column] / math.pi) / (0.5 * row[longest_axis_column]))
+    if type(longest_axis) is not str:
+        objects['mm_la'] = longest_axis
+        longest_axis = 'mm_la'
 
-    series = pd.Series(results_list)
+    if areas is None:
+        series = objects.apply(lambda row: math.sqrt(row.geometry.area / math.pi) / (0.5 * row[longest_axis]), axis=1)
+    else:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
+        series = objects.apply(lambda row: math.sqrt(row[areas] / math.pi) / (0.5 * row[longest_axis]), axis=1)
+
+        if 'mm_a' in objects.columns:
+            objects.drop(columns=['mm_a'], inplace=True)
+        if 'mm_la' in objects.columns:
+            objects.drop(columns=['mm_a'], inplace=True)
 
     print('Shape index calculated.')
     return series
@@ -554,12 +695,12 @@ def shape_index(objects, area_column, longest_axis_column):
 
 def corners(objects):
     """
-    Calculate number of corners of each object in given geoDataFrame.
+    Calculates number of corners of each object in given geoDataFrame.
 
     Uses only external shape (shapely.geometry.exterior), courtyards are not included.
 
     .. math::
-        count
+        \\sum corner
 
     Parameters
     ----------
@@ -573,6 +714,17 @@ def corners(objects):
 
     References
     ---------
+    ?
+
+    Examples
+    --------
+    >>> buildings_df['corners'] = momepy.corners(buildings_df)
+    Calculating corners...
+    100%|██████████| 144/144 [00:00<00:00, 1042.15it/s]
+    Corners calculated.
+    >>> buildings_df.corners[0]
+    24
+
 
     """
     # define empty list for results
@@ -601,7 +753,7 @@ def corners(objects):
         stop = len(points) - 1  # define where to stop
         for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
             if i == 0:
-                    continue
+                continue
             elif i == stop:
                 a = np.asarray(points[i - 1])
                 b = np.asarray(points[i])
@@ -632,7 +784,7 @@ def corners(objects):
 
 def squareness(objects):
     """
-    Calculate squareness of each object in given geoDataFrame.
+    Calculates squareness of each object in given geoDataFrame.
 
     Uses only external shape (shapely.geometry.exterior), courtyards are not included.
 
@@ -653,12 +805,21 @@ def squareness(objects):
     ----------
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
+
+    Examples
+    --------
+    >>> buildings_df['squareness'] = momepy.squareness(buildings_df)
+    Calculating squareness...
+    100%|██████████| 144/144 [00:01<00:00, 129.49it/s]
+    Squareness calculated.
+    >>> buildings_df.squareness[0]
+    3.7075816043359864
     """
     # define empty list for results
     results_list = []
     print('Calculating squareness...')
 
-    def angle(a, b, c):
+    def _angle(a, b, c):
         ba = a - b
         bc = c - b
 
@@ -674,16 +835,16 @@ def squareness(objects):
         stop = len(points) - 1  # define where to stop
         for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
             if i == 0:
-                    continue
+                continue
             elif i == stop:
                 a = np.asarray(points[i - 1])
                 b = np.asarray(points[i])
                 c = np.asarray(points[1])
-                ang = angle(a, b, c)
+                ang = _angle(a, b, c)
 
                 if ang <= 175:
                     angles.append(ang)
-                elif angle(a, b, c) >= 185:
+                elif _angle(a, b, c) >= 185:
                     angles.append(ang)
                 else:
                     continue
@@ -692,11 +853,11 @@ def squareness(objects):
                 a = np.asarray(points[i - 1])
                 b = np.asarray(points[i])
                 c = np.asarray(points[i + 1])
-                ang = angle(a, b, c)
+                ang = _angle(a, b, c)
 
-                if angle(a, b, c) <= 175:
+                if _angle(a, b, c) <= 175:
                     angles.append(ang)
-                elif angle(a, b, c) >= 185:
+                elif _angle(a, b, c) >= 185:
                     angles.append(ang)
                 else:
                     continue
@@ -712,9 +873,9 @@ def squareness(objects):
     return series
 
 
-def equivalent_rectangular_index(objects, area_column, perimeter_column):
+def equivalent_rectangular_index(objects, areas=None, perimeters=None):
     """
-    Calculate equivalent rectangular index of each object in given geoDataFrame.
+    Calculates equivalent rectangular index of each object in given geoDataFrame.
 
     .. math::
         \\sqrt{{area} \over \\textit{area of bounding rectangle}} * {\\textit{perimeter of bounding rectangle} \over {perimeter}}
@@ -723,10 +884,12 @@ def equivalent_rectangular_index(objects, area_column, perimeter_column):
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects
-    area_column : str
-        name of the column of objects gdf where is stored area value
-    perimeter_column : str
-        name of the column of objects gdf where is stored perimeter value
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
+    perimeters : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value. If set to None, function will calculate perimeters
+        during the process without saving them separately.
 
     Returns
     -------
@@ -741,28 +904,50 @@ def equivalent_rectangular_index(objects, area_column, perimeter_column):
     31(10): 1952–1977. Available from:
     https://www.tandfonline.com/doi/full/10.1080/13658816.2017.1346257.
 
-    Notes
-    -------
-    Option to calculate without area and volume being calculated beforehand.
+    Examples
+    --------
+    >>> buildings_df['eri'] = momepy.equivalent_rectangular_index(buildings_df, 'area', 'peri')
+    Calculating equivalent rectangular index...
+    100%|██████████| 144/144 [00:00<00:00, 895.57it/s]
+    Equivalent rectangular index calculated.
+    >>> buildings_df['eri'][0]
+    0.7879229963118455
     """
     # define empty list for results
     results_list = []
     print('Calculating equivalent rectangular index...')
 
+    if perimeters is None:
+        objects['mm_p'] = objects.geometry.length
+        perimeters = 'mm_p'
+    else:
+        if type(perimeters) is not str:
+            objects['mm_p'] = perimeters
+            perimeters = 'mm_p'
+    if areas is None:
+        objects['mm_a'] = objects.geometry.area
+        areas = 'mm_a'
+    else:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            bbox = row['geometry'].minimum_rotated_rectangle
-            results_list.append(math.sqrt(row[area_column] / bbox.area) * (bbox.length / row[perimeter_column]))
+        bbox = row['geometry'].minimum_rotated_rectangle
+        results_list.append(math.sqrt(row[areas] / bbox.area) * (bbox.length / row[perimeters]))
 
     series = pd.Series(results_list)
-
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
+    if 'mm_p' in objects.columns:
+        objects.drop(columns=['mm_p'], inplace=True)
     print('Equivalent rectangular index calculated.')
     return series
 
 
 def elongation(objects):
     """
-    Calculate elongation of object seen as elongation of its minimum bounding rectangle.
+    Calculates elongation of object seen as elongation of its minimum bounding rectangle.
 
     .. math::
         {{p - \\sqrt{p^2 - 16a}} \over {4}} \over {{{p} \over {2}} - {{p - \\sqrt{p^2 - 16a}} \over {4}}}
@@ -782,6 +967,15 @@ def elongation(objects):
     Gil J, Montenegro N, Beirão JN, et al. (2012) On the Discovery of
     Urban Typologies: Data Mining the Multi-dimensional Character of
     Neighbourhoods. Urban Morphology 16(1): 27–40.
+
+    Examples
+    --------
+    >>> buildings_df['elongation'] = momepy.elongation(buildings_df)
+    Calculating elongation...
+    100%|██████████| 144/144 [00:00<00:00, 1032.62it/s]
+    Elongation calculated.
+    >>> buildings_df['elongation'][0]
+    0.9082437463675544
     """
     # define empty list for results
     results_list = []
@@ -789,26 +983,26 @@ def elongation(objects):
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            bbox = row['geometry'].minimum_rotated_rectangle
-            a = bbox.area
-            p = bbox.length
-            cond1 = (p ** 2)
-            cond2 = (16 * a)
-            if cond1 >= cond2:
-                sqrt = cond1 - cond2
-            else:
-                sqrt = 0
+        bbox = row['geometry'].minimum_rotated_rectangle
+        a = bbox.area
+        p = bbox.length
+        cond1 = (p ** 2)
+        cond2 = (16 * a)
+        if cond1 >= cond2:
+            sqrt = cond1 - cond2
+        else:
+            sqrt = 0
 
-            # calculate both width/length and length/width
-            elo1 = ((p - math.sqrt(sqrt)) / 4) / ((p / 2) - ((p - math.sqrt(sqrt)) / 4))
-            elo2 = ((p + math.sqrt(sqrt)) / 4) / ((p / 2) - ((p + math.sqrt(sqrt)) / 4))
-            # use the smaller one (e.g. shorter/longer)
-            if elo1 <= elo2:
-                elo = elo1
-            else:
-                elo = elo2
+        # calculate both width/length and length/width
+        elo1 = ((p - math.sqrt(sqrt)) / 4) / ((p / 2) - ((p - math.sqrt(sqrt)) / 4))
+        elo2 = ((p + math.sqrt(sqrt)) / 4) / ((p / 2) - ((p + math.sqrt(sqrt)) / 4))
+        # use the smaller one (e.g. shorter/longer)
+        if elo1 <= elo2:
+            elo = elo1
+        else:
+            elo = elo2
 
-            results_list.append(elo)
+        results_list.append(elo)
 
     series = pd.Series(results_list)
 
@@ -818,10 +1012,10 @@ def elongation(objects):
 
 def centroid_corners(objects):
     """
-    Calculate mean distance centroid - corners.
+    Calculates mean distance centroid - corners and st. deviation.
 
     .. math::
-        \\textit{mean distance centroid - corners}
+        \\overline{x}=\\frac{1}{n}\\left(\\sum_{i=1}^{n} dist_{i}\\right);\\space \\mathrm{SD}=\\sqrt{\\frac{\\sum|x-\\overline{x}|^{2}}{n}}
 
     Parameters
     ----------
@@ -830,17 +1024,36 @@ def centroid_corners(objects):
 
     Returns
     -------
-    Series
-        Series containing resulting values.
+    means, st_devs : tuple
+
+    means : Series
+        Series containing mean distance values.
+    st_devs : Series
+        Series containing standard deviation values.
 
     References
     ----------
     Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
     Journal of Transport and Land Use 9(1): 101–130.
+    + Cimburova (ADD)
+
+    Examples
+    --------
+    >>> means, deviations = momepy.centroid_corners(buildings_df)
+    Calculating distance centroid - corner...
+    100%|██████████| 144/144 [00:00<00:00, 846.58it/s]
+    Distances centroid - corner calculated.
+    >>> buildings_df['ccd_means'] = means
+    >>> buildings_df['ccd_stdev'] = deviations
+    >>> buildings_df['ccd_means'][0]
+    15.961531913184833
+    >>> buildings_df['ccd_stdev'][0]
+    3.0810634305400177
     """
     # define empty list for results
     results_list = []
-    print('Calculating mean distance centroid - corner...')
+    results_list_sd = []
+    print('Calculating distance centroid - corner...')
 
     # calculate angle between points, return true or false if real corner
     def true_angle(a, b, c):
@@ -865,7 +1078,7 @@ def centroid_corners(objects):
         stop = len(points) - 1  # define where to stop
         for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
             if i == 0:
-                    continue
+                continue
             elif i == stop:
                 a = np.asarray(points[i - 1])
                 b = np.asarray(points[i])
@@ -892,18 +1105,20 @@ def centroid_corners(objects):
         if len(distances) == 0:
             from momepy.dimension import _longest_axis
             results_list.append(_longest_axis(row['geometry'].convex_hull.exterior.coords) / 2)
+            results_list_sd.append(0)
         else:
-            results_list.append(np.mean(distances))  # calculate mean and sve it to DF
+            results_list.append(np.mean(distances))  # calculate mean
+            results_list_sd.append(np.std(distances))  # calculate st.dev
+    means = pd.Series(results_list)
+    st_devs = pd.Series(results_list_sd)
 
-    series = pd.Series(results_list)
-
-    print('Mean distances centroid - corner calculated.')
-    return series
+    print('Distances centroid - corner calculated.')
+    return means, st_devs
 
 
 def linearity(objects):
     """
-    Calculate linearity of each LineString object in given geoDataFrame.
+    Calculates linearity of each LineString object in given geoDataFrame.
 
     .. math::
         \\frac{l_{euclidean}}{l_{segment}}
@@ -924,6 +1139,14 @@ def linearity(objects):
     The City from the Pedestrian Point of View. In:, pp. 365–376. Available
     from: http://link.springer.com/10.1007/978-3-319-62407-5.
 
+    Examples
+    --------
+    >>> streets_df['linearity'] = momepy.linearity(streets_df)
+    Calculating linearity...
+    100%|██████████| 33/33 [00:00<00:00, 1737.64it/s]
+    Linearity calculated.
+    >>> streets_df['linearity'][0]
+    1.0
     """
     # define empty list for results
     results_list = []
@@ -931,20 +1154,10 @@ def linearity(objects):
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            euclidean = Point(row['geometry'].coords[0]).distance(Point(row['geometry'].coords[-1]))
-            results_list.append(euclidean / row['geometry'].length)
+        euclidean = Point(row['geometry'].coords[0]).distance(Point(row['geometry'].coords[-1]))
+        results_list.append(euclidean / row['geometry'].length)
 
     series = pd.Series(results_list)
 
     print('Linearity calculated.')
     return series
-# to be deleted, keep at the end
-
-# path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
-# objects = gpd.read_file(path)
-# # #
-# # # convexeity(objects, 'conv', 'pdbAre')
-# # #
-# # # objects.head
-# # # objects.to_file(path)
-# corners(objects, 'corners')
