@@ -31,14 +31,23 @@ def orientation(objects):
     References
     ---------
     Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
-    Journal of Transport and Land Use 9(1): 101–130.
+    Journal of Transport and Land Use 9(1): 101–130. (adapted)
+
+    Examples
+    --------
+    >>> buildings_df['orientation'] = momepy.orientation(buildings_df)
+    Calculating orientations...
+    100%|██████████| 144/144 [00:00<00:00, 630.54it/s]
+    Orientations calculated.
+    >>> buildings_df['orientation'][0]
+    41.05146788287027
     """
     # define empty list for results
     results_list = []
 
     print('Calculating orientations...')
 
-    def azimuth(point1, point2):
+    def _azimuth(point1, point2):
         '''azimuth between 2 shapely points (interval 0 - 180)'''
         angle = np.arctan2(point2.x - point1.x, point2.y - point1.y)
         return np.degrees(angle)if angle > 0 else np.degrees(angle) + 180
@@ -55,7 +64,7 @@ def orientation(objects):
         axis2 = centroid_bc.distance(centroid_da)
 
         if axis1 <= axis2:
-            az = azimuth(centroid_bc, centroid_da)
+            az = _azimuth(centroid_bc, centroid_da)
             if 90 > az >= 45:
                 diff = az - 45
                 az = az - 2 * diff
@@ -74,7 +83,7 @@ def orientation(objects):
             results_list.append(az)
         else:
             az = 170
-            az = azimuth(centroid_ab, centroid_cd)
+            az = _azimuth(centroid_ab, centroid_cd)
             if 90 > az >= 45:
                 diff = az - 45
                 az = az - 2 * diff
@@ -97,21 +106,21 @@ def orientation(objects):
     return series
 
 
-def shared_walls_ratio(objects, perimeter_column, unique_id):
+def shared_walls_ratio(objects, unique_id, perimeters=None):
     """
     Calculate shared walls ratio
 
     .. math::
-        \\textit{length of shared walls} \over perimeter
+        \\textit{length of shared walls} \\over perimeter
 
     Parameters
     ----------
     objects : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    perimeter_column : str
-        name of the column where is stored perimeter value
-    unique_id : str
-        name of the column with unique id
+    unique_id : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series with unique id
+    perimeters : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value
 
     Returns
     -------
@@ -124,6 +133,16 @@ def shared_walls_ratio(objects, perimeter_column, unique_id):
     Based on Buildings Footprints. In: Lecture Notes in Geoinformation and Cartography,
     Berlin, Heidelberg: Springer Berlin Heidelberg, pp. 327–346. Available from:
     https://link.springer.com/chapter/10.1007/978-3-642-29063-3_18.
+
+    Examples
+    --------
+    >>> buildings_df['swr'] = momepy.shared_walls_ratio(buildings_df, 'uID')
+    Generating spatial index...
+    Calculating shared walls ratio...
+    100%|██████████| 144/144 [00:00<00:00, 648.72it/s]
+    Shared walls ratio calculated.
+    >>> buildings_df['swr'][10]
+    0.3424804411228673
     """
     print('Generating spatial index...')
     sindex = objects.sindex  # define rtree index
@@ -132,21 +151,34 @@ def shared_walls_ratio(objects, perimeter_column, unique_id):
 
     print('Calculating shared walls ratio...')
 
+    if perimeters is None:
+        objects['mm_p'] = objects.geometry.length
+        perimeters = 'mm_p'
+    else:
+        if type(perimeters) is not str:
+            objects['mm_p'] = perimeters
+            perimeters = 'mm_p'
+    if type(unique_id) is not str:
+        objects['mm_uid'] = unique_id
+        unique_id = 'mm_uid'
+
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         neighbors = list(sindex.intersection(row.geometry.bounds))
         neighbors.remove(index)
 
         # if no neighbour exists
         length = 0
-        if len(neighbors) is 0:
+        if len(neighbors) == 0:
             results_list.append(0)
         else:
             for i in neighbors:
                 subset = objects.loc[i]['geometry']
                 length = length + row.geometry.intersection(subset).length
-            results_list.append(length / row[perimeter_column])
+            results_list.append(length / row[perimeters])
     series = pd.Series(results_list)
     print('Shared walls ratio calculated.')
+    if 'mm_p' in objects.columns:
+        objects.drop(columns=['mm_p'], inplace=True)
     return series
 
 
@@ -155,7 +187,8 @@ def street_alignment(objects, streets, orientation_column, network_id_column):
     Calculate the difference between street orientation and orientation of object
 
     Orientation of street segment is represented by the orientation of line
-    connecting first and last point of the segment.
+    connecting first and last point of the segment. Network ID linking each object
+    to specific street segment is needed. Can be generated by :py:func:`momepy.elements.get_network_id`.
 
     .. math::
         \\left|{\\textit{building orientation} - \\textit{street orientation}}\\right|
