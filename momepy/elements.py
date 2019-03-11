@@ -386,11 +386,13 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
         print(' Generating spatial index...')
         sindex = morphological_tessellation.sindex
         changes = {}
+        id = 0
         # detect points which should be changed and calculate new coordinates
         print(' Detecting points of change...')
         for ix, row in tqdm(morphological_tessellation.iterrows(), total=morphological_tessellation.shape[0]):
             corners = []
             change = []
+
             cell = row.geometry
             coords = cell.exterior.coords
             for i in coords:
@@ -417,17 +419,38 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                 for points in change:
                     x_new = np.mean([points[0].x, points[1].x])
                     y_new = np.mean([points[0].y, points[1].y])
-                    new = (x_new, y_new)
+                    new = [(x_new, y_new), id]
                     changes[(points[0].x, points[0].y)] = new
                     changes[(points[1].x, points[1].y)] = new
+                    id = id + 1
 
         print(' Generating new geometry...')
         for ix, row in tqdm(morphological_tessellation.iterrows(), total=morphological_tessellation.shape[0]):
             cell = row.geometry
             coords = list(cell.exterior.coords)
-            newcoords = [changes[x] if x in changes.keys() else x for x in coords]
+
+            moves = {}
+            for x in coords:
+                if x in changes.keys():
+                    moves[coords.index(x)] = changes[x]
+            keys = list(moves.keys())
+            delete_points = []
+            for move in range(len(keys)):
+                if move < len(keys) - 1:
+                    if moves[keys[move]][1] == moves[keys[move + 1]][1] and keys[move + 1] - keys[move] < 5:
+                        delete_points = delete_points + (coords[keys[move]:keys[move + 1]])
+
+            newcoords = [changes[x][0] if x in changes.keys() else x for x in coords]
+            for coord in newcoords:
+                if coord in delete_points:
+                    newcoords.remove(coord)
             if coords != newcoords:
-                newgeom = Polygon(newcoords)
+                newgeom = Polygon(newcoords).buffer(0)
+                if newgeom.type == 'MultiPolygon':
+                    if newgeom[0].area < newgeom[1].area:
+                        newgeom = newgeom[1]
+                    else:
+                        newgeom = newgeom[0]
                 morphological_tessellation.loc[ix, 'geometry'] = newgeom
 
     print('Done in', timer() - start, 'seconds')
