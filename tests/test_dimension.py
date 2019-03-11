@@ -7,7 +7,7 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 import numpy as np
 
-from momepy.shape import make_circle
+from momepy.shape import _make_circle
 from momepy import Queen_higher
 
 
@@ -78,7 +78,7 @@ class TestDimensions:
 
     def test_longest_axis_length(self):
         self.df_buildings['long_axis'] = mm.longest_axis_length(self.df_buildings)
-        check = make_circle(self.df_buildings.geometry[0].convex_hull.exterior.coords)[2] * 2
+        check = _make_circle(self.df_buildings.geometry[0].convex_hull.exterior.coords)[2] * 2
         assert self.df_buildings['long_axis'][0] == check
 
     def test_effective_mesh(self):
