@@ -182,9 +182,9 @@ def shared_walls_ratio(objects, unique_id, perimeters=None):
     return series
 
 
-def street_alignment(objects, streets, orientation_column, network_id_column):
+def street_alignment(objects, streets, orientations, network_id_objects, network_id_streets):
     """
-    Calculate the difference between street orientation and orientation of object
+    Calculate the difference between street orientation and orientation of object in degrees
 
     Orientation of street segment is represented by the orientation of line
     connecting first and last point of the segment. Network ID linking each object
@@ -199,21 +199,43 @@ def street_alignment(objects, streets, orientation_column, network_id_column):
         GeoDataFrame containing objects to analyse
     streets : GeoDataFrame
         GeoDataFrame containing street network
-    orientation_column : str
-        name of the column where is stored object orientation value
-    network_id_column : str
-        name of the column with unique network id (has to be defined beforehand)
-        (can be defined using unique_id())
+    orientations : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored object orientation value
+        (can be calculated using :py:func:`momepy.distribution.orientation`)
+    network_id_objects : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored object network ID
+    network_id_streets : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series of streets with unique network id (has to be defined beforehand)
+        (can be defined using :py:func:`momepy.elements.unique_id`)
 
     Returns
     -------
     Series
         Series containing resulting values.
+
+    Examples
+    --------
+    >>> buildings_df['street_alignment'] = momepy.street_alignment(buildings_df, streets_df, 'orientation', 'nID', 'nID')
+    Calculating street alignments...
+    100%|██████████| 144/144 [00:00<00:00, 529.94it/s]
+    Street alignments calculated.
+    >>> buildings_df['street_alignment'][0]
+    0.29073888476702336
     """
     # define empty list for results
     results_list = []
 
     print('Calculating street alignments...')
+
+    if type(orientations) is not str:
+        objects['mm_o'] = orientations
+        orientations = 'mm_o'
+    if type(network_id_objects) is not str:
+        objects['mm_nid'] = network_id_objects
+        network_id_objects = 'mm_nid'
+    if type(network_id_streets) is not str:
+        streets['mm_nis'] = network_id_streets
+        network_id_streets = 'mm_nis'
 
     def azimuth(point1, point2):
         '''azimuth between 2 shapely points (interval 0 - 180)'''
@@ -222,11 +244,11 @@ def street_alignment(objects, streets, orientation_column, network_id_column):
 
     # iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        if pd.isnull(row[network_id_column]):
+        if pd.isnull(row[network_id_objects]):
             results_list.append(0)
         else:
-            network_id = row[network_id_column]
-            streetssub = streets.loc[streets[network_id_column] == network_id]
+            network_id = row[network_id_objects]
+            streetssub = streets.loc[streets[network_id_streets] == network_id]
             start = Point(streetssub.iloc[0]['geometry'].coords[0])
             end = Point(streetssub.iloc[0]['geometry'].coords[-1])
             az = azimuth(start, end)
@@ -245,8 +267,14 @@ def street_alignment(objects, streets, orientation_column, network_id_column):
                 az = az - 2 * diff
                 diff = az - 45
                 az = az - 2 * diff
-            results_list.append(abs(row[orientation_column] - az))
+            results_list.append(abs(row[orientations] - az))
     series = pd.Series(results_list)
+    if 'mm_o' in objects.columns:
+        objects.drop(columns=['mm_o'], inplace=True)
+    if 'mm_nid' in objects.columns:
+        objects.drop(columns=['mm_nid'], inplace=True)
+    if 'mm_nis' in streets.columns:
+        streets.drop(columns=['mm_nis'], inplace=True)
     print('Street alignments calculated.')
     return series
 
