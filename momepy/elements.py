@@ -7,7 +7,7 @@ import geopandas as gpd
 import pandas as pd
 from tqdm import tqdm  # progress bar
 import math
-from rtree import index
+# from rtree import index
 from osgeo import ogr
 from shapely.wkt import loads
 import numpy as np
@@ -16,6 +16,7 @@ from shapely.geometry import Point, MultiPoint, LineString, Polygon
 import shapely.ops
 import osmnx as ox
 import operator
+from libpysal.weights import Queen
 
 
 def clean_buildings(objects, height_column):
@@ -696,36 +697,64 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     """
 
     cells_copy = cells.copy()
-    print('Dissolving tesselation...')
-    built_up = cells.geometry.unary_union
 
     print('Buffering streets...')
     street_buff = streets.copy()
     street_buff['geometry'] = streets.buffer(0.1)
 
-    print('Dissolving streets...')
-    street_cut = street_buff.unary_union
+    print('Generating spatial index...')
+    streets_index = street_buff.sindex
+
+    print('Difference...')
+    cells_geom = cells_copy.geometry
+    new_geom = []
+
+    for ix, cell in tqdm(cells_geom.iteritems(), total=cells_geom.shape[0]):
+        # find approximate matches with r-tree, then precise matches from those approximate ones
+        possible_matches_index = list(streets_index.intersection(cell.bounds))
+        possible_matches = street_buff.iloc[possible_matches_index]
+        new_geom.append(cell.difference(possible_matches.geometry.unary_union))
+
+    single_geom = []
+    print('Defining adjacency...')
+    for p in new_geom:
+        if p.type == 'MultiPolygon':
+            for polygon in p:
+                single_geom.append(polygon)
+        else:
+            single_geom.append(p)
+
+    blocks_gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(single_geom))
+    weights_matrix = Queen.from_dataframe(blocks_gdf, silence_warnings=True)
+
+    patches = {}
+    jID = 1
+    for idx, row in tqdm(blocks_gdf.iterrows(), total=blocks_gdf.shape[0]):
+
+        # if the id is already present in courtyards, continue (avoid repetition)
+        if idx in patches:
+            continue
+        else:
+            to_join = [idx]  # list of indices which should be joined together
+            neighbours = []  # list of neighbours
+            weights = weights_matrix.neighbors[idx]  # neighbours from spatial weights
+            for w in weights:
+                neighbours.append(w)  # make a list from weigths
+
+            for n in neighbours:
+                while n not in to_join:  # until there is some neighbour which is not in to_join
+                    to_join.append(n)
+                    weights = weights_matrix.neighbors[n]
+                    for w in weights:
+                        neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
+            for b in to_join:
+                patches[b] = jID  # fill dict with values
+            jID = jID + 1
+
+    blocks_gdf['patch'] = blocks_gdf.index.map(patches)
 
     print('Defining street-based blocks...')
-    street_blocks = built_up.difference(street_cut)
-
-    blocks_gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(street_blocks))
-
-    def multi2single(gpdf):
-        gpdf_singlepoly = gpdf[gpdf.geometry.type == 'Polygon']
-        gpdf_multipoly = gpdf[gpdf.geometry.type == 'MultiPolygon']
-
-        for i, row in gpdf_multipoly.iterrows():
-            Series_geometries = pd.Series(row.geometry)
-            df = pd.concat([gpd.GeoDataFrame(row, crs=gpdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
-            df['geometry'] = Series_geometries
-            gpdf_singlepoly = pd.concat([gpdf_singlepoly, df])
-
-        gpdf_singlepoly.reset_index(inplace=True, drop=True)
-        return gpdf_singlepoly
-
-    print('Multipart to singlepart...')
-    blocks_single = multi2single(blocks_gdf)
+    blocks_single = blocks_gdf.dissolve(by='patch')
 
     blocks_single['geometry'] = blocks_single.buffer(0.1)
 
@@ -739,7 +768,7 @@ def blocks(cells, streets, buildings, id_name, unique_id):
 
     print('Generating centroids...')
     buildings_c = buildings.copy()
-    buildings_c['geometry'] = buildings_c.centroid  # make centroids
+    buildings_c['geometry'] = buildings_c.representative_point()  # make centroids
     blocks_single.crs = buildings.crs
 
     print('Spatial join...')
@@ -753,6 +782,19 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     print('Generating blocks...')
     blocks = cells_copy.dissolve(by=id_name)
     cells_copy = cells_copy.drop([id_name], axis=1)
+
+    def multi2single(gpdf):
+        gpdf_singlepoly = gpdf[gpdf.geometry.type == 'Polygon']
+        gpdf_multipoly = gpdf[gpdf.geometry.type == 'MultiPolygon']
+
+        for i, row in gpdf_multipoly.iterrows():
+            Series_geometries = pd.Series(row.geometry)
+            df = pd.concat([gpd.GeoDataFrame(row, crs=gpdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
+            df['geometry'] = Series_geometries
+            gpdf_singlepoly = pd.concat([gpdf_singlepoly, df])
+
+        gpdf_singlepoly.reset_index(inplace=True, drop=True)
+        return gpdf_singlepoly
 
     print('Multipart to singlepart...')
     blocks = multi2single(blocks)
@@ -780,7 +822,6 @@ def blocks(cells, streets, buildings, id_name, unique_id):
         blocks = blocks.drop(list(blocks.loc[blocks['delete'] == 1].index))
 
     blocks_save = blocks[[id_name, 'geometry']]
-    # blocks_save['geometry'] = blocks_save.buffer(0.000000001)
 
     centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks_save, how='left', op='intersects')
     bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
@@ -1009,11 +1050,11 @@ def blocks(cells, streets, buildings, id_name, unique_id):
 #     print('Done.')
 
 
-def get_network_id(buildings, streets, tesselation, unique_id_column, network_id_column):
+def get_network_id(buildings, streets, unique_id_buildings, network_id, tessellation=None, unique_id_tessellation=None):
     """
     Snap each building to closest street network segment, saves its id.
 
-    Adds nID to buildings and tesselation.
+    Adds network ID to buildings and optionally tesselation.
 
     Parameters
     ----------
