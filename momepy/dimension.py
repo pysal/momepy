@@ -284,11 +284,8 @@ def courtyard_area(objects, areas=None):
         if type(areas) is not str:
             objects['mm_a'] = areas
             areas = 'mm_a'
-        try:
-            series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row[areas], axis=1)
+        series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row[areas], axis=1)
 
-        except KeyError:
-            raise KeyError('ERROR: Building area column named', areas, 'not found. Define areas or set areas to None.')
     else:
         series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row.geometry.area, axis=1)
 
