@@ -9,6 +9,10 @@ from shapely.geometry import LineString, Point
 import numpy as np
 import pandas as pd
 import statistics
+import networkx as nx
+
+from .core import gdf_to_nx
+from .core import nx_to_gdf
 
 
 def orientation(objects):
@@ -718,10 +722,80 @@ def building_adjacency(objects, tessellation, weights_matrix=None, weights_matri
 
     print('Adjacency calculated.')
     return series
-# to be deleted, keep at the end
-#
-# path = "/Users/martin/Strathcloud/Personal Folders/Test data/Royston/buildings.shp"
-# objects = gpd.read_file(path)
-#
-# orientation(objects, 'ptbOri')
-# objects.to_file(path)
+
+
+def neighbours(objects, weights_matrix=None, weighted=False):
+    """
+    Calculate the number of topological neighbours of each object.
+
+    Topological neighbours are defined by queen adjacency. If weighted=True, number of neighbours
+    will be divided by the perimeter of object, to return relative value.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    weights_matrix : libpysal.weights (default None)
+        spatial weights matrix - If None, Queen contiguity matrix will be calculated
+        based on tessellation
+    weighted : bool (default False)
+        if weighted=True, number of neighbours will be divided by the perimeter of object, to return relative value
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    References
+    ---------
+    Hermosilla T, Ruiz LA, Recio JA, et al. (2012) Assessing contextual descriptive features
+    for plot-based classification of urban areas. Landscape and Urban Planning, Elsevier B.V.
+    106(1): 124–137.
+    """
+    # if weights matrix is not passed, generate it from objects
+    if weights_matrix is None:
+        print('Calculating spatial weights...')
+        from libpysal.weights import Queen
+        weights_matrix = Queen.from_dataframe(objects, silence_warnings=True)
+        print('Spatial weights ready...')
+
+    print('Calculating neighbours...')
+    neighbours = []
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        if weighted is True:
+            neighbours.append(len(weights_matrix.neighbors[index]) / row.geometry.length)
+        else:
+            neighbours.append(len(weights_matrix.neighbors[index]))
+
+    series = pd.Series(neighbours)
+    print('Neighbours calculated.')
+    return series
+
+
+def node_degree(graph=None, geodataframe=None, target='gdf'):
+    if graph is not None and geodataframe is not None:
+        import warnings
+        warnings.war('Both graph and geodataframe were passed. Graph will be used for calculation.')
+
+    netx = None
+    if graph is not None:
+        netx = graph
+    elif geodataframe is not None:
+        if netx is None:
+            netx = gdf_to_nx(geodataframe)
+    else:
+        raise Warning('Either graph or geodataframe must be passed as an argument.')
+
+    degree = dict(nx.degree(netx))
+    nx.set_node_attributes(netx, degree, 'degree')
+
+    if target == 'gdf':
+        nodes = nx_to_gdf(netx, edges=False)
+        return nodes
+    elif target == 'graph':
+        return netx
+    else:
+        raise Warning('Target {} is not supported. Use "gdf" for geopandas.GeoDataFrame or "graph" for networkx.Graph.'.format(target))
