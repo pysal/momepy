@@ -3,57 +3,8 @@
 
 import geopandas as gpd
 import libpysal
-
-from .dimension import *
-from .shape import *
-from .distribution import *
-from .intensity import *
-from .diversity import *
-
-
-# to be removed
-def gethead(path):
-    file = gpd.read_file(path)
-    show = file.head(5)
-    print(show)
-
-
-# simple reusing of gpd.read_file. Returns GeoDataFrame.
-def load(path):
-    print('Loading file', path)
-    objects = gpd.read_file(path)  # load file into geopandas
-    print('Shapefile loaded.')
-    return objects
-
-
-# simple reusing of gpd.to_file. Saves GeoDataFrame to file.
-def save(objects, path):
-    print('Saving GeoDataFrame to', path)
-    objects.to_file(path)  # load file into geopandas
-    print('Shapefile saved.')
-
-# dimension characters
-'''
-building_dimensions():
-    Calculate characters all based on buildings.
-
-    objects = GeoDataFrame with building shapes
-
-    Uses default values of momepy.
-
-    ADD MISSING
-'''
-
-
-def building_dimensions(objects):
-
-    area(objects, 'pdbAre')
-    perimeter(objects, 'pdbPer')
-    volume(objects, column_name='pdbVol', area_column='pdbAre', height_column='pdbHei', area_calculated=True)
-    floor_area(objects, column_name='pdbFlA', area_column='pdbAre', height_column='pdbHei', area_calculated=True)
-    courtyard_area(objects, column_name='pdbCoA', area_column='pdbAre', area_calculated=True)
-
-    # return objects
+from shapely.geometry import Point
+import networkx as nx
 
 
 def Queen_higher(dataframe, k):
@@ -88,3 +39,40 @@ def Queen_higher(dataframe, k):
         i_order = libpysal.weights.higher_order(first_order, k=i)
         joined = libpysal.weights.w_union(joined, i_order)
     return joined
+
+
+def gdf_to_nx(gdf_network):
+    # generate graph from GeoDataFrame of LineStrings
+    net = nx.Graph()
+    net.graph['crs'] = gdf_network.crs
+    fields = list(gdf_network.columns)
+
+    for index, row in gdf_network.iterrows():
+        first = row.geometry.coords[0]
+        last = row.geometry.coords[-1]
+
+        data = [row[f] for f in fields]
+        attributes = dict(zip(fields, data))
+        net.add_edge(first, last, **attributes)
+
+    return net
+
+
+def nx_to_gdf(net, nodes=True, edges=True):
+    # generate nodes and edges geodataframes from graph
+    if nodes is True:
+        node_xy, node_data = zip(*net.nodes(data=True))
+        gdf_nodes = gpd.GeoDataFrame(list(node_data), geometry=[Point(i, j) for i, j in node_xy])
+        gdf_nodes.crs = net.graph['crs']
+
+    if edges is True:
+        starts, ends, edge_data = zip(*net.edges(data=True))
+        gdf_edges = gpd.GeoDataFrame(list(edge_data))
+        gdf_edges.crs = net.graph['crs']
+
+    if nodes is True and edges is True:
+        return gdf_nodes, gdf_edges
+    elif nodes is True and edges is False:
+        return gdf_nodes
+    else:
+        return gdf_edges
