@@ -446,7 +446,10 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                 if coord in delete_points:
                     newcoords.remove(coord)
             if coords != newcoords:
-                newgeom = Polygon(newcoords).buffer(0)
+                if not cell.interiors:
+                    newgeom = Polygon(newcoords).buffer(0)
+                else:
+                    newgeom = Polygon(newcoords, holes=cell.interiors)
                 if newgeom.type == 'MultiPolygon':
                     if newgeom[0].area < newgeom[1].area:
                         newgeom = newgeom[1]
