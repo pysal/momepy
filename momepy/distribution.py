@@ -11,8 +11,8 @@ import pandas as pd
 import statistics
 import networkx as nx
 
-from .core import gdf_to_nx
-from .core import nx_to_gdf
+from .utils import gdf_to_nx
+from .utils import nx_to_gdf
 
 
 def orientation(objects):
