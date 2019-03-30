@@ -7,85 +7,17 @@ import geopandas as gpd
 import pandas as pd
 from tqdm import tqdm  # progress bar
 import math
-# from rtree import index
+import rtree
 from osgeo import ogr
 from shapely.wkt import loads
 import numpy as np
 from scipy.spatial import Voronoi
-from shapely.geometry import Point, MultiPoint, LineString, Polygon
-import shapely.ops
+from shapely.geometry import Point, LineString, Polygon
 import osmnx as ox
 import operator
 from libpysal.weights import Queen
 
-
-def clean_buildings(objects, height_column):
-    """
-    Clean building geometry.
-
-    Delete building with zero height (to avoid division by 0). Be careful, this might
-    negatively affect your analysis.
-
-    Parameters
-    ----------
-    objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
-    height_column : str
-        name of the column of objects gdf where is stored height value
-
-    Returns
-    -------
-    GeoDataFrame
-    """
-
-    objects = objects[objects[height_column] > 0]
-    print('Zero height buildings ommited.')
-    return objects
-
-
-def clean_null(objects):
-    """
-    Clean null geometry.
-
-    Delete rows of GeoDataFrame with null geometry.
-
-    Parameters
-    ----------
-    objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
-
-    Returns
-    -------
-    GeoDataFrame
-    """
-    objects_none = objects[objects['geometry'].notnull()]  # filter nulls
-    return objects_none
-
-
-def unique_id(objects):
-    """
-    Add an attribute with unique ID to each row of GeoDataFrame.
-
-    Parameters
-    ----------
-    objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
-
-    Returns
-    -------
-    Series
-        Series containing resulting values.
-
-    """
-    # define empty list for results
-    id_list = []
-    id = 1
-    for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        id_list.append(id)
-        id = id + 1
-
-    series = pd.Series(id_list)
-    return series
+from .utils import _multi2single
 
 
 def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False, minimum=2):
@@ -786,21 +718,8 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     blocks = cells_copy.dissolve(by=id_name)
     cells_copy = cells_copy.drop([id_name], axis=1)
 
-    def multi2single(gpdf):
-        gpdf_singlepoly = gpdf[gpdf.geometry.type == 'Polygon']
-        gpdf_multipoly = gpdf[gpdf.geometry.type == 'MultiPolygon']
-
-        for i, row in gpdf_multipoly.iterrows():
-            Series_geometries = pd.Series(row.geometry)
-            df = pd.concat([gpd.GeoDataFrame(row, crs=gpdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
-            df['geometry'] = Series_geometries
-            gpdf_singlepoly = pd.concat([gpdf_singlepoly, df])
-
-        gpdf_singlepoly.reset_index(inplace=True, drop=True)
-        return gpdf_singlepoly
-
     print('Multipart to singlepart...')
-    blocks = multi2single(blocks)
+    blocks = _multi2single(blocks)
 
     blocks['geometry'] = blocks.exterior
 
@@ -1147,7 +1066,7 @@ def get_network_id(buildings, streets, unique_id_buildings, network_id, tessella
                     # box = left, bottom, right, top
                     yield (sindx, box, (segment, nid))
                     sindx += 1
-        return index.Index(generate_items())
+        return rtree.index.Index(generate_items())
 
     def get_solution(idx, points):
         result = {}
