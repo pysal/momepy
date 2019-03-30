@@ -9,14 +9,6 @@ momepy.connectivity module
     :undoc-members:
     :show-inheritance:
 
-momepy.core module
-------------------
-
-.. automodule:: momepy.core
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 momepy.dimension module
 -----------------------
 
@@ -61,6 +53,14 @@ momepy.shape module
 -------------------
 
 .. automodule:: momepy.shape
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+momepy.utils module
+-------------------
+
+.. automodule:: momepy.utils
     :members:
     :undoc-members:
     :show-inheritance:
