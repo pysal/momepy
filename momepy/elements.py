@@ -47,46 +47,37 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
     # reprojected_crs['x_0'] = 0
     # reprojected_crs['y_0'] = 0
 
+    tqdm.pandas()
+    # move dataframe close to 0 to eliminate imprecision of Qhull
     bounds = buildings['geometry'].bounds
     centre_x = -(bounds['maxx'].max() + bounds['minx'].min()) / 2
     centre_y = -(bounds['maxy'].max() + bounds['miny'].min()) / 2
     objects = buildings.copy()
     objects['geometry'] = objects['geometry'].translate(xoff=centre_x, yoff=centre_y)
 
-    # objects = buildings.to_crs(reprojected_crs)
-
-    from timeit import default_timer as timer
-    tqdm.pandas()
-    start = timer()
-    start_ = timer()
     # buffer geometry to resolve shared walls
     print('Bufferring geometry...')
-    objects['geometry'] = objects.geometry.progress_apply(lambda g: g.buffer(-0.5, cap_style=2, join_style=2))
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
-    print('Simplifying geometry...')
+    objects['geometry'] = objects.geometry.apply(lambda g: g.buffer(-0.5, cap_style=2, join_style=2))
+
     # simplify geometry before Voronoi
+    print('Simplifying geometry...')
     objects['geometry'] = objects.simplify(0.25, preserve_topology=True)
     obj_simple = objects.copy()
 
-    # generate built_up area around buildings to resolve the edge
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
     print('Preparing buffer zone for edge resolving (buffering)...')
     obj_simple['geometry'] = obj_simple.buffer(cut_buffer)
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
+
     print('Preparing buffer zone for edge resolving (dissolving)...')
     obj_simple['diss'] = 0
-    built_up = obj_simple.dissolve(by='diss')
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
-    print('Preparing buffer zone for edge resolving (convex hull)...')
-    hull = built_up.convex_hull.buffer(cut_buffer)
-    print('Done in', timer() - start, 'seconds')
+    built_up_df = obj_simple.dissolve(by='diss')
+    built_up = built_up_df.geometry[0]
+
+    # resolve multipart polygons, singlepart are needed for densification
+    print('Converting multipart geometry to singlepart...')
+    objects = _multi2single(objects)
 
     # densify geometry before Voronoi tesselation
-    def densify(geom):
+    def _densify(geom):
         wkt = geom.wkt  # shapely Polygon to wkt
         geom = ogr.CreateGeometryFromWkt(wkt)  # create ogr geometry
         geom.Segmentize(2)  # densify geometry by 2 metres
@@ -94,34 +85,12 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
         new = loads(wkt2)  # wkt to shapely Polygon
         return new
 
-    start = timer()
     print('Densifying geometry...')
-    objects['geometry'] = objects['geometry'].progress_map(densify)
+    objects['geometry'] = objects['geometry'].progress_map(_densify)
 
-    # resolve multipart polygons, singlepart are needed
-    def multi2single(gpdf):
-        gpdf_singlepoly = gpdf[gpdf.geometry.type == 'Polygon']
-        gpdf_multipoly = gpdf[gpdf.geometry.type == 'MultiPolygon']
-
-        for i, row in gpdf_multipoly.iterrows():
-            Series_geometries = pd.Series(row.geometry)
-            df = pd.concat([gpd.GeoDataFrame(row, crs=gpdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
-            df['geometry'] = Series_geometries
-            gpdf_singlepoly = pd.concat([gpdf_singlepoly, df])
-
-        gpdf_singlepoly.reset_index(inplace=True, drop=True)
-        return gpdf_singlepoly
-
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
-    print('Converting multipart geometry to singlepart...')
-    objects = multi2single(objects)
-
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
     print('Generating input point array...')
-
-    list_points = []
+    points = []
+    ids = []
     for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         poly_ext = row['geometry'].boundary
         if poly_ext is not None:
@@ -130,176 +99,102 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                     point_coords = line.coords
                     row_array = np.array(point_coords).tolist()
                     for i in range(len(row_array)):
-                        list_points.append(row_array[i])
+                        points.append(row_array[i])
+                        ids.append(row[unique_id])
             elif poly_ext.type == 'LineString':
                 point_coords = poly_ext.coords
                 row_array = np.array(point_coords).tolist()
                 for i in range(len(row_array)):
-                    list_points.append(row_array[i])
+                    points.append(row_array[i])
+                    ids.append(row[unique_id])
             else:
                 raise Exception('Boundary type is {}'.format(poly_ext.type))
 
-    # add hull
-    point_coords = hull[0].boundary.coords
-    row_array = np.array(point_coords).tolist()
-    for i in range(len(row_array)):
-        list_points.append(row_array[i])
+    # add convex hull buffered by cut distance to eliminate infinity issues
+    print('Generating convex hull...')
+    hull = built_up.convex_hull.buffer(cut_buffer)
+    hull_array = np.array(hull.boundary.coords).tolist()
+    for i in range(len(hull_array)):
+        points.append(hull_array[i])
+        ids.append(-1)
 
-    voronoi_points = np.array(list_points)
+    voronoi_points = np.array(points)  # array of points as an input of Voronoi
 
-    # make voronoi diagram
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
     print('Generating Voronoi diagram...')
     voronoi_diagram = Voronoi(voronoi_points)
-    # generate lines from scipy voronoi output
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
-    print('Generating Voronoi ridges...')
-    lines = [LineString(voronoi_diagram.vertices[line]) for line in voronoi_diagram.ridge_vertices if -1 not in line]
 
-    # generate dataframe with polygons clipped by built_up
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
-    print('Generating Voronoi geometry...')
-    result = pd.DataFrame({'geometry':
-                          [poly for poly in shapely.ops.polygonize(lines)]})
+    print('Generating GeoDataFrame...')
+    # generate DataFrame of results
+    regions = pd.DataFrame()
+    regions[unique_id] = ids  # add unique id
+    regions['region'] = voronoi_diagram.point_region  # add region id for each point
 
-    # generate geoDataFrame of Voronoi polygons
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
-    print('Generating GeoDataFrame of Voronoi polygons...')
-    voronoi_polygons = gpd.GeoDataFrame(result, geometry='geometry')
-    voronoi_polygons = voronoi_polygons.loc[voronoi_polygons['geometry'].length < 1000000]
-    # set crs
-    voronoi_polygons.crs = objects.crs
-    print('Done in', timer() - start, 'seconds')
+    # add vertices of each polygon
+    vertices = []
+    for region in regions.region:
+        vertices.append(voronoi_diagram.regions[region])
+    regions['vertices'] = vertices
 
-    start = timer()
-    print('Generating MultiPoint geometry...')
-
-    def pointize(geom):
-        multipoint = []
-        if geom.boundary.type == 'MultiLineString':
-            for line in geom.boundary:
-                arr = line.coords.xy
-                for p in range(len(arr[0])):
-                    point = (arr[0][p], arr[1][p])
-                    multipoint.append(point)
-        elif geom.boundary.type == 'LineString':
-            arr = geom.boundary.coords.xy
-            for p in range(len(arr[0])):
-                point = (arr[0][p], arr[1][p])
-                multipoint.append(point)
+    # convert vertices to Polygons
+    polygons = []
+    for region in tqdm(regions.vertices, desc='Vertices to Polygons'):
+        if -1 not in region:
+            polygons.append(Polygon(voronoi_diagram.vertices[region]))
         else:
-            raise Exception('Boundary type is {}'.format(geom.boundary.type))
-        new = MultiPoint(list(set(multipoint)))
-        return new
+            polygons.append(None)
+    # save polygons as geometry column
+    regions['geometry'] = polygons
 
-    objects_none = objects[objects['geometry'].notnull()]
-    objects_none['geometry'] = objects_none['geometry'].progress_map(pointize)
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
-    print('Spatial join of MultiPoint geometry and Voronoi polygons...')
-    # spatial join
-    objects_none = objects_none.dropna(subset=['geometry'])
-    voronoi_with_id = gpd.sjoin(voronoi_polygons, objects_none, how='left')
-    voronoi_with_id.crs = objects.crs
+    # generate GeoDataFrame
+    regions_gdf = gpd.GeoDataFrame(regions.dropna(), geometry='geometry')
+    regions_gdf = regions_gdf.loc[regions_gdf['geometry'].length < 1000000]  # delete errors
+    regions_gdf = regions_gdf.loc[regions_gdf[unique_id] != -1]  # delete hull-based cells
+    regions_gdf.crs = buildings.crs
 
-    # resolve thise cells which were not joined spatially (again, due to unprecision caused by scipy Voronoi function)
-    # select those unjoined
-    unjoined = voronoi_with_id[voronoi_with_id[unique_id].isnull()]
-    print('Done in', timer() - start, 'seconds')
-    if len(unjoined.index) > 0:
-        start = timer()
-        print('Fixing unjoined geometry:', len(unjoined.index), 'problems...')
-        # for each polygon, find neighbours, measure boundary and set uID to the most neighbouring one
-        print(' Building R-tree...')
-        join_index = voronoi_with_id.sindex
-        print(' Done in', timer() - start, 'seconds')
-        start = timer()
-        for idx, row in tqdm(unjoined.iterrows(), total=unjoined.shape[0]):
-            neighbors = list(join_index.intersection(row.geometry.bounds))  # find neigbours
-            neighbors_ids = []
-            for n in neighbors:
-                neighbors_ids.append(voronoi_with_id.iloc[n][unique_id])
-            neighbors_ids = [x for x in neighbors_ids if str(x) != 'nan']  # remove polygon itself
-
-            global boundaries
-            boundaries = {}
-            for i in neighbors_ids:
-                subset = voronoi_with_id.loc[voronoi_with_id[unique_id] == i]['geometry']
-                le = 0
-                for s in subset:
-                    le = le + row.geometry.intersection(s).length
-                boundaries[i] = le
-
-            voronoi_with_id.loc[idx, unique_id] = max(boundaries.items(), key=operator.itemgetter(1))[0]
-
-        unjoined2 = voronoi_with_id[voronoi_with_id[unique_id].isnull()]
-        if len(unjoined2.index) != 0:
-            raise Exception('Some geometry remained unfinxed: {} problems'.format(len(unjoined2.index)))
-        # dissolve polygons by unique_id
-        print('Done in', timer() - start, 'seconds')
-    start = timer()
     print('Dissolving Voronoi polygons...')
-    voronoi_with_id['geometry'] = voronoi_with_id.buffer(0)
-    voronoi_plots = voronoi_with_id.dissolve(by=unique_id)
-    voronoi_plots[unique_id] = voronoi_plots.index.astype('float')  # save unique id to column from index
+    morphological_tessellation = regions_gdf[[unique_id, 'geometry']].dissolve(by=unique_id)
+    morphological_tessellation[unique_id] = morphological_tessellation.index.astype('float')  # save unique id to column from index
 
     # cut infinity of voronoi by set buffer (thanks for script to Geoff Boeing)
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
     print('Preparing buffer zone for edge resolving (quadrat cut)...')
-    geometry = built_up['geometry'].iloc[0].boundary
-    # quadrat_width is in the units the geometry is in
+    geometry = built_up.boundary
     geometry_cut = ox.quadrat_cut_geometry(geometry, quadrat_width=100)
 
-    # build the r-tree index
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
     print('Building R-tree...')
-    sindex = voronoi_plots.sindex
+    sindex = morphological_tessellation.sindex
     # find the points that intersect with each subpolygon and add them to points_within_geometry
     to_cut = pd.DataFrame()
     for poly in geometry_cut:
         # find approximate matches with r-tree, then precise matches from those approximate ones
         possible_matches_index = list(sindex.intersection(poly.bounds))
-        possible_matches = voronoi_plots.iloc[possible_matches_index]
+        possible_matches = morphological_tessellation.iloc[possible_matches_index]
         precise_matches = possible_matches[possible_matches.intersects(poly)]
         to_cut = to_cut.append(precise_matches)
 
     # delete duplicates
     to_cut = to_cut.drop_duplicates(subset=[unique_id])
     subselection = list(to_cut.index)
-    print('Done in', timer() - start, 'seconds')
-    start = timer()
+
     print('Cutting...')
-    for idx, row in tqdm(voronoi_plots.loc[subselection].iterrows(), total=voronoi_plots.loc[subselection].shape[0]):
-        intersection = row.geometry.intersection(built_up['geometry'].iloc[0])
+    for idx, row in tqdm(morphological_tessellation.loc[subselection].iterrows(), total=morphological_tessellation.loc[subselection].shape[0]):
+        intersection = row.geometry.intersection(built_up)
         if intersection.type == 'MultiPolygon':
             areas = {}
             for p in range(len(intersection)):
                 area = intersection[p].area
                 areas[p] = area
             maximal = max(areas.items(), key=operator.itemgetter(1))[0]
-            voronoi_plots.loc[idx, 'geometry'] = intersection[maximal]
+            morphological_tessellation.loc[idx, 'geometry'] = intersection[maximal]
         elif intersection.type == 'GeometryCollection':
             for geom in list(intersection.geoms):
                 if geom.type != 'Polygon':
                     pass
                 else:
-                    voronoi_plots.loc[idx, 'geometry'] = geom
+                    morphological_tessellation.loc[idx, 'geometry'] = geom
         else:
-            voronoi_plots.loc[idx, 'geometry'] = intersection
+            morphological_tessellation.loc[idx, 'geometry'] = intersection
 
-    voronoi_plots = voronoi_plots.drop(['index_right'], axis=1)
-
-    voronoi_plots['geometry'] = voronoi_plots['geometry'].translate(xoff=-centre_x, yoff=-centre_y)
-
-    morphological_tessellation = voronoi_plots
-    morphological_tessellation.reset_index(drop=True, inplace=True)
-
+    # check against input layer
     ids_original = list(buildings[unique_id])
     ids_generated = list(morphological_tessellation[unique_id])
     if len(ids_original) != len(ids_generated):
@@ -308,16 +203,17 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
         warnings.warn("Tessellation does not fully match buildings. {len} element(s) collapsed "
                       "during generation - unique_id: {i}".format(len=len(diff), i=diff))
 
+    # check MultiPolygons - usually caused by error in input geometry
     uids = morphological_tessellation[morphological_tessellation.geometry.type == 'MultiPolygon'][unique_id]
     if len(uids) != 0:
         import warnings
         warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
                       'unique_id of affected elements: {}'.format(list(uids)))
 
+    # resolve unprecise corners
     if queen_corners is True:
         print('Generating queen corners...')
         print(' Generating spatial index...')
-        sindex = morphological_tessellation.sindex
         changes = {}
         id = 0
         # detect points which should be changed and calculate new coordinates
@@ -389,8 +285,9 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                         newgeom = newgeom[0]
                 morphological_tessellation.loc[ix, 'geometry'] = newgeom
 
-    print('Done in', timer() - start, 'seconds')
-    print('Done. Tessellation finished in', timer() - start_, 'seconds.')
+    # translate back to true position
+    morphological_tessellation['geometry'] = morphological_tessellation['geometry'].translate(xoff=-centre_x, yoff=-centre_y)
+    print('Tessellation finished.')
     return morphological_tessellation
 
 
