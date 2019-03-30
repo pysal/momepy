@@ -323,7 +323,7 @@ def cell_alignment(objects, tessellation, orientation_column, cell_orientation_c
     return series
 
 
-def alignment(objects, orientation_column, tessellation, weights_matrix=None):
+def alignment(objects, orientation_column, tessellation, unique_id, weights_matrix=None):
     """
     Calculate the mean deviation of solar orientation of objects on adjacent cells from object
 
@@ -340,6 +340,8 @@ def alignment(objects, orientation_column, tessellation, weights_matrix=None):
         GeoDataFrame containing morphological tessellation - source of weights_matrix.
         It is crucial to use exactly same input as was used durign the calculation of weights matrix.
         If weights_matrix is None, tessellation is used to calulate it.
+    unique_id : str
+        name of the column with unique id
     weights_matrix : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on tessellation
@@ -362,17 +364,17 @@ def alignment(objects, orientation_column, tessellation, weights_matrix=None):
 
     # iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
+        id = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
         neighbours = weights_matrix.neighbors[id]
         neighbours_ids = []
 
         for n in neighbours:
-            uniq = tessellation.iloc[n]['uID']
+            uniq = tessellation.iloc[n][unique_id]
             neighbours_ids.append(uniq)
 
         orientations = []
         for i in neighbours_ids:
-            ori = objects.loc[objects['uID'] == i].iloc[0][orientation_column]
+            ori = objects.loc[objects[unique_id] == i].iloc[0][orientation_column]
             orientations.append(ori)
 
         deviations = []
@@ -391,7 +393,7 @@ def alignment(objects, orientation_column, tessellation, weights_matrix=None):
     return series
 
 
-def neighbour_distance(objects, tessellation, weights_matrix=None):
+def neighbour_distance(objects, tessellation, unique_id, weights_matrix=None):
     """
     Calculate the mean distance to buildings on adjacent cells
 
@@ -406,6 +408,8 @@ def neighbour_distance(objects, tessellation, weights_matrix=None):
         GeoDataFrame containing morphological tessellation - source of weights_matrix.
         It is crucial to use exactly same input as was used durign the calculation of weights matrix.
         If weights_matrix is None, tessellation is used to calulate it.
+    unique_id : str
+        name of the column with unique id
     weights_matrix : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on tessellation
@@ -433,11 +437,11 @@ def neighbour_distance(objects, tessellation, weights_matrix=None):
 
     # iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
+        id = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
         neighbours = weights_matrix.neighbors[id]
 
-        neighbours_ids = tessellation.iloc[neighbours]['uID']
-        building_neighbours = objects.loc[objects['uID'].isin(neighbours_ids)]
+        neighbours_ids = tessellation.iloc[neighbours][unique_id]
+        building_neighbours = objects.loc[objects[unique_id].isin(neighbours_ids)]
         if len(building_neighbours) > 0:
             results_list.append(np.mean(building_neighbours.geometry.distance(row['geometry'])))
         else:
@@ -449,7 +453,7 @@ def neighbour_distance(objects, tessellation, weights_matrix=None):
     return series
 
 
-def mean_interbuilding_distance(objects, tessellation, weights_matrix=None, weights_matrix_higher=None, order=3):
+def mean_interbuilding_distance(objects, tessellation, unique_id, weights_matrix=None, weights_matrix_higher=None, order=3):
     """
     Calculate the mean interbuilding distance within x topological steps
 
@@ -466,6 +470,8 @@ def mean_interbuilding_distance(objects, tessellation, weights_matrix=None, weig
         GeoDataFrame containing morphological tessellation - source of weights_matrix and weights_matrix_higher.
         It is crucial to use exactly same input as was used durign the calculation of weights matrix and weights_matrix_higher.
         If weights_matrix or weights_matrix_higher is None, tessellation is used to calulate it.
+    unique_id : str
+        name of the column with unique id
     weights_matrix : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on tessellation
@@ -511,11 +517,11 @@ def mean_interbuilding_distance(objects, tessellation, weights_matrix=None, weig
     for index, row in tqdm(adj_list.iterrows(), total=adj_list.shape[0]):
         inverted = adj_list[(adj_list.focal == row.neighbor)][(adj_list.neighbor == row.focal)].iloc[0]['distance']
         if inverted == -1:
-            object_id = tessellation.iloc[row.focal.astype(int)]['uID']
-            building_object = objects.loc[objects['uID'] == object_id]
+            object_id = tessellation.iloc[row.focal.astype(int)][unique_id]
+            building_object = objects.loc[objects[unique_id] == object_id]
 
-            neighbours_id = tessellation.iloc[row.neighbor.astype(int)]['uID']
-            building_neighbour = objects.loc[objects['uID'] == neighbours_id]
+            neighbours_id = tessellation.iloc[row.neighbor.astype(int)][unique_id]
+            building_neighbour = objects.loc[objects[unique_id] == neighbours_id]
             adj_list.loc[index, 'distance'] = building_neighbour.iloc[0].geometry.distance(building_object.iloc[0].geometry)
         else:
             adj_list.at[index, 'distance'] = inverted
@@ -524,7 +530,7 @@ def mean_interbuilding_distance(objects, tessellation, weights_matrix=None, weig
     # iterate over objects to get the final values
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         # id to match spatial weights
-        id = tessellation.loc[tessellation['uID'] == row['uID']].index[0]
+        id = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
         # define neighbours based on weights matrix defining analysis area
         neighbours = weights_matrix_higher.neighbors[id]
         neighbours.append(id)
