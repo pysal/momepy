@@ -12,7 +12,7 @@ from momepy.shape import _make_circle, _circle_area
 from momepy import Queen_higher
 
 
-class TestShape:
+class TestDistribution:
 
     def setup_method(self):
 
