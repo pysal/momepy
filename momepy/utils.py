@@ -145,7 +145,7 @@ def gdf_to_nx(gdf_network):
     return net
 
 
-def nx_to_gdf(net, nodes=True, edges=True):
+def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
     """
     Convert networkx.Graph to LineString GeoDataFrame and Point GeoDataFrame
 
@@ -157,11 +157,13 @@ def nx_to_gdf(net, nodes=True, edges=True):
         export nodes gdf
     edges : bool
         export edges gdf
+    spatial_weights : bool
+        export libpysal spatial weights for nodes
 
     Returns
     -------
     GeoDataFrame
-        Selected gdf or tuple of both gdf
+        Selected gdf or tuple of both gdf or tuple of gdfs and weights
 
     """
     # generate nodes and edges geodataframes from graph
@@ -169,6 +171,9 @@ def nx_to_gdf(net, nodes=True, edges=True):
         node_xy, node_data = zip(*net.nodes(data=True))
         gdf_nodes = gpd.GeoDataFrame(list(node_data), geometry=[Point(i, j) for i, j in node_xy])
         gdf_nodes.crs = net.graph['crs']
+        if spatial_weights is True:
+            import libpysal
+            W = libpysal.weights.W.from_networkx(net)
 
     if edges is True:
         starts, ends, edge_data = zip(*net.edges(data=True))
@@ -176,9 +181,15 @@ def nx_to_gdf(net, nodes=True, edges=True):
         gdf_edges.crs = net.graph['crs']
 
     if nodes is True and edges is True:
-        return gdf_nodes, gdf_edges
+        if spatial_weights is True:
+            return gdf_nodes, gdf_edges, W
+        else:
+            return gdf_nodes, gdf_edges
     elif nodes is True and edges is False:
-        return gdf_nodes
+        if spatial_weights is True:
+            return gdf_nodes, W
+        else:
+            return gdf_nodes
     else:
         return gdf_edges
 
