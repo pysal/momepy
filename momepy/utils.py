@@ -70,16 +70,20 @@ def unique_id(objects):
     return series
 
 
-def Queen_higher(dataframe, k):
+def Queen_higher(k, geodataframe=None, weights=None):
     """
     Generate spatial weights based on Queen contiguity of order k
 
+    Pass either geoDataFrame or weights. If both are passed, weights is used.
+
     Parameters
     ----------
-    dataframe : GeoDataFrame
-        GeoDataFrame containing objects to analyse
     k : int
         order of contiguity
+    geodataframe : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    weights : libpysal.weights
+        libpysal.weights of order 1
 
     Returns
     -------
@@ -88,15 +92,21 @@ def Queen_higher(dataframe, k):
 
     Examples
     --------
-    >>> first_order = libpysal.weights.Queen.from_dataframe(dataframe)
+    >>> first_order = libpysal.weights.Queen.from_dataframe(geodataframe)
     >>> first_order.mean_neighbors
     5.848032564450475
-    >>> fourth_order = Queen_higher(dataframe, k=4)
+    >>> fourth_order = Queen_higher(k=4, geodataframe=geodataframe)
     >>> fourth.mean_neighbors
     85.73188602442333
 
     """
-    first_order = libpysal.weights.Queen.from_dataframe(dataframe)
+    if weights is not None:
+        first_order = weights
+    elif geodataframe is not None:
+        first_order = libpysal.weights.Queen.from_dataframe(geodataframe)
+    else:
+        raise Warning('GeoDataFrame of spatial weights must be given.')
+
     joined = first_order
     for i in list(range(2, k + 1)):
         i_order = libpysal.weights.higher_order(first_order, k=i)
