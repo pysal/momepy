@@ -1161,3 +1161,77 @@ def linearity(objects):
 
     print('Linearity calculated.')
     return series
+
+
+def compactness_weighted_axis(objects, areas=None, perimeters=None, longest_axis=None):
+    """
+    Calculates compactness-weighted axis of each object in given geoDataFrame.
+
+    Initially designed for blocks.
+
+    .. math::
+        d_{i} \\times\\left(\\frac{4}{\\pi}-\\frac{16 (area_{i})}{perimeter_{i}^{2}}\\right)
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects
+    areas : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        during the process without saving them separately.
+    perimeters : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value. If set to None, function will calculate perimeters
+        during the process without saving them separately.
+    longest_axis : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored longest axis length value. If set to None, function will calculate it
+        during the process without saving them separately.
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    References
+    ---------
+    Resilience project
+
+    Examples
+    --------
+
+    """
+
+    print('Calculating compactness-weighted axis...')
+
+    if perimeters is None:
+        objects['mm_p'] = objects.geometry.length
+        perimeters = 'mm_p'
+    else:
+        if type(perimeters) is not str:
+            objects['mm_p'] = perimeters
+            perimeters = 'mm_p'
+
+    if longest_axis is None:
+        from .dimension import longest_axis_length
+        objects['mm_la'] = longest_axis_length(objects)
+        longest_axis = 'mm_la'
+    else:
+        if type(longest_axis) is not str:
+            objects['mm_la'] = longest_axis
+            longest_axis = 'mm_la'
+
+    if areas is None:
+        series = objects.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row.geometry.area) / ((row[perimeters]) ** 2)), axis=1)
+    else:
+        if type(areas) is not str:
+            objects['mm_a'] = areas
+            areas = 'mm_a'
+        series = objects.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row[areas]) / ((row[perimeters]) ** 2)), axis=1)
+
+    if 'mm_a' in objects.columns:
+        objects.drop(columns=['mm_a'], inplace=True)
+    if 'mm_p' in objects.columns:
+        objects.drop(columns=['mm_p'], inplace=True)
+    if 'mm_la' in objects.columns:
+        objects.drop(columns=['mm_la'], inplace=True)
+    print('Fractal dimension calculated.')
+    return series
