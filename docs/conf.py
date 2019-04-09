@@ -15,14 +15,13 @@
 import os
 import sys
 import sphinx_bootstrap_theme
-# sys.path.insert(0, os.path.abspath('.'))
 sys.path.append(os.path.abspath('../../momepy'))
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'momepy'
-copyright = '2018, Martin Fleischmann'
+copyright = '2018, University of Strathclyde'
 author = 'Martin Fleischmann'
 
 # The short X.Y version
@@ -43,6 +42,7 @@ release = '0.1alpha'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.autosummary',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
@@ -89,12 +89,76 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+
+    # Navigation bar title. (Default: ``project`` value)
+    'navbar_title': "momepy",
+
+    # Render the next and previous page links in navbar. (Default: true)
+    'navbar_sidebarrel': False,
+
+    # Render the current pages TOC in the navbar. (Default: true)
+    # 'navbar_pagenav': True,
+    # 'navbar_pagenav': False,
+
+    # No sidebar
+    'nosidebar': True,
+
+    # Tab name for the current pages TOC. (Default: "Page")
+    # 'navbar_pagenav_name': "Page",
+
+    # Global TOC depth for "site" navbar tab. (Default: 1)
+    # Switching to -1 shows all levels.
+    'globaltoc_depth': 2,
+
+    # Include hidden TOCs in Site navbar?
+    #
+    # Note: If this is "false", you cannot have mixed ``:hidden:`` and
+    # non-hidden ``toctree`` directives in the same page, or else the build
+    # will break.
+    #
+    # Values: "true" (default) or "false"
+    'globaltoc_includehidden': "true",
+
+    # HTML navbar class (Default: "navbar") to attach to <div> element.
+    # For black navbar, do "navbar navbar-inverse"
+    # 'navbar_class': "navbar navbar-inverse",
+
+    # Fix navigation bar to top of page?
+    # Values: "true" (default) or "false"
+    'navbar_fixed_top': "true",
+
+
+    # Location of link to source.
+    # Options are "nav" (default), "footer" or anything else to exclude.
+    'source_link_position': 'footer',
+
+    # Bootswatch (http://bootswatch.com/) theme.
+    #
+    # Options are nothing (default) or the name of a valid theme
+    # such as "amelia" or "cosmo", "yeti", "flatly".
+    'bootswatch_theme': "yeti",
+
+    # Choose Bootstrap version.
+    # Values: "3" (default) or "2" (in quotes)
+    'bootstrap_version': "3",
+
+    'navbar_links': [
+                    # ("Gallery", "auto_examples/index"),
+                    ("Installation", "install"),
+                    ("Tutorial", "tutorial"),
+                    ("API", "api"),
+    ],
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+def setup(app):
+    app.add_stylesheet("custom.css")  # also can be a full URL
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -183,3 +247,9 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+# Generate the API documentation when building
+autosummary_generate = True
+numpydoc_show_class_members = True
+class_members_toctree = True
+numpydoc_show_inherited_class_members = True
+numpydoc_use_plots = True

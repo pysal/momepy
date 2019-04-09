@@ -1,12 +1,7 @@
-.. momepy documentation master file, created by
-   sphinx-quickstart on Tue Nov 27 11:31:59 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 momepy documentation
 ==================================
 
-Urban Morphology Measuring Toolkit
+Urban Morphology Measuring Toolkit for Python
 
 *momepy* stands for Morphological Measuring in Python
 
@@ -17,10 +12,12 @@ Urban Design Studies Unit, University of Strathclyde
 https://github.com/martinfleis/momepy
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-   momepy
+   install
+   tutorial
+   api
 
 
 Indices and tables
