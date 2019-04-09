@@ -12,7 +12,8 @@ from osgeo import ogr
 from shapely.wkt import loads
 import numpy as np
 from scipy.spatial import Voronoi
-from shapely.geometry import Point, LineString, Polygon
+from shapely.geometry import Point, LineString, Polygon, MultiPolygon
+import shapely
 import osmnx as ox
 import operator
 from libpysal.weights import Queen
@@ -81,6 +82,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
         wkt = geom.wkt  # shapely Polygon to wkt
         geom = ogr.CreateGeometryFromWkt(wkt)  # create ogr geometry
         geom.Segmentize(2)  # densify geometry by 2 metres
+        # geom.CloseRings() # fix for GDAL 2.4.1 bug
         wkt2 = geom.ExportToWkt()  # ogr geometry to wkt
         new = loads(wkt2)  # wkt to shapely Polygon
         return new
@@ -268,6 +270,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                 if move < len(keys) - 1:
                     if moves[keys[move]][1] == moves[keys[move + 1]][1] and keys[move + 1] - keys[move] < 5:
                         delete_points = delete_points + (coords[keys[move]:keys[move + 1]])
+                        # change the code above to have if based on distance not number
 
             newcoords = [changes[x][0] if x in changes.keys() else x for x in coords]
             for coord in newcoords:
@@ -275,15 +278,36 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                     newcoords.remove(coord)
             if coords != newcoords:
                 if not cell.interiors:
-                    newgeom = Polygon(newcoords).buffer(0)
+                    # newgeom = Polygon(newcoords).buffer(0)
+                    be = Polygon(newcoords).exterior
+                    mls = be.intersection(be)
+                    if len(list(shapely.ops.polygonize(mls))) > 1:
+                        newgeom = MultiPolygon(shapely.ops.polygonize(mls))
+                        geoms = []
+                        for g in range(len(newgeom)):
+                            geoms.append(newgeom[g].area)
+                        newgeom = newgeom[geoms.index(max(geoms))]
+                    else:
+                        newgeom = list(shapely.ops.polygonize(mls))[0]
                 else:
                     newgeom = Polygon(newcoords, holes=cell.interiors)
-                if newgeom.type == 'MultiPolygon':
-                    if newgeom[0].area < newgeom[1].area:
-                        newgeom = newgeom[1]
-                    else:
-                        newgeom = newgeom[0]
                 morphological_tessellation.loc[ix, 'geometry'] = newgeom
+
+        # check against input layer
+        ids_original = list(buildings[unique_id])
+        ids_generated = list(morphological_tessellation[unique_id])
+        if len(ids_original) != len(ids_generated):
+            import warnings
+            diff = set(ids_original).difference(ids_generated)
+            warnings.warn("Tessellation does not fully match buildings. {len} element(s) collapsed "
+                          "during generation - unique_id: {i}".format(len=len(diff), i=diff))
+
+        # check MultiPolygons - usually caused by error in input geometry
+        uids = morphological_tessellation[morphological_tessellation.geometry.type == 'MultiPolygon'][unique_id]
+        if len(uids) != 0:
+            import warnings
+            warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
+                          'unique_id of affected elements: {}'.format(list(uids)))
 
     # translate back to true position
     morphological_tessellation['geometry'] = morphological_tessellation['geometry'].translate(xoff=-centre_x, yoff=-centre_y)
