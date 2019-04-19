@@ -1,5 +1,7 @@
 .. _api_ref:
 
+.. automodule:: momepy
+
 .. currentmodule:: momepy
 
 
