@@ -18,9 +18,6 @@ import sphinx_bootstrap_theme
 
 sys.path.insert(0, os.path.abspath('../../'))
 
-import momepy
-
-
 class Mock(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -44,6 +41,7 @@ MOCK_MODULES = ['geopandas', 'tqdm', 'osmnx', 'libpysal']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
+import momepy
 # -- Project information -----------------------------------------------------
 
 project = 'momepy'
