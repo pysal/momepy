@@ -41,7 +41,7 @@ MOCK_MODULES = ['geopandas', 'tqdm', 'osmnx', 'libpysal']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
-import momepy
+# import momepy
 # -- Project information -----------------------------------------------------
 
 project = 'momepy'
