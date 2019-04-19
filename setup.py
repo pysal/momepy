@@ -5,6 +5,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
+
 setup(name='momepy',
       version='0.1a1',
       description='Urban Morphology Measuring Toolkit',
