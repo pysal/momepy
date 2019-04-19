@@ -20,5 +20,10 @@ Momepy depends on the following packages:
 ## References
 - Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution. Environment and Planning B: Urban Analytics and City Science 24(1): 239980831772507–24.
 
+<<<<<<< HEAD
 ---
 Copyright (c) 2018-2019 University of Strathclyde, Urban Design Studies Unit
+=======
+
+(c) University of Strathclyde, Urban Design Studies Unit
+>>>>>>> cf2e67f8346fb2da86bf69276ed3542e193678eb
