@@ -12,9 +12,9 @@ elements
 .. autosummary::
    :toctree: generated/
 
-   elements.blocks
-   elements.get_network_id
-   elements.tessellation
+   blocks
+   get_network_id
+   tessellation
 
 dimension
 ---------
@@ -22,15 +22,15 @@ dimension
 .. autosummary::
    :toctree: generated/
 
-   dimension.area
-   dimension.courtyard_area
-   dimension.effective_mesh
-   dimension.floor_area
-   dimension.longest_axis_length
-   dimension.perimeter
-   dimension.street_profile
-   dimension.volume
-   dimension.weighted_character
+   area
+   courtyard_area
+   effective_mesh
+   floor_area
+   longest_axis_length
+   perimeter
+   street_profile
+   volume
+   weighted_character
 
 shape
 -----
@@ -38,58 +38,58 @@ shape
 .. autosummary::
   :toctree: generated/
 
-  shape.centroid_corners
-  shape.circular_compactness
-  shape.compactness_weighted_axis
-  shape.convexeity
-  shape.corners
-  shape.courtyard_index
-  shape.elongation
-  shape.equivalent_rectangular_index
-  shape.form_factor
-  shape.fractal_dimension
-  shape.linearity
-  shape.rectangularity
-  shape.shape_index
-  shape.square_compactness
-  shape.squareness
-  shape.volume_facade_ratio
+  centroid_corners
+  circular_compactness
+  compactness_weighted_axis
+  convexeity
+  corners
+  courtyard_index
+  elongation
+  equivalent_rectangular_index
+  form_factor
+  fractal_dimension
+  linearity
+  rectangularity
+  shape_index
+  square_compactness
+  squareness
+  volume_facade_ratio
 
 spatial distribution
 --------------------
 .. autosummary::
   :toctree: generated/
 
-  distribution.alignment
-  distribution.building_adjacency
-  distribution.cell_alignment
-  distribution.mean_interbuilding_distance
-  distribution.neighbour_distance
-  distribution.neighbouring_street_orientation_deviation
-  distribution.neighbours
-  distribution.orientation
-  distribution.shared_walls_ratio
-  distribution.street_alignment
+  alignment
+  building_adjacency
+  cell_alignment
+  mean_interbuilding_distance
+  neighbour_distance
+  neighbouring_street_orientation_deviation
+  neighbours
+  orientation
+  shared_walls_ratio
+  street_alignment
 
 intensity
 ---------
 .. autosummary::
    :toctree: generated/
 
-   intensity.blocks_count
-   intensity.courtyards
-   intensity.covered_area_ratio
-   intensity.elements_in_block
-   intensity.floor_area_ratio
-   intensity.frequency
-   intensity.gross_density
+   blocks_count
+   courtyards
+   covered_area_ratio
+   elements_in_block
+   floor_area_ratio
+   frequency
+   gross_density
 
 utilities
 ---------
 .. autosummary::
    :toctree: generated/
 
-   utils.Queen_higher
-   utils.gdf_to_nx
-   utils.nx_to_gdf
-   utils.unique_id
+   Queen_higher
+   gdf_to_nx
+   nx_to_gdf
+   unique_id
