@@ -13,5 +13,4 @@ setup(name='momepy',
       author_email='martin@martinfleischmann.net',
       url='https://github.com/martinfleis/momepy',
       packages=['momepy'],
-      install_requires=['geopandas'],
       )
