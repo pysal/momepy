@@ -14,6 +14,7 @@ setup(name='momepy',
       author_email='martin@martinfleischmann.net',
       url='https://github.com/martinfleis/momepy',
       packages=['momepy'],
-      install_requires=['pandas', 'scipy', 'numpy' 'geopandas', 'tqdm', 'osmnx',
+      install_requires=['pandas', 'scipy', 'numpy', 'geopandas', 'tqdm',
+                        'osmnx',
                         'libpysal', 'shapely', 'networkx', 'rtree']
       )
