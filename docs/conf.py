@@ -37,11 +37,12 @@ class Mock(object):
             return Mock()
 
 
-MOCK_MODULES = ['geopandas', 'tqdm', 'osmnx', 'libpysal']
+MOCK_MODULES = ['geopandas', 'tqdm', 'osmnx', 'libpysal', 'shapely', 'networkx', 'rtree',
+                'osgeo']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
-# import momepy
+import momepy
 # -- Project information -----------------------------------------------------
 
 project = 'momepy'
