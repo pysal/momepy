@@ -5,4 +5,4 @@ from .elements import *
 from .diversity import *
 from .distribution import *
 from .shape import *
-# import datasets
+import momepy.datasets
