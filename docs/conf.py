@@ -39,8 +39,8 @@ class Mock(object):
 
 
 MOCK_MODULES = ['pandas', 'scipy', 'numpy' 'geopandas', 'tqdm', 'osmnx',
-                'libpysal', 'shapely', 'networkx', 'rtree',
-                'osgeo']
+                'libpysal', 'shapely', 'networkx', 'rtree','osgeo',
+                'shapely.geometry', 'scipy.spatial', 'libpysal.weights']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
