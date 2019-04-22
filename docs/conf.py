@@ -280,3 +280,8 @@ numpydoc_show_class_members = True
 class_members_toctree = True
 numpydoc_show_inherited_class_members = True
 numpydoc_use_plots = True
+
+MOCK_MODULES = ['pandas', 'scipy', 'numpy' 'geopandas', 'tqdm', 'osmnx',
+                'libpysal', 'shapely', 'networkx', 'rtree', 'osgeo']
+
+autodoc_mock_imports = MOCK_MODULES
