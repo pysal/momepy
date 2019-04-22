@@ -18,8 +18,9 @@ import sphinx_bootstrap_theme
 
 sys.path.insert(0, os.path.abspath('../../'))
 
-autodoc_mock_imports = ['pandas', 'scipy', 'numpy' 'geopandas', 'tqdm', 'osmnx',
-                        'libpysal', 'shapely', 'networkx', 'rtree', 'osgeo']
+autodoc_mock_imports = ['numpy', 'scipy', 'pandas', 'shapely', 'geopandas',
+                        'tqdm', 'osmnx',
+                        'libpysal', 'networkx', 'osgeo']
 
 # class Mock(object):
 #     def __init__(self, *args, **kwargs):
