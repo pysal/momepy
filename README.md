@@ -1,7 +1,5 @@
-# momepy
+# momepy [![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](https://momepy.readthedocs.io/en/latest/?badge=latest)
 Urban Morphology Measuring Toolkit
-[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](https://momepy.readthedocs.io/en/latest/?badge=latest)
-
 
 ## Introduction
 Momepy is a project allowing advanced quantitative analysis of urban morphology. Embracing principles of *Urban Morphometrics* (Dibble, 2017), this toolkit aims to provide tools for the development of complex frameworks for a description of urban structures.
