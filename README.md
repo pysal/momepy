@@ -8,7 +8,7 @@ Momepy is a project allowing advanced quantitative analysis of urban morphology.
 
 > *momepy* stands for Morphological Measuring in Python
 
-The development of momepy is still in its initial phase. The whole structure of the package can always be changed, until the release of first versions on PIP. Momepy is a result of ongoing research of [Urban Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of The Urban Form Resilience Project.
+The development of momepy is still in its initial phase. The whole structure of the package can always be changed, until the release of first versions on PIP. Momepy is a result of ongoing research of [Urban Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with University of Strathclyde in Glasgow, UK.
 
 Comments, suggestions, feedback, and contributions, as well as bug reports, are very welcome.
 
