@@ -1,5 +1,5 @@
 # momepy
-[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](https://momepy.readthedocs.io/en/latest/?badge=latest) [![Build Status](https://travis-ci.org/martinfleis/momepy.svg?branch=master)](https://travis-ci.org/martinfleis/momepy)
+[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](https://momepy.readthedocs.io/en/latest/?badge=latest) [![Build Status](https://travis-ci.org/martinfleis/momepy.svg?branch=master)](https://travis-ci.org/martinfleis/momepy) [![codecov](https://codecov.io/gh/martinfleis/momepy/branch/master/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy)
 
 Urban Morphology Measuring Toolkit
 
