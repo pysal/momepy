@@ -116,7 +116,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
     print('Generating convex hull...')
     hull = built_up.convex_hull.buffer(cut_buffer)
     hull_array = np.array(hull.boundary.coords).tolist()
-    for i in range(len(hull_array)):
+    for i in enumerate(hull_array):
         points.append(hull_array[i])
         ids.append(-1)
 
@@ -644,10 +644,10 @@ def blocks(cells, streets, buildings, id_name, unique_id):
 
     blocks['geometry'] = blocks.exterior
 
-    id = 1
+    uid = 1
     for idx, row in tqdm(blocks.iterrows(), total=blocks.shape[0]):
-        blocks.loc[idx, id_name] = id
-        id = id + 1
+        blocks.loc[idx, id_name] = uid
+        uid = uid + 1
         blocks.loc[idx, 'geometry'] = Polygon(row['geometry'])
 
     # if polygon is within another one, delete it
