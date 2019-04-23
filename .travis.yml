@@ -33,7 +33,7 @@ install:
   - conda list
 
 script:
-  - pytest --cov=./
+  - pytest -v --cov-config .coveragerc --cov=momepy tests
 
 after_success:
   - codecov

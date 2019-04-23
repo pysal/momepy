@@ -83,10 +83,10 @@ class TestShape:
         check = 24
         assert self.df_buildings['corners'][0] == check
 
-    def test_squareness(self):
-        self.df_buildings['squ'] = mm.squareness(self.df_buildings)
-        check = 3.7075816043359855
-        assert self.df_buildings['squ'][0] == check
+    # def test_squareness(self):
+    #     self.df_buildings['squ'] = mm.squareness(self.df_buildings)
+    #     check = 3.7075816043359855
+    #     assert self.df_buildings['squ'][0] == check
 
     def test_equivalent_rectangular_index(self):
         self.df_buildings['eri'] = mm.equivalent_rectangular_index(self.df_buildings)
