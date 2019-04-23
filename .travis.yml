@@ -28,7 +28,7 @@ install:
 
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  - conda install geopandas libpysal osmnx tqdm
+  - conda install geopandas libpysal osmnx tqdm pytest
   - python setup.py install
   - conda list
 
