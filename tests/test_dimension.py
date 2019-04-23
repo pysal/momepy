@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(0, "/Users/martin/Strathcloud/Personal Folders/momepy/momepy")
-
 import pytest
 import momepy as mm
 import geopandas as gpd
