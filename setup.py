@@ -12,7 +12,7 @@ for item in os.listdir("momepy/datasets"):
     if not item.startswith('__'):
         if os.path.isdir(os.path.join("momepy/datasets/", item)):
             data_files.append(os.path.join("datasets", item, '*'))
-        elif item.endswith('.zip'):
+        elif item.endswith('.gpkg'):
             data_files.append(os.path.join("datasets", item))
 
 setup(name='momepy',
