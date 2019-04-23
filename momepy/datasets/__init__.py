@@ -19,7 +19,6 @@ def get_path(dataset):
     if dataset in available:
         return os.path.abspath(
             os.path.join(_module_path, dataset + '.gpkg'))
-    else:
-        msg = "The dataset '{data}' is not available. ".format(data=dataset)
-        msg += "Available datasets are {}".format(", ".join(available))
-        raise ValueError(msg)
+    msg = "The dataset '{data}' is not available. ".format(data=dataset)
+    msg += "Available datasets are {}".format(", ".join(available))
+    raise ValueError(msg)

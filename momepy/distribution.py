@@ -159,10 +159,10 @@ def shared_walls_ratio(objects, unique_id, perimeters=None):
         objects['mm_p'] = objects.geometry.length
         perimeters = 'mm_p'
     else:
-        if type(perimeters) is not str:
+        if not isinstance(perimeters, str):
             objects['mm_p'] = perimeters
             perimeters = 'mm_p'
-    if type(unique_id) is not str:
+    if not isinstance(unique_id, str):
         objects['mm_uid'] = unique_id
         unique_id = 'mm_uid'
 
@@ -172,7 +172,7 @@ def shared_walls_ratio(objects, unique_id, perimeters=None):
 
         # if no neighbour exists
         length = 0
-        if len(neighbors) == 0:
+        if not neighbors:
             results_list.append(0)
         else:
             for i in neighbors:
@@ -231,13 +231,13 @@ def street_alignment(objects, streets, orientations, network_id_objects, network
 
     print('Calculating street alignments...')
 
-    if type(orientations) is not str:
+    if not isinstance(orientations, str):
         objects['mm_o'] = orientations
         orientations = 'mm_o'
-    if type(network_id_objects) is not str:
+    if not isinstance(network_id_objects, str):
         objects['mm_nid'] = network_id_objects
         network_id_objects = 'mm_nid'
-    if type(network_id_streets) is not str:
+    if not isinstance(network_id_streets, str):
         streets['mm_nis'] = network_id_streets
         network_id_streets = 'mm_nis'
 
@@ -364,8 +364,8 @@ def alignment(objects, orientation_column, tessellation, unique_id, weights_matr
 
     # iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        id = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
-        neighbours = weights_matrix.neighbors[id]
+        uid = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+        neighbours = weights_matrix.neighbors[uid]
         neighbours_ids = []
 
         for n in neighbours:
@@ -382,7 +382,7 @@ def alignment(objects, orientation_column, tessellation, unique_id, weights_matr
             dev = abs(o - row[orientation_column])
             deviations.append(dev)
 
-        if len(deviations) > 0:
+        if deviations:
             results_list.append(statistics.mean(deviations))
         else:
             results_list.append(0)
@@ -437,12 +437,12 @@ def neighbour_distance(objects, tessellation, unique_id, weights_matrix=None):
 
     # iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        id = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
-        neighbours = weights_matrix.neighbors[id]
+        uid = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+        neighbours = weights_matrix.neighbors[uid]
 
         neighbours_ids = tessellation.iloc[neighbours][unique_id]
         building_neighbours = objects.loc[objects[unique_id].isin(neighbours_ids)]
-        if len(building_neighbours) > 0:
+        if building_neighbours:
             results_list.append(np.mean(building_neighbours.geometry.distance(row['geometry'])))
         else:
             results_list.append(0)
@@ -530,11 +530,11 @@ def mean_interbuilding_distance(objects, tessellation, unique_id, weights_matrix
     # iterate over objects to get the final values
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         # id to match spatial weights
-        id = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+        uid = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
         # define neighbours based on weights matrix defining analysis area
-        neighbours = weights_matrix_higher.neighbors[id]
-        neighbours.append(id)
-        if len(neighbours) > 0:
+        neighbours = weights_matrix_higher.neighbors[uid]
+        neighbours.append(uid)
+        if neighbours:
             selection = adj_list[adj_list.focal.isin(neighbours)][adj_list.neighbor.isin(neighbours)]
             results_list.append(np.nanmean(selection.distance))
 
@@ -619,7 +619,7 @@ def neighbouring_street_orientation_deviation(objects):
             dev = abs(o - row.tmporient)
             deviations.append(dev)
 
-        if len(deviations) > 0:
+        if deviations:
             results_list.append(np.mean(deviations))
         else:
             results_list.append(0)
@@ -712,8 +712,8 @@ def building_adjacency(objects, tessellation, weights_matrix=None, weights_matri
 
     print('Calculating adjacency within k steps...')
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        id = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
-        neighbours = weights_matrix_higher.neighbors[id]
+        uid = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+        neighbours = weights_matrix_higher.neighbors[uid]
 
         neighbours_ids = tessellation.iloc[neighbours][unique_id]
         neighbours_ids = neighbours_ids.append(pd.Series(row[unique_id], index=[index]))
@@ -803,5 +803,4 @@ def node_degree(graph=None, geodataframe=None, target='gdf'):
         return nodes
     elif target == 'graph':
         return netx
-    else:
-        raise Warning('Target {} is not supported. Use "gdf" for geopandas.GeoDataFrame or "graph" for networkx.Graph.'.format(target))
+    raise Warning('Target {} is not supported. Use "gdf" for geopandas.GeoDataFrame or "graph" for networkx.Graph.'.format(target))

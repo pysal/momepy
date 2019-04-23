@@ -60,13 +60,13 @@ def form_factor(objects, volumes, areas=None):
     """
 
     print('Calculating form factor...')
-    if type(volumes) is not str:
+    if not isinstance(volumes, str):
         objects['mm_v'] = volumes
         volumes = 'mm_v'
     if areas is None:
         series = objects.apply(lambda row: row.geometry.area / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
     else:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         series = objects.apply(lambda row: row[areas] / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
@@ -125,13 +125,13 @@ def fractal_dimension(objects, areas=None, perimeters=None):
         objects['mm_p'] = objects.geometry.length
         perimeters = 'mm_p'
     else:
-        if type(perimeters) is not str:
+        if not isinstance(perimeters, str):
             objects['mm_p'] = perimeters
             perimeters = 'mm_p'
     if areas is None:
         series = objects.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row.geometry.area), axis=1)
     else:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         series = objects.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row[areas]), axis=1)
@@ -188,7 +188,7 @@ def volume_facade_ratio(objects, heights, volumes=None, perimeters=None):
         objects['mm_p'] = objects.geometry.length
         perimeters = 'mm_p'
     else:
-        if type(perimeters) is not str:
+        if not isinstance(perimeters, str):
             objects['mm_p'] = perimeters
             perimeters = 'mm_p'
 
@@ -196,7 +196,7 @@ def volume_facade_ratio(objects, heights, volumes=None, perimeters=None):
         objects['mm_v'] = objects.geometry.area * objects[heights]
         volumes = 'mm_v'
     else:
-        if type(volumes) is not str:
+        if not isinstance(volumes, str):
             objects['mm_v'] = volumes
             volumes = 'mm_v'
 
@@ -294,8 +294,9 @@ def _make_circle_two_points(points, p, q):
         return right
     elif right is None:
         return left
-    else:
-        return left if (left[2] <= right[2]) else right
+    if (left[2] <= right[2]):
+        return left
+    return right
 
 
 def _make_circumcircle(p0, p1, p2):
@@ -382,7 +383,6 @@ def circular_compactness(objects, areas=None):
     Compactness index calculated.
     >>> buildings_df['circ_comp'][0]
     0.572145421828038
-
     """
 
     print('Calculating compactness index...')
@@ -390,7 +390,7 @@ def circular_compactness(objects, areas=None):
     if areas is None:
         series = objects.apply(lambda row: (row.geometry.area) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
     else:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         series = objects.apply(lambda row: (row[areas]) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
@@ -446,13 +446,13 @@ def square_compactness(objects, areas=None, perimeters=None):
         objects['mm_p'] = objects.geometry.length
         perimeters = 'mm_p'
     else:
-        if type(perimeters) is not str:
+        if not isinstance(perimeters, str):
             objects['mm_p'] = perimeters
             perimeters = 'mm_p'
     if areas is None:
         series = objects.apply(lambda row: ((4 * math.sqrt(row.geometry.area)) / (row[perimeters])) ** 2, axis=1)
     else:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         series = objects.apply(lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1)
@@ -504,7 +504,7 @@ def convexeity(objects, areas=None):
     if areas is None:
         series = objects.geometry.area / objects.geometry.convex_hull.area
     else:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         series = objects[areas] / objects.geometry.convex_hull.area
@@ -563,13 +563,13 @@ def courtyard_index(objects, courtyard_areas, areas=None):
 
     print('Calculating courtyard index...')
 
-    if type(courtyard_areas) is not str:
+    if not isinstance(courtyard_areas, str):
         objects['mm_ca'] = courtyard_areas
         courtyard_areas = 'mm_ca'
     if areas is None:
         series = objects[courtyard_areas] / objects.geometry.area
     else:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         series = objects[courtyard_areas] / objects[areas]
@@ -623,7 +623,7 @@ def rectangularity(objects, areas=None):
         series = objects.apply(lambda row: row.geometry.area / (row.geometry.minimum_rotated_rectangle.area), axis=1)
 
     else:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         series = objects.apply(lambda row: row[areas] / (row.geometry.minimum_rotated_rectangle.area), axis=1)
@@ -672,14 +672,14 @@ def shape_index(objects, longest_axis, areas=None):
     """
     print('Calculating shape index...')
 
-    if type(longest_axis) is not str:
+    if not isinstance(longest_axis, str):
         objects['mm_la'] = longest_axis
         longest_axis = 'mm_la'
 
     if areas is None:
         series = objects.apply(lambda row: math.sqrt(row.geometry.area / math.pi) / (0.5 * row[longest_axis]), axis=1)
     else:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         series = objects.apply(lambda row: math.sqrt(row[areas] / math.pi) / (0.5 * row[longest_axis]), axis=1)
@@ -743,8 +743,7 @@ def corners(objects):
             return True
         elif np.degrees(angle) >= 190:
             return True
-        else:
-            return False
+        return False
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -921,14 +920,14 @@ def equivalent_rectangular_index(objects, areas=None, perimeters=None):
         objects['mm_p'] = objects.geometry.length
         perimeters = 'mm_p'
     else:
-        if type(perimeters) is not str:
+        if not isinstance(perimeters, str):
             objects['mm_p'] = perimeters
             perimeters = 'mm_p'
     if areas is None:
         objects['mm_a'] = objects.geometry.area
         areas = 'mm_a'
     else:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
     # fill new column with the value of area, iterating over rows one by one
@@ -1067,8 +1066,7 @@ def centroid_corners(objects):
             return True
         elif np.degrees(angle) >= 190:
             return True
-        else:
-            return False
+        return False
 
     # iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -1102,7 +1100,7 @@ def centroid_corners(objects):
                     distances.append(distance)
                 else:
                     continue
-        if len(distances) == 0:
+        if not distances:
             from momepy.dimension import _longest_axis
             results_list.append(_longest_axis(row['geometry'].convex_hull.exterior.coords) / 2)
             results_list_sd.append(0)
@@ -1206,7 +1204,7 @@ def compactness_weighted_axis(objects, areas=None, perimeters=None, longest_axis
         objects['mm_p'] = objects.geometry.length
         perimeters = 'mm_p'
     else:
-        if type(perimeters) is not str:
+        if not isinstance(perimeters, str):
             objects['mm_p'] = perimeters
             perimeters = 'mm_p'
 
@@ -1215,14 +1213,14 @@ def compactness_weighted_axis(objects, areas=None, perimeters=None, longest_axis
         objects['mm_la'] = longest_axis_length(objects)
         longest_axis = 'mm_la'
     else:
-        if type(longest_axis) is not str:
+        if not isinstance(longest_axis, str):
             objects['mm_la'] = longest_axis
             longest_axis = 'mm_la'
 
     if areas is None:
         series = objects.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row.geometry.area) / ((row[perimeters]) ** 2)), axis=1)
     else:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         series = objects.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row[areas]) / ((row[perimeters]) ** 2)), axis=1)

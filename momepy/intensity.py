@@ -414,7 +414,7 @@ def blocks_count(tessellation, block_id, spatial_weights=None, order=5):
     # define empty list for results
     results_list = []
 
-    if type(block_id) is not str:
+    if not isinstance(block_id, str):
         block_id['mm_bid'] = block_id
         block_id = 'mm_bid'
 
