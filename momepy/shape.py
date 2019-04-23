@@ -294,7 +294,9 @@ def _make_circle_two_points(points, p, q):
         return right
     elif right is None:
         return left
-    return left if (left[2] <= right[2]) else right
+    if (left[2] <= right[2]):
+        return left
+    return right
 
 
 def _make_circumcircle(p0, p1, p2):

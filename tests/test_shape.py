@@ -4,6 +4,8 @@ from shapely.geometry import Point
 import numpy as np
 import math
 
+from momepy.shape import _circle_area
+
 
 class TestShape:
 
