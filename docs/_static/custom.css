@@ -1,0 +1,9 @@
+@import url("./basic.css");
+
+.align-center {
+    text-align: left;
+}
+
+table.longtable.align-center.table tr td {
+    width: 50%;
+}
