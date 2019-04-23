@@ -683,7 +683,7 @@ def weighted_character(objects, tessellation, characters, unique_id, spatial_wei
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(tessellation, k=order)
+        spatial_weights = Queen_higher(k=order, geodataframe=tessellation)
 
     print('Calculating weighted {}...'.format(characters))
 
