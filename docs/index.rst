@@ -28,13 +28,17 @@ https://github.com/martinfleis/momepy
 Install
 -------
 
-Momepy is not yet released. At this moment, you can download the GitHub
-repository to work with ``momepy``. Installation from GitHub via PIP is
-on the roadmap soon.
+Momepy is not yet released. At this moment, you can either download the GitHub
+repository to work with ``momepy`` or install the latest development version
+from GitHub::
 
-Momepy depends on the following packages: ``geopandas`` and ...(the list is
-currently incomplete. All of the packages are currently required,
-which should be changed in future.)
+  pip install git+git://github.com/martinfleis/momepy.git
+
+Please ensure that you have all dependencies installed as ``momepy`` setup
+currently does not specify dependency requirements.
+Momepy depends on the following packages: ``geopandas``, ``libpysal``, ``osmnx``
+and ``tqdm``. All of the packages are currently required, which will be
+changed in future.
 
 References
 ----------
