@@ -160,12 +160,12 @@ def volume(objects, heights, areas=None):
     7285.5749470443625
     """
     print('Calculating volumes...')
-    if type(heights) is not str:
+    if not isinstance(heights, str):
         objects['mm_h'] = heights
         heights = 'mm_h'
 
     if areas is not None:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         try:
@@ -225,12 +225,12 @@ def floor_area(objects, heights, areas=None):
     2185.672484113309
     """
     print('Calculating floor areas...')
-    if type(heights) is not str:
+    if not isinstance(heights, str):
         objects['mm_h'] = heights
         heights = 'mm_h'
 
     if areas is not None:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         try:
@@ -281,7 +281,7 @@ def courtyard_area(objects, areas=None):
     print('Calculating courtyard areas...')
 
     if areas is not None:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
         series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row[areas], axis=1)
@@ -406,7 +406,7 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3):
         spatial_weights = Queen_higher(k=order, geodataframe=objects)
 
     if areas is not None:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
 
@@ -512,7 +512,7 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
     heights_list = []
 
     if heights is not None:
-        if type(heights) is not str:
+        if not isinstance(heights, str):
             buildings['mm_h'] = heights
             heights = 'mm_h'
 
@@ -621,9 +621,9 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
             buildings.drop(columns=['mm_h'], inplace=True)
         print('Street profile calculated.')
         return widths_series, heights_series, profile_ratio
-    else:
-        print('Street profile calculated.')
-        return widths_series
+
+    print('Street profile calculated.')
+    return widths_series
 
 
 def weighted_character(objects, tessellation, characters, unique_id, spatial_weights=None, areas=None, order=3):
@@ -688,15 +688,15 @@ def weighted_character(objects, tessellation, characters, unique_id, spatial_wei
     print('Calculating weighted {}...'.format(characters))
 
     if areas is not None:
-        if type(areas) is not str:
+        if not isinstance(areas, str):
             objects['mm_a'] = areas
             areas = 'mm_a'
 
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        id = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
-        neighbours = spatial_weights.neighbors[id]
+        uid = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+        neighbours = spatial_weights.neighbors[uid]
 
-        if len(neighbours) > 0:
+        if neighbours:
             neighbours_ids = tessellation.iloc[neighbours][unique_id]
             building_neighbours = objects.loc[objects[unique_id].isin(neighbours_ids)]
 
