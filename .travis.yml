@@ -6,7 +6,6 @@ python:
   - "2.7"
   - "3.5"
   - "3.6"
-  - "3.7"
 
 install:
   - sudo apt-get update
@@ -23,13 +22,15 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   # Useful for debugging any issues with conda
+  - conda config --add channels conda-forge
+  - conda config --set channel_priority strict
   - conda info -a
-  - conda list
 
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
   - conda install geopandas libpysal osmnx tqdm
   - python setup.py install
+  - conda list
 
 script:
   - pytest
