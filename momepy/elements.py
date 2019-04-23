@@ -100,13 +100,13 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                 for line in poly_ext:
                     point_coords = line.coords
                     row_array = np.array(point_coords).tolist()
-                    for i in range(len(row_array)):
+                    for i in enumerate(row_array):
                         points.append(row_array[i])
                         ids.append(row[unique_id])
             elif poly_ext.type == 'LineString':
                 point_coords = poly_ext.coords
                 row_array = np.array(point_coords).tolist()
-                for i in range(len(row_array)):
+                for i in enumerate(row_array):
                     points.append(row_array[i])
                     ids.append(row[unique_id])
             else:
@@ -182,7 +182,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
         intersection = row.geometry.intersection(built_up)
         if intersection.type == 'MultiPolygon':
             areas = {}
-            for p in range(len(intersection)):
+            for p in enumerate(intersection):
                 area = intersection[p].area
                 areas[p] = area
             maximal = max(areas.items(), key=operator.itemgetter(1))[0]
@@ -207,7 +207,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
 
     # check MultiPolygons - usually caused by error in input geometry
     uids = morphological_tessellation[morphological_tessellation.geometry.type == 'MultiPolygon'][unique_id]
-    if len(uids) != 0:
+    if uids:
         import warnings
         warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
                       'unique_id of affected elements: {}'.format(list(uids)))
@@ -217,7 +217,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
         print('Generating queen corners...')
         print(' Generating spatial index...')
         changes = {}
-        id = 0
+        qid = 0
         # detect points which should be changed and calculate new coordinates
         print(' Detecting points of change...')
         for ix, row in tqdm(morphological_tessellation.iterrows(), total=morphological_tessellation.shape[0]):
@@ -235,25 +235,25 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                     corners.append(point)
 
             if len(corners) > 2:
-                for c in range(len(corners)):
-                    next = c + 1
+                for c in enumerate(corners):
+                    next_c = c + 1
                     if c == (len(corners) - 1):
-                        next = 0
-                    if corners[c].distance(corners[next]) < minimum:
-                        change.append([corners[c], corners[next]])
+                        next_c = 0
+                    if corners[c].distance(corners[next_c]) < minimum:
+                        change.append([corners[c], corners[next_c]])
             elif len(corners) == 2:
                 if corners[0].distance(corners[1]) > 0:
                     if corners[0].distance(corners[1]) < minimum:
                         change.append([corners[0], corners[1]])
 
-            if len(change) > 0:
+            if change:
                 for points in change:
                     x_new = np.mean([points[0].x, points[1].x])
                     y_new = np.mean([points[0].y, points[1].y])
                     new = [(x_new, y_new), id]
                     changes[(points[0].x, points[0].y)] = new
                     changes[(points[1].x, points[1].y)] = new
-                    id = id + 1
+                    qid = qid + 1
 
         print(' Generating new geometry...')
         for ix, row in tqdm(morphological_tessellation.iterrows(), total=morphological_tessellation.shape[0]):
@@ -266,7 +266,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                     moves[coords.index(x)] = changes[x]
             keys = list(moves.keys())
             delete_points = []
-            for move in range(len(keys)):
+            for move in enumerate(keys):
                 if move < len(keys) - 1:
                     if moves[keys[move]][1] == moves[keys[move + 1]][1] and keys[move + 1] - keys[move] < 5:
                         delete_points = delete_points + (coords[keys[move]:keys[move + 1]])
@@ -284,7 +284,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                     if len(list(shapely.ops.polygonize(mls))) > 1:
                         newgeom = MultiPolygon(shapely.ops.polygonize(mls))
                         geoms = []
-                        for g in range(len(newgeom)):
+                        for g in enumerate(newgeom):
                             geoms.append(newgeom[g].area)
                         newgeom = newgeom[geoms.index(max(geoms))]
                     else:
@@ -304,7 +304,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
 
         # check MultiPolygons - usually caused by error in input geometry
         uids = morphological_tessellation[morphological_tessellation.geometry.type == 'MultiPolygon'][unique_id]
-        if len(uids) != 0:
+        if uids:
             import warnings
             warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
                           'unique_id of affected elements: {}'.format(list(uids)))
@@ -364,7 +364,7 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
         return LineString([a, b])
 
     # function extending line to closest object within set distance
-    def extend_line(tolerance):
+    def extend_line(tolerance, idx):
         """
         Extends a line geometry withing GeoDataFrame to snap on itself withing tolerance.
         """
@@ -417,7 +417,7 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
             return False
 
     # function extending line to closest object within set distance to edge defined by tessellation
-    def extend_line_edge(tolerance):
+    def extend_line_edge(tolerance, idx):
         """
         Extends a line geometry withing GeoDataFrame to snap on the boundary of tessellation withing tolerance.
         """
@@ -500,20 +500,20 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
             continue
         # start connected, extend  end
         elif first == True and second == False:
-            if extend_line(tolerance_street) is False:
-                extend_line_edge(tolerance_edge)
+            if extend_line(tolerance_street, idx) is False:
+                extend_line_edge(tolerance_edge, idx)
         # end connected, extend start
         elif first == False and second == True:
             l_coords.reverse()
-            if extend_line(tolerance_street) is False:
-                extend_line_edge(tolerance_edge)
+            if extend_line(tolerance_street, idx) is False:
+                extend_line_edge(tolerance_edge, idx)
         # unconnected, extend both ends
         elif first == False and second == False:
-            if extend_line(tolerance_street) is False:
-                extend_line_edge(tolerance_edge)
+            if extend_line(tolerance_street, idx) is False:
+                extend_line_edge(tolerance_edge, idx)
             l_coords.reverse()
-            if extend_line(tolerance_street) is False:
-                extend_line_edge(tolerance_edge)
+            if extend_line(tolerance_street, idx) is False:
+                extend_line_edge(tolerance_edge, idx)
         else:
             print('Something went wrong.')
 
@@ -617,10 +617,10 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     print('Defining block ID...')  # street based
     blocks_single[id_name] = None
     blocks_single[id_name] = blocks_single[id_name].astype('float')
-    id = 1
+    b_id = 1
     for idx, row in tqdm(blocks_single.iterrows(), total=blocks_single.shape[0]):
-        blocks_single.loc[idx, id_name] = id
-        id = id + 1
+        blocks_single.loc[idx, id_name] = b_id
+        b_id = b_id + 1
 
     print('Generating centroids...')
     buildings_c = buildings.copy()
@@ -972,8 +972,7 @@ def get_network_id(buildings, streets, unique_id_buildings, network_id, tessella
             return pcoords, dmin
         elif t <= 0:
             return b, distance(a, b)
-        elif 1 <= t:
-            return c, distance(a, c)
+        return c, distance(a, c)
 
     def get_rtree(lines):
         def generate_items():
@@ -1008,10 +1007,10 @@ def get_network_id(buildings, streets, unique_id_buildings, network_id, tessella
 
         return result
 
-    if type(unique_id_buildings) is not str:
+    if not isinstance(unique_id_buildings, str):
         buildings['mm_uid'] = unique_id_buildings
         unique_id_buildings = 'mm_uid'
-    if type(network_id) is not str:
+    if not isinstance(network_id, str):
         streets['mm_nid'] = network_id
         network_id = 'mm_nid'
 
@@ -1052,7 +1051,7 @@ def get_network_id(buildings, streets, unique_id_buildings, network_id, tessella
     buildings_m = buildings.merge(cleaned, on=unique_id_buildings)
 
     if tessellation is not None:
-        if type(unique_id_tessellation) is not str:
+        if not isinstance(unique_id_tessellation, str):
             tessellation['mm_uid'] = unique_id_tessellation
             unique_id_tessellation = 'mm_uid'
         print('Merging with tessellation...')
@@ -1068,13 +1067,13 @@ def get_network_id(buildings, streets, unique_id_buildings, network_id, tessella
             streets.drop(columns=['mm_nid'], inplace=True)
         print('Done.')
         return buildings_m[network_id], tessellation_m[network_id]
-    else:
-        if 'mm_uid' in buildings.columns:
-            buildings.drop(columns=['mm_uid'], inplace=True)
-        if 'mm_nid' in streets.columns:
-            streets.drop(columns=['mm_nid'], inplace=True)
-        print('Done.')
-        return buildings_m[network_id]
+
+    if 'mm_uid' in buildings.columns:
+        buildings.drop(columns=['mm_uid'], inplace=True)
+    if 'mm_nid' in streets.columns:
+        streets.drop(columns=['mm_nid'], inplace=True)
+    print('Done.')
+    return buildings_m[network_id]
 
 
 def get_node_id(objects, nodes, node_id, max_distance=200):
@@ -1104,7 +1103,7 @@ def get_node_id(objects, nodes, node_id, max_distance=200):
     --------
 
     """
-    if type(node_id) is not str:
+    if not isinstance(node_id, str):
         nodes['mm_noid'] = node_id
         node_id = 'mm_noid'
 
@@ -1123,11 +1122,10 @@ def get_node_id(objects, nodes, node_id, max_distance=200):
         for node in possible_nodes.geometry.iteritems():
             distances.append(node[1].distance(centroid))
 
-        if len(distances) > 0:
+        if distances:
             true_node_index = distances.index(min(distances))
             return possible_nodes.iloc[true_node_index][node_id]
-        else:
-            return -1
+        return -1
 
     tqdm.pandas()
     series = objects.progress_apply(lambda row: _get_node(row['geometry'], node_id, max_distance), axis=1)
