@@ -34,8 +34,7 @@ def betweenness(graph=None, geodataframe=None, target='series', unique_id=None):
         return series
     elif target == 'graph':
         return netx
-    else:
-        raise Warning('Target {} is not supported. Use "series" for pandas.Series or "graph" for networkx.Graph.'.format(target))
+    raise Warning('Target {} is not supported. Use "series" for pandas.Series or "graph" for networkx.Graph.'.format(target))
 
 
 # node based example
@@ -61,8 +60,7 @@ def node_degree(graph=None, geodataframe=None, target='gdf'):
         return nodes
     elif target == 'graph':
         return netx
-    else:
-        raise Warning('Target {} is not supported. Use "gdf" for geopandas.GeoDataFrame or "graph" for networkx.Graph.'.format(target))
+    raise Warning('Target {} is not supported. Use "gdf" for geopandas.GeoDataFrame or "graph" for networkx.Graph.'.format(target))
 
 
 def meshedness(graph=None, geodataframe=None, radius=5, target='gdf'):
@@ -90,5 +88,4 @@ def meshedness(graph=None, geodataframe=None, radius=5, target='gdf'):
         return nodes
     elif target == 'graph':
         return netx
-    else:
-        raise Warning('Target {} is not supported. Use "gdf" for geopandas.GeoDataFrame or "graph" for networkx.Graph.'.format(target))
+    raise Warning('Target {} is not supported. Use "gdf" for geopandas.GeoDataFrame or "graph" for networkx.Graph.'.format(target))

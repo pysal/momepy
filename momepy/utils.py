@@ -172,7 +172,6 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
         gdf_nodes = gpd.GeoDataFrame(list(node_data), geometry=[Point(i, j) for i, j in node_xy])
         gdf_nodes.crs = net.graph['crs']
         if spatial_weights is True:
-            import libpysal
             W = libpysal.weights.W.from_networkx(net)
 
     if edges is True:
@@ -183,15 +182,12 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
     if nodes is True and edges is True:
         if spatial_weights is True:
             return gdf_nodes, gdf_edges, W
-        else:
-            return gdf_nodes, gdf_edges
+        return gdf_nodes, gdf_edges
     elif nodes is True and edges is False:
         if spatial_weights is True:
             return gdf_nodes, W
-        else:
-            return gdf_nodes
-    else:
-        return gdf_edges
+        return gdf_nodes
+    return gdf_edges
 
 
 def _multi2single(gpdf):

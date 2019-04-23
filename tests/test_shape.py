@@ -1,12 +1,8 @@
-import pytest
 import momepy as mm
 import geopandas as gpd
-from shapely.geometry import Polygon, Point
+from shapely.geometry import Point
 import numpy as np
 import math
-
-from momepy.shape import _make_circle, _circle_area
-from momepy import Queen_higher
 
 
 class TestShape:

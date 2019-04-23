@@ -13,6 +13,8 @@ import pandas as pd
 
 '''
 Gini index calculation. Gini script by https://github.com/oliviaguest/gini.
+
+There should be docs.
 '''
 
 
@@ -62,8 +64,12 @@ def gini_index(objects, look_for, source, column_name, id_column='uID'):
 
     print('Gini index calculated.')
     return series
+
+
 '''
 Power law calculation.
+
+Docs missing.
 '''
 
 
@@ -90,8 +96,12 @@ def power_law(objects, look_for, source, id_column='uID'):
         # objects.loc[index, 'pw_r'] = R
         # objects.loc[index, 'pw_p'] = p
     return objects
+
+
 '''
 Spatial autocorrelation.
+
+Docs missing.
 '''
 # from libpysal.weights import DistanceBand
 # import esda
@@ -147,6 +157,8 @@ Spatial autocorrelation.
 
 '''
 HDBSCAN clustering. Should be in different file than diversity.
+
+Remove.
 '''
 
 # import pandas as pd
