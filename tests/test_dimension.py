@@ -121,12 +121,12 @@ class TestDimensions:
         assert weighted[38] == 18.301521351817303
 
     def test_weighted_character_sw(self):
-        sw = Queen_higher(self.df_tessellation, k=3)
+        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
         weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID', sw)
         assert weighted[38] == 18.301521351817303
 
     def test_weighted_character_area(self):
         self.df_buildings['area'] = self.df_buildings.geometry.area
-        sw = Queen_higher(self.df_tessellation, k=3)
+        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
         weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID', sw, 'area')
         assert weighted[38] == 18.301521351817303

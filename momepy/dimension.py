@@ -403,7 +403,7 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3):
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(objects, k=order)
+        spatial_weights = Queen_higher(k=order, geodataframe=objects)
 
     if areas is not None:
         if type(areas) is not str:
