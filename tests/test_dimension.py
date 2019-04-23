@@ -83,14 +83,14 @@ class TestDimensions:
 
     def test_effective_mesh(self):
         self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation)
-        spatial_weights = Queen_higher(self.df_tessellation, k=3)
+        spatial_weights = Queen_higher(k=3, geodataframe=self.df_tessellation)
         neighbours = spatial_weights.neighbors[38]
         total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
         check = total_area / (len(neighbours) + 1)
         assert self.df_tessellation['mesh'][38] == check
 
     def test_effective_mesh_sw(self):
-        sw = Queen_higher(self.df_tessellation, k=3)
+        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
         self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation, sw)
         neighbours = sw.neighbors[38]
         total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
@@ -99,7 +99,7 @@ class TestDimensions:
 
     def test_effective_mesh_area(self):
         self.df_tessellation['area'] = self.df_tessellation.geometry.area
-        sw = Queen_higher(self.df_tessellation, k=3)
+        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
         self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation, sw, areas='area')
         neighbours = sw.neighbors[38]
         total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
