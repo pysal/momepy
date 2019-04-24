@@ -58,7 +58,7 @@ class TestDimensions:
 
     def test_floor_aray(self):
         area = self.df_buildings.geometry.area
-        height = np.linspace(10., 30., 144)
+        height = self.df_buildings['height']
         self.df_buildings['floor_area'] = mm.floor_area(self.df_buildings, height, area)
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings['floor_area'][0] == check

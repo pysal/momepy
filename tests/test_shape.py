@@ -49,7 +49,7 @@ class TestShape:
         peri = mm.perimeter(self.df_buildings)
         volume = mm.volume(self.df_buildings, 'height')
         self.df_buildings['vfr'] = mm.volume_facade_ratio(self.df_buildings, 'height', volume, peri)
-        check = self.df_buildings.volume[0] / (self.df_buildings.peri[0] * self.df_buildings.height[0])
+        check = self.df_buildings.volume[0] / (self.df_buildings.geometry[0].length * self.df_buildings.height[0])
         assert self.df_buildings['vfr'][0] == check
 
     def test_volume_facade_ratio_nones(self):
