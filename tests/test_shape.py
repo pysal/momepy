@@ -24,7 +24,7 @@ class TestShape:
         assert self.df_buildings['ff'][0] == check
 
     def test_form_factor_array(self):
-        self.df_buildings['ff'] = mm.form_factor(self.df_buildings, mm.volume(self.df_buildings, 'height'), areas=mm.area(self.df_buildings))
+        self.df_buildings['ff'] = mm.form_factor(self.df_buildings, mm.volume(self.df_buildings, 'height'), areas=self.df_buildings.geometry.area)
         check = (self.df_buildings.geometry[0].area) / (self.df_buildings.volume[0] ** (2 / 3))
         assert self.df_buildings['ff'][0] == check
 
@@ -34,38 +34,38 @@ class TestShape:
         assert self.df_buildings['fd'][0] == check
 
     def test_fractal_dimension_array(self):
-        self.df_buildings['fd'] = mm.fractal_dimension(self.df_buildings, areas=mm.area(self.df_buildings),
-                                                       perimeters=mm.perimeter(self.df_buildings))
+        self.df_buildings['fd'] = mm.fractal_dimension(self.df_buildings, areas=self.df_buildings.geometry.area,
+                                                       perimeters=self.df_buildings.geometry.length)
         check = math.log(self.df_buildings.geometry[0].length / 4) / math.log(self.df_buildings.geometry[0].area)
         assert self.df_buildings['fd'][0] == check
 
     def test_volume_facade_ratio(self):
-        self.df_buildings['peri'] = mm.perimeter(self.df_buildings)
+        self.df_buildings['peri'] = self.df_buildings.geometry.length
         self.df_buildings['vfr'] = mm.volume_facade_ratio(self.df_buildings, 'height', 'volume', 'peri')
         check = self.df_buildings.volume[0] / (self.df_buildings.peri[0] * self.df_buildings.height[0])
         assert self.df_buildings['vfr'][0] == check
 
     def test_volume_facade_ratio_array(self):
-        peri = mm.perimeter(self.df_buildings)
+        peri = self.df_buildings.geometry.length
         volume = mm.volume(self.df_buildings, 'height')
         self.df_buildings['vfr'] = mm.volume_facade_ratio(self.df_buildings, 'height', volume, peri)
         check = self.df_buildings.volume[0] / (self.df_buildings.geometry[0].length * self.df_buildings.height[0])
         assert self.df_buildings['vfr'][0] == check
 
     def test_volume_facade_ratio_nones(self):
-        self.df_buildings['peri'] = mm.perimeter(self.df_buildings)
+        self.df_buildings['peri'] = self.df_buildings.geometry.length
         self.df_buildings['vfr'] = mm.volume_facade_ratio(self.df_buildings, 'height')
         check = self.df_buildings.volume[0] / (self.df_buildings.peri[0] * self.df_buildings.height[0])
         assert self.df_buildings['vfr'][0] == check
 
     def test_circular_compactness(self):
-        self.df_buildings['area'] = mm.area(self.df_buildings)
+        self.df_buildings['area'] = self.df_buildings.geometry.area
         self.df_buildings['circom'] = mm.circular_compactness(self.df_buildings, 'area')
         check = self.df_buildings.area[0] / (_circle_area(list(self.df_buildings.geometry[0].convex_hull.exterior.coords)))
         assert self.df_buildings['circom'][0] == check
 
     def test_circular_compactness_array(self):
-        area = mm.area(self.df_buildings)
+        area = self.df_buildings.geometry.area
         self.df_buildings['circom'] = mm.circular_compactness(self.df_buildings, area)
         check = self.df_buildings.area[0] / (_circle_area(list(self.df_buildings.geometry[0].convex_hull.exterior.coords)))
         assert self.df_buildings['circom'][0] == check
@@ -80,16 +80,29 @@ class TestShape:
         check = ((4 * math.sqrt(self.df_buildings.geometry.area[0])) / (self.df_buildings.geometry.length[0])) ** 2
         assert self.df_buildings['sqcom'][0] == check
 
+    def test_square_compactness_array(self):
+        self.df_buildings['sqcom'] = mm.square_compactness(self.df_buildings, areas=self.df_buildings.geometry.area,
+                                                           perimeters=self.df_buildings.geometry.length)
+        check = ((4 * math.sqrt(self.df_buildings.geometry.area[0])) / (self.df_buildings.geometry.length[0])) ** 2
+        assert self.df_buildings['sqcom'][0] == check
+
     def test_convexeity(self):
         self.df_buildings['conv'] = mm.convexeity(self.df_buildings)
         check = self.df_buildings.geometry.area[0] / self.df_buildings.geometry.convex_hull.area[0]
         assert self.df_buildings['conv'][0] == check
 
+    def test_convexeity_array(self):
+        self.df_buildings['conv'] = mm.convexeity(self.df_buildings, areas=self.df_buildings.geometry.area)
+        check = self.df_buildings.geometry.area[0] / self.df_buildings.geometry.convex_hull.area[0]
+        assert self.df_buildings['conv'][0] == check
+
     def test_courtyard_index(self):
-        self.df_buildings['cas'] = mm.courtyard_area(self.df_buildings)
+        cas = self.df_buildings['cas'] = mm.courtyard_area(self.df_buildings)
         self.df_buildings['cix'] = mm.courtyard_index(self.df_buildings, 'cas')
+        self.df_buildings['cix_array'] = mm.courtyard_index(self.df_buildings, cas, self.df_buildings.geometry.area)
         check = self.df_buildings.cas[80] / self.df_buildings.geometry.area[80]
         assert self.df_buildings['cix'][80] == check
+        assert self.df_buildings['cix_array'][80] == check
 
     def test_rectangularity(self):
         self.df_buildings['rect'] = mm.rectangularity(self.df_buildings)

@@ -56,11 +56,11 @@ class TestDimensions:
         check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
         assert self.df_buildings['floor_area'][0] == check
 
-    def test_floor_aray(self):
+    def test_floor_area_array(self):
         area = self.df_buildings.geometry.area
-        height = self.df_buildings['height']
+        height = np.linspace(10., 30., 144)
         self.df_buildings['floor_area'] = mm.floor_area(self.df_buildings, height, area)
-        check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
+        check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
         assert self.df_buildings['floor_area'][0] == check
 
     def test_floor_area_no_area(self):
