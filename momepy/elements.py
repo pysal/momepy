@@ -100,13 +100,13 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                 for line in poly_ext:
                     point_coords = line.coords
                     row_array = np.array(point_coords).tolist()
-                    for i in enumerate(row_array):
+                    for i in range(len(row_array)):
                         points.append(row_array[i])
                         ids.append(row[unique_id])
             elif poly_ext.type == 'LineString':
                 point_coords = poly_ext.coords
                 row_array = np.array(point_coords).tolist()
-                for i in enumerate(row_array):
+                for i in range(len(row_array)):
                     points.append(row_array[i])
                     ids.append(row[unique_id])
             else:
@@ -116,7 +116,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
     print('Generating convex hull...')
     hull = built_up.convex_hull.buffer(cut_buffer)
     hull_array = np.array(hull.boundary.coords).tolist()
-    for i in enumerate(hull_array):
+    for i in range(len(hull_array)):
         points.append(hull_array[i])
         ids.append(-1)
 
@@ -207,7 +207,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
 
     # check MultiPolygons - usually caused by error in input geometry
     uids = morphological_tessellation[morphological_tessellation.geometry.type == 'MultiPolygon'][unique_id]
-    if uids:
+    if len(uids) > 0:
         import warnings
         warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
                       'unique_id of affected elements: {}'.format(list(uids)))
@@ -235,7 +235,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                     corners.append(point)
 
             if len(corners) > 2:
-                for c in enumerate(corners):
+                for c in range(len(corners)):
                     next_c = c + 1
                     if c == (len(corners) - 1):
                         next_c = 0
@@ -266,7 +266,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                     moves[coords.index(x)] = changes[x]
             keys = list(moves.keys())
             delete_points = []
-            for move in enumerate(keys):
+            for move in range(len(keys)):
                 if move < len(keys) - 1:
                     if moves[keys[move]][1] == moves[keys[move + 1]][1] and keys[move + 1] - keys[move] < 5:
                         delete_points = delete_points + (coords[keys[move]:keys[move + 1]])
@@ -284,7 +284,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
                     if len(list(shapely.ops.polygonize(mls))) > 1:
                         newgeom = MultiPolygon(shapely.ops.polygonize(mls))
                         geoms = []
-                        for g in enumerate(newgeom):
+                        for g in range(len(newgeom)):
                             geoms.append(newgeom[g].area)
                         newgeom = newgeom[geoms.index(max(geoms))]
                     else:
@@ -304,7 +304,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
 
         # check MultiPolygons - usually caused by error in input geometry
         uids = morphological_tessellation[morphological_tessellation.geometry.type == 'MultiPolygon'][unique_id]
-        if uids:
+        if len(uids) > 0:
             import warnings
             warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
                           'unique_id of affected elements: {}'.format(list(uids)))
@@ -375,7 +375,7 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
         extrapolation = getExtrapoledLine(*extra, tolerance)  # we use the last two points
 
         possible_intersections_index = list(sindex.intersection(extrapolation.bounds))
-        possible_intersections_lines = network.iloc[possible_intersections_index]
+        possible_intersections_lines = network.loc[possible_intersections_index]
         possible_intersections_clean = possible_intersections_lines.drop(idx, axis=0)
         possible_intersections = possible_intersections_clean.intersection(extrapolation)
 
@@ -466,6 +466,7 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
             else:
                 network.loc[idx, 'geometry'] = new_extended_line
 
+    network = network.copy()
     # generating spatial index (rtree)
     print('Building R-tree for network...')
     sindex = network.sindex
@@ -496,19 +497,19 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
         second = possible_second_matches_clean.intersects(end).any()
 
         # both ends connected, do nothing
-        if first == True and second == True:
+        if first and second:
             continue
         # start connected, extend  end
-        elif first == True and second == False:
+        elif first and not second:
             if extend_line(tolerance_street, idx) is False:
                 extend_line_edge(tolerance_edge, idx)
         # end connected, extend start
-        elif first == False and second == True:
+        elif not first and second:
             l_coords.reverse()
             if extend_line(tolerance_street, idx) is False:
                 extend_line_edge(tolerance_edge, idx)
         # unconnected, extend both ends
-        elif first == False and second == False:
+        elif not first and not second:
             if extend_line(tolerance_street, idx) is False:
                 extend_line_edge(tolerance_edge, idx)
             l_coords.reverse()
