@@ -37,5 +37,5 @@ class TestUtils:
         polygon2 = Polygon([(2, 3), (1, 2), (2, 4)])
         polygons = MultiPolygon([polygon, polygon2])
         gdf = gpd.GeoDataFrame(geometry=[polygon, polygon2, polygons])
-        single = mm._multi2single(gdf)
+        single = mm.multi2single(gdf)
         assert len(single) == 4

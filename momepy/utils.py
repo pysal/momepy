@@ -147,7 +147,7 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
     return gdf_edges
 
 
-def _multi2single(gpdf):
+def multi2single(gpdf):
     """
     Convert MultiPolygon geometry of GeoDataFrame to Polygon geometries.
 
