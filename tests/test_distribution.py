@@ -24,8 +24,10 @@ class TestDistribution:
 
     def test_shared_walls_ratio(self):
         self.df_buildings['swr'] = mm.shared_walls_ratio(self.df_buildings, 'uID')
+        self.df_buildings['swr_array'] = mm.shared_walls_ratio(self.df_buildings, 'uID', self.df_buildings.geometry.length)
         check = 0.3424804411228673
         assert self.df_buildings['swr'][10] == check
+        assert self.df_buildings['swr_array'][10] == check
 
     def test_street_alignment(self):
         self.df_buildings['orient'] = mm.orientation(self.df_buildings)
