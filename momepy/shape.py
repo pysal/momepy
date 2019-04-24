@@ -687,7 +687,7 @@ def shape_index(objects, longest_axis, areas=None):
         if 'mm_a' in objects.columns:
             objects.drop(columns=['mm_a'], inplace=True)
         if 'mm_la' in objects.columns:
-            objects.drop(columns=['mm_a'], inplace=True)
+            objects.drop(columns=['mm_la'], inplace=True)
 
     print('Shape index calculated.')
     return series
