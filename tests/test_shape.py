@@ -106,29 +106,37 @@ class TestShape:
 
     def test_rectangularity(self):
         self.df_buildings['rect'] = mm.rectangularity(self.df_buildings)
+        self.df_buildings['rect_array'] = mm.rectangularity(self.df_buildings, self.df_buildings.geometry.area)
         check = self.df_buildings.geometry[0].area / self.df_buildings.geometry[0].minimum_rotated_rectangle.area
         assert self.df_buildings['rect'][0] == check
+        assert self.df_buildings['rect_array'][0] == check
 
     def test_shape_index(self):
-        self.df_buildings['la'] = mm.longest_axis_length(self.df_buildings)
+        la = self.df_buildings['la'] = mm.longest_axis_length(self.df_buildings)
         self.df_buildings['shape_index'] = mm.shape_index(self.df_buildings, 'la')
+        self.df_buildings['shape_index_array'] = mm.shape_index(self.df_buildings, la, self.df_buildings.geometry.area)
         check = math.sqrt(self.df_buildings.area[0] / math.pi) / (0.5 * self.df_buildings.la[0])
         assert self.df_buildings['shape_index'][0] == check
+        assert self.df_buildings['shape_index_array'][0] == check
 
     def test_corners(self):
         self.df_buildings['corners'] = mm.corners(self.df_buildings)
         check = 24
         assert self.df_buildings['corners'][0] == check
 
-    # def test_squareness(self):
-    #     self.df_buildings['squ'] = mm.squareness(self.df_buildings)
-    #     check = 3.7075816043359855
-    #     assert self.df_buildings['squ'][0] == check
+    def test_squareness(self):
+        self.df_buildings['squ'] = mm.squareness(self.df_buildings)
+        check = 3.7075816043359855
+        assert self.df_buildings['squ'][0] == check
 
     def test_equivalent_rectangular_index(self):
         self.df_buildings['eri'] = mm.equivalent_rectangular_index(self.df_buildings)
+        self.df_buildings['eri_array'] = mm.equivalent_rectangular_index(self.df_buildings,
+                                                                         areas=self.df_buildings.geometry.area,
+                                                                         perimeters=self.df_buildings.geometry.length)
         check = 0.7879229963118455
         assert self.df_buildings['eri'][0] == check
+        assert self.df_buildings['eri_array'][0] == check
 
     def test_elongation(self):
         self.df_buildings['elo'] = mm.elongation(self.df_buildings)
@@ -149,3 +157,13 @@ class TestShape:
         euclidean = Point(self.df_streets.geometry[0].coords[0]).distance(Point(self.df_streets.geometry[0].coords[-1]))
         check = euclidean / self.df_streets.geometry[0].length
         assert self.df_streets['lin'][0] == check
+
+    def test_compactness_weighted_axis(self):
+        self.df_buildings['cwa'] = mm.compactness_weighted_axis(self.df_buildings)
+        self.df_buildings['cwa_array'] = mm.compactness_weighted_axis(self.df_buildings, areas=self.df_buildings.geometry.area,
+                                                                      perimeters=self.df_buildings.geometry.length,
+                                                                      longest_axis=mm.longest_axis_length(self.df_buildings))
+        check = 26.32772969906327
+        assert self.df_buildings['cwa'][0] == check
+        assert self.df_buildings['cwa_array'][0] == check
+        

@@ -1231,5 +1231,5 @@ def compactness_weighted_axis(objects, areas=None, perimeters=None, longest_axis
         objects.drop(columns=['mm_p'], inplace=True)
     if 'mm_la' in objects.columns:
         objects.drop(columns=['mm_la'], inplace=True)
-    print('Fractal dimension calculated.')
+    print('Compactness-weighted axis calculated.')
     return series
