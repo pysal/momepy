@@ -458,7 +458,7 @@ def square_compactness(objects, areas=None, perimeters=None):
         series = objects.apply(lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1)
 
     if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_p'], inplace=True)
+        objects.drop(columns=['mm_a'], inplace=True)
     if 'mm_p' in objects.columns:
         objects.drop(columns=['mm_p'], inplace=True)
     print('Compactness index calculated.')
