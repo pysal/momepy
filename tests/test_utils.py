@@ -2,6 +2,7 @@ import momepy as mm
 import geopandas as gpd
 import numpy as np
 import libpysal
+import networkx
 
 from shapely.geometry import Polygon, MultiPolygon
 
@@ -15,6 +16,7 @@ class TestUtils:
         test_file_path = mm.datasets.get_path('bubenec')
         self.df_buildings = gpd.read_file(test_file_path, layer='buildings')
         self.df_tessellation = gpd.read_file(test_file_path, layer='tessellation')
+        self.df_streets = gpd.read_file(test_file_path, layer='streets')
         self.df_buildings['height'] = np.linspace(10., 30., 144)
 
     def test_dataset_missing(self):
@@ -39,3 +41,25 @@ class TestUtils:
         gdf = gpd.GeoDataFrame(geometry=[polygon, polygon2, polygons])
         single = mm.multi2single(gdf)
         assert len(single) == 4
+
+    def test_gdf_to_nx(self):
+        nx = mm.gdf_to_nx(self.df_streets)
+        assert nx.number_of_nodes() == 32
+        assert nx.number_of_edges() == 33
+
+    def test_nx_to_gdf(self):
+        nx = mm.gdf_to_nx(self.df_streets)
+        nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)
+        assert len(nodes) == 32
+        assert len(edges) == 33
+        assert W.n == 32
+        nodes, edges = mm.nx_to_gdf(nx)
+        assert len(nodes) == 32
+        assert len(edges) == 33
+        edges = mm.nx_to_gdf(nx, nodes=False)
+        assert len(edges) == 33
+        nodes, W = mm.nx_to_gdf(nx, edges=False, spatial_weights=True)
+        assert len(nodes) == 32
+        assert W.n == 32
+        nodes = mm.nx_to_gdf(nx, edges=False, spatial_weights=False)
+        assert len(nodes) == 32
