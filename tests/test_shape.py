@@ -23,14 +23,32 @@ class TestShape:
         check = (self.df_buildings.geometry[0].area) / (self.df_buildings.volume[0] ** (2 / 3))
         assert self.df_buildings['ff'][0] == check
 
+    def test_form_factor_array(self):
+        self.df_buildings['ff'] = mm.form_factor(self.df_buildings, mm.volume(self.df_buildings, 'height'), areas=mm.area(self.df_buildings))
+        check = (self.df_buildings.geometry[0].area) / (self.df_buildings.volume[0] ** (2 / 3))
+        assert self.df_buildings['ff'][0] == check
+
     def test_fractal_dimension(self):
         self.df_buildings['fd'] = mm.fractal_dimension(self.df_buildings)
+        check = math.log(self.df_buildings.geometry[0].length / 4) / math.log(self.df_buildings.geometry[0].area)
+        assert self.df_buildings['fd'][0] == check
+
+    def test_fractal_dimension_array(self):
+        self.df_buildings['fd'] = mm.fractal_dimension(self.df_buildings, areas=mm.area(self.df_buildings),
+                                                       perimeters=mm.perimeter(self.df_buildings))
         check = math.log(self.df_buildings.geometry[0].length / 4) / math.log(self.df_buildings.geometry[0].area)
         assert self.df_buildings['fd'][0] == check
 
     def test_volume_facade_ratio(self):
         self.df_buildings['peri'] = mm.perimeter(self.df_buildings)
         self.df_buildings['vfr'] = mm.volume_facade_ratio(self.df_buildings, 'height', 'volume', 'peri')
+        check = self.df_buildings.volume[0] / (self.df_buildings.peri[0] * self.df_buildings.height[0])
+        assert self.df_buildings['vfr'][0] == check
+
+    def test_volume_facade_ratio_array(self):
+        peri = mm.perimeter(self.df_buildings)
+        volume = mm.volume(self.df_buildings, 'height')
+        self.df_buildings['vfr'] = mm.volume_facade_ratio(self.df_buildings, 'height', volume, peri)
         check = self.df_buildings.volume[0] / (self.df_buildings.peri[0] * self.df_buildings.height[0])
         assert self.df_buildings['vfr'][0] == check
 
@@ -43,6 +61,17 @@ class TestShape:
     def test_circular_compactness(self):
         self.df_buildings['area'] = mm.area(self.df_buildings)
         self.df_buildings['circom'] = mm.circular_compactness(self.df_buildings, 'area')
+        check = self.df_buildings.area[0] / (_circle_area(list(self.df_buildings.geometry[0].convex_hull.exterior.coords)))
+        assert self.df_buildings['circom'][0] == check
+
+    def test_circular_compactness_array(self):
+        area = mm.area(self.df_buildings)
+        self.df_buildings['circom'] = mm.circular_compactness(self.df_buildings, area)
+        check = self.df_buildings.area[0] / (_circle_area(list(self.df_buildings.geometry[0].convex_hull.exterior.coords)))
+        assert self.df_buildings['circom'][0] == check
+
+    def test_circular_compactness_nones(self):
+        self.df_buildings['circom'] = mm.circular_compactness(self.df_buildings)
         check = self.df_buildings.area[0] / (_circle_area(list(self.df_buildings.geometry[0].convex_hull.exterior.coords)))
         assert self.df_buildings['circom'][0] == check
 
