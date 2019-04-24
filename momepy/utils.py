@@ -8,49 +8,6 @@ import networkx as nx
 import pandas as pd
 
 
-def _clean_buildings(objects, height_column):
-    """
-    Clean building geometry.
-
-    Delete building with zero height (to avoid division by 0). Be careful, this might
-    negatively affect your analysis.
-
-    Parameters
-    ----------
-    objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
-    height_column : str
-        name of the column of objects gdf where is stored height value
-
-    Returns
-    -------
-    GeoDataFrame
-    """
-
-    objects = objects[objects[height_column] > 0]
-    print('Zero height buildings ommited.')
-    return objects
-
-
-def _clean_null(objects):
-    """
-    Clean null geometry.
-
-    Delete rows of GeoDataFrame with null geometry.
-
-    Parameters
-    ----------
-    objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
-
-    Returns
-    -------
-    GeoDataFrame
-    """
-    objects_none = objects[objects['geometry'].notnull()]  # filter nulls
-    return objects_none
-
-
 def unique_id(objects):
     """
     Add an attribute with unique ID to each row of GeoDataFrame.
@@ -191,6 +148,20 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
 
 
 def _multi2single(gpdf):
+    """
+    Convert MultiPolygon geometry of GeoDataFrame to Polygon geometries.
+
+    Parameters
+    ----------
+    gpdf : geopandas.GeoDataFrame
+        geopandas.GeoDataFrame
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame containing only Polygons
+
+    """
     gpdf_singlepoly = gpdf[gpdf.geometry.type == 'Polygon']
     gpdf_multipoly = gpdf[gpdf.geometry.type == 'MultiPolygon']
 

@@ -17,7 +17,7 @@ class TestUtils:
         self.df_tessellation = gpd.read_file(test_file_path, layer='tessellation')
         self.df_buildings['height'] = np.linspace(10., 30., 144)
 
-    def test_dataset_missing():
+    def test_dataset_missing(self):
         with pytest.raises(ValueError):
             mm.datasets.get_path('sffgkt')
 
@@ -32,7 +32,7 @@ class TestUtils:
         with pytest.raises(Warning):
             mm.Queen_higher(2, geodataframe=None, weights=None)
 
-    def test_multi2single():
+    def test_multi2single(self):
         polygon = Polygon([(0, 0), (1, 1), (1, 0)])
         polygon2 = Polygon([(2, 3), (1, 2), (2, 4)])
         polygons = MultiPolygon([polygon, polygon2])
