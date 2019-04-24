@@ -458,7 +458,7 @@ def square_compactness(objects, areas=None, perimeters=None):
         series = objects.apply(lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1)
 
     if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_p'], inplace=True)
+        objects.drop(columns=['mm_a'], inplace=True)
     if 'mm_p' in objects.columns:
         objects.drop(columns=['mm_p'], inplace=True)
     print('Compactness index calculated.')
@@ -687,7 +687,7 @@ def shape_index(objects, longest_axis, areas=None):
         if 'mm_a' in objects.columns:
             objects.drop(columns=['mm_a'], inplace=True)
         if 'mm_la' in objects.columns:
-            objects.drop(columns=['mm_a'], inplace=True)
+            objects.drop(columns=['mm_la'], inplace=True)
 
     print('Shape index calculated.')
     return series
@@ -1231,5 +1231,5 @@ def compactness_weighted_axis(objects, areas=None, perimeters=None, longest_axis
         objects.drop(columns=['mm_p'], inplace=True)
     if 'mm_la' in objects.columns:
         objects.drop(columns=['mm_la'], inplace=True)
-    print('Fractal dimension calculated.')
+    print('Compactness-weighted axis calculated.')
     return series

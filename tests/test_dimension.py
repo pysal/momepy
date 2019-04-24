@@ -34,6 +34,13 @@ class TestDimensions:
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings['volume'][0] == check
 
+    def test_volume_aray(self):
+        area = self.df_buildings.geometry.area
+        height = np.linspace(10., 30., 144)
+        self.df_buildings['volume'] = mm.volume(self.df_buildings, height, area)
+        check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
+        assert self.df_buildings['volume'][0] == check
+
     def test_volume_no_area(self):
         self.df_buildings['volume'] = mm.volume(self.df_buildings, 'height')
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
@@ -49,6 +56,13 @@ class TestDimensions:
         check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
         assert self.df_buildings['floor_area'][0] == check
 
+    def test_floor_area_array(self):
+        area = self.df_buildings.geometry.area
+        height = np.linspace(10., 30., 144)
+        self.df_buildings['floor_area'] = mm.floor_area(self.df_buildings, height, area)
+        check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
+        assert self.df_buildings['floor_area'][0] == check
+
     def test_floor_area_no_area(self):
         self.df_buildings['floor_area'] = mm.floor_area(self.df_buildings, 'height')
         check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
@@ -61,6 +75,12 @@ class TestDimensions:
     def test_courtyard_area(self):
         self.df_buildings['area'] = self.df_buildings.geometry.area
         self.df_buildings['courtyard_area'] = mm.courtyard_area(self.df_buildings, 'area')
+        check = Polygon(self.df_buildings.geometry[80].exterior).area - self.df_buildings.geometry[80].area
+        assert self.df_buildings['courtyard_area'][80] == check
+
+    def test_courtyard_area_array(self):
+        area = self.df_buildings.geometry.area
+        self.df_buildings['courtyard_area'] = mm.courtyard_area(self.df_buildings, area)
         check = Polygon(self.df_buildings.geometry[80].exterior).area - self.df_buildings.geometry[80].area
         assert self.df_buildings['courtyard_area'][80] == check
 
@@ -103,8 +123,24 @@ class TestDimensions:
         check = total_area / (len(neighbours) + 1)
         assert self.df_tessellation['mesh'][38] == check
 
+    def test_effective_mesh_array(self):
+        area = self.df_tessellation.geometry.area
+        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
+        self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation, sw, areas=area)
+        neighbours = sw.neighbors[38]
+        total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
+        check = total_area / (len(neighbours) + 1)
+        assert self.df_tessellation['mesh'][38] == check
+
     def test_street_profile(self):
         widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights='height')
+        assert widths[16] == 34.722744851010795
+        assert heights[16] == 16.13286713286713
+        assert profile[16] == 0.46461958010780635
+
+    def test_street_profile_array(self):
+        height = np.linspace(10., 30., 144)
+        widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights=height)
         assert widths[16] == 34.722744851010795
         assert heights[16] == 16.13286713286713
         assert profile[16] == 0.46461958010780635
@@ -126,4 +162,10 @@ class TestDimensions:
         self.df_buildings['area'] = self.df_buildings.geometry.area
         sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
         weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID', sw, 'area')
+        assert weighted[38] == 18.301521351817303
+
+    def test_weighted_character_array(self):
+        area = self.df_buildings.geometry.area
+        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
+        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID', sw, area)
         assert weighted[38] == 18.301521351817303

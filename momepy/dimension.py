@@ -83,46 +83,6 @@ def perimeter(objects):
     return series
 
 
-def _height_prg(objects, floors='od_POCET_P', floor_type='od_TYP'):
-    """
-    Define building heights based on Geoportal Prague Data.
-
-    Function tailored to Geoportal Prague.
-    It will calculate estimated building heights based on floor number and type.
-
-    Parameters
-    ----------
-    objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
-    floor_type : str
-        name of the column defining buildings type (to differentiate height of the floor)
-
-    Returns
-    -------
-    Series
-        Series containing resulting values.
-    """
-    # define empty list for results
-    results_list = []
-    print('Calculating heights...')
-
-    # fill new column with the value of perimeter, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        if row[floor_type] == 7:
-            height = row[floors] * 3.5  # old buildings with high ceiling
-        elif row[floor_type] == 3:
-            height = row[floors] * 5  # warehouses
-        else:
-            height = row[floors] * 3  # standard buildings
-
-        results_list.append(height)
-
-    series = pd.Series(results_list)
-
-    print('Heights defined.')
-    return series
-
-
 def volume(objects, heights, areas=None):
     """
     Calculates volume of each object in given shapefile based on its height and area.
