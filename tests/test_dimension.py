@@ -116,10 +116,9 @@ class TestDimensions:
         assert self.df_tessellation['mesh_array'][38] == check
         assert self.df_tessellation['mesh_id'][38] == 2206.611646069303
         assert self.df_tessellation['mesh_iq'][38] == 2118.609142733066
-
+        gdf = self.df_tessellation
+        gdf.index = gdf.index + 20
         with pytest.raises(ValueError):
-            gdf = self.df_tessellation
-            gdf.index = gdf.index + 20
             self.df_tessellation['meshE'] = mm.effective_mesh(gdf)
 
     def test_street_profile(self):
