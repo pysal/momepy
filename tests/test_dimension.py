@@ -101,36 +101,21 @@ class TestDimensions:
     def test_effective_mesh(self):
         self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation)
         spatial_weights = Queen_higher(k=3, geodataframe=self.df_tessellation)
+        self.df_tessellation['mesh_sw'] = mm.effective_mesh(self.df_tessellation, spatial_weights)
+        self.df_tessellation['area'] = area = self.df_tessellation.geometry.area
+        self.df_tessellation['mesh_ar'] = mm.effective_mesh(self.df_tessellation, spatial_weights, areas='area')
+        self.df_tessellation['mesh_array'] = mm.effective_mesh(self.df_tessellation, spatial_weights, areas=area)
+        self.df_tessellation['mesh_id'] = mm.effective_mesh(self.df_tessellation, spatial_weights, areas='area', mode='id')
+        self.df_tessellation['mesh_iq'] = mm.effective_mesh(self.df_tessellation, spatial_weights, areas='area', mode='iq')
         neighbours = spatial_weights.neighbors[38]
         total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
         check = total_area / (len(neighbours) + 1)
         assert self.df_tessellation['mesh'][38] == check
-
-    def test_effective_mesh_sw(self):
-        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
-        self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation, sw)
-        neighbours = sw.neighbors[38]
-        total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
-        check = total_area / (len(neighbours) + 1)
-        assert self.df_tessellation['mesh'][38] == check
-
-    def test_effective_mesh_area(self):
-        self.df_tessellation['area'] = self.df_tessellation.geometry.area
-        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
-        self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation, sw, areas='area')
-        neighbours = sw.neighbors[38]
-        total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
-        check = total_area / (len(neighbours) + 1)
-        assert self.df_tessellation['mesh'][38] == check
-
-    def test_effective_mesh_array(self):
-        area = self.df_tessellation.geometry.area
-        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
-        self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation, sw, areas=area)
-        neighbours = sw.neighbors[38]
-        total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
-        check = total_area / (len(neighbours) + 1)
-        assert self.df_tessellation['mesh'][38] == check
+        assert self.df_tessellation['mesh_sw'][38] == check
+        assert self.df_tessellation['mesh_ar'][38] == check
+        assert self.df_tessellation['mesh_array'][38] == check
+        assert self.df_tessellation['mesh_id'][38] == 2206.611646069303
+        assert self.df_tessellation['mesh_iq'][38] == 2118.609142733066
 
     def test_street_profile(self):
         widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights='height')
