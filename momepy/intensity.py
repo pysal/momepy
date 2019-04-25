@@ -244,6 +244,7 @@ def elements_in_block(blocks, elements, left_id, right_id, weighted=False):
 
     return series
 
+
 def courtyards(objects, block_id, weights_matrix=None):
     """
     Calculate the number of courtyards within the joined structure.
@@ -271,6 +272,9 @@ def courtyards(objects, block_id, weights_matrix=None):
     results_list = []
 
     print('Calculating courtyards...')
+
+    if not all(objects.index == range(len(objects))):
+        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     # if weights matrix is not passed, generate it from objects
     if weights_matrix is None:
@@ -303,7 +307,7 @@ def courtyards(objects, block_id, weights_matrix=None):
             dissolved = joined.geometry.buffer(0.01).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
             try:
                 interiors = len(list(dissolved.interiors))
-            except:
+            except(ValueError):
                 print('Something happened.')
             for b in to_join:
                 courtyards[b] = interiors  # fill dict with values
@@ -354,6 +358,9 @@ def gross_density(objects, buildings, area, character, weights_matrix=None, orde
     results_list = []
 
     print('Calculating gross density...')
+
+    if not all(objects.index == range(len(objects))):
+        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     if weights_matrix is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
@@ -417,6 +424,9 @@ def blocks_count(tessellation, block_id, spatial_weights=None, order=5):
     if not isinstance(block_id, str):
         block_id['mm_bid'] = block_id
         block_id = 'mm_bid'
+
+    if not all(tessellation.index == range(len(tessellation))):
+        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     if spatial_weights is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))

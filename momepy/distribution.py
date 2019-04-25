@@ -356,6 +356,9 @@ def alignment(objects, orientation_column, tessellation, unique_id, weights_matr
 
     print('Calculating alignments...')
 
+    if not all(tessellation.index == range(len(tessellation))):
+        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
+
     if weights_matrix is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
@@ -429,6 +432,9 @@ def neighbour_distance(objects, tessellation, unique_id, weights_matrix=None):
 
     print('Calculating distances...')
 
+    if not all(tessellation.index == range(len(tessellation))):
+        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
+
     if weights_matrix is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
@@ -490,6 +496,8 @@ def mean_interbuilding_distance(objects, tessellation, unique_id, weights_matrix
     ---------
     ADD, but it is adapted quite a lot.
     """
+    if not all(tessellation.index == range(len(tessellation))):
+        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     print('Calculating mean interbuilding distances...')
     if weights_matrix is None:
@@ -671,6 +679,9 @@ def building_adjacency(objects, tessellation, weights_matrix=None, weights_matri
 
     print('Calculating adjacency...')
 
+    if not all(tessellation.index == range(len(tessellation))):
+        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
+
     # if weights matrix is not passed, generate it from objects
     if weights_matrix is None:
         print('Calculating spatial weights...')
@@ -761,6 +772,10 @@ def neighbours(objects, weights_matrix=None, weighted=False):
     for plot-based classification of urban areas. Landscape and Urban Planning, Elsevier B.V.
     106(1): 124–137.
     """
+
+    if not all(objects.index == range(len(objects))):
+        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
+
     # if weights matrix is not passed, generate it from objects
     if weights_matrix is None:
         print('Calculating spatial weights...')
