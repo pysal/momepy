@@ -654,6 +654,9 @@ def weighted_character(objects, tessellation, characters, unique_id, spatial_wei
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
         spatial_weights = Queen_higher(k=order, geodataframe=tessellation)
+    else:
+        if not all(objects.index == range(len(objects))):
+            raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     print('Calculating weighted {}...'.format(characters))
 
