@@ -117,6 +117,11 @@ class TestDimensions:
         assert self.df_tessellation['mesh_id'][38] == 2206.611646069303
         assert self.df_tessellation['mesh_iq'][38] == 2118.609142733066
 
+        with pytest.raises(ValueError):
+            gdf = self.df_tessellation
+            gdf.index = gdf.index + 20
+            self.df_tessellation['meshE'] = mm.effective_mesh(gdf)
+
     def test_street_profile(self):
         widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights='height')
         assert widths[16] == 34.722744851010795

@@ -33,6 +33,11 @@ class TestUtils:
         with pytest.raises(Warning):
             mm.Queen_higher(2, geodataframe=None, weights=None)
 
+        with pytest.raises(ValueError):
+            gdf = self.df_tessellation
+            gdf.index = gdf.index + 20
+            mm.Queen_higher(2, geodataframe=gdf, weights=None)
+
     def test_multi2single(self):
         polygon = Polygon([(0, 0), (1, 1), (1, 0)])
         polygon2 = Polygon([(2, 3), (1, 2), (2, 4)])
@@ -62,3 +67,7 @@ class TestUtils:
         assert W.n == 32
         nodes = mm.nx_to_gdf(nx, edges=False, spatial_weights=False)
         assert len(nodes) == 32
+
+    def test_limit_range(self):
+        assert mm.limit_range(range(10), mode='iq') == [3, 4, 5, 6]
+        assert mm.limit_range(range(10), mode='id') == [1, 2, 3, 4, 5, 6, 7, 8]
