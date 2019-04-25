@@ -299,7 +299,7 @@ def longest_axis_length(objects):
     return series
 
 
-def effective_mesh(objects, spatial_weights=None, areas=None, order=3):
+def effective_mesh(objects, spatial_weights=None, areas=None, order=3, mode=None):
     """
     Calculates the effective mesh size of morphological tessellation
 
@@ -320,6 +320,8 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3):
         during the process without saving them separately.
     order : int
         order of Queen contiguity
+    mode : str
+        mode of calculation. None will use all values, `iq` will use values within interquartile range, `id` will use values within interdecile range
 
     Returns
     -------
@@ -364,6 +366,9 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3):
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
         spatial_weights = Queen_higher(k=order, geodataframe=objects)
+    else:
+        if not all(objects.index == range(len(objects))):
+            raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     if areas is not None:
         if not isinstance(areas, str):
@@ -373,10 +378,15 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3):
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         neighbours = spatial_weights.neighbors[index]
         if areas is not None:
-            total_area = sum(objects.iloc[neighbours][areas]) + row[areas]
+            area_list = objects.iloc[neighbours][areas].tolist()
+            area_list.append(row[areas])
         else:
-            total_area = sum(objects.iloc[neighbours].geometry.area) + row.geometry.area
-        results_list.append(total_area / (len(neighbours) + 1))
+            area_list = objects.iloc[neighbours].geometry.area.tolist()
+            area_list.append(row.geometry.area)
+        if mode:
+            from momepy import limit_range
+            area_list = limit_range(area_list, mode=mode)
+        results_list.append(sum(area_list) / len(area_list))
 
     series = pd.Series(results_list)
 

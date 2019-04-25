@@ -6,6 +6,7 @@ import libpysal
 from shapely.geometry import Point
 import networkx as nx
 import pandas as pd
+import numpy as np
 
 
 def unique_id(objects):
@@ -38,7 +39,8 @@ def Queen_higher(k, geodataframe=None, weights=None):
     k : int
         order of contiguity
     geodataframe : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        GeoDataFrame containing objects to analyse. Index has to be consecutive range 0:x.
+        Otherwise, spatial weights will not match objects.
     weights : libpysal.weights
         libpysal.weights of order 1
 
@@ -60,6 +62,8 @@ def Queen_higher(k, geodataframe=None, weights=None):
     if weights is not None:
         first_order = weights
     elif geodataframe is not None:
+        if not all(geodataframe.index == range(len(geodataframe))):
+            raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
         first_order = libpysal.weights.Queen.from_dataframe(geodataframe)
     else:
         raise Warning('GeoDataFrame of spatial weights must be given.')
@@ -173,3 +177,34 @@ def multi2single(gpdf):
 
     gpdf_singlepoly.reset_index(inplace=True, drop=True)
     return gpdf_singlepoly
+
+
+def limit_range(vals, mode):
+    """
+    Extract values within selected mode ('id', 'iq')
+
+    Parameters
+    ----------
+    vals : array
+
+    mode : str
+        'iq' for interquartile range, 'id' for interdecile range
+
+    Returns
+    -------
+    array
+        limited array
+    """
+    limited = []
+    if mode == 'iq':
+        mval = 25
+        xval = 75
+    elif mode == 'id':
+        mval = 10
+        xval = 90
+    lower = np.percentile(vals, mval)
+    higher = np.percentile(vals, xval)
+    for x in vals:
+        if x >= lower and x <= higher:
+            limited.append(x)
+    return limited
