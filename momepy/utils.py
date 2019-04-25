@@ -6,6 +6,7 @@ import libpysal
 from shapely.geometry import Point
 import networkx as nx
 import pandas as pd
+import numpy as np
 
 
 def unique_id(objects):
@@ -176,3 +177,34 @@ def multi2single(gpdf):
 
     gpdf_singlepoly.reset_index(inplace=True, drop=True)
     return gpdf_singlepoly
+
+
+def limit_range(vals, mode):
+    """
+    Extract values within selected mode ('id', 'iq')
+
+    Parameters
+    ----------
+    vals : array
+
+    mode : str
+        'iq' for interquartile range, 'id' for interdecile range
+
+    Returns
+    -------
+    array
+        limited array
+    """
+    limited = []
+    if mode == 'iq':
+        min = 25
+        max = 75
+    elif mode == 'id':
+        min = 10
+        max = 90
+    lower = np.percentile(vals, min)
+    higher = np.percentile(vals, max)
+    for x in vals:
+        if x >= lower and x <= higher:
+            limited.append(x)
+    return limited

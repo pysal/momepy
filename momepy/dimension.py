@@ -383,24 +383,10 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3, mode=None
         else:
             area_list = objects.iloc[neighbours].geometry.area.tolist()
             area_list.append(row.geometry.area)
-        if mode == 'iq':
-            areas_IQ = []
-            lower = np.percentile(area_list, 25)
-            higher = np.percentile(area_list, 75)
-            for x in area_list:
-                if x >= lower and x <= higher:
-                    areas_IQ.append(x)
-            results_list.append(sum(areas_IQ) / len(areas_IQ))
-        elif mode == 'id':
-            areas_ID = []
-            lower = np.percentile(area_list, 10)
-            higher = np.percentile(area_list, 90)
-            for x in area_list:
-                if x >= lower and x <= higher:
-                    areas_ID.append(x)
-            results_list.append(sum(areas_ID) / len(areas_ID))
-        else:
-            results_list.append(sum(area_list) / len(area_list))
+        if mode:
+            from momepy import limit_range
+            area_list = limit_range(area_list, mode=mode)
+        results_list.append(sum(area_list) / len(area_list))
 
     series = pd.Series(results_list)
 
