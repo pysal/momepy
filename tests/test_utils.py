@@ -2,7 +2,6 @@ import momepy as mm
 import geopandas as gpd
 import numpy as np
 import libpysal
-import networkx
 
 from shapely.geometry import Polygon, MultiPolygon
 
