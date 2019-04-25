@@ -197,13 +197,13 @@ def limit_range(vals, mode):
     """
     limited = []
     if mode == 'iq':
-        min = 25
-        max = 75
+        mval = 25
+        xval = 75
     elif mode == 'id':
-        min = 10
-        max = 90
-    lower = np.percentile(vals, min)
-    higher = np.percentile(vals, max)
+        mval = 10
+        xval = 90
+    lower = np.percentile(vals, mval)
+    higher = np.percentile(vals, xval)
     for x in vals:
         if x >= lower and x <= higher:
             limited.append(x)
