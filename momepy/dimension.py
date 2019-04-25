@@ -377,12 +377,19 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3, mode=None
 
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         neighbours = spatial_weights.neighbors[index]
+        area_list = None
         if areas is not None:
             area_list = objects.iloc[neighbours][areas].tolist()
-            area_list.append(row[areas])
+            if area_list:
+                area_list.append(row[areas])
+            else:
+                area_list = [row[areas]]
         else:
             area_list = objects.iloc[neighbours].geometry.area.tolist()
-            area_list.append(row.geometry.area)
+            if area_list:
+                area_list.append(row.geometry.area)
+            else:
+                area_list = [row.geometry.area]
         if mode:
             from momepy import limit_range
             area_list = limit_range(area_list, mode=mode)

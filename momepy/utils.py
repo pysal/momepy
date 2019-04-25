@@ -195,16 +195,18 @@ def limit_range(vals, mode):
     array
         limited array
     """
-    limited = []
-    if mode == 'iq':
-        mval = 25
-        xval = 75
-    elif mode == 'id':
-        mval = 10
-        xval = 90
-    lower = np.percentile(vals, mval)
-    higher = np.percentile(vals, xval)
-    for x in vals:
-        if x >= lower and x <= higher:
-            limited.append(x)
-    return limited
+    if len(vals) > 2:
+        limited = []
+        if mode == 'iq':
+            mval = 25
+            xval = 75
+        elif mode == 'id':
+            mval = 10
+            xval = 90
+        lower = np.percentile(vals, mval)
+        higher = np.percentile(vals, xval)
+        for x in vals:
+            if x >= lower and x <= higher:
+                limited.append(x)
+        return limited
+    return vals
