@@ -38,7 +38,8 @@ def Queen_higher(k, geodataframe=None, weights=None):
     k : int
         order of contiguity
     geodataframe : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        GeoDataFrame containing objects to analyse. Index has to be consecutive range 0:x.
+        Otherwise, spatial weights will not match objects.
     weights : libpysal.weights
         libpysal.weights of order 1
 
@@ -60,6 +61,8 @@ def Queen_higher(k, geodataframe=None, weights=None):
     if weights is not None:
         first_order = weights
     elif geodataframe is not None:
+        if not all(geodataframe.index == range(len(geodataframe))):
+            raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
         first_order = libpysal.weights.Queen.from_dataframe(geodataframe)
     else:
         raise Warning('GeoDataFrame of spatial weights must be given.')
