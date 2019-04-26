@@ -26,9 +26,9 @@ dimension
 
    area
    courtyard_area
-   effective_mesh
    floor_area
    longest_axis_length
+   mean_character
    perimeter
    street_profile
    volume

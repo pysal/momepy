@@ -98,15 +98,15 @@ class TestDimensions:
         check = _make_circle(self.df_buildings.geometry[0].convex_hull.exterior.coords)[2] * 2
         assert self.df_buildings['long_axis'][0] == check
 
-    def test_effective_mesh(self):
-        self.df_tessellation['mesh'] = mm.effective_mesh(self.df_tessellation)
+    def test_mean_character(self):
+        self.df_tessellation['mesh'] = mm.mean_character(self.df_tessellation)
         spatial_weights = Queen_higher(k=3, geodataframe=self.df_tessellation)
-        self.df_tessellation['mesh_sw'] = mm.effective_mesh(self.df_tessellation, spatial_weights)
+        self.df_tessellation['mesh_sw'] = mm.mean_character(self.df_tessellation, spatial_weights)
         self.df_tessellation['area'] = area = self.df_tessellation.geometry.area
-        self.df_tessellation['mesh_ar'] = mm.effective_mesh(self.df_tessellation, spatial_weights, areas='area')
-        self.df_tessellation['mesh_array'] = mm.effective_mesh(self.df_tessellation, spatial_weights, areas=area)
-        self.df_tessellation['mesh_id'] = mm.effective_mesh(self.df_tessellation, spatial_weights, areas='area', mode='id')
-        self.df_tessellation['mesh_iq'] = mm.effective_mesh(self.df_tessellation, spatial_weights, areas='area', mode='iq')
+        self.df_tessellation['mesh_ar'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area')
+        self.df_tessellation['mesh_array'] = mm.mean_character(self.df_tessellation, spatial_weights, values=area)
+        self.df_tessellation['mesh_id'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area', mode='id')
+        self.df_tessellation['mesh_iq'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area', mode='iq')
         neighbours = spatial_weights.neighbors[38]
         total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
         check = total_area / (len(neighbours) + 1)
@@ -119,7 +119,7 @@ class TestDimensions:
         gdf = self.df_tessellation
         gdf.index = gdf.index + 20
         with pytest.raises(ValueError):
-            self.df_tessellation['meshE'] = mm.effective_mesh(gdf)
+            self.df_tessellation['meshE'] = mm.mean_character(gdf)
 
     def test_street_profile(self):
         widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights='height')

@@ -299,11 +299,11 @@ def longest_axis_length(objects):
     return series
 
 
-def effective_mesh(objects, spatial_weights=None, areas=None, order=3, mode=None):
+def mean_character(objects, spatial_weights=None, values=None, order=3, mode=None):
     """
-    Calculates the effective mesh size of morphological tessellation
+    Calculates the mean of a character within k steps of morphological tessellation
 
-    Effective mesh size of the area within k topological steps defined in spatial_weights.
+    Mean value of the character within k topological steps defined in spatial_weights.
 
     .. math::
         \\frac{1}{n}\\left(\\sum_{i=1}^{n} area_{i}\\right)
@@ -315,9 +315,8 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3, mode=None
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
         based on objects.
-    areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
-        during the process without saving them separately.
+    values : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, np.array, or pd.Series where is stored character value. If set to None, function will use area.
     order : int
         order of Queen contiguity
     mode : str
@@ -336,18 +335,18 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3, mode=None
     Examples
     --------
     >>> tessellation['mesh'] = momepy.effective_mesh(tessellation)
-    Calculating effective mesh size...
+    Calculating mean character value...
     Generating weights matrix (Queen) of 3 topological steps...
     100%|██████████| 144/144 [00:00<00:00, 900.83it/s]
-    Effective mesh size calculated.
+    Mean character value calculated.
     >>> tessellation.mesh[0]
     2922.957260196682
 
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True)
-    >>> tessellation['mesh_100'] = momepy.effective_mesh(tessellation, spatial_weights=sw, areas='area')
-    Calculating effective mesh size...
+    >>> tessellation['mesh_100'] = momepy.effective_mesh(tessellation, spatial_weights=sw, values='area')
+    Calculating mean character value...
     100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
-    Effective mesh size calculated.
+    Mean character value calculated.
     >>> tessellation.mesh_100[0]
     4823.1334436678835
 
@@ -359,7 +358,7 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3, mode=None
     # define empty list for results
     results_list = []
 
-    print('Calculating effective mesh size...')
+    print('Calculating mean character value...')
 
     if spatial_weights is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
@@ -370,37 +369,37 @@ def effective_mesh(objects, spatial_weights=None, areas=None, order=3, mode=None
         if not all(objects.index == range(len(objects))):
             raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
-    if areas is not None:
-        if not isinstance(areas, str):
-            objects['mm_a'] = areas
-            areas = 'mm_a'
+    if values is not None:
+        if not isinstance(values, str):
+            objects['mm_v'] = values
+            values = 'mm_v'
 
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
         neighbours = spatial_weights.neighbors[index]
-        area_list = None
-        if areas is not None:
-            area_list = objects.iloc[neighbours][areas].tolist()
-            if area_list:
-                area_list.append(row[areas])
+        values_list = None
+        if values is not None:
+            values_list = objects.iloc[neighbours][values].tolist()
+            if values_list:
+                values_list.append(row[values])
             else:
-                area_list = [row[areas]]
+                values_list = [row[values]]
         else:
-            area_list = objects.iloc[neighbours].geometry.area.tolist()
-            if area_list:
-                area_list.append(row.geometry.area)
+            values_list = objects.iloc[neighbours].geometry.area.tolist()
+            if values_list:
+                values_list.append(row.geometry.area)
             else:
-                area_list = [row.geometry.area]
+                values_list = [row.geometry.area]
         if mode:
             from momepy import limit_range
-            area_list = limit_range(area_list, mode=mode)
-        results_list.append(sum(area_list) / len(area_list))
+            values_list = limit_range(values_list, mode=mode)
+        results_list.append(sum(values_list) / len(values_list))
 
     series = pd.Series(results_list)
 
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
+    if 'mm_v' in objects.columns:
+        objects.drop(columns=['mm_v'], inplace=True)
 
-    print('Effective mesh size calculated.')
+    print('Mean character value calculated.')
     return series
 
 
