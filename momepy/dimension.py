@@ -306,7 +306,7 @@ def mean_character(objects, spatial_weights=None, values=None, order=3, mode=Non
     Mean value of the character within k topological steps defined in spatial_weights.
 
     .. math::
-        \\frac{1}{n}\\left(\\sum_{i=1}^{n} area_{i}\\right)
+        \\frac{1}{n}\\left(\\sum_{i=1}^{n} value_{i}\\right)
 
     Parameters
     ----------
@@ -334,7 +334,7 @@ def mean_character(objects, spatial_weights=None, values=None, order=3, mode=Non
 
     Examples
     --------
-    >>> tessellation['mesh'] = momepy.effective_mesh(tessellation)
+    >>> tessellation['mesh'] = momepy.mean_character(tessellation)
     Calculating mean character value...
     Generating weights matrix (Queen) of 3 topological steps...
     100%|██████████| 144/144 [00:00<00:00, 900.83it/s]
@@ -343,17 +343,12 @@ def mean_character(objects, spatial_weights=None, values=None, order=3, mode=Non
     2922.957260196682
 
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True)
-    >>> tessellation['mesh_100'] = momepy.effective_mesh(tessellation, spatial_weights=sw, values='area')
+    >>> tessellation['mesh_100'] = momepy.mean_character(tessellation, spatial_weights=sw, values='area')
     Calculating mean character value...
     100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
     Mean character value calculated.
     >>> tessellation.mesh_100[0]
     4823.1334436678835
-
-    Notes
-    -----
-    Check corellation with block_density()
-
     """
     # define empty list for results
     results_list = []
