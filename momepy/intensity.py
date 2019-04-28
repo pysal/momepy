@@ -6,6 +6,7 @@
 
 from tqdm import tqdm  # progress bar
 import pandas as pd
+import collections
 
 
 def radius(gpd_df, cpt, radius):
@@ -70,6 +71,10 @@ def frequency(objects, look_for, id_column='uID', rad=400):
 
     References
     ---------
+
+    Notes
+    -----
+    Might be faster using libpysal DistanceBand
 
     """
 
@@ -137,7 +142,7 @@ def covered_area_ratio(objects, look_for, area_column, look_for_area_column, id_
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(objects_merged.iterrows(), total=objects_merged.shape[0]):
-            results_list.append(row['lf_area'] / row[area_column])
+        results_list.append(row['lf_area'] / row[area_column])
 
     series = pd.Series(results_list)
 
@@ -353,6 +358,10 @@ def gross_density(objects, buildings, area, character, weights_matrix=None, orde
     References
     ---------
     Jacob??
+
+    Notes
+    -----
+    Rework, it is a mess. Terminology!
     """
     # define empty list for results
     results_list = []
@@ -366,7 +375,7 @@ def gross_density(objects, buildings, area, character, weights_matrix=None, orde
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        weights_matrix = Queen_higher(objects, k=order)
+        weights_matrix = Queen_higher(k=order, geodataframe=objects)
 
     # iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
@@ -417,6 +426,10 @@ def blocks_count(tessellation, block_id, spatial_weights=None, order=5):
     Examples
     --------
 
+    Notes
+    -----
+    Blocks count or blocks density?
+
     """
     # define empty list for results
     results_list = []
@@ -432,7 +445,7 @@ def blocks_count(tessellation, block_id, spatial_weights=None, order=5):
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(tessellation, k=order)
+        spatial_weights = Queen_higher(k=order, geodataframe=tessellation)
 
     print('Calculating blocks...')
 
