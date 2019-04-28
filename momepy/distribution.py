@@ -448,7 +448,7 @@ def neighbour_distance(objects, tessellation, unique_id, weights_matrix=None):
 
         neighbours_ids = tessellation.iloc[neighbours][unique_id]
         building_neighbours = objects.loc[objects[unique_id].isin(neighbours_ids)]
-        if building_neighbours:
+        if len(building_neighbours) > 0:
             results_list.append(np.mean(building_neighbours.geometry.distance(row['geometry'])))
         else:
             results_list.append(0)
@@ -510,7 +510,7 @@ def mean_interbuilding_distance(objects, tessellation, unique_id, weights_matrix
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        weights_matrix_higher = Queen_higher(tessellation, k=order)
+        weights_matrix_higher = Queen_higher(k=order, geodataframe=tessellation)
 
     # define empty list for results
     results_list = []
@@ -634,6 +634,7 @@ def neighbouring_street_orientation_deviation(objects):
 
     series = pd.Series(results_list)
     objects.drop(['tmporient'], axis=1)
+    print('Street alignments calculated.')
     return series
 
 
@@ -693,7 +694,7 @@ def building_adjacency(objects, tessellation, weights_matrix=None, weights_matri
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        weights_matrix_higher = Queen_higher(tessellation, k=order)
+        weights_matrix_higher = Queen_higher(k=order, geodataframe=tessellation)
 
     print('Generating dictionary of built-up patches...')
     # dict to store nr of courtyards for each uID
@@ -733,7 +734,7 @@ def building_adjacency(objects, tessellation, weights_matrix=None, weights_matri
         patches_sub = [patches[x] for x in indices]
         patches_nr = len(set(patches_sub))
 
-        results_list.append(len(building_neighbours) / patches_nr)
+        results_list.append(patches_nr / len(building_neighbours))
 
     series = pd.Series(results_list)
 
