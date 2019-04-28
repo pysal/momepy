@@ -57,3 +57,54 @@ class TestDistribution:
         check = 18.299481296455237
         assert self.df_buildings['align'][0] == check
         assert self.df_buildings['align_sw'][0] == check
+
+    def test_neighbour_distance(self):
+        self.df_buildings['dist'] = mm.neighbour_distance(self.df_buildings, self.df_tessellation, 'uID')
+        sw = Queen.from_dataframe(self.df_tessellation)
+        self.df_buildings['dist_sw'] = mm.neighbour_distance(self.df_buildings, self.df_tessellation, 'uID', sw)
+        check = 29.18589019096464
+        assert self.df_buildings['dist'][0] == check
+        assert self.df_buildings['dist_sw'][0] == check
+
+    def test_mean_interbuilding_distance(self):
+        self.df_buildings['m_dist'] = mm.mean_interbuilding_distance(self.df_buildings, self.df_tessellation, 'uID')
+        sw = Queen.from_dataframe(self.df_tessellation)
+        swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation)
+        self.df_buildings['m_dist_sw'] = mm.mean_interbuilding_distance(self.df_buildings, self.df_tessellation, 'uID', sw, swh)
+        check = 29.305457092042744
+        assert self.df_buildings['m_dist'][0] == check
+        assert self.df_buildings['m_dist_sw'][0] == check
+
+    def test_neighbouring_street_orientation_deviation(self):
+        self.df_streets['dev'] = mm.neighbouring_street_orientation_deviation(self.df_streets)
+        check = 6.060070028371881
+        self.df_streets['dev'].mean() == check
+
+    def test_building_adjacency(self):
+        self.df_buildings['adj'] = mm.building_adjacency(self.df_buildings, self.df_tessellation)
+        sw = Queen.from_dataframe(self.df_buildings)
+        swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation)
+        self.df_buildings['adj_sw'] = mm.building_adjacency(self.df_buildings, self.df_tessellation, weights_matrix=sw, weights_matrix_higher=swh)
+        check = 0.2613824113909074
+        assert self.df_buildings['adj'].mean() == check
+        assert self.df_buildings['adj_sw'].mean() == check
+
+    def test_neighbours(self):
+        self.df_tessellation['nei'] = mm.neighbours(self.df_tessellation)
+        sw = Queen.from_dataframe(self.df_tessellation)
+        self.df_tessellation['nei_sw'] = mm.neighbours(self.df_tessellation, sw)
+        self.df_tessellation['nei_wei'] = mm.neighbours(self.df_tessellation, sw, weighted=True)
+        check = 5.180555555555555
+        check_w = 0.029066398893536072
+        assert self.df_tessellation['nei'].mean() == check
+        assert self.df_tessellation['nei_sw'].mean() == check
+        assert self.df_tessellation['nei_wei'].mean() == check_w
+
+    def test_node_degree(self):
+        graph = mm.gdf_to_nx(self.df_streets)
+        deg1 = mm.node_degree(graph=graph, target='graph')
+        deg2 = mm.node_degree(geodataframe=self.df_streets, target='graph')
+        deg3 = mm.node_degree(graph=graph, target='gdf')
+        assert deg1.nodes[(1603650.450422848, 6464368.600601688)]['degree'] == 4
+        assert deg2.nodes[(1603650.450422848, 6464368.600601688)]['degree'] == 4
+        assert deg3.degree.mean() == 2.0625
