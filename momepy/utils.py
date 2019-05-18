@@ -335,12 +335,12 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
 
         for key in tqdm(join, total=len(join), desc='Changing geometry'):
             selection = blg[blg['uID'] == key]
-            if len(selection) > 0:
+            if not selection.empty:
                 geoms = [selection.iloc[0].geometry]
 
                 for j in join[key]:
                     subset = blg[blg['uID'] == j]
-                    if len(subset) > 0:
+                    if not subset.empty:
                         geoms.append(blg[blg['uID'] == j].iloc[0].geometry)
                         blg.drop(blg[blg['uID'] == j].index[0], inplace=True)
                 new_geom = shapely.ops.unary_union(geoms)
