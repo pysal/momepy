@@ -71,3 +71,9 @@ class TestUtils:
     def test_limit_range(self):
         assert mm.limit_range(range(10), mode='iq') == [3, 4, 5, 6]
         assert mm.limit_range(range(10), mode='id') == [1, 2, 3, 4, 5, 6, 7, 8]
+
+    def test_preprocess(self):
+        test_file_path2 = mm.datasets.get_path('tests')
+        self.os_buildings = gpd.read_file(test_file_path2, layer='os')
+        processed = mm.preprocess(self.os_buildings)
+        assert len(processed) == 5
