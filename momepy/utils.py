@@ -7,6 +7,11 @@ from shapely.geometry import Point
 import networkx as nx
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
+import operator
+import shapely
+
+from .shape import circular_compactness
 
 
 def unique_id(objects):
@@ -151,7 +156,7 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
     return gdf_edges
 
 
-def multi2single(gpdf):
+def multi2single(gdf):
     """
     Convert MultiPolygon geometry of GeoDataFrame to Polygon geometries.
 
@@ -166,17 +171,17 @@ def multi2single(gpdf):
         GeoDataFrame containing only Polygons
 
     """
-    gpdf_singlepoly = gpdf[gpdf.geometry.type == 'Polygon']
-    gpdf_multipoly = gpdf[gpdf.geometry.type == 'MultiPolygon']
+    gdf_singlepoly = gdf[gdf.geometry.type == 'Polygon']
+    gdf_multipoly = gdf[gdf.geometry.type == 'MultiPolygon']
 
-    for i, row in gpdf_multipoly.iterrows():
+    for i, row in gdf_multipoly.iterrows():
         Series_geometries = pd.Series(row.geometry)
-        df = pd.concat([gpd.GeoDataFrame(row, crs=gpdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
+        df = pd.concat([gpd.GeoDataFrame(row, crs=gdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
         df['geometry'] = Series_geometries
-        gpdf_singlepoly = pd.concat([gpdf_singlepoly, df])
+        gdf_singlepoly = pd.concat([gdf_singlepoly, df])
 
-    gpdf_singlepoly.reset_index(inplace=True, drop=True)
-    return gpdf_singlepoly
+    gdf_singlepoly.reset_index(inplace=True, drop=True)
+    return gdf_singlepoly
 
 
 def limit_range(vals, mode):
@@ -210,3 +215,137 @@ def limit_range(vals, mode):
                 limited.append(x)
         return limited
     return vals
+
+
+def preprocess(buildings, size=30, compactness=True, islands=True):
+    """
+    Preprocesses building geometry to eliminate additional structures being single features.
+
+    Certain data providers (e.g. Ordnance Survey in GB) do not provide building geometry
+    as one feature, but divided into different features depending their level (if they are
+    on ground floor or not - passages, overhangs). Ideally, these features should share
+    one building ID on which they could be dissolved. If this is not the case, series of
+    steps needs to be done to minimize errors in morphological analysis.
+
+    This script attempts to preprocess such geometry based on several condidions:
+    If feature area is smaller than set size it will be a) deleted if it does not
+    touch any other feature; b) will be joined to feature with which it shares the
+    longest boundary. If feature is fully within other feature, these will be joined.
+    If feature's circular compactness (:py:func:`momepy.shape.circular compactness`)
+    is < 0.2, it will be joined to feature with which it shares the longest boundary.
+    Function does two loops through.
+
+
+    Parameters
+    ----------
+    buildings : geopandas.GeoDataFrame
+        geopandas.GeoDataFrame containing building layer
+    size : float (default 30)
+        maximum area of feature to be considered as additional structure. Set to
+        None if not wanted.
+    compactness : bool (default True)
+        if True, function will resolve additional structures identified based on
+        their circular compactness.
+    islands : bool (default True)
+        if True, function will resolve additional structures which are fully within
+        other structures (share 100% of exterior boundary).
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame containing preprocessed geometry
+    """
+    blg = buildings.copy()
+    for l in range(0, 2):
+        print('Loop', l + 1, 'out of 2.')
+        blg.reset_index(inplace=True)
+        blg['uID'] = range(len(blg))
+        sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
+        blg['neighbors'] = sw.neighbors
+        blg['neighbors'] = blg['neighbors'].map(sw.neighbors)
+        blg['n_count'] = blg.apply(lambda row: len(row.neighbors), axis=1)
+        blg['circu'] = circular_compactness(blg)
+        # blg['con1'] = None
+        # blg.loc[delete, 'con1'] = 'island'
+
+        # idetify those smaller than x with only one neighbor and attaches it to it.
+        join = {}
+        delete = []
+
+        for idx, row in tqdm(blg.iterrows(), total=blg.shape[0], desc='Identifying changes'):
+            if size:
+                if row.geometry.area < size:
+                    if row.n_count == 1:
+                        uid = blg.iloc[row.neighbors[0]].uID
+
+                        if uid in join:
+                            existing = join[uid]
+                            existing.append(row.uID)
+                            join[uid] = existing
+                        else:
+                            join[uid] = [row.uID]
+                    elif row.n_count > 1:
+                        shares = {}
+                        for n in row.neighbors:
+                            shares[n] = row.geometry.intersection(blg.at[n, 'geometry']).length
+                        maximal = max(shares.items(), key=operator.itemgetter(1))[0]
+                        uid = blg.loc[maximal].uID
+                        if uid in join:
+                            existing = join[uid]
+                            existing.append(row.uID)
+                            join[uid] = existing
+                        else:
+                            join[uid] = [row.uID]
+                    else:
+                        delete.append(idx)
+            if compactness:
+                if row.circu < 0.2:
+                    if row.n_count == 1:
+                        uid = blg.iloc[row.neighbors[0]].uID
+                        if uid in join:
+                            existing = join[uid]
+                            existing.append(row.uID)
+                            join[uid] = existing
+                        else:
+                            join[uid] = [row.uID]
+                    elif row.n_count > 1:
+                        shares = {}
+                        for n in row.neighbors:
+                            shares[n] = row.geometry.intersection(blg.at[n, 'geometry']).length
+                        maximal = max(shares.items(), key=operator.itemgetter(1))[0]
+                        uid = blg.loc[maximal].uID
+                        if uid in join:
+                            existing = join[uid]
+                            existing.append(row.uID)
+                            join[uid] = existing
+                        else:
+                            join[uid] = [row.uID]
+
+            if islands:
+                if row.n_count == 1:
+                    shared = row.geometry.intersection(blg.at[row.neighbors[0], 'geometry']).length
+                    if shared == row.geometry.exterior.length:
+                        uid = blg.iloc[row.neighbors[0]].uID
+                        if uid in join:
+                            existing = join[uid]
+                            existing.append(row.uID)
+                            join[uid] = existing
+                        else:
+                            join[uid] = [row.uID]
+
+        for key in tqdm(join, total=len(join), desc='Changing geometry'):
+            selection = blg[blg['uID'] == key]
+            if len(selection) > 0:
+                geoms = [selection.iloc[0].geometry]
+
+                for j in join[key]:
+                    subset = blg[blg['uID'] == j]
+                    if len(subset) > 0:
+                        geoms.append(blg[blg['uID'] == j].iloc[0].geometry)
+                        blg.drop(blg[blg['uID'] == j].index[0], inplace=True)
+                new_geom = shapely.ops.unary_union(geoms)
+                blg.loc[blg.loc[blg['uID'] == key].index[0], 'geometry'] = new_geom
+
+        blg.drop(delete, inplace=True)
+    blg.drop(['neighbors', 'n_count', 'circu', 'uID'], axis=1, inplace=True)
+    return blg

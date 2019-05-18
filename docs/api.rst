@@ -95,3 +95,4 @@ utilities
    gdf_to_nx
    nx_to_gdf
    unique_id
+   from_os
