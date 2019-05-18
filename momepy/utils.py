@@ -156,7 +156,7 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
     return gdf_edges
 
 
-def multi2single(gpdf):
+def multi2single(gdf):
     """
     Convert MultiPolygon geometry of GeoDataFrame to Polygon geometries.
 
@@ -169,18 +169,19 @@ def multi2single(gpdf):
     -------
     GeoDataFrame
         GeoDataFrame containing only Polygons
+
     """
-    gpdf_singlepoly = gpdf[gpdf.geometry.type == 'Polygon']
-    gpdf_multipoly = gpdf[gpdf.geometry.type == 'MultiPolygon']
+    gdf_singlepoly = gdf[gdf.geometry.type == 'Polygon']
+    gdf_multipoly = gdf[gdf.geometry.type == 'MultiPolygon']
 
-    for i, row in gpdf_multipoly.iterrows():
+    for i, row in gdf_multipoly.iterrows():
         Series_geometries = pd.Series(row.geometry)
-        df = pd.concat([gpd.GeoDataFrame(row, crs=gpdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
+        df = pd.concat([gpd.GeoDataFrame(row, crs=gdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
         df['geometry'] = Series_geometries
-        gpdf_singlepoly = pd.concat([gpdf_singlepoly, df])
+        gdf_singlepoly = pd.concat([gdf_singlepoly, df])
 
-    gpdf_singlepoly.reset_index(inplace=True, drop=True)
-    return gpdf_singlepoly
+    gdf_singlepoly.reset_index(inplace=True, drop=True)
+    return gdf_singlepoly
 
 
 def limit_range(vals, mode):
