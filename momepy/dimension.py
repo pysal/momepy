@@ -299,7 +299,7 @@ def longest_axis_length(objects):
     return series
 
 
-def mean_character(objects, spatial_weights=None, values=None, order=3, mode=None):
+def mean_character(objects, spatial_weights=None, values=None, order=3, rng=None):
     """
     Calculates the mean of a character within k steps of morphological tessellation
 
@@ -319,8 +319,9 @@ def mean_character(objects, spatial_weights=None, values=None, order=3, mode=Non
         the name of the dataframe column, np.array, or pd.Series where is stored character value. If set to None, function will use area.
     order : int
         order of Queen contiguity
-    mode : str
-        mode of calculation. None will use all values, `iq` will use values within interquartile range, `id` will use values within interdecile range
+    rng : Two-element sequence containing floats in range of [0,100], optional
+        Percentiles over which to compute the range. Each must be
+        between 0 and 100, inclusive. The order of the elements is not important.
 
     Returns
     -------
@@ -384,9 +385,9 @@ def mean_character(objects, spatial_weights=None, values=None, order=3, mode=Non
                 values_list.append(row.geometry.area)
             else:
                 values_list = [row.geometry.area]
-        if mode:
+        if rng:
             from momepy import limit_range
-            values_list = limit_range(values_list, mode=mode)
+            values_list = limit_range(values_list, rng=rng)
         results_list.append(sum(values_list) / len(values_list))
 
     series = pd.Series(results_list)
@@ -693,12 +694,127 @@ def weighted_character(objects, tessellation, characters, unique_id, spatial_wei
 
     print('Weighted {} calculated.'.format(characters))
     return series
-# to be deleted, keep at the end
 
-# path = "/Users/martin/Dropbox/StrathUni/PhD/Papers/Voronoi tesselation/Data/Zurich/Final data/Voronoi/test/voronoi_10.shp"
-# objects = gpd.read_file(path)
 
-# longest_axis_length2(objects='longest_axis')
+def covered_area(objects, spatial_weights=None):
+    """
+    Calculates the area covered by k steps of morphological tessellation
 
-# objects.head
-# objects.to_file(path)
+    Total area covered within k topological steps defined in spatial_weights.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing morphological tessellation
+    spatial_weights : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix will be calculated
+        based on objects.
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    References
+    ----------
+
+    Examples
+    --------
+
+    """
+    # define empty list for results
+    results_list = []
+
+    print('Calculating covered area...')
+
+    if spatial_weights is None:
+        print('Generating weights matrix (Queen)...')
+        from libpysal.weights import Queen
+        # matrix to define area of analysis (more steps)
+        spatial_weights = Queen.from_dataframe(objects, silence_warnings=True)
+    else:
+        if not all(objects.index == range(len(objects))):
+            raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
+
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        neighbours = spatial_weights.neighbors[index]
+        neighbours.append(index)
+        areas = objects.iloc[neighbours].geometry.area
+        results_list.append(sum(areas))
+
+    series = pd.Series(results_list)
+
+    print('Covered area calculated.')
+    return series
+
+
+def wall(objects, spatial_weights=None):
+    """
+    Calculate the perimeter wall length the joined structure.
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    spatial_weights : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix will be calculated
+        based on objects. It is to denote adjacent buildings.
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    Notes
+    -----
+    Script is not optimised at all, so it is currently extremely slow.
+    """
+    # define empty list for results
+    results_list = []
+
+    print('Calculating perimeter wall length...')
+
+    if not all(objects.index == range(len(objects))):
+        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
+
+    # if weights matrix is not passed, generate it from objects
+    if spatial_weights is None:
+        print('Calculating spatial weights...')
+        from libpysal.weights import Queen
+        spatial_weights = Queen.from_dataframe(objects, silence_warnings=True)
+        print('Spatial weights ready...')
+
+    # dict to store walls for each uID
+    walls = {}
+
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        # if the id is already present in walls, continue (avoid repetition)
+        if index in walls:
+            continue
+        else:
+            to_join = [index]  # list of indices which should be joined together
+            neighbours = []  # list of neighbours
+            weights = spatial_weights.neighbors[index]  # neighbours from spatial weights
+            for w in weights:
+                neighbours.append(w)  # make a list from weigths
+
+            for n in neighbours:
+                while n not in to_join:  # until there is some neighbour which is not in to_join
+                    to_join.append(n)
+                    weights = spatial_weights.neighbors[n]
+                    for w in weights:
+                        neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
+            joined = objects.iloc[to_join]
+            dissolved = joined.geometry.buffer(0.01).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
+            for b in to_join:
+                walls[b] = dissolved.exterior.length  # fill dict with values
+    # copy values from dict to gdf
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        results_list.append(walls[index])
+
+    series = pd.Series(results_list)
+    print('Perimeter wall length calculated.')
+    return series

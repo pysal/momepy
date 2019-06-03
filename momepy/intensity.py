@@ -9,96 +9,6 @@ import pandas as pd
 import collections
 
 
-def radius(gpd_df, cpt, radius):
-    """
-    Get a list of indices of objects within radius.
-
-    Parameters
-    ----------
-    gpd_df : GeoDataFrame
-        GeoDataFrame containing point objects to analyse
-    cpt : shapely.Point
-        shapely point representing the center of radius
-    radius : float
-        radius
-
-    Returns
-    -------
-    list
-        Return only the neighbour indices, sorted by distance in ascending order
-
-    Notes
-    ---------
-    https://stackoverflow.com/questions/44622233/rtree-count-points-in-the-neighbourhoods-within-each-point-of-another-set-of-po
-
-    """
-    # Spatial index
-    sindex = gpd_df.sindex
-    # Bounding box of rtree search (West, South, East, North)
-    bbox = (cpt.x - radius, cpt.y - radius, cpt.x + radius, cpt.y + radius)
-    # Potential neighbours
-    good = []
-    for n in sindex.intersection(bbox):
-        dist = cpt.distance(gpd_df['geometry'].iloc[n])
-        if dist < radius:
-            good.append((dist, n))
-    # Sort list in ascending order by `dist`, then `n`
-    good.sort()
-    # Return only the neighbour indices, sorted by distance in ascending order
-    return [x[1] for x in good]
-
-
-def frequency(objects, look_for, id_column='uID', rad=400):
-    """
-    Calculate frequency (count) of objects in a given radius.
-
-    .. math::
-        count
-
-    Parameters
-    ----------
-    objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
-    look_for : GeoDataFrame
-        GeoDataFrame with measured objects (could be the same as objects)
-    id_column : str
-        name of the column with unique id
-
-    Returns
-    -------
-    Series
-        Series containing resulting values.
-
-    References
-    ---------
-
-    Notes
-    -----
-    Might be faster using libpysal DistanceBand
-
-    """
-
-    print('Calculating frequency...')
-
-    objects_centroids = objects.copy()
-    objects_centroids['geometry'] = objects_centroids.centroid
-
-    look_for_centroids = look_for.copy()
-    look_for_centroids['geometry'] = look_for_centroids.centroid
-
-    # define empty list for results
-    results_list = []
-
-    for index, row in tqdm(objects_centroids.iterrows(), total=objects_centroids.shape[0]):
-        neighbours = radius(look_for_centroids, row['geometry'], rad)
-        results_list.append(len(neighbours))
-
-    series = pd.Series(results_list)
-
-    print('Frequency calculated.')
-    return series
-
-
 def covered_area_ratio(objects, look_for, area_column, look_for_area_column, id_column="uID"):
     """
     Calculate covered area ratio of objects.
@@ -250,7 +160,7 @@ def elements_in_block(blocks, elements, left_id, right_id, weighted=False):
     return series
 
 
-def courtyards(objects, block_id, weights_matrix=None):
+def courtyards(objects, block_id, spatial_weights=None):
     """
     Calculate the number of courtyards within the joined structure.
 
@@ -260,7 +170,7 @@ def courtyards(objects, block_id, weights_matrix=None):
         GeoDataFrame containing objects to analyse
     block_id : str
         name of the column where is stored block ID
-    weights_matrix : libpysal.weights, optional
+    spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on objects. It is to denote adjacent buildings.
 
@@ -282,10 +192,10 @@ def courtyards(objects, block_id, weights_matrix=None):
         raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     # if weights matrix is not passed, generate it from objects
-    if weights_matrix is None:
+    if spatial_weights is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
-        weights_matrix = Queen.from_dataframe(objects, silence_warnings=True)
+        spatial_weights = Queen.from_dataframe(objects, silence_warnings=True)
         print('Spatial weights ready...')
 
     # dict to store nr of courtyards for each uID
@@ -298,14 +208,14 @@ def courtyards(objects, block_id, weights_matrix=None):
         else:
             to_join = [index]  # list of indices which should be joined together
             neighbours = []  # list of neighbours
-            weights = weights_matrix.neighbors[index]  # neighbours from spatial weights
+            weights = spatial_weights.neighbors[index]  # neighbours from spatial weights
             for w in weights:
                 neighbours.append(w)  # make a list from weigths
 
             for n in neighbours:
                 while n not in to_join:  # until there is some neighbour which is not in to_join
                     to_join.append(n)
-                    weights = weights_matrix.neighbors[n]
+                    weights = spatial_weights.neighbors[n]
                     for w in weights:
                         neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
             joined = objects.iloc[to_join]
@@ -325,7 +235,7 @@ def courtyards(objects, block_id, weights_matrix=None):
     return series
 
 
-def gross_density(objects, buildings, area, character, weights_matrix=None, order=3, unique_id='uID'):
+def gross_density(objects, buildings, area, character, spatial_weights=None, order=3, unique_id='uID'):
     """
     Calculate the density
 
@@ -342,7 +252,7 @@ def gross_density(objects, buildings, area, character, weights_matrix=None, orde
         name of the column with area values
     character : str
         name of the column with values of target character for density calculation
-    weights_matrix : libpysal.weights, optional
+    spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix of selected order will be calculated
         based on objects.
     order : int
@@ -371,15 +281,15 @@ def gross_density(objects, buildings, area, character, weights_matrix=None, orde
     if not all(objects.index == range(len(objects))):
         raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
-    if weights_matrix is None:
+    if spatial_weights is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        weights_matrix = Queen_higher(k=order, geodataframe=objects)
+        spatial_weights = Queen_higher(k=order, geodataframe=objects)
 
     # iterating over rows one by one
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        neighbours_id = weights_matrix.neighbors[index]
+        neighbours_id = spatial_weights.neighbors[index]
         neighbours_id.append(index)
         neighbours = objects.iloc[neighbours_id]
 

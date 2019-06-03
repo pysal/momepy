@@ -582,7 +582,7 @@ def blocks(cells, streets, buildings, id_name, unique_id):
             single_geom.append(p)
 
     blocks_gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(single_geom))
-    weights_matrix = Queen.from_dataframe(blocks_gdf, silence_warnings=True)
+    spatial_weights = Queen.from_dataframe(blocks_gdf, silence_warnings=True)
 
     patches = {}
     jID = 1
@@ -594,14 +594,14 @@ def blocks(cells, streets, buildings, id_name, unique_id):
         else:
             to_join = [idx]  # list of indices which should be joined together
             neighbours = []  # list of neighbours
-            weights = weights_matrix.neighbors[idx]  # neighbours from spatial weights
+            weights = spatial_weights.neighbors[idx]  # neighbours from spatial weights
             for w in weights:
                 neighbours.append(w)  # make a list from weigths
 
             for n in neighbours:
                 while n not in to_join:  # until there is some neighbour which is not in to_join
                     to_join.append(n)
-                    weights = weights_matrix.neighbors[n]
+                    weights = spatial_weights.neighbors[n]
                     for w in weights:
                         neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
             for b in to_join:

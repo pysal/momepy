@@ -26,12 +26,14 @@ dimension
 
    area
    courtyard_area
+   covered_area
    floor_area
    longest_axis_length
    mean_character
    perimeter
    street_profile
    volume
+   wall
    weighted_character
 
 shape
@@ -86,12 +88,24 @@ intensity
    frequency
    gross_density
 
+diversity
+---------
+.. autosummary::
+  :toctree: generated/
+
+  rng
+  simpson
+  theil
+
 utilities
 ---------
 .. autosummary::
    :toctree: generated/
 
-   Queen_higher
    gdf_to_nx
+   limit_range
+   multi2single
    nx_to_gdf
+   preprocess
    unique_id
+   Queen_higher

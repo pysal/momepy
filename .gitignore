@@ -107,6 +107,10 @@ venv.bak/
 
 cache/
 
+# GPKG cache
+.gpkg-wal
+.gpkg-shm
+
 # my playing files
 sandbox/
 run/
