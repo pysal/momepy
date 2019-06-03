@@ -105,8 +105,8 @@ class TestDimensions:
         self.df_tessellation['area'] = area = self.df_tessellation.geometry.area
         self.df_tessellation['mesh_ar'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area')
         self.df_tessellation['mesh_array'] = mm.mean_character(self.df_tessellation, spatial_weights, values=area)
-        self.df_tessellation['mesh_id'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area', mode='id')
-        self.df_tessellation['mesh_iq'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area', mode='iq')
+        self.df_tessellation['mesh_id'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area', rng=(10, 90))
+        self.df_tessellation['mesh_iq'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area', rng=(25, 75))
         neighbours = spatial_weights.neighbors[38]
         total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
         check = total_area / (len(neighbours) + 1)

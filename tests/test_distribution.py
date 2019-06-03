@@ -84,7 +84,7 @@ class TestDistribution:
         self.df_buildings['adj'] = mm.building_adjacency(self.df_buildings, self.df_tessellation)
         sw = Queen.from_dataframe(self.df_buildings)
         swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation)
-        self.df_buildings['adj_sw'] = mm.building_adjacency(self.df_buildings, self.df_tessellation, weights_matrix=sw, weights_matrix_higher=swh)
+        self.df_buildings['adj_sw'] = mm.building_adjacency(self.df_buildings, self.df_tessellation, spatial_weights=sw, spatial_weights_higher=swh)
         check = 0.2613824113909074
         assert self.df_buildings['adj'].mean() == check
         assert self.df_buildings['adj_sw'].mean() == check
