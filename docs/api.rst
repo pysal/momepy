@@ -85,7 +85,6 @@ intensity
    covered_area_ratio
    elements_in_block
    floor_area_ratio
-   frequency
    gross_density
 
 diversity
