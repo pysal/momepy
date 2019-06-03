@@ -158,3 +158,17 @@ class TestDimensions:
         sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
         weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID', sw, area)
         assert weighted[38] == 18.301521351817303
+
+    def test_covered_area(self):
+        sw = Queen_higher(geodataframe=self.df_tessellation, k=1)
+        covered = mm.covered_area(self.df_tessellation)
+        covered_sw = mm.covered_area(self.df_tessellation, sw)
+        assert covered[0] == covered_sw[0]
+        assert covered[0] == 24115.66721833942
+
+    def test_wall(self):
+        sw = Queen_higher(geodataframe=self.df_buildings, k=1)
+        wall = mm.wall(self.df_buildings)
+        wall_sw = mm.wall(self.df_buildings, sw)
+        assert wall[0] == wall_sw[0]
+        assert wall[0] == 137.2106961418436
