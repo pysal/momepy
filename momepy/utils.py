@@ -184,17 +184,17 @@ def multi2single(gdf):
     return gdf_singlepoly
 
 
-def limit_range(vals, mode):
+def limit_range(vals, rng):
     """
-    Extract values within selected mode ('id', 'iq')
+    Extract values within selected range
 
     Parameters
     ----------
     vals : array
 
-    mode : str
-        'iq' for interquartile range, 'id' for interdecile range
-
+    rng : Two-element sequence containing floats in range of [0,100], optional
+        Percentiles over which to compute the range. Each must be
+        between 0 and 100, inclusive. The order of the elements is not important.
     Returns
     -------
     array
@@ -202,14 +202,9 @@ def limit_range(vals, mode):
     """
     if len(vals) > 2:
         limited = []
-        if mode == 'iq':
-            mval = 25
-            xval = 75
-        elif mode == 'id':
-            mval = 10
-            xval = 90
-        lower = np.percentile(vals, mval)
-        higher = np.percentile(vals, xval)
+        rng = sorted(rng)
+        lower = np.percentile(vals, rng[0])
+        higher = np.percentile(vals, rng[1])
         for x in vals:
             if x >= lower and x <= higher:
                 limited.append(x)
