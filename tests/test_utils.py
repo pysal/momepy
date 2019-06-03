@@ -69,8 +69,8 @@ class TestUtils:
         assert len(nodes) == 32
 
     def test_limit_range(self):
-        assert mm.limit_range(range(10), mode='iq') == [3, 4, 5, 6]
-        assert mm.limit_range(range(10), mode='id') == [1, 2, 3, 4, 5, 6, 7, 8]
+        assert mm.limit_range(range(10), rng=(25, 75)) == [3, 4, 5, 6]
+        assert mm.limit_range(range(10), rng=(10, 90)) == [1, 2, 3, 4, 5, 6, 7, 8]
 
     def test_preprocess(self):
         test_file_path2 = mm.datasets.get_path('tests')

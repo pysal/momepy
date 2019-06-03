@@ -47,7 +47,7 @@ class TestDistribution:
     def test_gross_density(self):
         dens = mm.gross_density(self.df_tessellation, self.df_buildings, 'area', 'fl_area')
         sw = mm.Queen_higher(k=3, geodataframe=self.df_tessellation)
-        dens2 = mm.gross_density(self.df_tessellation, self.df_buildings, 'area', 'fl_area', weights_matrix=sw)
+        dens2 = mm.gross_density(self.df_tessellation, self.df_buildings, 'area', 'fl_area', spatial_weights=sw)
         check = 1.6615871155383324
         assert dens.mean() == check
         assert dens2.mean() == check

@@ -42,15 +42,15 @@ class TestDistribution:
         assert self.df_buildings['street_a_arr'][0] == check
 
     def test_cell_alignment(self):
-        self.df_buildings['orient'] = orient = mm.orientation(self.df_buildings)
-        self.df_tessellation['orient'] = tess_orient = mm.orientation(self.df_tessellation)
+        self.df_buildings['orient'] = mm.orientation(self.df_buildings)
+        self.df_tessellation['orient'] = mm.orientation(self.df_tessellation)
         self.df_buildings['c_align'] = mm.cell_alignment(self.df_buildings, self.df_tessellation, 'orient', 'orient', 'uID')
         check = abs(self.df_buildings['orient'][0] -
                     self.df_tessellation[self.df_tessellation['uID'] == self.df_buildings['uID'][0]]['orient'].iloc[0])
         assert self.df_buildings['c_align'][0] == check
 
     def test_alignment(self):
-        self.df_buildings['orient'] = orient = mm.orientation(self.df_buildings)
+        self.df_buildings['orient'] = mm.orientation(self.df_buildings)
         self.df_buildings['align'] = mm.alignment(self.df_buildings, 'orient', self.df_tessellation, 'uID')
         sw = Queen.from_dataframe(self.df_tessellation)
         self.df_buildings['align_sw'] = mm.alignment(self.df_buildings, 'orient', self.df_tessellation, 'uID', sw)
@@ -84,7 +84,7 @@ class TestDistribution:
         self.df_buildings['adj'] = mm.building_adjacency(self.df_buildings, self.df_tessellation)
         sw = Queen.from_dataframe(self.df_buildings)
         swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation)
-        self.df_buildings['adj_sw'] = mm.building_adjacency(self.df_buildings, self.df_tessellation, weights_matrix=sw, weights_matrix_higher=swh)
+        self.df_buildings['adj_sw'] = mm.building_adjacency(self.df_buildings, self.df_tessellation, spatial_weights=sw, spatial_weights_higher=swh)
         check = 0.2613824113909074
         assert self.df_buildings['adj'].mean() == check
         assert self.df_buildings['adj_sw'].mean() == check
