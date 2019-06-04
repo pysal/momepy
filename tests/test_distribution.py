@@ -102,9 +102,5 @@ class TestDistribution:
 
     def test_node_degree(self):
         graph = mm.gdf_to_nx(self.df_streets)
-        deg1 = mm.node_degree(graph=graph, target='graph')
-        deg2 = mm.node_degree(geodataframe=self.df_streets, target='graph')
-        deg3 = mm.node_degree(graph=graph, target='gdf')
+        deg1 = mm.node_degree(graph=graph)
         assert deg1.nodes[(1603650.450422848, 6464368.600601688)]['degree'] == 4
-        assert deg2.nodes[(1603650.450422848, 6464368.600601688)]['degree'] == 4
-        assert deg3.degree.mean() == 2.0625

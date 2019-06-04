@@ -443,8 +443,8 @@ def reached(streets, elements, unique_id, spatial_weights=None, mode='count'):
             ids = streets.iloc[neighbours].nID
         if mode == 'count':
             counts = []
-            for id in ids:
-                counts.append(count[id])
+            for nid in ids:
+                counts.append(count[nid])
             results_list.append(sum(counts))
         elif mode == 'area':
             results_list.append(sum(elements.loc[elements[unique_id].isin(ids)].geometry.area))

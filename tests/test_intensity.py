@@ -4,7 +4,7 @@ import numpy as np
 from libpysal.weights import Queen
 
 
-class TestDistribution:
+class TestIntensity:
 
     def setup_method(self):
 
