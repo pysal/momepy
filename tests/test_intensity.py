@@ -63,3 +63,9 @@ class TestIntensity:
         check = 3.142437439120778e-05
         assert count.mean() == check
         assert count2.mean() == check
+
+    def test_reached(self):
+        count = mm.reached(self.df_streets, self.df_buildings, 'nID')
+        area = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='area')
+        assert max(count) == 18
+        assert max(area) == 18085.45897711331

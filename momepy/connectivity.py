@@ -8,43 +8,6 @@ from tqdm import tqdm
 import numpy as np
 
 
-def node_degree(graph, name='degree'):
-    """
-    Calculates node degree for each node.
-
-    Wrapper around `networkx.degree()`
-
-    .. math::
-
-
-    Parameters
-    ----------
-    graph : networkx.Graph
-        Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
-    name : str, optional
-        calculated attribute name
-
-    Returns
-    -------
-    Graph
-        networkx.Graph
-
-    References
-    ----------
-
-    Examples
-    --------
-
-    """
-    netx = graph
-
-    degree = dict(nx.degree(netx))
-    nx.set_node_attributes(netx, degree, name)
-
-    return netx
-
-
 def meshedness(graph, radius=5, name='meshedness'):
     """
     Calculates meshedness for subgraph around each node.

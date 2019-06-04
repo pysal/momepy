@@ -436,7 +436,7 @@ def reached(streets, elements, unique_id, spatial_weights=None, mode='count'):
     # iterating over rows one by one
     for index, row in tqdm(streets.iterrows(), total=streets.shape[0]):
         if spatial_weights is None:
-            ids = row.nID
+            ids = [row.nID]
         else:
             neighbours = spatial_weights.neighbors[index]
             neighbours.append(index)
