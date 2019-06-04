@@ -24,7 +24,7 @@ class TestDistribution:
     def test_cds_length(self):
         net = mm.cds_length(self.network)
         net = mm.cds_length(self.network, mode='mean', name='cds_mean')
-        sum = 1678.873603417499
+        sumval = 1678.873603417499
         mean = 209.8592004271874
-        assert net.nodes[(1603650.450422848, 6464368.600601688)]['cds_len'] == sum
+        assert net.nodes[(1603650.450422848, 6464368.600601688)]['cds_len'] == sumval
         assert net.nodes[(1603650.450422848, 6464368.600601688)]['cds_mean'] == mean
