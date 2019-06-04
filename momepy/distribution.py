@@ -915,26 +915,38 @@ def neighbours(objects, spatial_weights=None, weighted=False):
     return series
 
 
-def node_degree(graph=None, geodataframe=None, target='gdf'):
-    if graph is not None and geodataframe is not None:
-        import warnings
-        warnings.war('Both graph and geodataframe were passed. Graph will be used for calculation.')
+def node_degree(graph, name='degree'):
+    """
+    Calculates node degree for each node.
 
-    netx = None
-    if graph is not None:
-        netx = graph
-    elif geodataframe is not None:
-        if netx is None:
-            netx = gdf_to_nx(geodataframe)
-    else:
-        raise Warning('Either graph or geodataframe must be passed as an argument.')
+    Wrapper around `networkx.degree()`
+
+    .. math::
+
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph representing street network.
+        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+    name : str, optional
+        calculated attribute name
+
+    Returns
+    -------
+    Graph
+        networkx.Graph
+
+    References
+    ----------
+
+    Examples
+    --------
+
+    """
+    netx = graph
 
     degree = dict(nx.degree(netx))
-    nx.set_node_attributes(netx, degree, 'degree')
+    nx.set_node_attributes(netx, degree, name)
 
-    if target == 'gdf':
-        nodes = nx_to_gdf(netx, edges=False)
-        return nodes
-    elif target == 'graph':
-        return netx
-    raise Warning('Target {} is not supported. Use "gdf" for geopandas.GeoDataFrame or "graph" for networkx.Graph.'.format(target))
+    return netx

@@ -6,6 +6,7 @@
 
 from tqdm import tqdm  # progress bar
 import pandas as pd
+import numpy as np
 import collections
 
 
@@ -111,27 +112,30 @@ def floor_area_ratio(objects, look_for, area_column, look_for_area_column, id_co
     return series
 
 
-def elements_in_block(blocks, elements, left_id, right_id, weighted=False):
+def elements_count(aggr, elements, left_id, right_id, weighted=False):
     """
-    Calculate the number of elements within block.
+    Calculate the number of elements within aggregated structure.
 
-    If weighted=True, number of elements will be divided by the area of block, to return relative value.
+    Aggregated structure can be typically block, street segment or street node. Elements has to have
+    unique id of aggregated structure assigned before hand (e.g. using :py:func:`momepy.elements.get_network_id`).
+    If weighted=True, number of elements will be divided by the area of lenght (based on geometry type) of aggregated
+    element, to return relative value.
 
     .. math::
-        \\sum_{i \\in block} (n_i);\\space \\frac{\\sum_{i \\in block} (n_i)}{area_{block}}
+        \\sum_{i \\in aggr} (n_i);\\space \\frac{\\sum_{i \\in aggr} (n_i)}{area_{aggr}}
 
     Parameters
     ----------
-    blocks : GeoDataFrame
-        GeoDataFrame containing blocks to analyse
-    buildings : GeoDataFrame
-        GeoDataFrame containing buildings to analyse
+    aggr : GeoDataFrame
+        GeoDataFrame containing aggregation to analyse
+    elements : GeoDataFrame
+        GeoDataFrame containing elements to analyse
     left_id : str
-        name of the column where is stored block ID in blocks gdf
+        name of the column where is stored unique ID in aggr
     right_id : str
-        name of the column where is stored block ID in elements gdf
+        name of the column where is stored unique ID of aggregation in elements gdf
     weighted : bool (default False)
-        if weighted=True, number of buildings will be divided by the area of block, to return relative value.
+        if weighted=True, count will be divided by the area or length
 
     Returns
     -------
@@ -147,17 +151,19 @@ def elements_in_block(blocks, elements, left_id, right_id, weighted=False):
     STUDY OF RESILIENCE IN URBAN FORM. LEARNING FROM THE CASE OF GORBALS. Glasgow.
     """
     count = collections.Counter(elements[right_id])
+    df = pd.DataFrame.from_dict(count, orient='index', columns=['mm_count'])
+    joined = aggr.join(df['mm_count'], on=left_id)
+    joined['mm_count'][np.isnan(joined['mm_count'])] = 0
 
-    results_list = []
-    for index, row in tqdm(blocks.iterrows(), total=blocks.shape[0]):
-        if weighted is True:
-            results_list.append(count[row[left_id]] / row.geometry.area)
+    if weighted:
+        if aggr.geometry[0].type in ['Polygon', 'MultiPolygon']:
+            joined['mm_count'] = joined['mm_count'] / aggr.geometry.area
+        elif aggr.geometry[0].type in ['LineString', 'MultiLineString']:
+            joined['mm_count'] = joined['mm_count'] / aggr.geometry.length
         else:
-            results_list.append(count[row[left_id]])
+            raise TypeError('Geometry type does not support weighting.')
 
-    series = pd.Series(results_list)
-
-    return series
+    return joined['mm_count']
 
 
 def courtyards(objects, block_id, spatial_weights=None):
@@ -374,11 +380,78 @@ def blocks_count(tessellation, block_id, spatial_weights=None, order=5):
     print('Blocks calculated.')
     return series
 
-# objects.to_file("/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single4.shp")
-#
-# objects = gpd.read_file("/Users/martin/Strathcloud/Personal Folders/Test data/Prague/p7_voro_single.shp")
-# column_name = 'test'
-# objects
-# objects2.head
-# objects['geometry'] = objects.centroid
-# objects_centroids
+
+def reached(streets, elements, unique_id, spatial_weights=None, mode='count'):
+    """
+    Calculates the number of elements reached within topological steps
+
+    Number of elements within topological steps defined in spatial_weights. If
+    spatial_weights are None, it will assume topological distance 0 (element itself).
+    If mode='area', returns sum of areas of reached elements. Requires unique_id
+    of streets assigned beforehand (e.g. using :py:func:`momepy.elements.get_network_id`).
+
+    .. math::
+
+
+    Parameters
+    ----------
+    streets : GeoDataFrame
+        GeoDataFrame containing streets (either segments or nodes)
+    elements : GeoDataFrame
+        GeoDataFrame containing elements to be counted
+    unique_id : str, list, np.array, pd.Series (default None)
+        the name of the objects dataframe column, np.array, or pd.Series where is
+        stored ID of streets (segments or nodes).
+    spatial_weights : libpysal.weights (default None)
+        spatial weights matrix
+    mode : str (default 'count')
+        mode of calculation. If 'count' function will return the count of reached elements.
+        If 'area', it will return sum of areas of reached elements
+
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    References
+    ----------
+
+    Examples
+    --------
+
+    """
+    # define empty list for results
+    results_list = []
+
+    print('Calculating reached {}...'.format(mode))
+
+    if not isinstance(unique_id, str):
+        elements['mm_id'] = unique_id
+        unique_id = 'mm_id'
+
+    if mode == 'count':
+        count = collections.Counter(elements[unique_id])
+
+    # iterating over rows one by one
+    for index, row in tqdm(streets.iterrows(), total=streets.shape[0]):
+        if spatial_weights is None:
+            ids = [row.nID]
+        else:
+            neighbours = spatial_weights.neighbors[index]
+            neighbours.append(index)
+            ids = streets.iloc[neighbours].nID
+        if mode == 'count':
+            counts = []
+            for nid in ids:
+                counts.append(count[nid])
+            results_list.append(sum(counts))
+        elif mode == 'area':
+            results_list.append(sum(elements.loc[elements[unique_id].isin(ids)].geometry.area))
+
+    series = pd.Series(results_list)
+    if 'mm_id' in elements.columns:
+        elements.drop(columns=['mm_id'], inplace=True)
+
+    print('Reached {} calculated.'.format(mode))
+    return series

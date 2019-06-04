@@ -172,3 +172,9 @@ class TestDimensions:
         wall_sw = mm.wall(self.df_buildings, sw)
         assert wall[0] == wall_sw[0]
         assert wall[0] == 137.2106961418436
+
+    def test_segments_length(self):
+        absol = mm.segments_length(self.df_streets)
+        mean = mm.segments_length(self.df_streets, mean=True)
+        assert max(absol) == 2052.434384404494
+        assert max(mean) == 278.1512323800796
