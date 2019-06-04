@@ -12,10 +12,12 @@ class TestDistribution:
         self.df_buildings = gpd.read_file(test_file_path, layer='buildings')
         self.df_streets = gpd.read_file(test_file_path, layer='streets')
         self.df_tessellation = gpd.read_file(test_file_path, layer='tessellation')
+        self.df_streets['nID'] = mm.unique_id(self.df_streets)
         self.df_buildings['height'] = np.linspace(10., 30., 144)
         self.df_tessellation['area'] = self.df_tessellation.geometry.area
         self.df_buildings['area'] = self.df_buildings.geometry.area
         self.df_buildings['fl_area'] = mm.floor_area(self.df_buildings, 'height')
+        self.df_buildings['nID'] = mm.get_network_id(self.df_buildings, self.df_streets, 'uID', 'nID')
         self.df_buildings, self.df_tessellation, self.blocks = mm.blocks(self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')
 
     def test_covered_area_ratio(self):
@@ -28,13 +30,15 @@ class TestDistribution:
         check = 1.910949846262234
         assert far.mean() == check
 
-    def test_elements_in_block(self):
-        eib = mm.elements_in_block(self.blocks, self.df_buildings, 'bID', 'bID')
-        weib = mm.elements_in_block(self.blocks, self.df_buildings, 'bID', 'bID', weighted=True)
+    def test_elements_count(self):
+        eib = mm.elements_count(self.blocks, self.df_buildings, 'bID', 'bID')
+        weib = mm.elements_count(self.blocks, self.df_buildings, 'bID', 'bID', weighted=True)
+        weis = mm.elements_count(self.df_streets, self.df_buildings, 'nID', 'nID', weighted=True)
         check_eib = [13, 14, 8, 26, 24, 17, 23, 19]
         check_weib = 0.00040170607189453996
         assert eib.tolist() == check_eib
         assert weib.mean() == check_weib
+        assert weis.mean() == 0.02077458117886389
 
     def test_courtyards(self):
         courtyards = mm.courtyards(self.df_buildings, 'bID')

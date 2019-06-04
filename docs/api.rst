@@ -16,6 +16,7 @@ elements
 
    blocks
    get_network_id
+   get_node_id
    tessellation
 
 dimension
@@ -31,6 +32,7 @@ dimension
    longest_axis_length
    mean_character
    perimeter
+   segments_length
    street_profile
    volume
    wall
@@ -83,9 +85,20 @@ intensity
    blocks_count
    courtyards
    covered_area_ratio
-   elements_in_block
+   elements_count
    floor_area_ratio
    gross_density
+   reached
+
+connectivity
+------------
+.. autosummary::
+   :toctree: generated/
+
+   cds_length
+   mean_node_dist
+   meshedness
+   node_degree
 
 diversity
 ---------

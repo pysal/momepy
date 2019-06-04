@@ -80,7 +80,7 @@ def Queen_higher(k, geodataframe=None, weights=None):
     return joined
 
 
-def gdf_to_nx(gdf_network):
+def gdf_to_nx(gdf_network, length='mm_len'):
     """
     Convert LineString GeoDataFrame to networkx.Graph
 
@@ -88,6 +88,8 @@ def gdf_to_nx(gdf_network):
     ----------
     gdf_network : GeoDataFrame
         GeoDataFrame containing objects to convert
+    length : str, optional
+        name of attribute of segment length (geographical) which will be saved to graph
 
     Returns
     -------
@@ -98,6 +100,7 @@ def gdf_to_nx(gdf_network):
     # generate graph from GeoDataFrame of LineStrings
     net = nx.Graph()
     net.graph['crs'] = gdf_network.crs
+    gdf_network[length] = gdf_network.geometry.length
     fields = list(gdf_network.columns)
 
     for index, row in gdf_network.iterrows():

@@ -5,87 +5,181 @@
 # definitons of connectivity characters
 import networkx as nx
 from tqdm import tqdm
-
-from .utils import gdf_to_nx, nx_to_gdf
-
-
-# edge-based example
-def betweenness(graph=None, geodataframe=None, target='series', unique_id=None):
-    if graph is not None and geodataframe is not None:
-        import warnings
-        warnings.war('Both graph and geodataframe were passed. Graph will be used for calculation.')
-
-    netx = None
-    if graph is not None:
-        netx = graph
-    elif geodataframe is not None:
-        if netx is None:
-            netx = gdf_to_nx(geodataframe)
-    else:
-        raise Warning('Either graph or geodataframe must be passed as an argument.')
-
-    betweennesss = nx.edge_betweenness_centrality(netx)  # calculate
-    nx.set_edge_attributes(netx, betweennesss, 'mm_between')
-
-    if target == 'series':
-        edges = nx_to_gdf(netx, nodes=False)
-        joined = geodataframe.join(edges[[unique_id, 'mm_between']], rsuffix='r')
-        series = joined['mm_between']
-        return series
-    elif target == 'graph':
-        return netx
-    raise Warning('Target {} is not supported. Use "series" for pandas.Series or "graph" for networkx.Graph.'.format(target))
+import numpy as np
 
 
-# node based example
-def node_degree(graph=None, geodataframe=None, target='gdf'):
-    if graph is not None and geodataframe is not None:
-        import warnings
-        warnings.war('Both graph and geodataframe were passed. Graph will be used for calculation.')
+def node_degree(graph, name='degree'):
+    """
+    Calculates node degree for each node.
 
-    netx = None
-    if graph is not None:
-        netx = graph
-    elif geodataframe is not None:
-        if netx is None:
-            netx = gdf_to_nx(geodataframe)
-    else:
-        raise Warning('Either graph or geodataframe must be passed as an argument.')
+    Wrapper around `networkx.degree()`
+
+    .. math::
+
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph representing street network.
+        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+    name : str, optional
+        calculated attribute name
+
+    Returns
+    -------
+    Graph
+        networkx.Graph
+
+    References
+    ----------
+
+    Examples
+    --------
+
+    """
+    netx = graph
 
     degree = dict(nx.degree(netx))
-    nx.set_node_attributes(netx, degree, 'degree')
+    nx.set_node_attributes(netx, degree, name)
 
-    if target == 'gdf':
-        nodes = nx_to_gdf(netx, edges=False)
-        return nodes
-    elif target == 'graph':
-        return netx
-    raise Warning('Target {} is not supported. Use "gdf" for geopandas.GeoDataFrame or "graph" for networkx.Graph.'.format(target))
+    return netx
 
 
-def meshedness(graph=None, geodataframe=None, radius=5, target='gdf'):
-    if graph is not None and geodataframe is not None:
-        import warnings
-        warnings.war('Both graph and geodataframe were passed. Graph will be used for calculation.')
+def meshedness(graph, radius=5, name='meshedness'):
+    """
+    Calculates meshedness for subgraph around each node.
 
-    netx = None
-    if graph is not None:
-        netx = graph
-    elif geodataframe is not None:
-        if netx is None:
-            netx = gdf_to_nx(geodataframe)
-    else:
-        raise Warning('Either graph or geodataframe must be passed as an argument.')
+    Subgraph is generated around each node within set topological radius.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph representing street network.
+        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+    radius: int
+        number of topological steps defining the extent of subgraph
+    name : str, optional
+        calculated attribute name
+
+    Returns
+    -------
+    Graph
+        networkx.Graph
+
+    References
+    ----------
+
+    Examples
+    --------
+
+    """
+    netx = graph
 
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(netx, n, radius=radius, undirected=True)  # define subgraph of steps=radius
         e = sub.number_of_edges()
         v = sub.number_of_nodes()
-        netx.nodes[n]['meshedness'] = (e - v + 1) / (2 * v - 5)  # save value calulated for subgraph to node
+        netx.nodes[n][name] = (e - v + 1) / (2 * v - 5)  # save value calulated for subgraph to node
 
-    if target == 'gdf':
-        nodes = nx_to_gdf(netx, edges=False)
-        return nodes
-    elif target == 'graph':
-        return netx
-    raise Warning('Target {} is not supported. Use "gdf" for geopandas.GeoDataFrame or "graph" for networkx.Graph.'.format(target))
+    return netx
+
+
+def mean_node_dist(graph, name='meanlen', length='mm_len'):
+    """
+    Calculates mean distance to neighbouring nodes.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph representing street network.
+        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+    name : str, optional
+        calculated attribute name
+    length : str, optional
+        name of attribute of segment length (geographical)
+
+    Returns
+    -------
+    Graph
+        networkx.Graph
+
+    References
+    ----------
+
+    Examples
+    --------
+
+    """
+    netx = graph
+
+    for n, nbrs in tqdm(netx.adj.items(), total=len(netx)):
+        lengths = []
+        for nbr, eattr in nbrs.items():
+            lengths.append(eattr[length])
+        netx.nodes[n][name] = np.mean(lengths)
+
+    return netx
+
+
+def cds_length(graph=None, radius=5, mode='sum', name='cds_len', degree='degree', length='mm_len'):
+    """
+    Calculates length of cul-de-sacs for subgraph around each node.
+
+    Subgraph is generated around each node within set topological radius.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph representing street network.
+        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+    radius : int
+        number of topological steps defining the extent of subgraph
+    name : str, optional
+        calculated attribute name
+    degree : str
+        name of attribute of node degree (:py:func:`momepy.node_degree`)
+    length : str, optional
+        name of attribute of segment length (geographical)
+
+    Returns
+    -------
+    Graph
+        networkx.Graph
+
+    References
+    ----------
+
+    Examples
+    --------
+
+    """
+    # node degree needed beforehand
+    netx = graph
+
+    for u, v in netx.edges():
+        if netx.nodes[u][degree] == 1 or netx.nodes[v][degree] == 1:
+            netx[u][v]['cdsbool'] = True
+        else:
+            netx[u][v]['cdsbool'] = False
+
+    for n in tqdm(netx, total=len(netx)):
+        sub = nx.ego_graph(netx, n, radius=radius, undirected=True)  # define subgraph of steps=radius
+        lens = []
+        for u, v, cds in sub.edges.data('cdsbool'):
+            if cds:
+                lens.append(sub[u][v][length])
+        if mode == 'sum':
+            netx.nodes[n][name] = sum(lens)  # save value calulated for subgraph to node
+        elif mode == 'mean':
+            netx.nodes[n][name] = np.mean(lens)  # save value calulated for subgraph to node
+
+    return netx

@@ -818,3 +818,50 @@ def wall(objects, spatial_weights=None):
     series = pd.Series(results_list)
     print('Perimeter wall length calculated.')
     return series
+
+
+def segments_length(streets, spatial_weights=None, mean=False):
+    """
+    Calculate the cummulative or mean length of segments.
+
+    Length of segments within set topological distance from each of them.
+    Reached topological distance should be captured by spatial_weights. If mean=False
+    it will return total length, if mean=True it will return mean value.
+
+    Parameters
+    ----------
+    streets : GeoDataFrame
+        GeoDataFrame containing streets (segments) to analyse
+    spatial_weights : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix will be calculated
+        based on streets.
+    mean : boolean, optional
+        If mean=False it will return total length, if mean=True it will return mean value
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+    """
+    results_list = []
+
+    print('Calculating segments length...')
+
+    if spatial_weights is None:
+        print('Calculating spatial weights...')
+        from libpysal.weights import Queen
+        spatial_weights = Queen.from_dataframe(streets)
+        print('Spatial weights ready...')
+
+    for index, row in tqdm(streets.iterrows(), total=streets.shape[0]):
+        neighbours = spatial_weights.neighbors[index]
+        neighbours.append(index)
+        dims = streets.iloc[neighbours].geometry.length
+        if mean:
+            results_list.append(np.mean(dims))
+        else:
+            results_list.append(sum(dims))
+
+    series = pd.Series(results_list)
+    print('Segments length calculated.')
+    return series
