@@ -2,7 +2,7 @@ import momepy as mm
 import geopandas as gpd
 
 
-class TestDistribution:
+class TestConnectivity:
 
     def setup_method(self):
 
