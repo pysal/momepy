@@ -182,7 +182,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
         intersection = row.geometry.intersection(built_up)
         if intersection.type == 'MultiPolygon':
             areas = {}
-            for p in enumerate(intersection):
+            for p in range(len(intersection)):
                 area = intersection[p].area
                 areas[p] = area
             maximal = max(areas.items(), key=operator.itemgetter(1))[0]

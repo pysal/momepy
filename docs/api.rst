@@ -96,18 +96,26 @@ connectivity
    :toctree: generated/
 
    cds_length
+   clustering
+   cyclomatic
+   edge_node_ratio
+   eigenvector
+   gamma
+   local_closeness
+   mean_node_degree
    mean_node_dist
    meshedness
    node_degree
+   proportion
 
 diversity
 ---------
 .. autosummary::
-  :toctree: generated/
+   :toctree: generated/
 
-  rng
-  simpson
-  theil
+   rng
+   simpson
+   theil
 
 utilities
 ---------

@@ -48,25 +48,25 @@ class TestUtils:
 
     def test_gdf_to_nx(self):
         nx = mm.gdf_to_nx(self.df_streets)
-        assert nx.number_of_nodes() == 32
-        assert nx.number_of_edges() == 33
+        assert nx.number_of_nodes() == 29
+        assert nx.number_of_edges() == 35
 
     def test_nx_to_gdf(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)
-        assert len(nodes) == 32
-        assert len(edges) == 33
-        assert W.n == 32
+        assert len(nodes) == 29
+        assert len(edges) == 35
+        assert W.n == 29
         nodes, edges = mm.nx_to_gdf(nx)
-        assert len(nodes) == 32
-        assert len(edges) == 33
+        assert len(nodes) == 29
+        assert len(edges) == 35
         edges = mm.nx_to_gdf(nx, nodes=False)
-        assert len(edges) == 33
+        assert len(edges) == 35
         nodes, W = mm.nx_to_gdf(nx, edges=False, spatial_weights=True)
-        assert len(nodes) == 32
-        assert W.n == 32
+        assert len(nodes) == 29
+        assert W.n == 29
         nodes = mm.nx_to_gdf(nx, edges=False, spatial_weights=False)
-        assert len(nodes) == 32
+        assert len(nodes) == 29
 
     def test_limit_range(self):
         assert mm.limit_range(range(10), rng=(25, 75)) == [3, 4, 5, 6]

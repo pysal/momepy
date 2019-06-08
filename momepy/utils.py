@@ -29,7 +29,7 @@ def unique_id(objects):
         Series containing resulting values.
 
     """
-    series = pd.Series(range(len(objects)))
+    series = range(len(objects))
     return series
 
 
