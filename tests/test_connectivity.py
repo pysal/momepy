@@ -65,11 +65,13 @@ class TestConnectivity:
 
     def test_local_closeness(self):
         net = mm.local_closeness(self.network)
-        net2 = mm.local_closeness(self.network, closeness_distance='mm_len')
         check = 0.27557319223985893
-        check2 = 0.0015544070362478774
         assert net.nodes[(1603650.450422848, 6464368.600601688)]['closeness'] == check
-        assert net2.nodes[(1603650.450422848, 6464368.600601688)]['closeness'] == check2
+
+    def test_local_closeness_distance(self):
+        net = mm.local_closeness(self.network, closeness_distance='mm_len')
+        check = 0.0015544070362478774
+        assert net.nodes[(1603650.450422848, 6464368.600601688)]['closeness'] == check
 
     def test_eigenvector(self):
         net = mm.eigenvector(self.network)
