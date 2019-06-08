@@ -3,7 +3,7 @@ import geopandas as gpd
 import libpysal
 
 
-class TestUtils:
+class TestElements:
 
     def setup_method(self):
 
@@ -21,7 +21,7 @@ class TestUtils:
 
     def test_snap_street_network_edge(self):
         snapped = mm.snap_street_network_edge(self.df_streets, self.df_buildings, self.df_tessellation, 20, 70)
-        assert sum(snapped.geometry.length) == 5980.041004739526
+        assert sum(snapped.geometry.length) == 5980.041004739525
 
     def test_blocks(self):
         buildings, cells, blocks = mm.blocks(self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')

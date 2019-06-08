@@ -77,7 +77,7 @@ class TestDistribution:
 
     def test_neighbouring_street_orientation_deviation(self):
         self.df_streets['dev'] = mm.neighbouring_street_orientation_deviation(self.df_streets)
-        check = 6.060070028371881
+        check = 5.986848512501008
         assert self.df_streets['dev'].mean() == check
 
     def test_building_adjacency(self):

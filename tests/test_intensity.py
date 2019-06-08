@@ -38,7 +38,7 @@ class TestIntensity:
         check_weib = 0.00040170607189453996
         assert eib.tolist() == check_eib
         assert weib.mean() == check_weib
-        assert weis.mean() == 0.02077458117886389
+        assert weis.mean() == 0.020524232642849215
 
     def test_courtyards(self):
         courtyards = mm.courtyards(self.df_buildings, 'bID')
@@ -71,4 +71,4 @@ class TestIntensity:
         count_sw = mm.reached(self.df_streets, self.df_buildings, 'nID', sw)
         assert max(count) == 18
         assert max(area) == 18085.45897711331
-        assert max(count_sw) == 133
+        assert max(count_sw) == 138

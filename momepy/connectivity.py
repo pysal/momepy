@@ -179,7 +179,7 @@ def mean_node_degree(graph, radius=5, name='mean_nd', degree='degree', distance=
         Graph representing street network.
         Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
     radius: int
-        number of topological steps defining the extent of subgraph
+        radius defining the extent of subgraph
     name : str, optional
         calculated attribute name
     degree : str
@@ -263,11 +263,11 @@ def proportion(graph, radius=5, three=None, four=None, dead=None, degree='degree
         values = list(dict(sub.nodes('degree')).values())
         counts = collections.Counter(values)
         if three:
-            netx.nodes[n][three] = counts[3] / len(counts)
+            netx.nodes[n][three] = counts[3] / len(sub)
         if four:
-            netx.nodes[n][four] = counts[4] / len(counts)
+            netx.nodes[n][four] = counts[4] / len(sub)
         if dead:
-            netx.nodes[n][dead] = counts[1] / len(counts)
+            netx.nodes[n][dead] = counts[1] / len(sub)
     return netx
 
 

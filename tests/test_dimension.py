@@ -123,16 +123,16 @@ class TestDimensions:
 
     def test_street_profile(self):
         widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights='height')
-        assert widths[16] == 34.722744851010795
-        assert heights[16] == 16.13286713286713
-        assert profile[16] == 0.46461958010780635
+        assert widths[0] == 48.12133795186165
+        assert heights[0] == 19.454545454545457
+        assert profile[0] == 0.4042810587271468
 
     def test_street_profile_array(self):
         height = np.linspace(10., 30., 144)
         widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights=height)
-        assert widths[16] == 34.722744851010795
-        assert heights[16] == 16.13286713286713
-        assert profile[16] == 0.46461958010780635
+        assert widths[0] == 48.12133795186165
+        assert heights[0] == 19.454545454545457
+        assert profile[0] == 0.4042810587271468
 
     def test_street_profile_wrongtuple(self):
         with pytest.raises(ValueError):
@@ -176,5 +176,5 @@ class TestDimensions:
     def test_segments_length(self):
         absol = mm.segments_length(self.df_streets)
         mean = mm.segments_length(self.df_streets, mean=True)
-        assert max(absol) == 2052.434384404494
-        assert max(mean) == 278.1512323800796
+        assert max(absol) == 1907.502238338006
+        assert max(mean) == 249.5698434867373
