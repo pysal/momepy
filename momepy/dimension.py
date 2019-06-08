@@ -556,8 +556,8 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
                         if possible_int[one].type == 'Point':
                             true_int.append(possible_int[one])
                         elif possible_int[one].type == 'MultiPoint':
-                            true_int.append(possible_int[one][0])
-                            true_int.append(possible_int[one][1])
+                            for p in possible_int[one]:
+                                true_int.append(p)
 
                     if len(true_int) > 1:
                         distances = []

@@ -1,5 +1,6 @@
 import momepy as mm
 import geopandas as gpd
+import pytest
 
 
 class TestConnectivity:
@@ -43,6 +44,10 @@ class TestConnectivity:
         assert net.nodes[(1603650.450422848, 6464368.600601688)]['four'] == four
         assert net.nodes[(1603650.450422848, 6464368.600601688)]['three'] == three
 
+    def test_proportion_error(self):
+        with pytest.raises(ValueError):
+            mm.proportion(self.network)
+
     def test_cyclomatic(self):
         net = mm.cyclomatic(self.network)
         check = 7
@@ -60,8 +65,11 @@ class TestConnectivity:
 
     def test_local_closeness(self):
         net = mm.local_closeness(self.network)
+        net2 = mm.local_closeness(self.network, closeness_distance='mm_len')
         check = 0.27557319223985893
+        check2 = 0.0015544070362478774
         assert net.nodes[(1603650.450422848, 6464368.600601688)]['closeness'] == check
+        assert net2.nodes[(1603650.450422848, 6464368.600601688)]['closeness'] == check2
 
     def test_eigenvector(self):
         net = mm.eigenvector(self.network)
