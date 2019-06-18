@@ -1,7 +1,7 @@
 # momepy
 [![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](https://momepy.readthedocs.io/en/latest/?badge=latest) [![Build Status](https://travis-ci.org/martinfleis/momepy.svg?branch=master)](https://travis-ci.org/martinfleis/momepy) [![codecov](https://codecov.io/gh/martinfleis/momepy/branch/master/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy)
 
-Urban Morphology Measuring Toolkit
+![momepy: urban morphology measuring toolkit](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/logo.png)
 
 ## Introduction
 Momepy is a project allowing advanced quantitative analysis of urban morphology. Embracing principles of *Urban Morphometrics* (Dibble, 2017), this toolkit aims to provide tools for the development of complex frameworks for a description of urban structures.
