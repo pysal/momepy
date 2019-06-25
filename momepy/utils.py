@@ -161,7 +161,7 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
 
 def multi2single(gdf):
     """
-    Convert MultiPolygon geometry of GeoDataFrame to Polygon geometries.
+    Convert multi-part geometry of GeoDataFrame to single-part geometries.
 
     Parameters
     ----------
@@ -171,11 +171,20 @@ def multi2single(gdf):
     Returns
     -------
     GeoDataFrame
-        GeoDataFrame containing only Polygons
+        GeoDataFrame containing only single-part geometry
 
     """
-    gdf_singlepoly = gdf[gdf.geometry.type == 'Polygon']
-    gdf_multipoly = gdf[gdf.geometry.type == 'MultiPolygon']
+    if gdf.iloc[0].geometry.type in ['Polygon', 'MultiPolygon']:
+        gdf_singlepoly = gdf[gdf.geometry.type == 'Polygon']
+        gdf_multipoly = gdf[gdf.geometry.type == 'MultiPolygon']
+    elif gdf.iloc[0].geometry.type in ['LineString', 'MultiLineString']:
+        gdf_singlepoly = gdf[gdf.geometry.type == 'LineString']
+        gdf_multipoly = gdf[gdf.geometry.type == 'MultiLineString']
+    elif gdf.iloc[0].geometry.type in ['Point', 'MultiPoint']:
+        gdf_singlepoly = gdf[gdf.geometry.type == 'Point']
+        gdf_multipoly = gdf[gdf.geometry.type == 'MultiPoint']
+    else:
+        raise ValueError('Unsupported geometry type:', gdf.iloc[0].geometry.type)
 
     for i, row in gdf_multipoly.iterrows():
         Series_geometries = pd.Series(row.geometry)
@@ -206,8 +215,8 @@ def limit_range(vals, rng):
     if len(vals) > 2:
         limited = []
         rng = sorted(rng)
-        lower = np.percentile(vals, rng[0])
-        higher = np.percentile(vals, rng[1])
+        lower = np.nanpercentile(vals, rng[0])
+        higher = np.nanpercentile(vals, rng[1])
         for x in vals:
             if x >= lower and x <= higher:
                 limited.append(x)
@@ -347,3 +356,62 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
         blg.drop(delete, inplace=True)
     blg.drop(['neighbors', 'n_count', 'circu', 'uID'], axis=1, inplace=True)
     return blg
+
+
+def network_false_nodes(streets):
+    sindex = streets.sindex
+
+    false_points = []
+    print('Identifying false points...')
+    for idx, row in tqdm(streets.iterrows(), total=streets.shape[0]):
+        line = row['geometry']
+        l_coords = list(line.coords)
+        # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont intersect itself
+        start = Point(l_coords[0])
+        end = Point(l_coords[-1])
+
+        # find out whether ends of the line are connected or not
+        possible_first_index = list(sindex.intersection(start.bounds))
+        possible_first_matches = streets.iloc[possible_first_index]
+        possible_first_matches_clean = possible_first_matches.drop(idx, axis=0)
+        real_first_matches = possible_first_matches_clean[possible_first_matches_clean.intersects(start)]
+
+        possible_second_index = list(sindex.intersection(end.bounds))
+        possible_second_matches = streets.iloc[possible_second_index]
+        possible_second_matches_clean = possible_second_matches.drop(idx, axis=0)
+        real_second_matches = possible_second_matches_clean[possible_second_matches_clean.intersects(end)]
+
+        if len(real_first_matches) == 1:
+            false_points.append(start)
+        if len(real_second_matches) == 1:
+            false_points.append(end)
+
+    false_xy = []
+    for p in false_points:
+        false_xy.append([p.x, p.y])
+
+    false_xy_unique = [list(x) for x in set(tuple(x) for x in false_xy)]
+
+    false_unique = []
+    for p in false_xy_unique:
+        false_unique.append(Point(p[0], p[1]))
+
+    geoms = streets.geometry
+
+    print('Merging segments...')
+    for point in tqdm(false_unique):
+        matches = list(geoms[geoms.intersects(point)].index)
+        idx = max(geoms.index) + 1
+        try:
+            multiline = geoms[matches[0]].union(geoms[matches[1]])
+            linestring = shapely.ops.linemerge(multiline)
+            geoms = geoms.append(gpd.GeoSeries(linestring, index=[idx]))
+            geoms = geoms.drop(matches)
+        except IndexError:
+            import warnings
+            warnings.warn('An exception during merging occured. Lines at point [{x}, {y}] were not merged.'.format(x=point.x, y=point.y))
+
+    geoms_gdf = gpd.GeoDataFrame(geometry=geoms)
+    geoms_gdf.crs = streets.crs
+    streets = geoms_gdf
+    return streets
