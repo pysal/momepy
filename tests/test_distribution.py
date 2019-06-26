@@ -15,8 +15,7 @@ class TestDistribution:
         self.df_buildings['height'] = np.linspace(10., 30., 144)
         self.df_buildings['volume'] = mm.volume(self.df_buildings, 'height')
         self.df_streets['nID'] = mm.unique_id(self.df_streets)
-        self.df_buildings['nID'], self.df_tessellation['nID'] = mm.get_network_id(self.df_buildings, self.df_streets,
-                                                                                  'uID', 'nID', self.df_tessellation, 'uID')
+        self.df_buildings['nID'] = mm.get_network_id(self.df_buildings, self.df_streets, 'uID', 'nID')
 
     def test_orientation(self):
         self.df_buildings['orient'] = mm.orientation(self.df_buildings)

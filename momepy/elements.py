@@ -79,13 +79,17 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
 
     # densify geometry before Voronoi tesselation
     def _densify(geom):
+        poly = geom
         wkt = geom.wkt  # shapely Polygon to wkt
         geom = ogr.CreateGeometryFromWkt(wkt)  # create ogr geometry
         geom.Segmentize(2)  # densify geometry by 2 metres
-        # geom.CloseRings() # fix for GDAL 2.4.1 bug
+        geom.CloseRings()  # fix for GDAL 2.4.1 bug
         wkt2 = geom.ExportToWkt()  # ogr geometry to wkt
-        new = loads(wkt2)  # wkt to shapely Polygon
-        return new
+        try:
+            new = loads(wkt2)  # wkt to shapely Polygon
+            return new
+        except:
+            return poly
 
     print('Densifying geometry...')
     objects['geometry'] = objects['geometry'].progress_map(_densify)
@@ -154,8 +158,7 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
     regions_gdf.crs = buildings.crs
 
     print('Dissolving Voronoi polygons...')
-    morphological_tessellation = regions_gdf[[unique_id, 'geometry']].dissolve(by=unique_id)
-    morphological_tessellation[unique_id] = morphological_tessellation.index.astype('float')  # save unique id to column from index
+    morphological_tessellation = regions_gdf[[unique_id, 'geometry']].dissolve(by=unique_id, as_index=False)
 
     # cut infinity of voronoi by set buffer (thanks for script to Geoff Boeing)
     print('Preparing buffer zone for edge resolving (quadrat cut)...')
@@ -369,13 +372,16 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
         Extends a line geometry withing GeoDataFrame to snap on itself withing tolerance.
         """
         if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
-            extra = l_coords[-3:-1]
+            if len(l_coords) > 2:
+                extra = l_coords[-3:-1]
+            else:
+                return False
         else:
             extra = l_coords[-2:]
-        extrapolation = getExtrapoledLine(*extra, tolerance)  # we use the last two points
+        extrapolation = getExtrapoledLine(*extra, tolerance=tolerance)  # we use the last two points
 
         possible_intersections_index = list(sindex.intersection(extrapolation.bounds))
-        possible_intersections_lines = network.loc[possible_intersections_index]
+        possible_intersections_lines = network.iloc[possible_intersections_index]
         possible_intersections_clean = possible_intersections_lines.drop(idx, axis=0)
         possible_intersections = possible_intersections_clean.intersection(extrapolation)
 
@@ -389,30 +395,31 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
                     true_int.append(possible_intersections[one][0])
                     true_int.append(possible_intersections[one][1])
 
-            if len(true_int) > 1:
-                distances = {}
-                ix = 0
-                for p in true_int:
-                    distance = p.distance(Point(l_coords[-1]))
-                    distances[ix] = distance
-                    ix = ix + 1
-                minimal = min(distances.items(), key=operator.itemgetter(1))[0]
-                new_point_coords = true_int[minimal].coords[0]
-            else:
-                new_point_coords = true_int[0].coords[0]
+            if len(true_int) >= 1:
+                if len(true_int) > 1:
+                    distances = {}
+                    ix = 0
+                    for p in true_int:
+                        distance = p.distance(Point(l_coords[-1]))
+                        distances[ix] = distance
+                        ix = ix + 1
+                    minimal = min(distances.items(), key=operator.itemgetter(1))[0]
+                    new_point_coords = true_int[minimal].coords[0]
+                else:
+                    new_point_coords = true_int[0].coords[0]
 
-            l_coords.append(new_point_coords)
-            new_extended_line = LineString(l_coords)
+                l_coords.append(new_point_coords)
+                new_extended_line = LineString(l_coords)
 
-            # check whether the line goes through buildings. if so, ignore it
-            possible_buildings_index = list(bindex.intersection(new_extended_line.bounds))
-            possible_buildings = buildings.iloc[possible_buildings_index]
-            possible_intersections = possible_buildings.intersection(new_extended_line)
+                # check whether the line goes through buildings. if so, ignore it
+                possible_buildings_index = list(bindex.intersection(new_extended_line.bounds))
+                possible_buildings = buildings.iloc[possible_buildings_index]
+                possible_intersections = possible_buildings.intersection(new_extended_line)
 
-            if possible_intersections.any():
-                pass
-            else:
-                network.loc[idx, 'geometry'] = new_extended_line
+                if possible_intersections.any():
+                    pass
+                else:
+                    network.loc[idx, 'geometry'] = new_extended_line
         else:
             return False
 
@@ -422,7 +429,10 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
         Extends a line geometry withing GeoDataFrame to snap on the boundary of tessellation withing tolerance.
         """
         if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
-            extra = l_coords[-3:-1]
+            if len(l_coords) > 2:
+                extra = l_coords[-3:-1]
+            else:
+                return False
         else:
             extra = l_coords[-2:]
         extrapolation = getExtrapoledLine(*extra, tolerance)  # we use the last two points
@@ -441,30 +451,31 @@ def snap_street_network_edge(network, buildings, tessellation, tolerance_street,
                 true_int.append(possible_intersections[0])
                 true_int.append(possible_intersections[1])
 
-            if len(true_int) > 1:
-                distances = {}
-                ix = 0
-                for p in true_int:
-                    distance = p.distance(Point(l_coords[-1]))
-                    distances[ix] = distance
-                    ix = ix + 1
-                minimal = min(distances.items(), key=operator.itemgetter(1))[0]
-                new_point_coords = true_int[minimal].coords[0]
-            else:
-                new_point_coords = true_int[0].coords[0]
+            if len(true_int) >= 1:
+                if len(true_int) > 1:
+                    distances = {}
+                    ix = 0
+                    for p in true_int:
+                        distance = p.distance(Point(l_coords[-1]))
+                        distances[ix] = distance
+                        ix = ix + 1
+                    minimal = min(distances.items(), key=operator.itemgetter(1))[0]
+                    new_point_coords = true_int[minimal].coords[0]
+                else:
+                    new_point_coords = true_int[0].coords[0]
 
-            l_coords.append(new_point_coords)
-            new_extended_line = LineString(l_coords)
+                l_coords.append(new_point_coords)
+                new_extended_line = LineString(l_coords)
 
-            # check whether the line goes through buildings. if so, ignore it
-            possible_buildings_index = list(bindex.intersection(new_extended_line.bounds))
-            possible_buildings = buildings.iloc[possible_buildings_index]
-            possible_intersections = possible_buildings.intersection(new_extended_line)
+                # check whether the line goes through buildings. if so, ignore it
+                possible_buildings_index = list(bindex.intersection(new_extended_line.bounds))
+                possible_buildings = buildings.iloc[possible_buildings_index]
+                possible_intersections = possible_buildings.intersection(new_extended_line)
 
-            if possible_intersections.any():
-                pass
-            else:
-                network.loc[idx, 'geometry'] = new_extended_line
+                if possible_intersections.any():
+                    pass
+                else:
+                    network.loc[idx, 'geometry'] = new_extended_line
 
     network = network.copy()
     # generating spatial index (rtree)
@@ -680,37 +691,33 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     return (buildings, cells, blocks_save)
 
 
-def get_network_id(buildings, streets, unique_id_buildings, network_id, tessellation=None, unique_id_tessellation=None):
+def get_network_id(elements, streets, unique_id, network_id, tessellation=None, unique_id_tessellation=None,
+                   min_size=100):
     """
-    Snap each building to closest street network segment, saves its id.
+    Snap each element (preferably building) to the closest street network segment, saves its id.
 
-    Adds network ID to buildings and optionally tessellation.
+    Adds network ID to elements.
 
     Parameters
     ----------
-    buildings : GeoDataFrame
+    elements : GeoDataFrame
         GeoDataFrame containing buildings
     streets : GeoDataFrame
         GeoDataFrame containing street network with unique network ID.
         If there is none, it could be generated by :py:func:`momepy.elements.unique_id`.
-    unique_id_buildings : str, list, np.array, pd.Series (default None)
-        the name of the buildings dataframe column, np.array, or pd.Series with unique id
+    unique_id : str, list, np.array, pd.Series (default None)
+        the name of the elements dataframe column, np.array, or pd.Series with unique id
     network_id : str, list, np.array, pd.Series (default None)
         the name of the streets dataframe column, np.array, or pd.Series with network unique id.
-    tessellation : GeoDataFrame (default=None)
-        GeoDataFrame containing morphological tessellation
-    unique_id_tessellation : str, list, np.array, pd.Series (default None)
-        the name of the tessellation dataframe column, np.array, or pd.Series with unique id.
-        This should be the same for tessellation and buildings, IDs should match.
+    min_size : int (default 100)
+        min_size should be a vaule such that if you build a box centered in each
+        building centroid with edges of size `2*min_size`, you know a priori that at least one
+        segment is intersected with the box.
 
     Returns
     -------
-    buildings_nID, (tessellation_nID) : tuple
-
-    buildings_nID : Series
-        Series containing network ID for buildings
-    tessellation_nID : Series, optional
-        Series containing network ID for morphological tessellation
+    elements_nID : Series
+        Series containing network ID for elements
 
     Examples
     --------
@@ -727,13 +734,13 @@ def get_network_id(buildings, streets, unique_id_buildings, network_id, tessella
     Forming DataFrame...
     Joining DataFrames...
     Cleaning DataFrames...
-    Merging with buildings...
+    Merging with elements...
     Done.
     >>> buildings_df['nID'][0]
     1
     """
     INFTY = 1000000000000
-    MIN_SIZE = 100
+    MIN_SIZE = min_size
     # MIN_SIZE should be a vaule such that if you build a box centered in each
     # point with edges of size 2*MIN_SIZE, you know a priori that at least one
     # segment is intersected with the box. Otherwise, you could get an inexact
@@ -794,15 +801,15 @@ def get_network_id(buildings, streets, unique_id_buildings, network_id, tessella
 
         return result
 
-    if not isinstance(unique_id_buildings, str):
-        buildings['mm_uid'] = unique_id_buildings
-        unique_id_buildings = 'mm_uid'
+    if not isinstance(unique_id, str):
+        elements['mm_uid'] = unique_id
+        unique_id = 'mm_uid'
     if not isinstance(network_id, str):
         streets['mm_nid'] = network_id
         network_id = 'mm_nid'
 
     print('Generating centroids...')
-    buildings_c = buildings.copy()
+    buildings_c = elements.copy()
     buildings_c['geometry'] = buildings_c.centroid  # make centroids
 
     print('Generating list of points...')
@@ -832,42 +839,30 @@ def get_network_id(buildings, streets, unique_id_buildings, network_id, tessella
     print('Joining DataFrames...')
     joined = buildings_c.merge(df, on='idx')
     print('Cleaning DataFrames...')
-    cleaned = joined[[unique_id_buildings, network_id]]
+    cleaned = joined[[unique_id, network_id]]
 
-    print('Merging with buildings...')
-    buildings_m = buildings.merge(cleaned, on=unique_id_buildings)
+    print('Merging with elements...')
+    elements_m = elements.merge(cleaned, on=unique_id)
 
-    if tessellation is not None:
-        if not isinstance(unique_id_tessellation, str):
-            tessellation['mm_uid'] = unique_id_tessellation
-            unique_id_tessellation = 'mm_uid'
-        print('Merging with tessellation...')
-        # attribute join cell -> building
-        tess_nid_eid = buildings_m[[unique_id_buildings, network_id]]
-        tessellation_m = tessellation.merge(tess_nid_eid, left_on=unique_id_tessellation, right_on=unique_id_buildings)
+    if elements_m[network_id].isnull().any():
+        import warnings
+        warnings.warn('Some elements were not attached to the network. '
+                      'Set larger min_size. {} affected elements'.format(sum(elements_m[network_id].isnull())))
 
-        if 'mm_uid' in tessellation.columns:
-            tessellation.drop(columns=['mm_uid'], inplace=True)
-        if 'mm_uid' in buildings.columns:
-            buildings.drop(columns=['mm_uid'], inplace=True)
-        if 'mm_nid' in streets.columns:
-            streets.drop(columns=['mm_nid'], inplace=True)
-        print('Done.')
-        return buildings_m[network_id], tessellation_m[network_id]
-
-    if 'mm_uid' in buildings.columns:
-        buildings.drop(columns=['mm_uid'], inplace=True)
+    if 'mm_uid' in elements.columns:
+        elements.drop(columns=['mm_uid'], inplace=True)
     if 'mm_nid' in streets.columns:
         streets.drop(columns=['mm_nid'], inplace=True)
     print('Done.')
-    return buildings_m[network_id]
+    return elements_m[network_id]
 
 
-def get_node_id(objects, nodes, node_id, max_distance=200):
+def get_node_id(objects, nodes, edges, node_id, edge_id):
     """
-    Snap each building to closest street network node, saves its id.
+    Snap each building to closest street network node on the closest network edge.
 
-    Adds node ID to objects (preferably buildings).
+    Adds node ID to objects (preferably buildings). Gets ID of edge, and determines
+    which of its end points is closer.
 
     Parameters
     ----------
@@ -876,15 +871,16 @@ def get_node_id(objects, nodes, node_id, max_distance=200):
     nodes : GeoDataFrame
         GeoDataFrame containing street nodes with unique node ID.
         If there is none, it could be generated by :py:func:`momepy.unique_id`.
+    edges : GeoDataFrame
+        GeoDataFrame containing street edges with unique edge ID and IDs of start
+        and end points of each segment. Start and endpoints are default outcome of :py:func:`momepy.nx_to_gdf`.
     node_id : str, list, np.array, pd.Series (default None)
         the name of the nodes dataframe column, np.array, or pd.Series with unique id
-    max_distance : int (default=200)
-        maximal allowed distance between object centroid and assigned node
 
     Returns
     -------
-    buildings_nID : Series
-        Series containing nide ID for objects
+    node_ids : Series
+        Series containing node ID for objects
 
     Examples
     --------
@@ -894,28 +890,22 @@ def get_node_id(objects, nodes, node_id, max_distance=200):
         nodes['mm_noid'] = node_id
         node_id = 'mm_noid'
 
-    sindex = nodes.sindex
+    results_list = []
+    for index, row in objects.iterrows():
+        centroid = row.geometry.centroid
+        edge = edges.loc[edges[edge_id] == row[edge_id]].iloc[0]
+        startID = edge.node_start
+        start = nodes.loc[nodes[node_id] == startID].iloc[0].geometry
+        sd = centroid.distance(start)
+        endID = edge.node_end
+        end = nodes.loc[nodes[node_id] == endID].iloc[0].geometry
+        ed = centroid.distance(end)
+        if sd > ed:
+            results_list.append(endID)
+        else:
+            results_list.append(startID)
 
-    def _get_node(geometry, node_id, max_distance=max_distance):
-        centroid = geometry.centroid
-        x = centroid.x
-        y = centroid.y
-        bounds = (x - max_distance, y - max_distance, x + max_distance, y + max_distance)
-
-        possible_nodes_index = list(sindex.intersection(bounds))
-        possible_nodes = nodes.iloc[possible_nodes_index]
-
-        distances = []
-        for node in possible_nodes.geometry.iteritems():
-            distances.append(node[1].distance(centroid))
-
-        if distances:
-            true_node_index = distances.index(min(distances))
-            return possible_nodes.iloc[true_node_index][node_id]
-        return -1
-
-    tqdm.pandas()
-    series = objects.progress_apply(lambda row: _get_node(row['geometry'], node_id, max_distance), axis=1)
+    series = pd.Series(results_list)
     return series
 
 

@@ -455,3 +455,65 @@ def reached(streets, elements, unique_id, spatial_weights=None, mode='count'):
 
     print('Reached {} calculated.'.format(mode))
     return series
+
+
+def node_density(objects, nodes, spatial_weights=None, order=9, node_id='nodeID'):
+    """
+    Calculate the density of nodes within topological steps of morphological tessellation.
+    Node is marked as reached if reached cell con
+
+    .. math::
+
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing tessellation objects to analyse
+    nodes : GeoDataFrame
+        GeoDataFrame containing nodes
+    spatial_weights : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix of selected order will be calculated
+        based on objects.
+    order : int
+        order of Queen contiguity
+    node_id : str
+        name of the column of objects gdf with node id.
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    References
+    ---------
+    Jacob
+
+    Notes
+    -----
+
+    """
+    # define empty list for results
+    results_list = []
+
+    print('Calculating gross density...')
+
+    if not all(objects.index == range(len(objects))):
+        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
+
+    if spatial_weights is None:
+        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
+        from momepy import Queen_higher
+        # matrix to define area of analysis (more steps)
+        spatial_weights = Queen_higher(k=order, geodataframe=objects)
+
+    # iterating over rows one by one
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        neighbours = spatial_weights.neighbors[index]
+        neighbours.append(index)
+        sub = objects.iloc[neighbours]
+        subnodes = set(sub['nodeID'])
+        results_list.append((len(subnodes) / sum(sub.geometry.area)) * 10000)
+
+    series = pd.Series(results_list)
+    print('Gross density calculated.')
+    return series
