@@ -691,8 +691,7 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     return (buildings, cells, blocks_save)
 
 
-def get_network_id(elements, streets, unique_id, network_id, tessellation=None, unique_id_tessellation=None,
-                   min_size=100):
+def get_network_id(elements, streets, unique_id, network_id, min_size=100):
     """
     Snap each element (preferably building) to the closest street network segment, saves its id.
 
