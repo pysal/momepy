@@ -11,6 +11,7 @@ class TestElements:
         self.df_buildings = gpd.read_file(test_file_path, layer='buildings')
         self.df_tessellation = gpd.read_file(test_file_path, layer='tessellation')
         self.df_streets = gpd.read_file(test_file_path, layer='streets')
+        self.df_streets['nID'] = range(len(self.df_streets))
 
     def test_tessellation(self):
         tessellation = mm.tessellation(self.df_buildings)
@@ -30,14 +31,12 @@ class TestElements:
         assert len(blocks) == 8
 
     def test_get_network_id(self):
-        self.df_streets['nID'] = range(len(self.df_streets))
-        buildings_id, tessellation_id = mm.get_network_id(self.df_buildings, self.df_streets, 'uID', 'nID', self.df_tessellation, 'uID')
+        buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, 'uID', 'nID')
         assert not buildings_id.isna().any()
-        assert not tessellation_id.isna().any()
 
     def test_get_node_id(self):
         nx = mm.gdf_to_nx(self.df_streets)
-        nodes = mm.nx_to_gdf(nx, edges=False)
-        nodes['nodeid'] = range(len(nodes))
-        ids = mm.get_node_id(self.df_buildings, nodes, 'nodeid')
+        nodes, edges = mm.nx_to_gdf(nx)
+        self.df_buildings['nID'] = mm.get_network_id(self.df_buildings, self.df_streets, 'uID', 'nID')
+        ids = mm.get_node_id(self.df_buildings, nodes, edges, 'nodeID', 'nID')
         assert not ids.isna().any()

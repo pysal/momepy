@@ -114,7 +114,7 @@ def gdf_to_nx(gdf_network, length='mm_len'):
     return net
 
 
-def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
+def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False, nodeID='nodeID'):
     """
     Convert networkx.Graph to LineString GeoDataFrame and Point GeoDataFrame
 
@@ -128,6 +128,8 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
         export edges gdf
     spatial_weights : bool
         export libpysal spatial weights for nodes
+    nodeID : str
+        name of node ID column to be generated
 
     Returns
     -------
@@ -137,6 +139,10 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
     """
     # generate nodes and edges geodataframes from graph
     if nodes is True:
+        nid = 1
+        for n in net:
+            net.nodes[n][nodeID] = nid
+            nid += 1
         node_xy, node_data = zip(*net.nodes(data=True))
         gdf_nodes = gpd.GeoDataFrame(list(node_data), geometry=[Point(i, j) for i, j in node_xy])
         gdf_nodes.crs = net.graph['crs']
@@ -145,7 +151,17 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False):
 
     if edges is True:
         starts, ends, edge_data = zip(*net.edges(data=True))
+        if nodes is True:
+            node_start = []
+            node_end = []
+            for s in starts:
+                node_start.append(net.node[s][nodeID])
+            for e in ends:
+                node_end.append(net.node[e][nodeID])
         gdf_edges = gpd.GeoDataFrame(list(edge_data))
+        if nodes is True:
+            gdf_edges['node_start'] = node_start
+            gdf_edges['node_end'] = node_end
         gdf_edges.crs = net.graph['crs']
 
     if nodes is True and edges is True:
