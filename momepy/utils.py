@@ -231,8 +231,8 @@ def limit_range(vals, rng):
     if len(vals) > 2:
         limited = []
         rng = sorted(rng)
-        lower = np.nanpercentile(vals, rng[0])
-        higher = np.nanpercentile(vals, rng[1])
+        lower = np.percentile(vals, rng[0], interpolation='nearest')
+        higher = np.percentile(vals, rng[1], interpolation='nearest')
         for x in vals:
             if x >= lower and x <= higher:
                 limited.append(x)
