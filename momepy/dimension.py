@@ -401,7 +401,7 @@ def mean_character(objects, spatial_weights=None, values=None, order=3, rng=None
 
 def street_profile(streets, buildings, heights=None, distance=10, tick_length=50):
     """
-    Calculates the street profile widths, heights, and ratio height/width
+    Calculates the street profile widths, standard deviation of width, heights, and ratio height/width
 
     .. math::
         \\
@@ -422,10 +422,12 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
 
     Returns
     -------
-    widths, (heights, profile_ratio) : tuple
+    widths, deviation, (heights, profile_ratio) : tuple
 
     widths : Series
         Series containing street profile width values.
+    deviation : Series
+        Series containing street profile standard deviation values.
     heights : Series, optional
         Series containing street profile heights values. Returned only when heights is set.
     profile_ratio : Series, optional
@@ -437,11 +439,12 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
 
     Examples
     --------
-    >>> widths, heights, profile = momepy.street_profile(streets_df, buildings_df, heights='height')
+    >>> widths, devs, heights, profile = momepy.street_profile(streets_df, buildings_df, heights='height')
     Calculating street profile...
     100%|██████████| 33/33 [00:02<00:00, 15.66it/s]
     Street profile calculated.
-    >>> streets_df['width'] = widths
+    >>> streets_df['width'] = devs
+    >>> streets_df['deviations'] = widths
     >>> streets_df['height'] = heights
     >>> streets_df['profile'] = profile
 
@@ -481,6 +484,7 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
     sindex = buildings.sindex
 
     results_list = []
+    deviations_list = []
     heights_list = []
 
     if heights is not None:
@@ -582,20 +586,22 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
             widths.append(width[0] + width[1])
 
         results_list.append(np.nanmean(widths))
+        deviations_list.append(np.nanstd(widths))
         if heights is not None:
             heights_list.append(np.mean(m_heights))
 
     widths_series = pd.Series(results_list)
+    deviations_series = pd.Series(deviations_list)
     if heights is not None:
         heights_series = pd.Series(heights_list)
         profile_ratio = heights_series / widths_series
         if 'mm_h' in buildings.columns:
             buildings.drop(columns=['mm_h'], inplace=True)
         print('Street profile calculated.')
-        return widths_series, heights_series, profile_ratio
+        return widths_series, deviations_series, heights_series, profile_ratio
 
     print('Street profile calculated.')
-    return widths_series
+    return widths_series, deviations_series
 
 
 def weighted_character(objects, tessellation, characters, unique_id, spatial_weights=None, areas=None, order=3):

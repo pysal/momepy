@@ -122,8 +122,9 @@ class TestDimensions:
             self.df_tessellation['meshE'] = mm.mean_character(gdf)
 
     def test_street_profile(self):
-        widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights='height')
+        widths, devs, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights='height')
         assert widths[0] == 48.12133795186165
+        assert devs[0] == 0
         assert heights[0] == 19.454545454545457
         assert profile[0] == 0.4042810587271468
 
