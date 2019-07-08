@@ -114,7 +114,7 @@ class TestDimensions:
         assert self.df_tessellation['mesh_sw'][38] == check
         assert self.df_tessellation['mesh_ar'][38] == check
         assert self.df_tessellation['mesh_array'][38] == check
-        assert self.df_tessellation['mesh_id'][38] == 2206.611646069303
+        assert self.df_tessellation['mesh_id'][38] == 2250.2241176070806
         assert self.df_tessellation['mesh_iq'][38] == 2118.609142733066
         gdf = self.df_tessellation
         gdf.index = gdf.index + 20
