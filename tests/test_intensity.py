@@ -66,7 +66,7 @@ class TestIntensity:
 
     def test_reached(self):
         count = mm.reached(self.df_streets, self.df_buildings, 'nID')
-        area = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='area')
+        area = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='sum')
         sw = mm.Queen_higher(k=2, geodataframe=self.df_streets)
         count_sw = mm.reached(self.df_streets, self.df_buildings, 'nID', sw)
         assert max(count) == 18
