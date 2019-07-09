@@ -691,8 +691,7 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     return (buildings, cells, blocks_save)
 
 
-def get_network_id(elements, streets, unique_id, network_id, tessellation=None, unique_id_tessellation=None,
-                   min_size=100):
+def get_network_id(elements, streets, unique_id, network_id, min_size=100):
     """
     Snap each element (preferably building) to the closest street network segment, saves its id.
 
@@ -891,19 +890,22 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
         node_id = 'mm_noid'
 
     results_list = []
-    for index, row in objects.iterrows():
-        centroid = row.geometry.centroid
-        edge = edges.loc[edges[edge_id] == row[edge_id]].iloc[0]
-        startID = edge.node_start
-        start = nodes.loc[nodes[node_id] == startID].iloc[0].geometry
-        sd = centroid.distance(start)
-        endID = edge.node_end
-        end = nodes.loc[nodes[node_id] == endID].iloc[0].geometry
-        ed = centroid.distance(end)
-        if sd > ed:
-            results_list.append(endID)
+    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+        if np.isnan(row.nID):
+            results_list.append(np.nan)
         else:
-            results_list.append(startID)
+            centroid = row.geometry.centroid
+            edge = edges.loc[edges[edge_id] == row[edge_id]].iloc[0]
+            startID = edge.node_start
+            start = nodes.loc[nodes[node_id] == startID].iloc[0].geometry
+            sd = centroid.distance(start)
+            endID = edge.node_end
+            end = nodes.loc[nodes[node_id] == endID].iloc[0].geometry
+            ed = centroid.distance(end)
+            if sd > ed:
+                results_list.append(endID)
+            else:
+                results_list.append(startID)
 
     series = pd.Series(results_list)
     return series
