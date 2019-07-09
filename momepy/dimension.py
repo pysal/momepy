@@ -422,35 +422,37 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
 
     Returns
     -------
-    widths, deviation, (heights, profile_ratio) : tuple
+    street_profile : dictionary
 
-    widths : Series
+    'widths' : Series
         Series containing street profile width values.
-    deviation : Series
+    'width_deviations' : Series
         Series containing street profile standard deviation values.
-    heights : Series, optional
+    'openness' : Series
+        Series containing street profile openness values.
+    'heights' : Series, optional
         Series containing street profile heights values. Returned only when heights is set.
-    profile_ratio : Series, optional
+    'heights_deviations' : Series, optional
+        Series containing street profile heights standard deviation values. Returned only when heights is set.
+    'profile' : Series, optional
         Series containing street profile height/width ratio values. Returned only when heights is set.
 
     References
     ----------
     Oliveira V (2013) Morpho: a methodology for assessing urban form. Urban Morphology 17(1): 21–33.
+    Araldi and Fusco...
 
     Examples
     --------
-    >>> widths, devs, heights, profile = momepy.street_profile(streets_df, buildings_df, heights='height')
+    >>> street_profile = momepy.street_profile(streets_df, buildings_df, heights='height')
     Calculating street profile...
     100%|██████████| 33/33 [00:02<00:00, 15.66it/s]
     Street profile calculated.
-    >>> streets_df['width'] = devs
-    >>> streets_df['deviations'] = widths
-    >>> streets_df['height'] = heights
-    >>> streets_df['profile'] = profile
+    >>> streets_df['width'] = street_profile['widths']
+    >>> streets_df['deviations'] = street_profile['width_deviations']
 
     Notes
     -----
-    Add condition for segments without buildings around
     Add explanation of algorithm
 
     """
@@ -486,6 +488,8 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
     results_list = []
     deviations_list = []
     heights_list = []
+    heights_deviations_list = []
+    openness_list = []
 
     if heights is not None:
         if not isinstance(heights, str):
@@ -493,6 +497,8 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
             heights = 'mm_h'
 
     for idx, row in tqdm(streets.iterrows(), total=streets.shape[0]):
+        # if idx == 2:
+        #     ee
         # list to hold all the point coords
         list_points = []
         # set the current distance to place the point
@@ -543,11 +549,13 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
                 tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
                 tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
                 ticks.append([tick1, tick2])
-        widths = []
+        # widths = []
         m_heights = []
+        left = []
+        right = []
         for duo in ticks:
-            width = []
-            for tick in duo:
+
+            for ix, tick in enumerate(duo):
                 possible_intersections_index = list(sindex.intersection(tick.bounds))
                 possible_intersections = buildings.iloc[possible_intersections_index]
                 real_intersections = possible_intersections.intersects(tick)
@@ -571,9 +579,15 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
                             distances.append(distance)
                             ix = ix + 1
                         minimal = min(distances)
-                        width.append(minimal)
+                        if ix == 0:
+                            left.append(minimal)
+                        else:
+                            right.append(minimal)
                     else:
-                        width.append(true_int[0].distance(Point(tick.coords[-1])))
+                        if ix == 0:
+                            left.append(true_int[0].distance(Point(tick.coords[-1])))
+                        else:
+                            right.append(true_int[0].distance(Point(tick.coords[-1])))
                     if heights is not None:
                         indices = {}
                         for idx, row in get_height.iterrows():
@@ -581,27 +595,45 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
                             indices[idx] = dist
                         minim = min(indices, key=indices.get)
                         m_heights.append(buildings.iloc[minim][heights])
-                else:
-                    width.append(np.nan)
-            widths.append(width[0] + width[1])
 
-        results_list.append(np.nanmean(widths))
-        deviations_list.append(np.nanstd(widths))
+        openness = (len(left) + len(right)) / len(ticks * 2)
+        openness_list.append(1 - openness)
+        if right and left:
+            results_list.append(2 * np.mean(left + right))
+            deviations_list.append(np.std(left + right))
+        elif not left and right:
+            results_list.append(2 * np.mean([np.mean(right), tick_length / 2]))
+            deviations_list.append(np.std(right))
+        elif not right and left:
+            results_list.append(2 * np.mean([np.mean(left), tick_length / 2]))
+            deviations_list.append(np.std(left))
+        else:
+            results_list.append(tick_length)
+            deviations_list.append(0)
+
         if heights is not None:
-            heights_list.append(np.mean(m_heights))
+            if m_heights:
+                heights_list.append(np.mean(m_heights))
+                heights_deviations_list.append(np.std(m_heights))
+            else:
+                heights_list.append(0)
+                heights_deviations_list.append(0)
 
-    widths_series = pd.Series(results_list)
-    deviations_series = pd.Series(deviations_list)
+    street_profile = {}
+    street_profile['widths'] = pd.Series(results_list)
+    street_profile['width_deviations'] = pd.Series(deviations_list)
+    street_profile['openness'] = pd.Series(openness_list)
+
     if heights is not None:
-        heights_series = pd.Series(heights_list)
-        profile_ratio = heights_series / widths_series
+        street_profile['heights'] = pd.Series(heights_list)
+        street_profile['heights_deviations'] = pd.Series(heights_deviations_list)
+        street_profile['profile'] = street_profile['heights'] / street_profile['widths']
         if 'mm_h' in buildings.columns:
             buildings.drop(columns=['mm_h'], inplace=True)
         print('Street profile calculated.')
-        return widths_series, deviations_series, heights_series, profile_ratio
 
     print('Street profile calculated.')
-    return widths_series, deviations_series
+    return street_profile
 
 
 def weighted_character(objects, tessellation, characters, unique_id, spatial_weights=None, areas=None, order=3):
