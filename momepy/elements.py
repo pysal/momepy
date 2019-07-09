@@ -891,7 +891,8 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
 
     results_list = []
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        if np.isnan(row.nID):
+        if np.isnan(row[edge_id]):
+
             results_list.append(np.nan)
         else:
             centroid = row.geometry.centroid

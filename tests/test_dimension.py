@@ -122,21 +122,23 @@ class TestDimensions:
             self.df_tessellation['meshE'] = mm.mean_character(gdf)
 
     def test_street_profile(self):
-        widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights='height')
-        assert widths[0] == 48.12133795186165
-        assert heights[0] == 19.454545454545457
-        assert profile[0] == 0.4042810587271468
+        results = mm.street_profile(self.df_streets, self.df_buildings, heights='height')
+        assert results['widths'][0] == 46.7290758769204
+        assert results['width_deviations'][0] == 0.5690458650581023
+        assert results['heights'][0] == 19.454545454545457
+        assert results['profile'][0] == 0.4163263469148574
+        assert results['openness'][0] == 0.9107142857142857
+        assert results['heights_deviations'][0] == 7.720786443287433
 
     def test_street_profile_array(self):
         height = np.linspace(10., 30., 144)
-        widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings, heights=height, tick_length=100)
-        assert widths[0] == 59.119197738278075
-        assert heights[0] == 23.756643356643362
-        assert profile[0] == 0.40184312821385904
-
-    def test_street_profile_wrongtuple(self):
-        with pytest.raises(ValueError):
-            widths, heights, profile = mm.street_profile(self.df_streets, self.df_buildings)
+        results = mm.street_profile(self.df_streets, self.df_buildings, heights=height, tick_length=100)
+        assert results['widths'][0] == 67.563796073073
+        assert results['width_deviations'][0] == 8.791875291865827
+        assert results['heights'][0] == 23.756643356643362
+        assert results['profile'][0] == 0.3516179483306353
+        assert results['openness'][0] == 0.5535714285714286
+        assert results['heights_deviations'][0] == 5.526848034418866
 
     def test_weighted_character(self):
         weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID')

@@ -381,14 +381,14 @@ def blocks_count(tessellation, block_id, spatial_weights=None, order=5):
     return series
 
 
-def reached(streets, elements, unique_id, spatial_weights=None, mode='count'):
+def reached(streets, elements, unique_id, spatial_weights=None, mode='count', values=None):
     """
     Calculates the number of elements reached within topological steps
 
     Number of elements within topological steps defined in spatial_weights. If
     spatial_weights are None, it will assume topological distance 0 (element itself).
     If mode='area', returns sum of areas of reached elements. Requires unique_id
-    of streets assigned beforehand (e.g. using :py:func:`momepy.elements.get_network_id`).
+    of streets assigned beforehand (e.g. using :py:func:`momepy.get_network_id`).
 
     .. math::
 
@@ -405,9 +405,13 @@ def reached(streets, elements, unique_id, spatial_weights=None, mode='count'):
     spatial_weights : libpysal.weights (default None)
         spatial weights matrix
     mode : str (default 'count')
-        mode of calculation. If 'count' function will return the count of reached elements.
-        If 'area', it will return sum of areas of reached elements
-
+        mode of calculation. If `'count'` function will return the count of reached elements.
+        If `'sum'`, it will return sum of `'values'`. If `'mean'` it will return mean value
+        of `'values'`. If `'std'` it will return standard deviation
+        of `'values'`. If `'values'` not set it will use of areas
+        of reached elements.
+    values : str (default None)
+        the name of the objects dataframe column with values used for calculations
 
     Returns
     -------
@@ -446,8 +450,21 @@ def reached(streets, elements, unique_id, spatial_weights=None, mode='count'):
             for nid in ids:
                 counts.append(count[nid])
             results_list.append(sum(counts))
-        elif mode == 'area':
-            results_list.append(sum(elements.loc[elements[unique_id].isin(ids)].geometry.area))
+        elif mode == 'sum':
+            if values:
+                results_list.append(sum(elements.loc[elements[unique_id].isin(ids)][values]))
+            else:
+                results_list.append(sum(elements.loc[elements[unique_id].isin(ids)].geometry.area))
+        elif mode == 'mean':
+            if values:
+                results_list.append(np.nanmean(elements.loc[elements[unique_id].isin(ids)][values]))
+            else:
+                results_list.append(np.nanmean(elements.loc[elements[unique_id].isin(ids)].geometry.area))
+        elif mode == 'std':
+            if values:
+                results_list.append(np.nanstd(elements.loc[elements[unique_id].isin(ids)][values]))
+            else:
+                results_list.append(np.nanstd(elements.loc[elements[unique_id].isin(ids)].geometry.area))
 
     series = pd.Series(results_list)
     if 'mm_id' in elements.columns:
