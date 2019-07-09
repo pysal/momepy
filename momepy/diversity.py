@@ -163,7 +163,7 @@ def theil(objects, values, spatial_weights=None, order=None, rng=(0, 100)):
     return series
 
 
-def simpson(objects, values, spatial_weights=None, order=None, binning='HeadTail_Breaks', **classification_kwds):
+def simpson(objects, values, spatial_weights=None, order=None, binning='HeadTailBreaks', **classification_kwds):
     """
     Calculates the Simpson\'s diversity index of values within k steps of morphological tessellation
 
@@ -185,11 +185,11 @@ def simpson(objects, values, spatial_weights=None, order=None, binning='HeadTail
         order of Queen contiguity
     binning : str
         One of mapclassify classification schemes
-        Options are Box_Plot, Equal_Interval, Fisher_Jenks,
-        Fisher_Jenks_Sampled, HeadTail_Breaks, Jenks_Caspall,
-        Jenks_Caspall_Forced, Jenks_Caspall_Sampled, Max_P_Classifier,
-        Maximum_Breaks, Natural_Breaks, Quantiles, Percentiles, Std_Mean,
-        User_Defined
+        Options are BoxPlot, EqualInterval, FisherJenks,
+        FisherJenksSampled, HeadTailBreaks, JenksCaspall,
+        JenksCaspallForced, JenksCaspallSampled, MaxPClassifier,
+        MaximumBreaks, NaturalBreaks, Quantiles, Percentiles, StdMean,
+        UserDefined
     **classification_kwds : dict
         Keyword arguments for classification scheme
         For details see mapclassify documentation:
@@ -232,8 +232,7 @@ def simpson(objects, values, spatial_weights=None, order=None, binning='HeadTail
         import mapclassify.classifiers
     except ImportError:
         raise ImportError(
-            "The 'mapclassify' package is required to use the 'scheme' "
-            "keyword")
+            "The 'mapclassify' package is required.")
 
     schemes = {}
     for classifier in mapclassify.classifiers.CLASSIFIERS:
