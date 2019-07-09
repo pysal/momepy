@@ -892,18 +892,21 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
 
     results_list = []
     for index, row in objects.iterrows():
-        centroid = row.geometry.centroid
-        edge = edges.loc[edges[edge_id] == row[edge_id]].iloc[0]
-        startID = edge.node_start
-        start = nodes.loc[nodes[node_id] == startID].iloc[0].geometry
-        sd = centroid.distance(start)
-        endID = edge.node_end
-        end = nodes.loc[nodes[node_id] == endID].iloc[0].geometry
-        ed = centroid.distance(end)
-        if sd > ed:
-            results_list.append(endID)
+        if np.isnan(row[edge_id]):
+            results_list.append(np.nan)
         else:
-            results_list.append(startID)
+            centroid = row.geometry.centroid
+            edge = edges.loc[edges[edge_id] == row[edge_id]].iloc[0]
+            startID = edge.node_start
+            start = nodes.loc[nodes[node_id] == startID].iloc[0].geometry
+            sd = centroid.distance(start)
+            endID = edge.node_end
+            end = nodes.loc[nodes[node_id] == endID].iloc[0].geometry
+            ed = centroid.distance(end)
+            if sd > ed:
+                results_list.append(endID)
+            else:
+                results_list.append(startID)
 
     series = pd.Series(results_list)
     return series
