@@ -69,7 +69,7 @@ class TestUtils:
         assert len(nodes) == 29
 
     def test_limit_range(self):
-        assert mm.limit_range(range(10), rng=(25, 75)) == [3, 4, 5, 6]
+        assert mm.limit_range(range(10), rng=(25, 75)) == [2, 3, 4, 5, 6, 7]
         assert mm.limit_range(range(10), rng=(10, 90)) == [1, 2, 3, 4, 5, 6, 7, 8]
 
     def test_preprocess(self):
