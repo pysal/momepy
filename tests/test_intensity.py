@@ -67,8 +67,18 @@ class TestIntensity:
     def test_reached(self):
         count = mm.reached(self.df_streets, self.df_buildings, 'nID')
         area = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='sum')
+        mean = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='mean')
+        std = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='std')
+        area_v = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='sum', values='fl_area')
+        mean_v = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='mean', values='fl_area')
+        std_v = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='std', values='fl_area')
         sw = mm.Queen_higher(k=2, geodataframe=self.df_streets)
         count_sw = mm.reached(self.df_streets, self.df_buildings, 'nID', sw)
         assert max(count) == 18
         assert max(area) == 18085.45897711331
         assert max(count_sw) == 138
+        assert max(mean) == 1808.5458977113315
+        assert max(std) == 3153.7019229524785
+        assert max(area_v) == 79169.31385861784
+        assert max(mean_v) == 7916.931385861784
+        assert max(std_v) == 8995.18003493457
