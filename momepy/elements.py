@@ -809,6 +809,9 @@ def get_network_id(elements, streets, unique_id, network_id, min_size=100):
 
     print('Generating centroids...')
     buildings_c = elements.copy()
+    if network_id in buildings_c.columns:
+        buildings_c = buildings_c.drop([network_id], axis=1)
+
     buildings_c['geometry'] = buildings_c.centroid  # make centroids
 
     print('Generating list of points...')
@@ -841,7 +844,11 @@ def get_network_id(elements, streets, unique_id, network_id, min_size=100):
     cleaned = joined[[unique_id, network_id]]
 
     print('Merging with elements...')
-    elements_m = elements.merge(cleaned, on=unique_id)
+    if network_id in elements.columns:
+        elements_copy = elements.copy().drop([network_id], axis=1)
+        elements_m = elements_copy.merge(cleaned, on=unique_id)
+    else:
+        elements_m = elements.merge(cleaned, on=unique_id)
 
     if elements_m[network_id].isnull().any():
         import warnings
