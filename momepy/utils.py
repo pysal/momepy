@@ -175,43 +175,6 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False, nodeID='nodeID
     return gdf_edges
 
 
-def multi2single(gdf):
-    """
-    Convert multi-part geometry of GeoDataFrame to single-part geometries.
-
-    Parameters
-    ----------
-    gpdf : geopandas.GeoDataFrame
-        geopandas.GeoDataFrame
-
-    Returns
-    -------
-    GeoDataFrame
-        GeoDataFrame containing only single-part geometry
-
-    """
-    if gdf.iloc[0].geometry.type in ['Polygon', 'MultiPolygon']:
-        gdf_singlepoly = gdf[gdf.geometry.type == 'Polygon']
-        gdf_multipoly = gdf[gdf.geometry.type == 'MultiPolygon']
-    elif gdf.iloc[0].geometry.type in ['LineString', 'MultiLineString']:
-        gdf_singlepoly = gdf[gdf.geometry.type == 'LineString']
-        gdf_multipoly = gdf[gdf.geometry.type == 'MultiLineString']
-    elif gdf.iloc[0].geometry.type in ['Point', 'MultiPoint']:
-        gdf_singlepoly = gdf[gdf.geometry.type == 'Point']
-        gdf_multipoly = gdf[gdf.geometry.type == 'MultiPoint']
-    else:
-        raise ValueError('Unsupported geometry type:', gdf.iloc[0].geometry.type)
-
-    for i, row in gdf_multipoly.iterrows():
-        Series_geometries = pd.Series(row.geometry)
-        df = pd.concat([gpd.GeoDataFrame(row, crs=gdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
-        df['geometry'] = Series_geometries
-        gdf_singlepoly = pd.concat([gdf_singlepoly, df])
-
-    gdf_singlepoly.reset_index(inplace=True, drop=True)
-    return gdf_singlepoly
-
-
 def limit_range(vals, rng):
     """
     Extract values within selected range

@@ -18,8 +18,6 @@ import osmnx as ox
 import operator
 from libpysal.weights import Queen
 
-from .utils import multi2single
-
 
 def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False, minimum=2):
     """
@@ -75,7 +73,8 @@ def tessellation(buildings, unique_id='uID', cut_buffer=50, queen_corners=False,
 
     # resolve multipart polygons, singlepart are needed for densification
     print('Converting multipart geometry to singlepart...')
-    objects = multi2single(objects)
+    objects = objects.explode()
+    objects.reset_index(inplace=True, drop=True)
 
     # densify geometry before Voronoi tesselation
     def _densify(geom):
@@ -652,7 +651,8 @@ def blocks(cells, streets, buildings, id_name, unique_id):
     cells_copy = cells_copy.drop([id_name], axis=1)
 
     print('Multipart to singlepart...')
-    blocks = multi2single(blocks)
+    blocks = blocks.explode()
+    blocks.reset_index(inplace=True, drop=True)
 
     blocks['geometry'] = blocks.exterior
 
