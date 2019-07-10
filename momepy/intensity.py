@@ -474,7 +474,7 @@ def reached(streets, elements, unique_id, spatial_weights=None, mode='count', va
     return series
 
 
-def node_density(left, right, spatial_weights, node_start='node_start', node_end='node_end'):
+def node_density(left, right, spatial_weights, weighted=False, node_degree=None, node_start='node_start', node_end='node_end'):
     """
     Calculate the density of nodes within topological steps defined in spatial_weights.
 
@@ -492,6 +492,10 @@ def node_density(left, right, spatial_weights, node_start='node_start', node_end
         GeoDataFrame containing edges of street network
     spatial_weights : libpysal.weights, optional
         spatial weights matrix capturing relationship between nodes within set topological distance
+    weighted : bool
+        if True density will take into account node degree as k-1
+    node_degree : str
+        name of the column of left gdf containing node degree
     node_start : str
         name of the column of right gdf containing id of starting node
     node_end : str
@@ -520,12 +524,17 @@ def node_density(left, right, spatial_weights, node_start='node_start', node_end
 
         neighbours = list(spatial_weights.neighbors[index])
         neighbours.append(index)
+        if weighted:
+            neighbour_nodes = left.iloc[neighbours]
+            number_nodes = sum(neighbour_nodes[node_degree] - 1)
+        else:
+            number_nodes = len(neighbours)
 
         edg = right.loc[right['node_start'].isin(neighbours)].loc[right['node_end'].isin(neighbours)]
         length = sum(edg.geometry.length)
 
         if length > 0:
-            results_list.append(len(neighbours) / length)
+            results_list.append(number_nodes / length)
         else:
             results_list.append(0)
 

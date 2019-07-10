@@ -85,7 +85,10 @@ class TestIntensity:
 
     def test_node_density(self):
         nx = mm.gdf_to_nx(self.df_streets)
+        nx = mm.node_degree(nx)
         nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)
         sw = mm.Queen_higher(k=3, weights=W)
         density = mm.node_density(nodes, edges, sw)
+        weighted = mm.node_density(nodes, edges, sw, weighted=True, node_degree='degree')
         assert density.mean() == 0.012690163074599968
+        assert weighted.mean() == 0.023207675994368446
