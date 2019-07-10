@@ -474,27 +474,28 @@ def reached(streets, elements, unique_id, spatial_weights=None, mode='count', va
     return series
 
 
-def node_density(objects, nodes, spatial_weights=None, order=9, node_id='nodeID'):
+def node_density(left, right, spatial_weights, node_start='node_start', node_end='node_end'):
     """
-    Calculate the density of nodes within topological steps of morphological tessellation.
-    Node is marked as reached if reached cell con
+    Calculate the density of nodes within topological steps defined in spatial_weights.
+
+    Calculated as number of nodes within k steps / cummulative length of street network within k steps.
+    node_start and node_end is standard output of :py:func:`momepy.nx_to_gdf` and is compulsory.
 
     .. math::
 
 
     Parameters
     ----------
-    objects : GeoDataFrame
-        GeoDataFrame containing tessellation objects to analyse
-    nodes : GeoDataFrame
-        GeoDataFrame containing nodes
+    left : GeoDataFrame
+        GeoDataFrame containing nodes of street network
+    right : GeoDataFrame
+        GeoDataFrame containing edges of street network
     spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix of selected order will be calculated
-        based on objects.
-    order : int
-        order of Queen contiguity
-    node_id : str
-        name of the column of objects gdf with node id.
+        spatial weights matrix capturing relationship between nodes within set topological distance
+    node_start : str
+        name of the column of right gdf containing id of starting node
+    node_end : str
+        name of the column of right gdf containing id of ending node
 
     Returns
     -------
@@ -512,25 +513,22 @@ def node_density(objects, nodes, spatial_weights=None, order=9, node_id='nodeID'
     # define empty list for results
     results_list = []
 
-    print('Calculating gross density...')
-
-    if not all(objects.index == range(len(objects))):
-        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-
-    if spatial_weights is None:
-        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
-        from momepy import Queen_higher
-        # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(k=order, geodataframe=objects)
+    print('Calculating node density...')
 
     # iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        neighbours = spatial_weights.neighbors[index]
+    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+
+        neighbours = list(spatial_weights.neighbors[index])
         neighbours.append(index)
-        sub = objects.iloc[neighbours]
-        subnodes = set(sub['nodeID'])
-        results_list.append((len(subnodes) / sum(sub.geometry.area)) * 10000)
+
+        edg = right.loc[right['node_start'].isin(neighbours)].loc[right['node_end'].isin(neighbours)]
+        length = sum(edg.geometry.length)
+
+        if length > 0:
+            results_list.append(len(neighbours) / length)
+        else:
+            results_list.append(0)
 
     series = pd.Series(results_list)
-    print('Gross density calculated.')
+    print('Node density calculated.')
     return series
