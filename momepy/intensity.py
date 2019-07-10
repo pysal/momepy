@@ -15,7 +15,7 @@ def covered_area_ratio(objects, look_for, area_column, look_for_area_column, id_
     Calculate covered area ratio of objects.
 
     .. math::
-        \\textit{covering object area} \over \\textit{covered object area}
+        \\textit{covering object area} \\over \\textit{covered object area}
 
     Parameters
     ----------
@@ -66,7 +66,7 @@ def floor_area_ratio(objects, look_for, area_column, look_for_area_column, id_co
     Calculate floor area ratio of objects.
 
     .. math::
-        \\textit{covering object floor area} \over \\textit{covered object area}
+        \\textit{covering object floor area} \\over \\textit{covered object area}
 
     Parameters
     ----------
