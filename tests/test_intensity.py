@@ -82,3 +82,13 @@ class TestIntensity:
         assert max(area_v) == 79169.31385861784
         assert max(mean_v) == 7916.931385861784
         assert max(std_v) == 8995.18003493457
+
+    def test_node_density(self):
+        nx = mm.gdf_to_nx(self.df_streets)
+        nx = mm.node_degree(nx)
+        nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)
+        sw = mm.Queen_higher(k=3, weights=W)
+        density = mm.node_density(nodes, edges, sw)
+        weighted = mm.node_density(nodes, edges, sw, weighted=True, node_degree='degree')
+        assert density.mean() == 0.012690163074599968
+        assert weighted.mean() == 0.023207675994368446

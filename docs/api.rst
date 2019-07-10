@@ -88,6 +88,7 @@ intensity
    elements_count
    floor_area_ratio
    gross_density
+   node_density
    reached
 
 connectivity
