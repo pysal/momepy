@@ -98,8 +98,3 @@ class TestDistribution:
         assert self.df_tessellation['nei'].mean() == check
         assert self.df_tessellation['nei_sw'].mean() == check
         assert self.df_tessellation['nei_wei'].mean() == check_w
-
-    def test_node_degree(self):
-        graph = mm.gdf_to_nx(self.df_streets)
-        deg1 = mm.node_degree(graph=graph)
-        assert deg1.nodes[(1603650.450422848, 6464368.600601688)]['degree'] == 4
