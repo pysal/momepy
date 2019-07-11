@@ -60,6 +60,7 @@ def form_factor(gdf, volumes, areas=None):
     """
 
     print('Calculating form factor...')
+    gdf = gdf.copy()
     if not isinstance(volumes, str):
         gdf['mm_v'] = volumes
         volumes = 'mm_v'
@@ -70,11 +71,6 @@ def form_factor(gdf, volumes, areas=None):
             gdf['mm_a'] = areas
             areas = 'mm_a'
         series = gdf.apply(lambda row: row[areas] / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
-
-    if 'mm_v' in gdf.columns:
-        gdf.drop(columns=['mm_v'], inplace=True)
-    if 'mm_a' in gdf.columns:
-        gdf.drop(columns=['mm_a'], inplace=True)
 
     print('Form factor calculated.')
     return series
@@ -120,6 +116,7 @@ def fractal_dimension(gdf, areas=None, perimeters=None):
     """
 
     print('Calculating fractal dimension...')
+    gdf = gdf.copy()
 
     if perimeters is None:
         gdf['mm_p'] = gdf.geometry.length
@@ -136,10 +133,6 @@ def fractal_dimension(gdf, areas=None, perimeters=None):
             areas = 'mm_a'
         series = gdf.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row[areas]), axis=1)
 
-    if 'mm_a' in gdf.columns:
-        gdf.drop(columns=['mm_a'], inplace=True)
-    if 'mm_p' in gdf.columns:
-        gdf.drop(columns=['mm_p'], inplace=True)
     print('Fractal dimension calculated.')
     return series
 
@@ -184,6 +177,7 @@ def volume_facade_ratio(gdf, heights, volumes=None, perimeters=None):
     """
 
     print('Calculating volume/facade ratio...')
+    gdf = gdf.copy()
     if perimeters is None:
         gdf['mm_p'] = gdf.geometry.length
         perimeters = 'mm_p'
@@ -202,10 +196,6 @@ def volume_facade_ratio(gdf, heights, volumes=None, perimeters=None):
 
     series = gdf[volumes] / (gdf[perimeters] * gdf[heights])
 
-    if 'mm_p' in gdf.columns:
-        gdf.drop(columns=['mm_p'], inplace=True)
-    if 'mm_v' in gdf.columns:
-        gdf.drop(columns=['mm_v'], inplace=True)
     print('Volume/facade ratio calculated.')
     return series
 
@@ -386,6 +376,7 @@ def circular_compactness(gdf, areas=None):
     """
 
     print('Calculating compactness index...')
+    gdf = gdf.copy()
 
     if areas is None:
         series = gdf.apply(lambda row: (row.geometry.area) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
@@ -394,8 +385,7 @@ def circular_compactness(gdf, areas=None):
             gdf['mm_a'] = areas
             areas = 'mm_a'
         series = gdf.apply(lambda row: (row[areas]) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
-        if 'mm_a' in gdf.columns:
-            gdf.drop(columns=['mm_a'], inplace=True)
+
     print('Compactness index calculated.')
     return series
 
@@ -441,6 +431,7 @@ def square_compactness(gdf, areas=None, perimeters=None):
     """
 
     print('Calculating compactness index...')
+    gdf = gdf.copy()
 
     if perimeters is None:
         gdf['mm_p'] = gdf.geometry.length
@@ -457,10 +448,6 @@ def square_compactness(gdf, areas=None, perimeters=None):
             areas = 'mm_a'
         series = gdf.apply(lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1)
 
-    if 'mm_a' in gdf.columns:
-        gdf.drop(columns=['mm_a'], inplace=True)
-    if 'mm_p' in gdf.columns:
-        gdf.drop(columns=['mm_p'], inplace=True)
     print('Compactness index calculated.')
     return series
 
@@ -500,6 +487,7 @@ def convexeity(gdf, areas=None):
     """
 
     print('Calculating convexeity...')
+    gdf = gdf.copy()
 
     if areas is None:
         series = gdf.geometry.area / gdf.geometry.convex_hull.area
@@ -508,8 +496,6 @@ def convexeity(gdf, areas=None):
             gdf['mm_a'] = areas
             areas = 'mm_a'
         series = gdf[areas] / gdf.geometry.convex_hull.area
-        if 'mm_a' in gdf.columns:
-            gdf.drop(columns=['mm_a'], inplace=True)
 
     print('Convexeity calculated.')
     return series
@@ -562,6 +548,7 @@ def courtyard_index(gdf, courtyard_areas, areas=None):
     """
 
     print('Calculating courtyard index...')
+    gdf = gdf.copy()
 
     if not isinstance(courtyard_areas, str):
         gdf['mm_ca'] = courtyard_areas
@@ -573,11 +560,6 @@ def courtyard_index(gdf, courtyard_areas, areas=None):
             gdf['mm_a'] = areas
             areas = 'mm_a'
         series = gdf[courtyard_areas] / gdf[areas]
-
-    if 'mm_ca' in gdf.columns:
-        gdf.drop(columns=['mm_ca'], inplace=True)
-    if 'mm_a' in gdf.columns:
-        gdf.drop(columns=['mm_a'], inplace=True)
 
     print('Courtyard index calculated.')
     return series
@@ -619,6 +601,7 @@ def rectangularity(gdf, areas=None):
     """
 
     print('Calculating rectangularity...')
+    gdf = gdf.copy()
     if areas is None:
         series = gdf.apply(lambda row: row.geometry.area / (row.geometry.minimum_rotated_rectangle.area), axis=1)
 
@@ -627,9 +610,6 @@ def rectangularity(gdf, areas=None):
             gdf['mm_a'] = areas
             areas = 'mm_a'
         series = gdf.apply(lambda row: row[areas] / (row.geometry.minimum_rotated_rectangle.area), axis=1)
-
-    if 'mm_a' in gdf.columns:
-        gdf.drop(columns=['mm_a'], inplace=True)
 
     print('Rectangularity calculated.')
     return series
@@ -671,6 +651,7 @@ def shape_index(gdf, longest_axis, areas=None):
     0.7564029493781987
     """
     print('Calculating shape index...')
+    gdf = gdf.copy()
 
     if not isinstance(longest_axis, str):
         gdf['mm_la'] = longest_axis
@@ -683,11 +664,6 @@ def shape_index(gdf, longest_axis, areas=None):
             gdf['mm_a'] = areas
             areas = 'mm_a'
         series = gdf.apply(lambda row: math.sqrt(row[areas] / math.pi) / (0.5 * row[longest_axis]), axis=1)
-
-        if 'mm_a' in gdf.columns:
-            gdf.drop(columns=['mm_a'], inplace=True)
-        if 'mm_la' in gdf.columns:
-            gdf.drop(columns=['mm_la'], inplace=True)
 
     print('Shape index calculated.')
     return series
@@ -915,6 +891,7 @@ def equivalent_rectangular_index(gdf, areas=None, perimeters=None):
     # define empty list for results
     results_list = []
     print('Calculating equivalent rectangular index...')
+    gdf = gdf.copy()
 
     if perimeters is None:
         gdf['mm_p'] = gdf.geometry.length
@@ -936,10 +913,7 @@ def equivalent_rectangular_index(gdf, areas=None, perimeters=None):
         results_list.append(math.sqrt(row[areas] / bbox.area) * (bbox.length / row[perimeters]))
 
     series = pd.Series(results_list)
-    if 'mm_a' in gdf.columns:
-        gdf.drop(columns=['mm_a'], inplace=True)
-    if 'mm_p' in gdf.columns:
-        gdf.drop(columns=['mm_p'], inplace=True)
+
     print('Equivalent rectangular index calculated.')
     return series
 
@@ -1199,6 +1173,7 @@ def compactness_weighted_axis(gdf, areas=None, perimeters=None, longest_axis=Non
     """
 
     print('Calculating compactness-weighted axis...')
+    gdf = gdf.copy()
 
     if perimeters is None:
         gdf['mm_p'] = gdf.geometry.length
@@ -1225,11 +1200,5 @@ def compactness_weighted_axis(gdf, areas=None, perimeters=None, longest_axis=Non
             areas = 'mm_a'
         series = gdf.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row[areas]) / ((row[perimeters]) ** 2)), axis=1)
 
-    if 'mm_a' in gdf.columns:
-        gdf.drop(columns=['mm_a'], inplace=True)
-    if 'mm_p' in gdf.columns:
-        gdf.drop(columns=['mm_p'], inplace=True)
-    if 'mm_la' in gdf.columns:
-        gdf.drop(columns=['mm_la'], inplace=True)
     print('Compactness-weighted axis calculated.')
     return series

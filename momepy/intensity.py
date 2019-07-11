@@ -353,7 +353,7 @@ def blocks_count(gdf, block_id, spatial_weights=None, order=5):
     """
     # define empty list for results
     results_list = []
-
+    gdf = gdf.copy()
     if not isinstance(block_id, str):
         block_id['mm_bid'] = block_id
         block_id = 'mm_bid'
@@ -377,9 +377,6 @@ def blocks_count(gdf, block_id, spatial_weights=None, order=5):
         results_list.append(len(set(list(vicinity[block_id]))) / sum(vicinity.geometry.area))
 
     series = pd.Series(results_list)
-
-    if 'mm_bid' in gdf.columns:
-        gdf.drop(columns=['mm_bid'], inplace=True)
 
     print('Blocks calculated.')
     return series
@@ -435,6 +432,7 @@ def reached(left, right, unique_id, spatial_weights=None, mode='count', values=N
     print('Calculating reached {}...'.format(mode))
 
     if not isinstance(unique_id, str):
+        right = right.copy()
         right['mm_id'] = unique_id
         unique_id = 'mm_id'
 
@@ -471,8 +469,6 @@ def reached(left, right, unique_id, spatial_weights=None, mode='count', values=N
                 results_list.append(np.nanstd(right.loc[right[unique_id].isin(ids)].geometry.area))
 
     series = pd.Series(results_list)
-    if 'mm_id' in right.columns:
-        right.drop(columns=['mm_id'], inplace=True)
 
     print('Reached {} calculated.'.format(mode))
     return series

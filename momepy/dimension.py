@@ -120,6 +120,7 @@ def volume(gdf, heights, areas=None):
     7285.5749470443625
     """
     print('Calculating volumes...')
+    gdf = gdf.copy()
     if not isinstance(heights, str):
         gdf['mm_h'] = heights
         heights = 'mm_h'
@@ -135,11 +136,6 @@ def volume(gdf, heights, areas=None):
             raise KeyError('ERROR: Column not found. Define heights and areas or set areas to None.')
     else:
         series = gdf.geometry.area * gdf[heights]
-
-    if 'mm_h' in gdf.columns:
-        gdf.drop(columns=['mm_h'], inplace=True)
-    if 'mm_a' in gdf.columns:
-        gdf.drop(columns=['mm_a'], inplace=True)
 
     print('Volumes calculated.')
     return series
@@ -185,6 +181,7 @@ def floor_area(gdf, heights, areas=None):
     2185.672484113309
     """
     print('Calculating floor areas...')
+    gdf = gdf.copy()
     if not isinstance(heights, str):
         gdf['mm_h'] = heights
         heights = 'mm_h'
@@ -200,11 +197,6 @@ def floor_area(gdf, heights, areas=None):
             raise KeyError('ERROR: Column not found. Define heights and areas or set areas to None.')
     else:
         series = gdf.geometry.area * (gdf[heights] // 3)
-
-    if 'mm_h' in gdf.columns:
-        gdf.drop(columns=['mm_h'], inplace=True)
-    if 'mm_a' in gdf.columns:
-        gdf.drop(columns=['mm_a'], inplace=True)
 
     print('Floor areas calculated.')
     return series
@@ -239,6 +231,7 @@ def courtyard_area(gdf, areas=None):
     """
 
     print('Calculating courtyard areas...')
+    gdf = gdf.copy()
 
     if areas is not None:
         if not isinstance(areas, str):
@@ -248,9 +241,6 @@ def courtyard_area(gdf, areas=None):
 
     else:
         series = gdf.apply(lambda row: Polygon(row.geometry.exterior).area - row.geometry.area, axis=1)
-
-    if 'mm_a' in gdf.columns:
-        gdf.drop(columns=['mm_a'], inplace=True)
 
     print('Courtyard areas calculated.')
     return series
@@ -355,6 +345,7 @@ def mean_character(gdf, spatial_weights=None, values=None, order=3, rng=None):
     results_list = []
 
     print('Calculating mean character value...')
+    gdf = gdf.copy()
 
     if spatial_weights is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
@@ -391,9 +382,6 @@ def mean_character(gdf, spatial_weights=None, values=None, order=3, rng=None):
         results_list.append(sum(values_list) / len(values_list))
 
     series = pd.Series(results_list)
-
-    if 'mm_v' in gdf.columns:
-        gdf.drop(columns=['mm_v'], inplace=True)
 
     print('Mean character value calculated.')
     return series
@@ -493,6 +481,7 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
 
     if heights is not None:
         if not isinstance(heights, str):
+            right = right.copy()
             right['mm_h'] = heights
             heights = 'mm_h'
 
@@ -628,9 +617,6 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
         street_profile['heights'] = pd.Series(heights_list)
         street_profile['heights_deviations'] = pd.Series(heights_deviations_list)
         street_profile['profile'] = street_profile['heights'] / street_profile['widths']
-        if 'mm_h' in right.columns:
-            right.drop(columns=['mm_h'], inplace=True)
-        print('Street profile calculated.')
 
     print('Street profile calculated.')
     return street_profile
@@ -702,6 +688,7 @@ def weighted_character(left, right, characters, unique_id, spatial_weights=None,
 
     if areas is not None:
         if not isinstance(areas, str):
+            left = left.copy()
             left['mm_a'] = areas
             areas = 'mm_a'
 
@@ -726,9 +713,6 @@ def weighted_character(left, right, characters, unique_id, spatial_weights=None,
         else:
             results_list.append(row[characters])
     series = pd.Series(results_list)
-
-    if 'mm_a' in left.columns:
-        left.drop(columns=['mm_a'], inplace=True)
 
     print('Weighted {} calculated.'.format(characters))
     return series

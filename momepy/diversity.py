@@ -49,7 +49,7 @@ def rng(gdf, values, spatial_weights=None, order=None, rng=(0, 100), **kwargs):
     """
     # define empty list for results
     results_list = []
-
+    gdf = gdf.copy()
     print('Calculating range...')
 
     if spatial_weights is None:
@@ -77,9 +77,6 @@ def rng(gdf, values, spatial_weights=None, order=None, rng=(0, 100), **kwargs):
         results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
 
     series = pd.Series(results_list)
-
-    if 'mm_v' in gdf.columns:
-        gdf.drop(columns=['mm_v'], inplace=True)
 
     print('Range calculated.')
     return series
@@ -124,6 +121,7 @@ def theil(gdf, values, spatial_weights=None, order=None, rng=(0, 100)):
     from pysal.explore.inequality.theil import Theil
     # define empty list for results
     results_list = []
+    gdf = gdf.copy()
 
     print('Calculating Theil index...')
 
@@ -155,9 +153,6 @@ def theil(gdf, values, spatial_weights=None, order=None, rng=(0, 100)):
         results_list.append(Theil(values_list).T)
 
     series = pd.Series(results_list)
-
-    if 'mm_v' in gdf.columns:
-        gdf.drop(columns=['mm_v'], inplace=True)
 
     print('Theil index calculated.')
     return series
@@ -245,7 +240,7 @@ def simpson(gdf, values, spatial_weights=None, order=None, binning='HeadTailBrea
 
     # define empty list for results
     results_list = []
-
+    gdf = gdf.copy()
     print('Calculating Simpson\'s diversity index...')
 
     if spatial_weights is None:
@@ -277,9 +272,6 @@ def simpson(gdf, values, spatial_weights=None, order=None, binning='HeadTailBrea
         results_list.append(simpson_di(counts))
 
     series = pd.Series(results_list)
-
-    if 'mm_v' in gdf.columns:
-        gdf.drop(columns=['mm_v'], inplace=True)
 
     print("Simpson's diversity index calculated.")
     return series

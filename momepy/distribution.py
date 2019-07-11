@@ -145,6 +145,7 @@ def shared_walls_ratio(gdf, unique_id, perimeters=None):
     0.3424804411228673
     """
     print('Generating spatial index...')
+    gdf = gdf.copy()
     sindex = gdf.sindex  # define rtree index
     # define empty list for results
     results_list = []
@@ -177,10 +178,7 @@ def shared_walls_ratio(gdf, unique_id, perimeters=None):
             results_list.append(length / row[perimeters])
     series = pd.Series(results_list)
     print('Shared walls ratio calculated.')
-    if 'mm_p' in gdf.columns:
-        gdf.drop(columns=['mm_p'], inplace=True)
-    if 'mm_uid' in gdf.columns:
-        gdf.drop(columns=['mm_uid'], inplace=True)
+
     return series
 
 
@@ -228,7 +226,8 @@ def street_alignment(left, right, orientations, left_network_id, right_network_i
     results_list = []
 
     print('Calculating street alignments...')
-
+    left = left.copy()
+    right = right.copy()
     if not isinstance(orientations, str):
         left['mm_o'] = orientations
         orientations = 'mm_o'
@@ -271,12 +270,7 @@ def street_alignment(left, right, orientations, left_network_id, right_network_i
                 az = az - 2 * diff
             results_list.append(abs(row[orientations] - az))
     series = pd.Series(results_list)
-    if 'mm_o' in left.columns:
-        left.drop(columns=['mm_o'], inplace=True)
-    if 'mm_nid' in left.columns:
-        left.drop(columns=['mm_nid'], inplace=True)
-    if 'mm_nis' in right.columns:
-        right.drop(columns=['mm_nis'], inplace=True)
+
     print('Street alignments calculated.')
     return series
 
@@ -323,7 +317,8 @@ def cell_alignment(left, right, left_orientations, right_orientations, unique_id
     Allow left unique_id and right unique_id.
     """
     print('Calculating cell alignments...')
-
+    left = left.copy()
+    right = right.copy()
     if not isinstance(left_orientations, str):
         left['mm_o'] = left_orientations
         left_orientations = 'mm_o'
@@ -339,10 +334,7 @@ def cell_alignment(left, right, left_orientations, right_orientations, unique_id
         results_list.append(abs(row[left_orientations] - right[right[unique_id] == row[unique_id]][right_orientations].iloc[0]))
 
     series = pd.Series(results_list)
-    if 'mm_o' in left.columns:
-        left.drop(columns=['mm_o'], inplace=True)
-    if 'mm_o' in right.columns:
-        right.drop(columns=['mm_o'], inplace=True)
+
     print('Cell alignments calculated.')
     return series
 
@@ -391,7 +383,7 @@ def alignment(left, right, orientations, unique_id, spatial_weights=None):
     """
     # define empty list for results
     results_list = []
-
+    left = left.copy()
     if not isinstance(orientations, str):
         left['mm_o'] = orientations
         orientations = 'mm_o'
@@ -433,9 +425,6 @@ def alignment(left, right, orientations, unique_id, spatial_weights=None):
             results_list.append(0)
 
     series = pd.Series(results_list)
-
-    if 'mm_o' in left.columns:
-        left.drop(columns=['mm_o'], inplace=True)
 
     print('Alignments calculated.')
     return series
@@ -660,7 +649,7 @@ def neighbouring_street_orientation_deviation(gdf):
     """
     # define empty list for results
     results_list = []
-
+    gdf = gdf.copy()
     print('Calculating street alignments...')
 
     def azimuth(point1, point2):
@@ -720,7 +709,6 @@ def neighbouring_street_orientation_deviation(gdf):
             results_list.append(0)
 
     series = pd.Series(results_list)
-    gdf.drop(['tmporient'], axis=1)
     print('Street alignments calculated.')
     return series
 
