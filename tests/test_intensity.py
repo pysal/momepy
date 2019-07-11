@@ -48,14 +48,6 @@ class TestIntensity:
         assert courtyards.mean() == check
         assert courtyards_wm.mean() == check
 
-    def test_gross_density(self):
-        dens = mm.gross_density(self.df_tessellation, self.df_buildings, 'area', 'fl_area')
-        sw = mm.Queen_higher(k=3, geodataframe=self.df_tessellation)
-        dens2 = mm.gross_density(self.df_tessellation, self.df_buildings, 'area', 'fl_area', spatial_weights=sw)
-        check = 1.6615871155383324
-        assert dens.mean() == check
-        assert dens2.mean() == check
-
     def test_blocks_count(self):
         count = mm.blocks_count(self.df_tessellation, 'bID', spatial_weights=None, order=5)
         sw = mm.Queen_higher(k=5, geodataframe=self.df_tessellation)
