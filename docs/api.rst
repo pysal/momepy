@@ -125,7 +125,6 @@ utilities
 
    gdf_to_nx
    limit_range
-   multi2single
    nx_to_gdf
    preprocess
    unique_id
