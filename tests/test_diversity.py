@@ -1,4 +1,3 @@
-import pytest
 import momepy as mm
 import geopandas as gpd
 import numpy as np
