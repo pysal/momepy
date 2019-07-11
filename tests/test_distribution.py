@@ -44,34 +44,27 @@ class TestDistribution:
         self.df_buildings['orient'] = mm.orientation(self.df_buildings)
         self.df_tessellation['orient'] = mm.orientation(self.df_tessellation)
         self.df_buildings['c_align'] = mm.cell_alignment(self.df_buildings, self.df_tessellation, 'orient', 'orient', 'uID')
-        check = abs(self.df_buildings['orient'][0] -
-                    self.df_tessellation[self.df_tessellation['uID'] == self.df_buildings['uID'][0]]['orient'].iloc[0])
+        check = abs(self.df_buildings['orient'][0] - self.df_tessellation[
+            self.df_tessellation['uID'] == self.df_buildings['uID'][0]]['orient'].iloc[0])
         assert self.df_buildings['c_align'][0] == check
 
     def test_alignment(self):
         self.df_buildings['orient'] = mm.orientation(self.df_buildings)
-        self.df_buildings['align'] = mm.alignment(self.df_buildings, self.df_tessellation, 'orient', 'uID')
-        sw = Queen.from_dataframe(self.df_tessellation)
-        self.df_buildings['align_sw'] = mm.alignment(self.df_buildings, self.df_tessellation, 'orient', 'uID', sw)
-        check = 18.299481296455237
-        assert self.df_buildings['align'][0] == check
-        assert self.df_buildings['align_sw'][0] == check
+        sw = Queen.from_dataframe(self.df_tessellation, ids='uID')
+        self.df_buildings['align_sw'] = mm.alignment(self.df_buildings, sw, 'uID', 'orient')
+        assert self.df_buildings['align_sw'][0] == 18.299481296455237
 
     def test_neighbour_distance(self):
-        self.df_buildings['dist'] = mm.neighbour_distance(self.df_buildings, self.df_tessellation, 'uID')
-        sw = Queen.from_dataframe(self.df_tessellation)
-        self.df_buildings['dist_sw'] = mm.neighbour_distance(self.df_buildings, self.df_tessellation, 'uID', sw)
+        sw = Queen.from_dataframe(self.df_tessellation, ids='uID')
+        self.df_buildings['dist_sw'] = mm.neighbour_distance(self.df_buildings, sw, 'uID')
         check = 29.18589019096464
-        assert self.df_buildings['dist'][0] == check
         assert self.df_buildings['dist_sw'][0] == check
 
     def test_mean_interbuilding_distance(self):
-        self.df_buildings['m_dist'] = mm.mean_interbuilding_distance(self.df_buildings, self.df_tessellation, 'uID')
-        sw = Queen.from_dataframe(self.df_tessellation)
-        swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation)
-        self.df_buildings['m_dist_sw'] = mm.mean_interbuilding_distance(self.df_buildings, self.df_tessellation, 'uID', sw, swh)
+        sw = Queen.from_dataframe(self.df_tessellation, ids='uID')
+        swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        self.df_buildings['m_dist_sw'] = mm.mean_interbuilding_distance(self.df_buildings, sw, 'uID', swh)
         check = 29.305457092042744
-        assert self.df_buildings['m_dist'][0] == check
         assert self.df_buildings['m_dist_sw'][0] == check
 
     def test_neighbouring_street_orientation_deviation(self):
@@ -80,21 +73,17 @@ class TestDistribution:
         assert self.df_streets['dev'].mean() == check
 
     def test_building_adjacency(self):
-        self.df_buildings['adj'] = mm.building_adjacency(self.df_buildings, self.df_tessellation)
-        sw = Queen.from_dataframe(self.df_buildings)
-        swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation)
-        self.df_buildings['adj_sw'] = mm.building_adjacency(self.df_buildings, self.df_tessellation, spatial_weights=sw, spatial_weights_higher=swh)
+        sw = Queen.from_dataframe(self.df_buildings, ids='uID')
+        swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        self.df_buildings['adj_sw'] = mm.building_adjacency(self.df_buildings, spatial_weights=sw, unique_id='uID', spatial_weights_higher=swh)
         check = 0.2613824113909074
-        assert self.df_buildings['adj'].mean() == check
         assert self.df_buildings['adj_sw'].mean() == check
 
     def test_neighbours(self):
-        self.df_tessellation['nei'] = mm.neighbours(self.df_tessellation)
-        sw = Queen.from_dataframe(self.df_tessellation)
-        self.df_tessellation['nei_sw'] = mm.neighbours(self.df_tessellation, sw)
-        self.df_tessellation['nei_wei'] = mm.neighbours(self.df_tessellation, sw, weighted=True)
+        sw = Queen.from_dataframe(self.df_tessellation, ids='uID')
+        self.df_tessellation['nei_sw'] = mm.neighbours(self.df_tessellation, sw, 'uID')
+        self.df_tessellation['nei_wei'] = mm.neighbours(self.df_tessellation, sw, 'uID', weighted=True)
         check = 5.180555555555555
         check_w = 0.029066398893536072
-        assert self.df_tessellation['nei'].mean() == check
         assert self.df_tessellation['nei_sw'].mean() == check
         assert self.df_tessellation['nei_wei'].mean() == check_w

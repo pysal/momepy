@@ -339,7 +339,7 @@ def cell_alignment(left, right, left_orientations, right_orientations, unique_id
     return series
 
 
-def alignment(left, right, orientations, unique_id, spatial_weights=None):
+def alignment(gdf, spatial_weights, unique_id, orientations):
 
     """
     Calculate the mean deviation of solar orientation of objects on adjacent cells from an object
@@ -349,21 +349,15 @@ def alignment(left, right, orientations, unique_id, spatial_weights=None):
 
     Parameters
     ----------
-    left : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    right : GeoDataFrame
-        GeoDataFrame containing morphological tessellation - source of spatial_weights.
-        It is crucial to use exactly same input as was used during the calculation of weights matrix.
-        If spatial_weights is None, tessellation is used to calulate it.
+    spatial_weights : libpysal.weights, optional
+        spatial weights matrix
     orientations : str, list, np.array, pd.Series
         the name of the left dataframe column, np.array, or pd.Series where is stored object orientation value
         (can be calculated using :py:func:`momepy.orientation`)
     unique_id : str
-        the name of the dataframe column with unique id shared between a cell and a building
-        (must be present in both geodataframes)
-    spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on tessellation
+        name of the column with unique id used as spatial_weights index.
 
     Returns
     -------
@@ -372,7 +366,7 @@ def alignment(left, right, orientations, unique_id, spatial_weights=None):
 
     Examples
     --------
-    >>> buildings_df['alignment'] = momepy.alignment(buildings_df, 'bl_orient', tessellation_df, 'uID')
+    >>> buildings_df['alignment'] = momepy.alignment(buildings_df, sw, 'uID', bl_orient)
     Calculating alignments...
     Calculating spatial weights...
     Spatial weights ready...
@@ -383,43 +377,21 @@ def alignment(left, right, orientations, unique_id, spatial_weights=None):
     """
     # define empty list for results
     results_list = []
-    left = left.copy()
+    gdf = gdf.copy()
     if not isinstance(orientations, str):
-        left['mm_o'] = orientations
+        gdf['mm_o'] = orientations
         orientations = 'mm_o'
 
     print('Calculating alignments...')
 
-    if not all(right.index == range(len(right))):
-        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-
-    if spatial_weights is None:
-        print('Calculating spatial weights...')
-        from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(right)
-        print('Spatial weights ready...')
-
     # iterating over rows one by one
-    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
-        uid = right.loc[right[unique_id] == row[unique_id]].index[0]
-        neighbours = spatial_weights.neighbors[uid]
-        neighbours_ids = []
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
 
-        for n in neighbours:
-            uniq = right.iloc[n][unique_id]
-            neighbours_ids.append(uniq)
+        neighbours = spatial_weights.neighbors[row[unique_id]]
+        if neighbours:
+            orientation = gdf.loc[gdf[unique_id].isin(neighbours)][orientations]
+            deviations = abs(orientation - row[orientations])
 
-        orientation = []
-        for i in neighbours_ids:
-            ori = left.loc[left[unique_id] == i].iloc[0][orientations]
-            orientation.append(ori)
-
-        deviations = []
-        for o in orientation:
-            dev = abs(o - row[orientations])
-            deviations.append(dev)
-
-        if deviations:
             results_list.append(statistics.mean(deviations))
         else:
             results_list.append(0)
@@ -430,26 +402,21 @@ def alignment(left, right, orientations, unique_id, spatial_weights=None):
     return series
 
 
-def neighbour_distance(left, right, unique_id, spatial_weights=None):
+def neighbour_distance(gdf, spatial_weights, unique_id):
     """
-    Calculate the mean distance to buildings on adjacent cells
+    Calculate the mean distance to adjacent buildings (based on spatial_weights)
 
     .. math::
         \\frac{1}{n}\\sum_{i=1}^n dist_i=\\frac{dist_1+dist_2+\\cdots+dist_n}{n}
 
     Parameters
     ----------
-    left : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    right : GeoDataFrame
-        GeoDataFrame containing morphological tessellation - source of spatial_weights.
-        It is crucial to use exactly same input as was used during the calculation of weights matrix.
-        If spatial_weights is None, tessellation is used to calulate it.
-    unique_id : str
-        name of the column with unique id
     spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on tessellation
+        spatial weights matrix
+    unique_id : str
+        name of the column with unique id used as spatial_weights index.
 
     Returns
     -------
@@ -463,10 +430,8 @@ def neighbour_distance(left, right, unique_id, spatial_weights=None):
 
     Examples
     --------
-    >>> buildings_df['neighbour_distance'] = momepy.neighbour_distance(buildings_df, tessellation_df, 'uID')
+    >>> buildings_df['neighbour_distance'] = momepy.neighbour_distance(buildings_df, sw, 'uID')
     Calculating distances...
-    Calculating spatial weights...
-    Spatial weights ready...
     100%|██████████| 144/144 [00:00<00:00, 345.78it/s]
     Distances calculated.
     >>> buildings_df['neighbour_distance'][0]
@@ -477,22 +442,10 @@ def neighbour_distance(left, right, unique_id, spatial_weights=None):
 
     print('Calculating distances...')
 
-    if not all(right.index == range(len(right))):
-        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-
-    if spatial_weights is None:
-        print('Calculating spatial weights...')
-        from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(right)
-        print('Spatial weights ready...')
-
     # iterating over rows one by one
-    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
-        uid = right.loc[right[unique_id] == row[unique_id]].index[0]
-        neighbours = spatial_weights.neighbors[uid]
-
-        neighbours_ids = right.iloc[neighbours][unique_id]
-        building_neighbours = left.loc[left[unique_id].isin(neighbours_ids)]
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        neighbours = spatial_weights.neighbors[row[unique_id]]
+        building_neighbours = gdf.loc[gdf[unique_id].isin(neighbours)]
         if len(building_neighbours) > 0:
             results_list.append(np.mean(building_neighbours.geometry.distance(row['geometry'])))
         else:
@@ -504,7 +457,7 @@ def neighbour_distance(left, right, unique_id, spatial_weights=None):
     return series
 
 
-def mean_interbuilding_distance(left, right, unique_id, spatial_weights=None, spatial_weights_higher=None, order=3):
+def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights_higher=None, order=3):
     """
     Calculate the mean interbuilding distance within x topological steps
 
@@ -516,20 +469,15 @@ def mean_interbuilding_distance(left, right, unique_id, spatial_weights=None, sp
 
     Parameters
     ----------
-    left : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    right : GeoDataFrame
-        GeoDataFrame containing morphological tessellation - source of spatial_weights and spatial_weights_higher.
-        It is crucial to use exactly same input as was used during the calculation of weights matrix and spatial_weights_higher.
-        If spatial_weights or spatial_weights_higher is None, tessellation is used to calulate it.
     unique_id : str
-        name of the column with unique id
-    spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on tessellation
+        name of the column with unique id used as spatial_weights index
+    spatial_weights : libpysal.weights
+        spatial weights matrix (order 1)
     spatial_weights_higher : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity of higher order will be calculated
-        based on tessellation
+        based on spatial_weights
     order : int
         Order of Queen contiguity
 
@@ -548,9 +496,8 @@ def mean_interbuilding_distance(left, right, unique_id, spatial_weights=None, sp
 
     Examples
     --------
-    >>> buildings_df['mean_interbuilding_distance'] = momepy.mean_interbuilding_distance(buildings_df, tessellation_df, 'uID')
+    >>> buildings_df['mean_interbuilding_distance'] = momepy.mean_interbuilding_distance(buildings_df, sw, 'uID')
     Calculating mean interbuilding distances...
-    Generating weights matrix (Queen)...
     Generating weights matrix (Queen) of 3 topological steps...
     Generating adjacency matrix based on weights matrix...
     Computing interbuilding distances...
@@ -561,21 +508,13 @@ def mean_interbuilding_distance(left, right, unique_id, spatial_weights=None, sp
     >>> buildings_df['mean_interbuilding_distance'][0]
     29.305457092042744
     """
-    if not all(right.index == range(len(right))):
-        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     print('Calculating mean interbuilding distances...')
-    if spatial_weights is None:
-        print('Generating weights matrix (Queen)...')
-        from libpysal.weights import Queen
-        # matrix to capture interbuilding relationship
-        spatial_weights = Queen.from_dataframe(right)
-
     if spatial_weights_higher is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights_higher = Queen_higher(k=order, geodataframe=right)
+        spatial_weights_higher = Queen_higher(k=order, weights=spatial_weights)
 
     # define empty list for results
     results_list = []
@@ -590,20 +529,18 @@ def mean_interbuilding_distance(left, right, unique_id, spatial_weights=None, sp
     for index, row in tqdm(adj_list.iterrows(), total=adj_list.shape[0]):
         inverted = adj_list[(adj_list.focal == row.neighbor)][(adj_list.neighbor == row.focal)].iloc[0]['distance']
         if inverted == -1:
-            object_id = right.iloc[row.focal.astype(int)][unique_id]
-            building_object = left.loc[left[unique_id] == object_id]
+            building_object = gdf.loc[gdf[unique_id] == row.focal.astype(int)]
 
-            neighbours_id = right.iloc[row.neighbor.astype(int)][unique_id]
-            building_neighbour = left.loc[left[unique_id] == neighbours_id]
+            building_neighbour = gdf.loc[gdf[unique_id] == row.neighbor.astype(int)]
             adj_list.loc[index, 'distance'] = building_neighbour.iloc[0].geometry.distance(building_object.iloc[0].geometry)
         else:
             adj_list.at[index, 'distance'] = inverted
 
     print('Computing mean interbuilding distances...')
     # iterate over objects to get the final values
-    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         # id to match spatial weights
-        uid = right.loc[right[unique_id] == row[unique_id]].index[0]
+        uid = row[unique_id]
         # define neighbours based on weights matrix defining analysis area
         neighbours = spatial_weights_higher.neighbors[uid]
         neighbours.append(uid)
@@ -713,7 +650,7 @@ def neighbouring_street_orientation_deviation(gdf):
     return series
 
 
-def building_adjacency(left, right, spatial_weights=None, spatial_weights_higher=None, order=3, unique_id='uID'):
+def building_adjacency(gdf, spatial_weights_higher, unique_id, spatial_weights=None):
     """
     Calculate the level of building adjacency
 
@@ -725,20 +662,15 @@ def building_adjacency(left, right, spatial_weights=None, spatial_weights_higher
 
     Parameters
     ----------
-    left : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    right : GeoDataFrame
-        GeoDataFrame containing morphological tessellation - source of spatial_weights and spatial_weights_higher.
-        It is crucial to use exactly same input as was used durign the calculation of weights matrix and spatial_weights_higher.
-        If spatial_weights or spatial_weights_higher is None, tessellation is used to calulate it.
+    spatial_weights_higher : libpysal.weights, optional
+        spatial weights matrix
+    unique_id : str
+        name of the column with unique id used as spatial_weights index
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on tessellation
-    spatial_weights_higher : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity of higher order will be calculated
-        based on tessellation
-    order : int
-        Order of Queen contiguity
+        based on gdf. It is to denote adjacent buildings (note: based on index, not ID).
 
     Returns
     -------
@@ -752,7 +684,7 @@ def building_adjacency(left, right, spatial_weights=None, spatial_weights_higher
 
     Examples
     --------
-    >>> buildings_df['adjacency'] = momepy.building_adjacency(buildings_df, tessellation_df, unique_id='uID')
+    >>> buildings_df['adjacency'] = momepy.building_adjacency(buildings_df, swh, unique_id='uID')
     Calculating adjacency...
     Calculating spatial weights...
     Spatial weights ready...
@@ -770,37 +702,29 @@ def building_adjacency(left, right, spatial_weights=None, spatial_weights_higher
 
     print('Calculating adjacency...')
 
-    if not all(right.index == range(len(right))):
-        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-
-    # if weights matrix is not passed, generate it from objects
+    # if weights matrix is not passed, generate it from gdf
     if spatial_weights is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(left, silence_warnings=True)
+        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True, ids=unique_id)
         print('Spatial weights ready...')
-
-    if spatial_weights_higher is None:
-        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
-        from momepy import Queen_higher
-        # matrix to define area of analysis (more steps)
-        spatial_weights_higher = Queen_higher(k=order, geodataframe=right)
 
     print('Generating dictionary of built-up patches...')
     # dict to store nr of courtyards for each uID
     patches = {}
     jID = 1
-    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
 
         # if the id is already present in courtyards, continue (avoid repetition)
-        if index in patches:
+        if row[unique_id] in patches:
             continue
         else:
-            to_join = [index]  # list of indices which should be joined together
+            to_join = [row[unique_id]]  # list of indices which should be joined together
             neighbours = []  # list of neighbours
-            weights = spatial_weights.neighbors[index]  # neighbours from spatial weights
+            weights = spatial_weights.neighbors[row[unique_id]]  # neighbours from spatial weights
             for w in weights:
                 neighbours.append(w)  # make a list from weigths
+            neighbours = spatial_weights.neighbors[row[unique_id]]
 
             for n in neighbours:
                 while n not in to_join:  # until there is some neighbour which is not in to_join
@@ -813,18 +737,17 @@ def building_adjacency(left, right, spatial_weights=None, spatial_weights_higher
             jID = jID + 1
 
     print('Calculating adjacency within k steps...')
-    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
-        uid = right.loc[right[unique_id] == row[unique_id]].index[0]
-        neighbours = spatial_weights_higher.neighbors[uid]
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        neighbours = spatial_weights_higher.neighbors[row[unique_id]]
+        if neighbours:
+            neighbours.append(row[unique_id])
 
-        neighbours_ids = right.iloc[neighbours][unique_id]
-        neighbours_ids = neighbours_ids.append(pd.Series(row[unique_id], index=[index]))
-        building_neighbours = left.loc[left[unique_id].isin(neighbours_ids)]
-        indices = list(building_neighbours.index)
-        patches_sub = [patches[x] for x in indices]
-        patches_nr = len(set(patches_sub))
+            patches_sub = [patches[x] for x in neighbours]
+            patches_nr = len(set(patches_sub))
 
-        results_list.append(patches_nr / len(building_neighbours))
+            results_list.append(patches_nr / len(neighbours))
+        else:
+            results_list.append(0)
 
     series = pd.Series(results_list)
 
@@ -832,7 +755,7 @@ def building_adjacency(left, right, spatial_weights=None, spatial_weights_higher
     return series
 
 
-def neighbours(gdf, spatial_weights=None, weighted=False):
+def neighbours(gdf, spatial_weights, unique_id, weighted=False):
     """
     Calculate the number of topological neighbours of each object.
 
@@ -847,8 +770,9 @@ def neighbours(gdf, spatial_weights=None, weighted=False):
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     spatial_weights : libpysal.weights (default None)
-        spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on tessellation
+        spatial weights matrix
+    unique_id : str
+        name of the column with unique id used as spatial_weights index
     weighted : bool (default False)
         if weighted=True, number of neighbours will be divided by the perimeter of object, to return relative value
 
@@ -875,23 +799,13 @@ def neighbours(gdf, spatial_weights=None, weighted=False):
     4
     """
 
-    if not all(gdf.index == range(len(gdf))):
-        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-
-    # if weights matrix is not passed, generate it from objects
-    if spatial_weights is None:
-        print('Calculating spatial weights...')
-        from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
-        print('Spatial weights ready...')
-
     print('Calculating neighbours...')
     neighbours = []
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         if weighted is True:
-            neighbours.append(spatial_weights.cardinalities[index] / row.geometry.length)
+            neighbours.append(spatial_weights.cardinalities[row[unique_id]] / row.geometry.length)
         else:
-            neighbours.append(spatial_weights.cardinalities[index])
+            neighbours.append(spatial_weights.cardinalities[row[unique_id]])
 
     series = pd.Series(neighbours)
     print('Neighbours calculated.')
