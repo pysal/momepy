@@ -3,8 +3,6 @@ import geopandas as gpd
 import numpy as np
 import libpysal
 
-from shapely.geometry import Polygon, MultiPolygon
-
 import pytest
 
 
@@ -37,14 +35,6 @@ class TestUtils:
             gdf = self.df_tessellation
             gdf.index = gdf.index + 20
             mm.Queen_higher(2, geodataframe=gdf, weights=None)
-
-    def test_multi2single(self):
-        polygon = Polygon([(0, 0), (1, 1), (1, 0)])
-        polygon2 = Polygon([(2, 3), (1, 2), (2, 4)])
-        polygons = MultiPolygon([polygon, polygon2])
-        gdf = gpd.GeoDataFrame(geometry=[polygon, polygon2, polygons])
-        single = mm.multi2single(gdf)
-        assert len(single) == 4
 
     def test_gdf_to_nx(self):
         nx = mm.gdf_to_nx(self.df_streets)
