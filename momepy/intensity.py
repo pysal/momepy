@@ -462,3 +462,67 @@ def node_density(left, right, spatial_weights, weighted=False, node_degree=None,
     series = pd.Series(results_list)
     print('Node density calculated.')
     return series
+
+
+def density(gdf, values, spatial_weights, unique_id, areas=None):
+    """
+    Calculate the density
+
+    .. math::
+
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame
+        GeoDataFrame containing objects to analyse
+    values : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored character value.
+    spatial_weights : libpysal.weight
+        spatial weights matrix
+    unique_id : str
+        name of the column with unique id used as spatial_weights index
+    areas :  str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored area value. If None,
+        gdf.geometry.area will be used.
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    References
+    ---------
+    Jacob??
+    """
+    # define empty list for results
+    results_list = []
+    gdf = gdf.copy()
+
+    print('Calculating gross density...')
+    if values is not None:
+        if not isinstance(values, str):
+            gdf['mm_v'] = values
+            values = 'mm_v'
+    if areas is not None:
+        if not isinstance(areas, str):
+            gdf['mm_a'] = areas
+            areas = 'mm_a'
+    # iterating over rows one by one
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        neighbours = spatial_weights.neighbors[row[unique_id]]
+        if neighbours:
+            neighbours.append(row[unique_id])
+        else:
+            neighbours = row[unique_id]
+        subset = gdf.loc[gdf[unique_id].isin(neighbours)]
+        values_list = subset[values]
+        if areas is not None:
+            areas_list = subset[areas]
+        else:
+            areas_list = subset.geometry.area
+
+        results_list.append(sum(values_list) / sum(areas_list))
+
+    series = pd.Series(results_list)
+    print('Gross density calculated.')
+    return series

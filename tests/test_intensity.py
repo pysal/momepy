@@ -82,3 +82,11 @@ class TestIntensity:
         weighted = mm.node_density(nodes, edges, sw, weighted=True, node_degree='degree')
         assert density.mean() == 0.012690163074599968
         assert weighted.mean() == 0.023207675994368446
+
+    def test_density(self):
+        sw = mm.Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        dens = mm.density(self.df_tessellation, self.df_buildings['fl_area'], sw, 'uID', 'area')
+        dens2 = mm.density(self.df_tessellation, self.df_buildings['fl_area'], sw, 'uID')
+        check = 1.6615871155383324
+        assert dens.mean() == check
+        assert dens2.mean() == check
