@@ -10,7 +10,7 @@ import numpy as np
 import collections
 
 
-def covered_area_ratio(left, right, left_areas, right_areas, unique_id="uID"):
+def covered_area_ratio(left, right, left_areas, right_areas, unique_id):
     """
     Calculate covered area ratio of objects.
 
@@ -62,7 +62,7 @@ def covered_area_ratio(left, right, left_areas, right_areas, unique_id="uID"):
     return series
 
 
-def floor_area_ratio(left, right, left_areas, right_areas, unique_id="uID"):
+def floor_area_ratio(left, right, left_areas, right_areas, unique_id):
     """
     Calculate floor area ratio of objects.
 
@@ -180,7 +180,7 @@ def courtyards(gdf, block_id, spatial_weights=None):
         name of the column where is stored block ID
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on objects. It is to denote adjacent buildings.
+        based on objects. It is to denote adjacent buildings (note: based on index).
 
     Returns
     -------
@@ -195,9 +195,6 @@ def courtyards(gdf, block_id, spatial_weights=None):
     results_list = []
 
     print('Calculating courtyards...')
-
-    if not all(gdf.index == range(len(gdf))):
-        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     # if weights matrix is not passed, generate it from objects
     if spatial_weights is None:
@@ -243,27 +240,25 @@ def courtyards(gdf, block_id, spatial_weights=None):
     return series
 
 
-def blocks_count(gdf, block_id, spatial_weights=None, order=5):
+def blocks_count(gdf, block_id, spatial_weights, unique_id):
     """
     Calculates the weighted number of blocks
 
     Number of blocks within `k` topological steps defined in spatial_weights weighted by the analysed area.
 
     .. math::
-        \\frac{\\sum_{i=1}^{n} {blocks}}{\\sum_{i=1}^{n} area_{i}}
-        NOT SURE
+
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
-    block_id : str, list, np.array, pd.Series (default None)
+    block_id : str, list, np.array, pd.Series
         the name of the objects dataframe column, np.array, or pd.Series where is stored block ID.
-    spatial_weights : libpysal.weights (default None)
-        spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
-        based on objects.
-    order : int (default 5)
-        order of Queen contiguity. Used only when spatial_weights=None.
+    spatial_weights : libpysal.weights
+        spatial weights matrix
+    unique_id : str
+        name of the column with unique id used as spatial_weights index.
 
 
     Returns
@@ -290,21 +285,15 @@ def blocks_count(gdf, block_id, spatial_weights=None, order=5):
         block_id['mm_bid'] = block_id
         block_id = 'mm_bid'
 
-    if not all(gdf.index == range(len(gdf))):
-        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-
-    if spatial_weights is None:
-        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
-        from momepy import Queen_higher
-        # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(k=order, geodataframe=gdf)
-
     print('Calculating blocks...')
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[index]
-        neighbours.append(index)
-        vicinity = gdf.iloc[neighbours]
+        neighbours = spatial_weights.neighbors[row[unique_id]]
+        if neighbours:
+            neighbours.append(row[unique_id])
+        else:
+            neighbours = row[unique_id]
+        vicinity = gdf.loc[gdf[unique_id].isin(neighbours)]
 
         results_list.append(len(set(list(vicinity[block_id]))) / sum(vicinity.geometry.area))
 
@@ -316,7 +305,7 @@ def blocks_count(gdf, block_id, spatial_weights=None, order=5):
 
 def reached(left, right, unique_id, spatial_weights=None, mode='count', values=None):
     """
-    Calculates the number of objects reached within topological steps
+    Calculates the number of objects reached within topological steps on street network
 
     Number of elements within topological steps defined in spatial_weights. If
     spatial_weights are None, it will assume topological distance 0 (element itself).
@@ -333,7 +322,7 @@ def reached(left, right, unique_id, spatial_weights=None, mode='count', values=N
     right : GeoDataFrame
         GeoDataFrame containing elements to be counted
     unique_id : str, list, np.array, pd.Series (default None)
-        the name of the objects dataframe column, np.array, or pd.Series where is
+        the name of the right dataframe column, np.array, or pd.Series where is
         stored ID of streets (segments or nodes).
     spatial_weights : libpysal.weights (default None)
         spatial weights matrix
@@ -408,7 +397,7 @@ def reached(left, right, unique_id, spatial_weights=None, mode='count', values=N
 
 def node_density(left, right, spatial_weights, weighted=False, node_degree=None, node_start='node_start', node_end='node_end'):
     """
-    Calculate the density of nodes within topological steps defined in spatial_weights.
+    Calculate the density of nodes within topological steps on street network defined in spatial_weights.
 
     Calculated as number of nodes within k steps / cummulative length of street network within k steps.
     node_start and node_end is standard output of :py:func:`momepy.nx_to_gdf` and is compulsory.

@@ -289,7 +289,7 @@ def longest_axis_length(gdf):
     return series
 
 
-def mean_character(gdf, spatial_weights=None, values=None, order=3, rng=None):
+def mean_character(gdf, values, spatial_weights, unique_id, rng=None):
     """
     Calculates the mean of a character within k steps of morphological tessellation
 
@@ -302,13 +302,12 @@ def mean_character(gdf, spatial_weights=None, values=None, order=3, rng=None):
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
+    values : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored character value.
+    unique_id : str
+        name of the column with unique id used as spatial_weights index.
     spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
-        based on objects.
-    values : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored character value. If set to None, function will use area.
-    order : int
-        order of Queen contiguity
+        spatial weights matrix
     rng : Two-element sequence containing floats in range of [0,100], optional
         Percentiles over which to compute the range. Each must be
         between 0 and 100, inclusive. The order of the elements is not important.
@@ -325,16 +324,8 @@ def mean_character(gdf, spatial_weights=None, values=None, order=3, rng=None):
 
     Examples
     --------
-    >>> tessellation['mesh'] = momepy.mean_character(tessellation)
-    Calculating mean character value...
-    Generating weights matrix (Queen) of 3 topological steps...
-    100%|██████████| 144/144 [00:00<00:00, 900.83it/s]
-    Mean character value calculated.
-    >>> tessellation.mesh[0]
-    2922.957260196682
-
-    >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True)
-    >>> tessellation['mesh_100'] = momepy.mean_character(tessellation, spatial_weights=sw, values='area')
+    >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True, ids='uID')
+    >>> tessellation['mesh_100'] = momepy.mean_character(tessellation, values='area', spatial_weights=sw, unique_id='uID')
     Calculating mean character value...
     100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
     Mean character value calculated.
@@ -347,39 +338,21 @@ def mean_character(gdf, spatial_weights=None, values=None, order=3, rng=None):
     print('Calculating mean character value...')
     gdf = gdf.copy()
 
-    if spatial_weights is None:
-        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
-        from momepy import Queen_higher
-        # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(k=order, geodataframe=gdf)
-    else:
-        if not all(gdf.index == range(len(gdf))):
-            raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-
     if values is not None:
         if not isinstance(values, str):
             gdf['mm_v'] = values
             values = 'mm_v'
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[index]
-        values_list = None
-        if values is not None:
-            values_list = gdf.iloc[neighbours][values].tolist()
-            if values_list:
-                values_list.append(row[values])
-            else:
-                values_list = [row[values]]
-        else:
-            values_list = gdf.iloc[neighbours].geometry.area.tolist()
-            if values_list:
-                values_list.append(row.geometry.area)
-            else:
-                values_list = [row.geometry.area]
+        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours.append(row[unique_id])
+
+        values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
+
         if rng:
             from momepy import limit_range
-            values_list = limit_range(values_list, rng=rng)
-        results_list.append(sum(values_list) / len(values_list))
+            values_list = limit_range(values_list.tolist(), rng=rng)
+        results_list.append(np.mean(values_list))
 
     series = pd.Series(results_list)
 
@@ -622,7 +595,7 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
     return street_profile
 
 
-def weighted_character(left, right, characters, unique_id, spatial_weights=None, areas=None, order=3):
+def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
     """
     Calculates the weighted character
 
@@ -633,19 +606,17 @@ def weighted_character(left, right, characters, unique_id, spatial_weights=None,
 
     Parameters
     ----------
-    left : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    right : GeoDataFrame
-        GeoDataFrame containing morphological tessellation
-    characters : str, list, np.array, pd.Series (default None)
-        the name of the left dataframe column, np.array, or pd.Series where is stored character to be weighted
-    spatial_weights : libpysal.weights (default None)
+    values : str, list, np.array, pd.Series
+        the name of the gdf dataframe column, np.array, or pd.Series where is stored character to be weighted
+    spatial_weights : libpysal.weights
         spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
         based on left.
+    unique_id : str
+        name of the column with unique id used as spatial_weights index.
     areas : str, list, np.array, pd.Series (default None)
         the name of the left dataframe column, np.array, or pd.Series where is stored area value
-    order : int (default 3)
-        order of Queen contiguity. Used only when spatial_weights=None.
 
 
     Returns
@@ -675,50 +646,41 @@ def weighted_character(left, right, characters, unique_id, spatial_weights=None,
     # define empty list for results
     results_list = []
 
-    if spatial_weights is None:
-        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
-        from momepy import Queen_higher
-        # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(k=order, geodataframe=right)
-    else:
-        if not all(left.index == range(len(left))):
-            raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-
-    print('Calculating weighted {}...'.format(characters))
-
+    print('Calculating weighted {}...'.format(values))
+    gdf = gdf.copy()
     if areas is not None:
         if not isinstance(areas, str):
-            left = left.copy()
-            left['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
+    if not isinstance(values, str):
+        gdf['mm_vals'] = values
+        values = 'mm_a'
 
-    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
-        uid = right.loc[right[unique_id] == row[unique_id]].index[0]
-        neighbours = spatial_weights.neighbors[uid]
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        neighbours = spatial_weights.neighbors[row[unique_id]]
 
         if neighbours:
-            neighbours_ids = right.iloc[neighbours][unique_id]
-            building_neighbours = left.loc[left[unique_id].isin(neighbours_ids)]
+            building_neighbours = gdf.loc[gdf[unique_id].isin(neighbours)]
 
             if areas is not None:
-                results_list.append((sum(building_neighbours[characters]
+                results_list.append((sum(building_neighbours[values]
                                          * building_neighbours[areas])
-                                    + (row[characters] * row[areas]))
+                                    + (row[values] * row[areas]))
                                     / (sum(building_neighbours[areas]) + row[areas]))
             else:
-                results_list.append((sum(building_neighbours[characters]
+                results_list.append((sum(building_neighbours[values]
                                          * building_neighbours.geometry.area)
-                                    + (row[characters] * row.geometry.area))
+                                    + (row[values] * row.geometry.area))
                                     / (sum(building_neighbours.geometry.area) + row.geometry.area))
         else:
-            results_list.append(row[characters])
+            results_list.append(row[values])
     series = pd.Series(results_list)
 
-    print('Weighted {} calculated.'.format(characters))
+    print('Weighted {} calculated.'.format(values))
     return series
 
 
-def covered_area(gdf, spatial_weights=None):
+def covered_area(gdf, spatial_weights, unique_id):
     """
     Calculates the area covered by k steps of morphological tessellation
 
@@ -732,8 +694,9 @@ def covered_area(gdf, spatial_weights=None):
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on gdf.
+        spatial weights matrix
+    unique_id : str
+        name of the column with unique id used as spatial_weights index.
 
     Returns
     -------
@@ -752,19 +715,10 @@ def covered_area(gdf, spatial_weights=None):
 
     print('Calculating covered area...')
 
-    if spatial_weights is None:
-        print('Generating weights matrix (Queen)...')
-        from libpysal.weights import Queen
-        # matrix to define area of analysis (more steps)
-        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
-    else:
-        if not all(gdf.index == range(len(gdf))):
-            raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[index]
-        neighbours.append(index)
-        areas = gdf.iloc[neighbours].geometry.area
+        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours.append(row[unique_id])
+        areas = gdf.loc[gdf[unique_id].isin(neighbours)].geometry.area
         results_list.append(sum(areas))
 
     series = pd.Series(results_list)
@@ -783,7 +737,7 @@ def wall(gdf, spatial_weights=None):
         GeoDataFrame containing objects to analyse
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on gdf. It is to denote adjacent buildings.
+        based on gdf. It is to denote adjacent buildings (note: based on index, not ID).
 
     Returns
     -------
@@ -853,10 +807,10 @@ def segments_length(gdf, spatial_weights=None, mean=False):
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing streets (segments) to analyse
+        GeoDataFrame containing streets (edges) to analyse
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on streets.
+        based on streets (note: based on index, not ID).
     mean : boolean, optional
         If mean=False it will return total length, if mean=True it will return mean value
 

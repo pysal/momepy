@@ -99,27 +99,19 @@ class TestDimensions:
         assert self.df_buildings['long_axis'][0] == check
 
     def test_mean_character(self):
-        self.df_tessellation['mesh'] = mm.mean_character(self.df_tessellation)
-        spatial_weights = Queen_higher(k=3, geodataframe=self.df_tessellation)
-        self.df_tessellation['mesh_sw'] = mm.mean_character(self.df_tessellation, spatial_weights)
+        spatial_weights = Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
         self.df_tessellation['area'] = area = self.df_tessellation.geometry.area
-        self.df_tessellation['mesh_ar'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area')
-        self.df_tessellation['mesh_array'] = mm.mean_character(self.df_tessellation, spatial_weights, values=area)
-        self.df_tessellation['mesh_id'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area', rng=(10, 90))
-        self.df_tessellation['mesh_iq'] = mm.mean_character(self.df_tessellation, spatial_weights, values='area', rng=(25, 75))
-        neighbours = spatial_weights.neighbors[38]
-        total_area = sum(self.df_tessellation.iloc[neighbours].geometry.area) + self.df_tessellation.geometry.area[38]
-        check = total_area / (len(neighbours) + 1)
-        assert self.df_tessellation['mesh'][38] == check
-        assert self.df_tessellation['mesh_sw'][38] == check
-        assert self.df_tessellation['mesh_ar'][38] == check
-        assert self.df_tessellation['mesh_array'][38] == check
+        self.df_tessellation['mesh_ar'] = mm.mean_character(self.df_tessellation, values='area', spatial_weights=spatial_weights, unique_id='uID')
+        self.df_tessellation['mesh_array'] = mm.mean_character(self.df_tessellation, values=area, spatial_weights=spatial_weights, unique_id='uID')
+        self.df_tessellation['mesh_id'] = mm.mean_character(self.df_tessellation, spatial_weights=spatial_weights,
+                                                            values='area', rng=(10, 90), unique_id='uID')
+        self.df_tessellation['mesh_iq'] = mm.mean_character(self.df_tessellation, spatial_weights=spatial_weights,
+                                                            values='area', rng=(25, 75), unique_id='uID')
+        check = 2922.9572601966815
+        assert self.df_tessellation['mesh_ar'][0] == check
+        assert self.df_tessellation['mesh_array'][0] == check
         assert self.df_tessellation['mesh_id'][38] == 2250.2241176070806
-        assert self.df_tessellation['mesh_iq'][38] == 2118.609142733066
-        gdf = self.df_tessellation
-        gdf.index = gdf.index + 20
-        with pytest.raises(ValueError):
-            self.df_tessellation['meshE'] = mm.mean_character(gdf)
+        assert self.df_tessellation['mesh_iq'][38] == 2118.6091427330666
 
     def test_street_profile(self):
         results = mm.street_profile(self.df_streets, self.df_buildings, heights='height')
@@ -140,33 +132,27 @@ class TestDimensions:
         assert results['openness'][0] == 0.5535714285714286
         assert results['heights_deviations'][0] == 5.526848034418866
 
-    def test_weighted_character(self):
-        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID')
-        assert weighted[38] == 18.301521351817303
-
     def test_weighted_character_sw(self):
-        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
-        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID', sw)
+        sw = Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        weighted = mm.weighted_character(self.df_buildings, 'height', sw, 'uID')
         assert weighted[38] == 18.301521351817303
 
     def test_weighted_character_area(self):
         self.df_buildings['area'] = self.df_buildings.geometry.area
-        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
-        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID', sw, 'area')
+        sw = Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        weighted = mm.weighted_character(self.df_buildings, 'height', sw, 'uID', 'area')
         assert weighted[38] == 18.301521351817303
 
     def test_weighted_character_array(self):
         area = self.df_buildings.geometry.area
-        sw = Queen_higher(k=3, geodataframe=self.df_tessellation)
-        weighted = mm.weighted_character(self.df_buildings, self.df_tessellation, 'height', 'uID', sw, area)
+        sw = Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        weighted = mm.weighted_character(self.df_buildings, 'height', sw, 'uID', area)
         assert weighted[38] == 18.301521351817303
 
     def test_covered_area(self):
-        sw = Queen_higher(geodataframe=self.df_tessellation, k=1)
-        covered = mm.covered_area(self.df_tessellation)
-        covered_sw = mm.covered_area(self.df_tessellation, sw)
-        assert covered[0] == covered_sw[0]
-        assert covered[0] == 24115.66721833942
+        sw = Queen_higher(geodataframe=self.df_tessellation, k=1, ids='uID')
+        covered_sw = mm.covered_area(self.df_tessellation, sw, 'uID')
+        assert covered_sw[0] == 24115.667218339422
 
     def test_wall(self):
         sw = Queen_higher(geodataframe=self.df_buildings, k=1)

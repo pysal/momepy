@@ -32,7 +32,7 @@ def unique_id(objects):
     return series
 
 
-def Queen_higher(k, geodataframe=None, weights=None):
+def Queen_higher(k, geodataframe=None, weights=None, ids=None):
     """
     Generate spatial weights based on Queen contiguity of order k
 
@@ -68,7 +68,7 @@ def Queen_higher(k, geodataframe=None, weights=None):
     elif geodataframe is not None:
         if not all(geodataframe.index == range(len(geodataframe))):
             raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-        first_order = libpysal.weights.Queen.from_dataframe(geodataframe)
+        first_order = libpysal.weights.Queen.from_dataframe(geodataframe, ids=ids)
     else:
         raise Warning('GeoDataFrame of spatial weights must be given.')
 
