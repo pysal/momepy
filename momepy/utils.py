@@ -5,7 +5,6 @@ import geopandas as gpd
 import libpysal
 from shapely.geometry import Point
 import networkx as nx
-import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import operator
@@ -245,7 +244,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     for l in range(0, 2):
         print('Loop', l + 1, 'out of 2.')
         blg.reset_index(inplace=True)
-        blg['uID'] = range(len(blg))
+        blg['mm_uid'] = range(len(blg))
         sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
         blg['neighbors'] = sw.neighbors
         blg['neighbors'] = blg['neighbors'].map(sw.neighbors)
@@ -262,78 +261,78 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
             if size:
                 if row.geometry.area < size:
                     if row.n_count == 1:
-                        uid = blg.iloc[row.neighbors[0]].uID
+                        uid = blg.iloc[row.neighbors[0]].mm_uid
 
                         if uid in join:
                             existing = join[uid]
-                            existing.append(row.uID)
+                            existing.append(row.mm_uid)
                             join[uid] = existing
                         else:
-                            join[uid] = [row.uID]
+                            join[uid] = [row.mm_uid]
                     elif row.n_count > 1:
                         shares = {}
                         for n in row.neighbors:
                             shares[n] = row.geometry.intersection(blg.at[n, 'geometry']).length
                         maximal = max(shares.items(), key=operator.itemgetter(1))[0]
-                        uid = blg.loc[maximal].uID
+                        uid = blg.loc[maximal].mm_uid
                         if uid in join:
                             existing = join[uid]
-                            existing.append(row.uID)
+                            existing.append(row.mm_uid)
                             join[uid] = existing
                         else:
-                            join[uid] = [row.uID]
+                            join[uid] = [row.mm_uid]
                     else:
                         delete.append(idx)
             if compactness:
                 if row.circu < 0.2:
                     if row.n_count == 1:
-                        uid = blg.iloc[row.neighbors[0]].uID
+                        uid = blg.iloc[row.neighbors[0]].mm_uid
                         if uid in join:
                             existing = join[uid]
-                            existing.append(row.uID)
+                            existing.append(row.mm_uid)
                             join[uid] = existing
                         else:
-                            join[uid] = [row.uID]
+                            join[uid] = [row.mm_uid]
                     elif row.n_count > 1:
                         shares = {}
                         for n in row.neighbors:
                             shares[n] = row.geometry.intersection(blg.at[n, 'geometry']).length
                         maximal = max(shares.items(), key=operator.itemgetter(1))[0]
-                        uid = blg.loc[maximal].uID
+                        uid = blg.loc[maximal].mm_uid
                         if uid in join:
                             existing = join[uid]
-                            existing.append(row.uID)
+                            existing.append(row.mm_uid)
                             join[uid] = existing
                         else:
-                            join[uid] = [row.uID]
+                            join[uid] = [row.mm_uid]
 
             if islands:
                 if row.n_count == 1:
                     shared = row.geometry.intersection(blg.at[row.neighbors[0], 'geometry']).length
                     if shared == row.geometry.exterior.length:
-                        uid = blg.iloc[row.neighbors[0]].uID
+                        uid = blg.iloc[row.neighbors[0]].mm_uid
                         if uid in join:
                             existing = join[uid]
-                            existing.append(row.uID)
+                            existing.append(row.mm_uid)
                             join[uid] = existing
                         else:
-                            join[uid] = [row.uID]
+                            join[uid] = [row.mm_uid]
 
         for key in tqdm(join, total=len(join), desc='Changing geometry'):
-            selection = blg[blg['uID'] == key]
+            selection = blg[blg['mm_uid'] == key]
             if not selection.empty:
                 geoms = [selection.iloc[0].geometry]
 
                 for j in join[key]:
-                    subset = blg[blg['uID'] == j]
+                    subset = blg[blg['mm_uid'] == j]
                     if not subset.empty:
-                        geoms.append(blg[blg['uID'] == j].iloc[0].geometry)
-                        blg.drop(blg[blg['uID'] == j].index[0], inplace=True)
+                        geoms.append(blg[blg['mm_uid'] == j].iloc[0].geometry)
+                        blg.drop(blg[blg['mm_uid'] == j].index[0], inplace=True)
                 new_geom = shapely.ops.unary_union(geoms)
-                blg.loc[blg.loc[blg['uID'] == key].index[0], 'geometry'] = new_geom
+                blg.loc[blg.loc[blg['mm_uid'] == key].index[0], 'geometry'] = new_geom
 
         blg.drop(delete, inplace=True)
-    blg.drop(['neighbors', 'n_count', 'circu', 'uID'], axis=1, inplace=True)
+    blg.drop(['neighbors', 'n_count', 'circu', 'mm_uid'], axis=1, inplace=True)
     return blg
 
 

@@ -91,7 +91,7 @@ intensity
    node_density
    reached
 
-connectivity
+graph
 ------------
 .. autosummary::
    :toctree: generated/
