@@ -16,7 +16,7 @@ for item in os.listdir("momepy/datasets"):
             data_files.append(os.path.join("datasets", item))
 
 setup(name='momepy',
-      version='0.1a1',
+      version='0.1alpha',
       description='Urban Morphology Measuring Toolkit',
       license="MIT",
       author='Martin Fleischmann',
