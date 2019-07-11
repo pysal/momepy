@@ -87,7 +87,6 @@ intensity
    covered_area_ratio
    elements_count
    floor_area_ratio
-   gross_density
    node_density
    reached
 
