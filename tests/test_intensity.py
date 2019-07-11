@@ -21,12 +21,12 @@ class TestIntensity:
         self.df_buildings, self.df_tessellation, self.blocks = mm.blocks(self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')
 
     def test_covered_area_ratio(self):
-        car = mm.covered_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'area')
+        car = mm.covered_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'area', 'uID')
         check = 0.3206556897709747
         assert car.mean() == check
 
     def test_floor_area_ratio(self):
-        far = mm.floor_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'fl_area')
+        far = mm.floor_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'fl_area', 'uID')
         check = 1.910949846262234
         assert far.mean() == check
 
@@ -49,11 +49,9 @@ class TestIntensity:
         assert courtyards_wm.mean() == check
 
     def test_blocks_count(self):
-        count = mm.blocks_count(self.df_tessellation, 'bID', spatial_weights=None, order=5)
-        sw = mm.Queen_higher(k=5, geodataframe=self.df_tessellation)
-        count2 = mm.blocks_count(self.df_tessellation, 'bID', spatial_weights=sw)
+        sw = mm.Queen_higher(k=5, geodataframe=self.df_tessellation, ids='uID')
+        count2 = mm.blocks_count(self.df_tessellation, 'bID', sw, 'uID')
         check = 3.142437439120778e-05
-        assert count.mean() == check
         assert count2.mean() == check
 
     def test_reached(self):
