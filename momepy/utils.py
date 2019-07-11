@@ -336,7 +336,20 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     return blg
 
 
-def network_false_nodes(streets):
+def network_false_nodes(gdf):
+    """
+    Check topology of street network and eliminate nodes of degree 2 by joining
+    affected edges.
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame
+        GeoDataFrame containg edge representation of street network.
+    Returns
+    -------
+    gdf : GeoDataFrame
+    """
+    streets = gdf.copy()
     sindex = streets.sindex
 
     false_points = []
