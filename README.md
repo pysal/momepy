@@ -13,7 +13,7 @@ The development of momepy is still in its initial phase. The whole structure of 
 Comments, suggestions, feedback, and contributions, as well as bug reports, are very welcome.
 
 ## Documentation
-Documentation of `momepy` is available at [momepy.readthedocs.io](https://momepy.readthedocs.io/en/latest/index.html).
+Documentation of `momepy` is available at [docs.momepy.org](https://docs.momepy.org/).
 
 ## Install
 Momepy is not yet released. At this moment, you can either download the GitHub
