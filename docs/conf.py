@@ -51,7 +51,7 @@ autodoc_mock_imports = ['numpy', 'scipy', 'pandas', 'shapely', 'rtree',
 # -- Project information -----------------------------------------------------
 
 project = 'momepy'
-copyright = '2018-2019, University of Strathclyde, Urban Design Studies Unit'
+copyright = '2018-2019, Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit'
 author = 'Martin Fleischmann'
 
 # The short X.Y version
