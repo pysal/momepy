@@ -9,10 +9,6 @@ from shapely.geometry import LineString, Point
 import numpy as np
 import pandas as pd
 import statistics
-import networkx as nx
-
-from .utils import gdf_to_nx
-from .utils import nx_to_gdf
 
 
 def orientation(gdf):
@@ -364,9 +360,9 @@ def alignment(left, right, orientations, unique_id, spatial_weights=None):
     left : GeoDataFrame
         GeoDataFrame containing objects to analyse
     right : GeoDataFrame
-        GeoDataFrame containing morphological tessellation - source of weights_matrix.
+        GeoDataFrame containing morphological tessellation - source of spatial_weights.
         It is crucial to use exactly same input as was used during the calculation of weights matrix.
-        If weights_matrix is None, tessellation is used to calulate it.
+        If spatial_weights is None, tessellation is used to calulate it.
     orientations : str, list, np.array, pd.Series
         the name of the left dataframe column, np.array, or pd.Series where is stored object orientation value
         (can be calculated using :py:func:`momepy.orientation`)
@@ -848,7 +844,7 @@ def building_adjacency(left, right, spatial_weights=None, spatial_weights_higher
     return series
 
 
-def neighbours(objects, spatial_weights=None, weighted=False):
+def neighbours(gdf, spatial_weights=None, weighted=False):
     """
     Calculate the number of topological neighbours of each object.
 
@@ -860,7 +856,7 @@ def neighbours(objects, spatial_weights=None, weighted=False):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     spatial_weights : libpysal.weights (default None)
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
@@ -891,19 +887,19 @@ def neighbours(objects, spatial_weights=None, weighted=False):
     4
     """
 
-    if not all(objects.index == range(len(objects))):
+    if not all(gdf.index == range(len(gdf))):
         raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     # if weights matrix is not passed, generate it from objects
     if spatial_weights is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(objects, silence_warnings=True)
+        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
         print('Spatial weights ready...')
 
     print('Calculating neighbours...')
     neighbours = []
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         if weighted is True:
             neighbours.append(spatial_weights.cardinalities[index] / row.geometry.length)
         else:
@@ -912,40 +908,3 @@ def neighbours(objects, spatial_weights=None, weighted=False):
     series = pd.Series(neighbours)
     print('Neighbours calculated.')
     return series
-
-
-def node_degree(graph, name='degree'):
-    """
-    Calculates node degree for each node.
-
-    Wrapper around `networkx.degree()`
-
-    .. math::
-
-
-    Parameters
-    ----------
-    graph : networkx.Graph
-        Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
-    name : str, optional
-        calculated attribute name
-
-    Returns
-    -------
-    Graph
-        networkx.Graph
-
-    References
-    ----------
-
-    Examples
-    --------
-
-    """
-    netx = graph
-
-    degree = dict(nx.degree(netx))
-    nx.set_node_attributes(netx, degree, name)
-
-    return netx
