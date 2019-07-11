@@ -3,7 +3,7 @@ import geopandas as gpd
 import pytest
 
 
-class TestConnectivity:
+class TestGraph:
 
     def setup_method(self):
 
@@ -11,6 +11,10 @@ class TestConnectivity:
         self.df_streets = gpd.read_file(test_file_path, layer='streets')
         self.network = mm.gdf_to_nx(self.df_streets)
         self.network = mm.node_degree(self.network)
+
+    def test_node_degree(self):
+        deg1 = mm.node_degree(graph=self.network)
+        assert deg1.nodes[(1603650.450422848, 6464368.600601688)]['degree'] == 4
 
     def test_meshedness(self):
         net = mm.meshedness(self.network)

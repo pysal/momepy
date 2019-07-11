@@ -9,13 +9,9 @@ from shapely.geometry import LineString, Point
 import numpy as np
 import pandas as pd
 import statistics
-import networkx as nx
-
-from .utils import gdf_to_nx
-from .utils import nx_to_gdf
 
 
-def orientation(objects):
+def orientation(gdf):
     """
     Calculate orientation (azimuth) of object
 
@@ -24,7 +20,7 @@ def orientation(objects):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
 
     Returns
@@ -57,7 +53,7 @@ def orientation(objects):
         return np.degrees(angle)if angle > 0 else np.degrees(angle) + 180
 
     # iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         bbox = list(row['geometry'].minimum_rotated_rectangle.exterior.coords)
         centroid_ab = LineString([bbox[0], bbox[1]]).centroid
         centroid_cd = LineString([bbox[2], bbox[3]]).centroid
@@ -110,7 +106,7 @@ def orientation(objects):
     return series
 
 
-def shared_walls_ratio(objects, unique_id, perimeters=None):
+def shared_walls_ratio(gdf, unique_id, perimeters=None):
     """
     Calculate shared walls ratio
 
@@ -119,8 +115,8 @@ def shared_walls_ratio(objects, unique_id, perimeters=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+    gdf : GeoDataFrame
+        GeoDataFrame containing gdf to analyse
     unique_id : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series with unique id
     perimeters : str, list, np.array, pd.Series (default None)
@@ -149,24 +145,25 @@ def shared_walls_ratio(objects, unique_id, perimeters=None):
     0.3424804411228673
     """
     print('Generating spatial index...')
-    sindex = objects.sindex  # define rtree index
+    gdf = gdf.copy()
+    sindex = gdf.sindex  # define rtree index
     # define empty list for results
     results_list = []
 
     print('Calculating shared walls ratio...')
 
     if perimeters is None:
-        objects['mm_p'] = objects.geometry.length
+        gdf['mm_p'] = gdf.geometry.length
         perimeters = 'mm_p'
     else:
         if not isinstance(perimeters, str):
-            objects['mm_p'] = perimeters
+            gdf['mm_p'] = perimeters
             perimeters = 'mm_p'
     if not isinstance(unique_id, str):
-        objects['mm_uid'] = unique_id
+        gdf['mm_uid'] = unique_id
         unique_id = 'mm_uid'
 
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbors = list(sindex.intersection(row.geometry.bounds))
         neighbors.remove(index)
 
@@ -176,19 +173,16 @@ def shared_walls_ratio(objects, unique_id, perimeters=None):
             results_list.append(0)
         else:
             for i in neighbors:
-                subset = objects.loc[i]['geometry']
+                subset = gdf.loc[i]['geometry']
                 length = length + row.geometry.intersection(subset).length
             results_list.append(length / row[perimeters])
     series = pd.Series(results_list)
     print('Shared walls ratio calculated.')
-    if 'mm_p' in objects.columns:
-        objects.drop(columns=['mm_p'], inplace=True)
-    if 'mm_uid' in objects.columns:
-        objects.drop(columns=['mm_uid'], inplace=True)
+
     return series
 
 
-def street_alignment(objects, streets, orientations, network_id_objects, network_id_streets):
+def street_alignment(left, right, orientations, left_network_id, right_network_id):
     """
     Calculate the difference between street orientation and orientation of object in degrees
 
@@ -201,17 +195,17 @@ def street_alignment(objects, streets, orientations, network_id_objects, network
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    left : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    streets : GeoDataFrame
+    right : GeoDataFrame
         GeoDataFrame containing street network
     orientations : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored object orientation value
         (can be calculated using :py:func:`momepy.orientation`)
-    network_id_objects : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series where is stored object network ID
-    network_id_streets : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series of streets with unique network id (has to be defined beforehand)
+    left_network_id : str, list, np.array, pd.Series
+        the name of the left dataframe column, np.array, or pd.Series where is stored object network ID
+    right_network_id : str, list, np.array, pd.Series
+        the name of the right dataframe column, np.array, or pd.Series of streets with unique network id (has to be defined beforehand)
         (can be defined using :py:func:`momepy.elements.unique_id`)
 
     Returns
@@ -232,16 +226,17 @@ def street_alignment(objects, streets, orientations, network_id_objects, network
     results_list = []
 
     print('Calculating street alignments...')
-
+    left = left.copy()
+    right = right.copy()
     if not isinstance(orientations, str):
-        objects['mm_o'] = orientations
+        left['mm_o'] = orientations
         orientations = 'mm_o'
-    if not isinstance(network_id_objects, str):
-        objects['mm_nid'] = network_id_objects
-        network_id_objects = 'mm_nid'
-    if not isinstance(network_id_streets, str):
-        streets['mm_nis'] = network_id_streets
-        network_id_streets = 'mm_nis'
+    if not isinstance(left_network_id, str):
+        left['mm_nid'] = left_network_id
+        left_network_id = 'mm_nid'
+    if not isinstance(right_network_id, str):
+        right['mm_nis'] = right_network_id
+        right_network_id = 'mm_nis'
 
     def azimuth(point1, point2):
         '''azimuth between 2 shapely points (interval 0 - 180)'''
@@ -249,12 +244,12 @@ def street_alignment(objects, streets, orientations, network_id_objects, network
         return np.degrees(angle)if angle > 0 else np.degrees(angle) + 180
 
     # iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        if pd.isnull(row[network_id_objects]):
+    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+        if pd.isnull(row[left_network_id]):
             results_list.append(0)
         else:
-            network_id = row[network_id_objects]
-            streetssub = streets.loc[streets[network_id_streets] == network_id]
+            network_id = row[left_network_id]
+            streetssub = right.loc[right[right_network_id] == network_id]
             start = Point(streetssub.iloc[0]['geometry'].coords[0])
             end = Point(streetssub.iloc[0]['geometry'].coords[-1])
             az = azimuth(start, end)
@@ -275,17 +270,12 @@ def street_alignment(objects, streets, orientations, network_id_objects, network
                 az = az - 2 * diff
             results_list.append(abs(row[orientations] - az))
     series = pd.Series(results_list)
-    if 'mm_o' in objects.columns:
-        objects.drop(columns=['mm_o'], inplace=True)
-    if 'mm_nid' in objects.columns:
-        objects.drop(columns=['mm_nid'], inplace=True)
-    if 'mm_nis' in streets.columns:
-        streets.drop(columns=['mm_nis'], inplace=True)
+
     print('Street alignments calculated.')
     return series
 
 
-def cell_alignment(objects, tessellation, orientations, cell_orientations, unique_id):
+def cell_alignment(left, right, left_orientations, right_orientations, unique_id):
     """
     Calculate the difference between cell orientation and orientation of object
 
@@ -294,14 +284,14 @@ def cell_alignment(objects, tessellation, orientations, cell_orientations, uniqu
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    left : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    tessellation : GeoDataFrame
+    right : GeoDataFrame
         GeoDataFrame containing street network
-    orientations : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series where is stored object orientation value
+    left_orientations : str, list, np.array, pd.Series
+        the name of the left dataframe column, np.array, or pd.Series where is stored object orientation value
         (can be calculated using :py:func:`momepy.orientation`)
-    cell_orientations : str, list, np.array, pd.Series
+    right_orientations : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored object orientation value
         (can be calculated using :py:func:`momepy.orientation`)
     unique_id : str
@@ -327,32 +317,29 @@ def cell_alignment(objects, tessellation, orientations, cell_orientations, uniqu
     Allow left unique_id and right unique_id.
     """
     print('Calculating cell alignments...')
-
-    if not isinstance(orientations, str):
-        objects['mm_o'] = orientations
-        orientations = 'mm_o'
-    if not isinstance(cell_orientations, str):
-        tessellation['mm_o'] = cell_orientations
-        cell_orientations = 'mm_o'
+    left = left.copy()
+    right = right.copy()
+    if not isinstance(left_orientations, str):
+        left['mm_o'] = left_orientations
+        left_orientations = 'mm_o'
+    if not isinstance(right_orientations, str):
+        right['mm_o'] = right_orientations
+        right_orientations = 'mm_o'
 
     # define empty list for results
     results_list = []
 
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
 
-        results_list.append(abs(row[orientations] - tessellation[tessellation[unique_id] == row[unique_id]][cell_orientations].iloc[0]))
+        results_list.append(abs(row[left_orientations] - right[right[unique_id] == row[unique_id]][right_orientations].iloc[0]))
 
     series = pd.Series(results_list)
-    if 'mm_o' in objects.columns:
-        objects.drop(columns=['mm_o'], inplace=True)
-    if 'mm_o' in tessellation.columns:
-        tessellation.drop(columns=['mm_o'], inplace=True)
+
     print('Cell alignments calculated.')
     return series
 
 
-
-def alignment(objects, orientations, tessellation, unique_id, spatial_weights=None):
+def alignment(left, right, orientations, unique_id, spatial_weights=None):
 
     """
     Calculate the mean deviation of solar orientation of objects on adjacent cells from an object
@@ -362,15 +349,15 @@ def alignment(objects, orientations, tessellation, unique_id, spatial_weights=No
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    left : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    orientations : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series where is stored object orientation value
-        (can be calculated using :py:func:`momepy.orientation`)
-    tessellation : GeoDataFrame
-        GeoDataFrame containing morphological tessellation - source of weights_matrix.
+    right : GeoDataFrame
+        GeoDataFrame containing morphological tessellation - source of spatial_weights.
         It is crucial to use exactly same input as was used during the calculation of weights matrix.
-        If weights_matrix is None, tessellation is used to calulate it.
+        If spatial_weights is None, tessellation is used to calulate it.
+    orientations : str, list, np.array, pd.Series
+        the name of the left dataframe column, np.array, or pd.Series where is stored object orientation value
+        (can be calculated using :py:func:`momepy.orientation`)
     unique_id : str
         the name of the dataframe column with unique id shared between a cell and a building
         (must be present in both geodataframes)
@@ -396,35 +383,35 @@ def alignment(objects, orientations, tessellation, unique_id, spatial_weights=No
     """
     # define empty list for results
     results_list = []
-
+    left = left.copy()
     if not isinstance(orientations, str):
-        objects['mm_o'] = orientations
+        left['mm_o'] = orientations
         orientations = 'mm_o'
 
     print('Calculating alignments...')
 
-    if not all(tessellation.index == range(len(tessellation))):
+    if not all(right.index == range(len(right))):
         raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     if spatial_weights is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(tessellation)
+        spatial_weights = Queen.from_dataframe(right)
         print('Spatial weights ready...')
 
     # iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        uid = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+        uid = right.loc[right[unique_id] == row[unique_id]].index[0]
         neighbours = spatial_weights.neighbors[uid]
         neighbours_ids = []
 
         for n in neighbours:
-            uniq = tessellation.iloc[n][unique_id]
+            uniq = right.iloc[n][unique_id]
             neighbours_ids.append(uniq)
 
         orientation = []
         for i in neighbours_ids:
-            ori = objects.loc[objects[unique_id] == i].iloc[0][orientations]
+            ori = left.loc[left[unique_id] == i].iloc[0][orientations]
             orientation.append(ori)
 
         deviations = []
@@ -439,14 +426,11 @@ def alignment(objects, orientations, tessellation, unique_id, spatial_weights=No
 
     series = pd.Series(results_list)
 
-    if 'mm_o' in objects.columns:
-        objects.drop(columns=['mm_o'], inplace=True)
-
     print('Alignments calculated.')
     return series
 
 
-def neighbour_distance(objects, tessellation, unique_id, spatial_weights=None):
+def neighbour_distance(left, right, unique_id, spatial_weights=None):
     """
     Calculate the mean distance to buildings on adjacent cells
 
@@ -455,11 +439,11 @@ def neighbour_distance(objects, tessellation, unique_id, spatial_weights=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    left : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    tessellation : GeoDataFrame
+    right : GeoDataFrame
         GeoDataFrame containing morphological tessellation - source of spatial_weights.
-        It is crucial to use exactly same input as was used durign the calculation of weights matrix.
+        It is crucial to use exactly same input as was used during the calculation of weights matrix.
         If spatial_weights is None, tessellation is used to calulate it.
     unique_id : str
         name of the column with unique id
@@ -493,22 +477,22 @@ def neighbour_distance(objects, tessellation, unique_id, spatial_weights=None):
 
     print('Calculating distances...')
 
-    if not all(tessellation.index == range(len(tessellation))):
+    if not all(right.index == range(len(right))):
         raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     if spatial_weights is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(tessellation)
+        spatial_weights = Queen.from_dataframe(right)
         print('Spatial weights ready...')
 
     # iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        uid = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+        uid = right.loc[right[unique_id] == row[unique_id]].index[0]
         neighbours = spatial_weights.neighbors[uid]
 
-        neighbours_ids = tessellation.iloc[neighbours][unique_id]
-        building_neighbours = objects.loc[objects[unique_id].isin(neighbours_ids)]
+        neighbours_ids = right.iloc[neighbours][unique_id]
+        building_neighbours = left.loc[left[unique_id].isin(neighbours_ids)]
         if len(building_neighbours) > 0:
             results_list.append(np.mean(building_neighbours.geometry.distance(row['geometry'])))
         else:
@@ -520,22 +504,23 @@ def neighbour_distance(objects, tessellation, unique_id, spatial_weights=None):
     return series
 
 
-def mean_interbuilding_distance(objects, tessellation, unique_id, spatial_weights=None, spatial_weights_higher=None, order=3):
+def mean_interbuilding_distance(left, right, unique_id, spatial_weights=None, spatial_weights_higher=None, order=3):
     """
     Calculate the mean interbuilding distance within x topological steps
 
-    Interbuilding distances are calculated between buildings on adjacent cells based on `spatial_weights`.
+    Interbuilding distances are calculated between buildings on adjacent cells based on `spatial_weights`,
+    while the extend is defined in `spatial_weights_higher`.
 
     .. math::
 
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    left : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    tessellation : GeoDataFrame
+    right : GeoDataFrame
         GeoDataFrame containing morphological tessellation - source of spatial_weights and spatial_weights_higher.
-        It is crucial to use exactly same input as was used durign the calculation of weights matrix and spatial_weights_higher.
+        It is crucial to use exactly same input as was used during the calculation of weights matrix and spatial_weights_higher.
         If spatial_weights or spatial_weights_higher is None, tessellation is used to calulate it.
     unique_id : str
         name of the column with unique id
@@ -559,7 +544,6 @@ def mean_interbuilding_distance(objects, tessellation, unique_id, spatial_weight
 
     Notes
     -----
-    Fix terminology, it is unclear.
     Fix UserWarning.
 
     Examples
@@ -577,7 +561,7 @@ def mean_interbuilding_distance(objects, tessellation, unique_id, spatial_weight
     >>> buildings_df['mean_interbuilding_distance'][0]
     29.305457092042744
     """
-    if not all(tessellation.index == range(len(tessellation))):
+    if not all(right.index == range(len(right))):
         raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     print('Calculating mean interbuilding distances...')
@@ -585,13 +569,13 @@ def mean_interbuilding_distance(objects, tessellation, unique_id, spatial_weight
         print('Generating weights matrix (Queen)...')
         from libpysal.weights import Queen
         # matrix to capture interbuilding relationship
-        spatial_weights = Queen.from_dataframe(tessellation)
+        spatial_weights = Queen.from_dataframe(right)
 
     if spatial_weights_higher is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights_higher = Queen_higher(k=order, geodataframe=tessellation)
+        spatial_weights_higher = Queen_higher(k=order, geodataframe=right)
 
     # define empty list for results
     results_list = []
@@ -606,20 +590,20 @@ def mean_interbuilding_distance(objects, tessellation, unique_id, spatial_weight
     for index, row in tqdm(adj_list.iterrows(), total=adj_list.shape[0]):
         inverted = adj_list[(adj_list.focal == row.neighbor)][(adj_list.neighbor == row.focal)].iloc[0]['distance']
         if inverted == -1:
-            object_id = tessellation.iloc[row.focal.astype(int)][unique_id]
-            building_object = objects.loc[objects[unique_id] == object_id]
+            object_id = right.iloc[row.focal.astype(int)][unique_id]
+            building_object = left.loc[left[unique_id] == object_id]
 
-            neighbours_id = tessellation.iloc[row.neighbor.astype(int)][unique_id]
-            building_neighbour = objects.loc[objects[unique_id] == neighbours_id]
+            neighbours_id = right.iloc[row.neighbor.astype(int)][unique_id]
+            building_neighbour = left.loc[left[unique_id] == neighbours_id]
             adj_list.loc[index, 'distance'] = building_neighbour.iloc[0].geometry.distance(building_object.iloc[0].geometry)
         else:
             adj_list.at[index, 'distance'] = inverted
 
     print('Computing mean interbuilding distances...')
     # iterate over objects to get the final values
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
         # id to match spatial weights
-        uid = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+        uid = right.loc[right[unique_id] == row[unique_id]].index[0]
         # define neighbours based on weights matrix defining analysis area
         neighbours = spatial_weights_higher.neighbors[uid]
         neighbours.append(uid)
@@ -632,7 +616,7 @@ def mean_interbuilding_distance(objects, tessellation, unique_id, spatial_weight
     return series
 
 
-def neighbouring_street_orientation_deviation(objects):
+def neighbouring_street_orientation_deviation(gdf):
     """
     Calculate the mean deviation of solar orientation of adjacent streets
 
@@ -644,7 +628,7 @@ def neighbouring_street_orientation_deviation(objects):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing street network to analyse
 
     Returns
@@ -665,7 +649,7 @@ def neighbouring_street_orientation_deviation(objects):
     """
     # define empty list for results
     results_list = []
-
+    gdf = gdf.copy()
     print('Calculating street alignments...')
 
     def azimuth(point1, point2):
@@ -675,7 +659,7 @@ def neighbouring_street_orientation_deviation(objects):
 
     # iterating over rows one by one
     print(' Preparing street orientations...')
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
 
         start = Point(row['geometry'].coords[0])
         end = Point(row['geometry'].coords[-1])
@@ -698,15 +682,15 @@ def neighbouring_street_orientation_deviation(objects):
         results_list.append(az)
     series = pd.Series(results_list)
 
-    objects['tmporient'] = series
+    gdf['tmporient'] = series
 
     print(' Generating spatial index...')
-    sindex = objects.sindex
+    sindex = gdf.sindex
     results_list = []
 
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         possible_neighbors_idx = list(sindex.intersection(row.geometry.bounds))
-        possible_neighbours = objects.iloc[possible_neighbors_idx]
+        possible_neighbours = gdf.iloc[possible_neighbors_idx]
         neighbors = possible_neighbours[possible_neighbours.intersects(row.geometry)]
         neighbors.drop([index])
 
@@ -725,12 +709,11 @@ def neighbouring_street_orientation_deviation(objects):
             results_list.append(0)
 
     series = pd.Series(results_list)
-    objects.drop(['tmporient'], axis=1)
     print('Street alignments calculated.')
     return series
 
 
-def building_adjacency(objects, tessellation, spatial_weights=None, spatial_weights_higher=None, order=3, unique_id='uID'):
+def building_adjacency(left, right, spatial_weights=None, spatial_weights_higher=None, order=3, unique_id='uID'):
     """
     Calculate the level of building adjacency
 
@@ -742,9 +725,9 @@ def building_adjacency(objects, tessellation, spatial_weights=None, spatial_weig
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    left : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    tessellation : GeoDataFrame
+    right : GeoDataFrame
         GeoDataFrame containing morphological tessellation - source of spatial_weights and spatial_weights_higher.
         It is crucial to use exactly same input as was used durign the calculation of weights matrix and spatial_weights_higher.
         If spatial_weights or spatial_weights_higher is None, tessellation is used to calulate it.
@@ -787,27 +770,27 @@ def building_adjacency(objects, tessellation, spatial_weights=None, spatial_weig
 
     print('Calculating adjacency...')
 
-    if not all(tessellation.index == range(len(tessellation))):
+    if not all(right.index == range(len(right))):
         raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     # if weights matrix is not passed, generate it from objects
     if spatial_weights is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(objects, silence_warnings=True)
+        spatial_weights = Queen.from_dataframe(left, silence_warnings=True)
         print('Spatial weights ready...')
 
     if spatial_weights_higher is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights_higher = Queen_higher(k=order, geodataframe=tessellation)
+        spatial_weights_higher = Queen_higher(k=order, geodataframe=right)
 
     print('Generating dictionary of built-up patches...')
     # dict to store nr of courtyards for each uID
     patches = {}
     jID = 1
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
 
         # if the id is already present in courtyards, continue (avoid repetition)
         if index in patches:
@@ -830,13 +813,13 @@ def building_adjacency(objects, tessellation, spatial_weights=None, spatial_weig
             jID = jID + 1
 
     print('Calculating adjacency within k steps...')
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        uid = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+        uid = right.loc[right[unique_id] == row[unique_id]].index[0]
         neighbours = spatial_weights_higher.neighbors[uid]
 
-        neighbours_ids = tessellation.iloc[neighbours][unique_id]
+        neighbours_ids = right.iloc[neighbours][unique_id]
         neighbours_ids = neighbours_ids.append(pd.Series(row[unique_id], index=[index]))
-        building_neighbours = objects.loc[objects[unique_id].isin(neighbours_ids)]
+        building_neighbours = left.loc[left[unique_id].isin(neighbours_ids)]
         indices = list(building_neighbours.index)
         patches_sub = [patches[x] for x in indices]
         patches_nr = len(set(patches_sub))
@@ -849,7 +832,7 @@ def building_adjacency(objects, tessellation, spatial_weights=None, spatial_weig
     return series
 
 
-def neighbours(objects, spatial_weights=None, weighted=False):
+def neighbours(gdf, spatial_weights=None, weighted=False):
     """
     Calculate the number of topological neighbours of each object.
 
@@ -861,7 +844,7 @@ def neighbours(objects, spatial_weights=None, weighted=False):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     spatial_weights : libpysal.weights (default None)
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
@@ -892,19 +875,19 @@ def neighbours(objects, spatial_weights=None, weighted=False):
     4
     """
 
-    if not all(objects.index == range(len(objects))):
+    if not all(gdf.index == range(len(gdf))):
         raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     # if weights matrix is not passed, generate it from objects
     if spatial_weights is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(objects, silence_warnings=True)
+        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
         print('Spatial weights ready...')
 
     print('Calculating neighbours...')
     neighbours = []
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         if weighted is True:
             neighbours.append(spatial_weights.cardinalities[index] / row.geometry.length)
         else:
@@ -913,40 +896,3 @@ def neighbours(objects, spatial_weights=None, weighted=False):
     series = pd.Series(neighbours)
     print('Neighbours calculated.')
     return series
-
-
-def node_degree(graph, name='degree'):
-    """
-    Calculates node degree for each node.
-
-    Wrapper around `networkx.degree()`
-
-    .. math::
-
-
-    Parameters
-    ----------
-    graph : networkx.Graph
-        Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
-    name : str, optional
-        calculated attribute name
-
-    Returns
-    -------
-    Graph
-        networkx.Graph
-
-    References
-    ----------
-
-    Examples
-    --------
-
-    """
-    netx = graph
-
-    degree = dict(nx.degree(netx))
-    nx.set_node_attributes(netx, degree, name)
-
-    return netx

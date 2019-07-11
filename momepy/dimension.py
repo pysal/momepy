@@ -12,7 +12,7 @@ import math
 import numpy as np
 
 
-def area(objects):
+def area(gdf):
     """
     Calculates area of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
@@ -21,7 +21,7 @@ def area(objects):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
 
     Returns
@@ -42,13 +42,13 @@ def area(objects):
 
     print('Calculating areas...')
 
-    series = objects.geometry.area
+    series = gdf.geometry.area
 
     print('Areas calculated.')
     return series
 
 
-def perimeter(objects):
+def perimeter(gdf):
     """
     Calculates perimeter of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
@@ -57,7 +57,7 @@ def perimeter(objects):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
 
     Returns
@@ -77,13 +77,13 @@ def perimeter(objects):
 
     print('Calculating perimeters...')
 
-    series = objects.geometry.length
+    series = gdf.geometry.length
 
     print('Perimeters calculated.')
     return series
 
 
-def volume(objects, heights, areas=None):
+def volume(gdf, heights, areas=None):
     """
     Calculates volume of each object in given shapefile based on its height and area.
 
@@ -92,7 +92,7 @@ def volume(objects, heights, areas=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     heights : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored height value
@@ -120,32 +120,28 @@ def volume(objects, heights, areas=None):
     7285.5749470443625
     """
     print('Calculating volumes...')
+    gdf = gdf.copy()
     if not isinstance(heights, str):
-        objects['mm_h'] = heights
+        gdf['mm_h'] = heights
         heights = 'mm_h'
 
     if areas is not None:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
         try:
-            series = objects[areas] * objects[heights]
+            series = gdf[areas] * gdf[heights]
 
         except KeyError:
             raise KeyError('ERROR: Column not found. Define heights and areas or set areas to None.')
     else:
-        series = objects.geometry.area * objects[heights]
-
-    if 'mm_h' in objects.columns:
-        objects.drop(columns=['mm_h'], inplace=True)
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
+        series = gdf.geometry.area * gdf[heights]
 
     print('Volumes calculated.')
     return series
 
 
-def floor_area(objects, heights, areas=None):
+def floor_area(gdf, heights, areas=None):
     """
     Calculates floor area of each object based on height and area.
 
@@ -157,7 +153,7 @@ def floor_area(objects, heights, areas=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     heights : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored height value
@@ -185,32 +181,28 @@ def floor_area(objects, heights, areas=None):
     2185.672484113309
     """
     print('Calculating floor areas...')
+    gdf = gdf.copy()
     if not isinstance(heights, str):
-        objects['mm_h'] = heights
+        gdf['mm_h'] = heights
         heights = 'mm_h'
 
     if areas is not None:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
         try:
-            series = objects[areas] * (objects[heights] // 3)
+            series = gdf[areas] * (gdf[heights] // 3)
 
         except KeyError:
             raise KeyError('ERROR: Column not found. Define heights and areas or set areas to None.')
     else:
-        series = objects.geometry.area * (objects[heights] // 3)
-
-    if 'mm_h' in objects.columns:
-        objects.drop(columns=['mm_h'], inplace=True)
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
+        series = gdf.geometry.area * (gdf[heights] // 3)
 
     print('Floor areas calculated.')
     return series
 
 
-def courtyard_area(objects, areas=None):
+def courtyard_area(gdf, areas=None):
     """
     Calculates area of holes within geometry - area of courtyards.
 
@@ -218,7 +210,7 @@ def courtyard_area(objects, areas=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     areas : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
@@ -239,18 +231,16 @@ def courtyard_area(objects, areas=None):
     """
 
     print('Calculating courtyard areas...')
+    gdf = gdf.copy()
 
     if areas is not None:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
-        series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row[areas], axis=1)
+        series = gdf.apply(lambda row: Polygon(row.geometry.exterior).area - row[areas], axis=1)
 
     else:
-        series = objects.apply(lambda row: Polygon(row.geometry.exterior).area - row.geometry.area, axis=1)
-
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
+        series = gdf.apply(lambda row: Polygon(row.geometry.exterior).area - row.geometry.area, axis=1)
 
     print('Courtyard areas calculated.')
     return series
@@ -262,7 +252,7 @@ def _longest_axis(points):
     return(circ[2] * 2)
 
 
-def longest_axis_length(objects):
+def longest_axis_length(gdf):
     """
     Calculates the length of the longest axis of object.
 
@@ -274,7 +264,7 @@ def longest_axis_length(objects):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
 
     Returns
@@ -293,13 +283,13 @@ def longest_axis_length(objects):
 
     print('Calculating the longest axis...')
 
-    series = objects.apply(lambda row: _longest_axis(row['geometry'].convex_hull.exterior.coords), axis=1)
+    series = gdf.apply(lambda row: _longest_axis(row['geometry'].convex_hull.exterior.coords), axis=1)
 
     print('The longest axis calculated.')
     return series
 
 
-def mean_character(objects, spatial_weights=None, values=None, order=3, rng=None):
+def mean_character(gdf, spatial_weights=None, values=None, order=3, rng=None):
     """
     Calculates the mean of a character within k steps of morphological tessellation
 
@@ -310,7 +300,7 @@ def mean_character(objects, spatial_weights=None, values=None, order=3, rng=None
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
@@ -355,32 +345,33 @@ def mean_character(objects, spatial_weights=None, values=None, order=3, rng=None
     results_list = []
 
     print('Calculating mean character value...')
+    gdf = gdf.copy()
 
     if spatial_weights is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(k=order, geodataframe=objects)
+        spatial_weights = Queen_higher(k=order, geodataframe=gdf)
     else:
-        if not all(objects.index == range(len(objects))):
+        if not all(gdf.index == range(len(gdf))):
             raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     if values is not None:
         if not isinstance(values, str):
-            objects['mm_v'] = values
+            gdf['mm_v'] = values
             values = 'mm_v'
 
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[index]
         values_list = None
         if values is not None:
-            values_list = objects.iloc[neighbours][values].tolist()
+            values_list = gdf.iloc[neighbours][values].tolist()
             if values_list:
                 values_list.append(row[values])
             else:
                 values_list = [row[values]]
         else:
-            values_list = objects.iloc[neighbours].geometry.area.tolist()
+            values_list = gdf.iloc[neighbours].geometry.area.tolist()
             if values_list:
                 values_list.append(row.geometry.area)
             else:
@@ -392,14 +383,11 @@ def mean_character(objects, spatial_weights=None, values=None, order=3, rng=None
 
     series = pd.Series(results_list)
 
-    if 'mm_v' in objects.columns:
-        objects.drop(columns=['mm_v'], inplace=True)
-
     print('Mean character value calculated.')
     return series
 
 
-def street_profile(streets, buildings, heights=None, distance=10, tick_length=50):
+def street_profile(left, right, heights=None, distance=10, tick_length=50):
     """
     Calculates the street profile widths, standard deviation of width, heights, and ratio height/width
 
@@ -408,9 +396,9 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
 
     Parameters
     ----------
-    streets : GeoDataFrame
+    left : GeoDataFrame
         GeoDataFrame containing streets to analyse
-    buildings : GeoDataFrame
+    right : GeoDataFrame
         GeoDataFrame containing buildings along the streets
     heights: str, list, np.array, pd.Series (default None)
         the name of the buildings dataframe column, np.array, or pd.Series where is stored building height. If set to None,
@@ -483,7 +471,7 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
         y = pt.y + dist * math.sin(bearing)
         return Point(x, y)
 
-    sindex = buildings.sindex
+    sindex = right.sindex
 
     results_list = []
     deviations_list = []
@@ -493,10 +481,11 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
 
     if heights is not None:
         if not isinstance(heights, str):
-            buildings['mm_h'] = heights
+            right = right.copy()
+            right['mm_h'] = heights
             heights = 'mm_h'
 
-    for idx, row in tqdm(streets.iterrows(), total=streets.shape[0]):
+    for idx, row in tqdm(left.iterrows(), total=left.shape[0]):
         # if idx == 2:
         #     ee
         # list to hold all the point coords
@@ -551,15 +540,15 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
                 ticks.append([tick1, tick2])
         # widths = []
         m_heights = []
-        left = []
-        right = []
+        lefts = []
+        rights = []
         for duo in ticks:
 
             for ix, tick in enumerate(duo):
                 possible_intersections_index = list(sindex.intersection(tick.bounds))
-                possible_intersections = buildings.iloc[possible_intersections_index]
+                possible_intersections = right.iloc[possible_intersections_index]
                 real_intersections = possible_intersections.intersects(tick)
-                get_height = buildings.iloc[list(real_intersections.index)]
+                get_height = right.iloc[list(real_intersections.index)]
                 possible_int = get_height.exterior.intersection(tick)
 
                 if possible_int.any():
@@ -580,33 +569,33 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
                             ix = ix + 1
                         minimal = min(distances)
                         if ix == 0:
-                            left.append(minimal)
+                            lefts.append(minimal)
                         else:
-                            right.append(minimal)
+                            rights.append(minimal)
                     else:
                         if ix == 0:
-                            left.append(true_int[0].distance(Point(tick.coords[-1])))
+                            lefts.append(true_int[0].distance(Point(tick.coords[-1])))
                         else:
-                            right.append(true_int[0].distance(Point(tick.coords[-1])))
+                            rights.append(true_int[0].distance(Point(tick.coords[-1])))
                     if heights is not None:
                         indices = {}
                         for idx, row in get_height.iterrows():
                             dist = row.geometry.distance(Point(tick.coords[-1]))
                             indices[idx] = dist
                         minim = min(indices, key=indices.get)
-                        m_heights.append(buildings.iloc[minim][heights])
+                        m_heights.append(right.iloc[minim][heights])
 
-        openness = (len(left) + len(right)) / len(ticks * 2)
+        openness = (len(lefts) + len(rights)) / len(ticks * 2)
         openness_list.append(1 - openness)
-        if right and left:
-            results_list.append(2 * np.mean(left + right))
-            deviations_list.append(np.std(left + right))
-        elif not left and right:
-            results_list.append(2 * np.mean([np.mean(right), tick_length / 2]))
-            deviations_list.append(np.std(right))
-        elif not right and left:
-            results_list.append(2 * np.mean([np.mean(left), tick_length / 2]))
-            deviations_list.append(np.std(left))
+        if rights and lefts:
+            results_list.append(2 * np.mean(lefts + rights))
+            deviations_list.append(np.std(lefts + rights))
+        elif not lefts and rights:
+            results_list.append(2 * np.mean([np.mean(rights), tick_length / 2]))
+            deviations_list.append(np.std(rights))
+        elif not rights and lefts:
+            results_list.append(2 * np.mean([np.mean(lefts), tick_length / 2]))
+            deviations_list.append(np.std(lefts))
         else:
             results_list.append(tick_length)
             deviations_list.append(0)
@@ -628,15 +617,12 @@ def street_profile(streets, buildings, heights=None, distance=10, tick_length=50
         street_profile['heights'] = pd.Series(heights_list)
         street_profile['heights_deviations'] = pd.Series(heights_deviations_list)
         street_profile['profile'] = street_profile['heights'] / street_profile['widths']
-        if 'mm_h' in buildings.columns:
-            buildings.drop(columns=['mm_h'], inplace=True)
-        print('Street profile calculated.')
 
     print('Street profile calculated.')
     return street_profile
 
 
-def weighted_character(objects, tessellation, characters, unique_id, spatial_weights=None, areas=None, order=3):
+def weighted_character(left, right, characters, unique_id, spatial_weights=None, areas=None, order=3):
     """
     Calculates the weighted character
 
@@ -647,17 +633,17 @@ def weighted_character(objects, tessellation, characters, unique_id, spatial_wei
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    left : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    tessellation : GeoDataFrame
+    right : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     characters : str, list, np.array, pd.Series (default None)
-        the name of the objects dataframe column, np.array, or pd.Series where is stored character to be weighted
+        the name of the left dataframe column, np.array, or pd.Series where is stored character to be weighted
     spatial_weights : libpysal.weights (default None)
         spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
-        based on objects.
+        based on left.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the objects dataframe column, np.array, or pd.Series where is stored area value
+        the name of the left dataframe column, np.array, or pd.Series where is stored area value
     order : int (default 3)
         order of Queen contiguity. Used only when spatial_weights=None.
 
@@ -693,25 +679,26 @@ def weighted_character(objects, tessellation, characters, unique_id, spatial_wei
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(k=order, geodataframe=tessellation)
+        spatial_weights = Queen_higher(k=order, geodataframe=right)
     else:
-        if not all(objects.index == range(len(objects))):
+        if not all(left.index == range(len(left))):
             raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     print('Calculating weighted {}...'.format(characters))
 
     if areas is not None:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            left = left.copy()
+            left['mm_a'] = areas
             areas = 'mm_a'
 
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        uid = tessellation.loc[tessellation[unique_id] == row[unique_id]].index[0]
+    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+        uid = right.loc[right[unique_id] == row[unique_id]].index[0]
         neighbours = spatial_weights.neighbors[uid]
 
         if neighbours:
-            neighbours_ids = tessellation.iloc[neighbours][unique_id]
-            building_neighbours = objects.loc[objects[unique_id].isin(neighbours_ids)]
+            neighbours_ids = right.iloc[neighbours][unique_id]
+            building_neighbours = left.loc[left[unique_id].isin(neighbours_ids)]
 
             if areas is not None:
                 results_list.append((sum(building_neighbours[characters]
@@ -727,14 +714,11 @@ def weighted_character(objects, tessellation, characters, unique_id, spatial_wei
             results_list.append(row[characters])
     series = pd.Series(results_list)
 
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
-
     print('Weighted {} calculated.'.format(characters))
     return series
 
 
-def covered_area(objects, spatial_weights=None):
+def covered_area(gdf, spatial_weights=None):
     """
     Calculates the area covered by k steps of morphological tessellation
 
@@ -745,11 +729,11 @@ def covered_area(objects, spatial_weights=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on objects.
+        based on gdf.
 
     Returns
     -------
@@ -772,15 +756,15 @@ def covered_area(objects, spatial_weights=None):
         print('Generating weights matrix (Queen)...')
         from libpysal.weights import Queen
         # matrix to define area of analysis (more steps)
-        spatial_weights = Queen.from_dataframe(objects, silence_warnings=True)
+        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
     else:
-        if not all(objects.index == range(len(objects))):
+        if not all(gdf.index == range(len(gdf))):
             raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[index]
         neighbours.append(index)
-        areas = objects.iloc[neighbours].geometry.area
+        areas = gdf.iloc[neighbours].geometry.area
         results_list.append(sum(areas))
 
     series = pd.Series(results_list)
@@ -789,17 +773,17 @@ def covered_area(objects, spatial_weights=None):
     return series
 
 
-def wall(objects, spatial_weights=None):
+def wall(gdf, spatial_weights=None):
     """
     Calculate the perimeter wall length the joined structure.
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on objects. It is to denote adjacent buildings.
+        based on gdf. It is to denote adjacent buildings.
 
     Returns
     -------
@@ -815,20 +799,20 @@ def wall(objects, spatial_weights=None):
 
     print('Calculating perimeter wall length...')
 
-    if not all(objects.index == range(len(objects))):
+    if not all(gdf.index == range(len(gdf))):
         raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     # if weights matrix is not passed, generate it from objects
     if spatial_weights is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(objects, silence_warnings=True)
+        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
         print('Spatial weights ready...')
 
     # dict to store walls for each uID
     walls = {}
 
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         # if the id is already present in walls, continue (avoid repetition)
         if index in walls:
             continue
@@ -845,12 +829,12 @@ def wall(objects, spatial_weights=None):
                     weights = spatial_weights.neighbors[n]
                     for w in weights:
                         neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
-            joined = objects.iloc[to_join]
+            joined = gdf.iloc[to_join]
             dissolved = joined.geometry.buffer(0.01).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
             for b in to_join:
                 walls[b] = dissolved.exterior.length  # fill dict with values
     # copy values from dict to gdf
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         results_list.append(walls[index])
 
     series = pd.Series(results_list)
@@ -858,7 +842,7 @@ def wall(objects, spatial_weights=None):
     return series
 
 
-def segments_length(streets, spatial_weights=None, mean=False):
+def segments_length(gdf, spatial_weights=None, mean=False):
     """
     Calculate the cummulative or mean length of segments.
 
@@ -868,7 +852,7 @@ def segments_length(streets, spatial_weights=None, mean=False):
 
     Parameters
     ----------
-    streets : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing streets (segments) to analyse
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
@@ -888,13 +872,13 @@ def segments_length(streets, spatial_weights=None, mean=False):
     if spatial_weights is None:
         print('Calculating spatial weights...')
         from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(streets)
+        spatial_weights = Queen.from_dataframe(gdf)
         print('Spatial weights ready...')
 
-    for index, row in tqdm(streets.iterrows(), total=streets.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[index]
         neighbours.append(index)
-        dims = streets.iloc[neighbours].geometry.length
+        dims = gdf.iloc[neighbours].geometry.length
         if mean:
             results_list.append(np.mean(dims))
         else:

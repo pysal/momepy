@@ -12,7 +12,7 @@ import numpy as np
 from shapely.geometry import Point
 
 
-def form_factor(objects, volumes, areas=None):
+def form_factor(gdf, volumes, areas=None):
     """
     Calculates form factor of each object in given geoDataFrame.
 
@@ -21,7 +21,7 @@ def form_factor(objects, volumes, areas=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     volumes : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored volume value.
@@ -60,27 +60,23 @@ def form_factor(objects, volumes, areas=None):
     """
 
     print('Calculating form factor...')
+    gdf = gdf.copy()
     if not isinstance(volumes, str):
-        objects['mm_v'] = volumes
+        gdf['mm_v'] = volumes
         volumes = 'mm_v'
     if areas is None:
-        series = objects.apply(lambda row: row.geometry.area / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
+        series = gdf.apply(lambda row: row.geometry.area / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
     else:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
-        series = objects.apply(lambda row: row[areas] / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
-
-    if 'mm_v' in objects.columns:
-        objects.drop(columns=['mm_v'], inplace=True)
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
+        series = gdf.apply(lambda row: row[areas] / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
 
     print('Form factor calculated.')
     return series
 
 
-def fractal_dimension(objects, areas=None, perimeters=None):
+def fractal_dimension(gdf, areas=None, perimeters=None):
     """
     Calculates fractal dimension of each object in given geoDataFrame.
 
@@ -89,7 +85,7 @@ def fractal_dimension(objects, areas=None, perimeters=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
@@ -120,31 +116,28 @@ def fractal_dimension(objects, areas=None, perimeters=None):
     """
 
     print('Calculating fractal dimension...')
+    gdf = gdf.copy()
 
     if perimeters is None:
-        objects['mm_p'] = objects.geometry.length
+        gdf['mm_p'] = gdf.geometry.length
         perimeters = 'mm_p'
     else:
         if not isinstance(perimeters, str):
-            objects['mm_p'] = perimeters
+            gdf['mm_p'] = perimeters
             perimeters = 'mm_p'
     if areas is None:
-        series = objects.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row.geometry.area), axis=1)
+        series = gdf.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row.geometry.area), axis=1)
     else:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
-        series = objects.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row[areas]), axis=1)
+        series = gdf.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row[areas]), axis=1)
 
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
-    if 'mm_p' in objects.columns:
-        objects.drop(columns=['mm_p'], inplace=True)
     print('Fractal dimension calculated.')
     return series
 
 
-def volume_facade_ratio(objects, heights, volumes=None, perimeters=None):
+def volume_facade_ratio(gdf, heights, volumes=None, perimeters=None):
     """
     Calculates volume/facade ratio of each object in given geoDataFrame.
 
@@ -153,7 +146,7 @@ def volume_facade_ratio(objects, heights, volumes=None, perimeters=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     heights : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, np.array, or pd.Series where is stored height value
@@ -184,28 +177,25 @@ def volume_facade_ratio(objects, heights, volumes=None, perimeters=None):
     """
 
     print('Calculating volume/facade ratio...')
+    gdf = gdf.copy()
     if perimeters is None:
-        objects['mm_p'] = objects.geometry.length
+        gdf['mm_p'] = gdf.geometry.length
         perimeters = 'mm_p'
     else:
         if not isinstance(perimeters, str):
-            objects['mm_p'] = perimeters
+            gdf['mm_p'] = perimeters
             perimeters = 'mm_p'
 
     if volumes is None:
-        objects['mm_v'] = objects.geometry.area * objects[heights]
+        gdf['mm_v'] = gdf.geometry.area * gdf[heights]
         volumes = 'mm_v'
     else:
         if not isinstance(volumes, str):
-            objects['mm_v'] = volumes
+            gdf['mm_v'] = volumes
             volumes = 'mm_v'
 
-    series = objects[volumes] / (objects[perimeters] * objects[heights])
+    series = gdf[volumes] / (gdf[perimeters] * gdf[heights])
 
-    if 'mm_p' in objects.columns:
-        objects.drop(columns=['mm_p'], inplace=True)
-    if 'mm_v' in objects.columns:
-        objects.drop(columns=['mm_v'], inplace=True)
     print('Volume/facade ratio calculated.')
     return series
 
@@ -350,7 +340,7 @@ def _circle_area(points):
     return(math.pi * circ[2] ** 2)
 
 
-def circular_compactness(objects, areas=None):
+def circular_compactness(gdf, areas=None):
     """
     Calculates compactness index of each object in given geoDataFrame.
 
@@ -359,7 +349,7 @@ def circular_compactness(objects, areas=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
@@ -386,21 +376,21 @@ def circular_compactness(objects, areas=None):
     """
 
     print('Calculating compactness index...')
+    gdf = gdf.copy()
 
     if areas is None:
-        series = objects.apply(lambda row: (row.geometry.area) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
+        series = gdf.apply(lambda row: (row.geometry.area) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
     else:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
-        series = objects.apply(lambda row: (row[areas]) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
-        if 'mm_a' in objects.columns:
-            objects.drop(columns=['mm_a'], inplace=True)
+        series = gdf.apply(lambda row: (row[areas]) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
+
     print('Compactness index calculated.')
     return series
 
 
-def square_compactness(objects, areas=None, perimeters=None):
+def square_compactness(gdf, areas=None, perimeters=None):
     """
     Calculates compactness index of each object in given geoDataFrame.
 
@@ -411,7 +401,7 @@ def square_compactness(objects, areas=None, perimeters=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
@@ -441,31 +431,28 @@ def square_compactness(objects, areas=None, perimeters=None):
     """
 
     print('Calculating compactness index...')
+    gdf = gdf.copy()
 
     if perimeters is None:
-        objects['mm_p'] = objects.geometry.length
+        gdf['mm_p'] = gdf.geometry.length
         perimeters = 'mm_p'
     else:
         if not isinstance(perimeters, str):
-            objects['mm_p'] = perimeters
+            gdf['mm_p'] = perimeters
             perimeters = 'mm_p'
     if areas is None:
-        series = objects.apply(lambda row: ((4 * math.sqrt(row.geometry.area)) / (row[perimeters])) ** 2, axis=1)
+        series = gdf.apply(lambda row: ((4 * math.sqrt(row.geometry.area)) / (row[perimeters])) ** 2, axis=1)
     else:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
-        series = objects.apply(lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1)
+        series = gdf.apply(lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1)
 
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
-    if 'mm_p' in objects.columns:
-        objects.drop(columns=['mm_p'], inplace=True)
     print('Compactness index calculated.')
     return series
 
 
-def convexeity(objects, areas=None):
+def convexeity(gdf, areas=None):
     """
     Calculates convexeity index of each object in given geoDataFrame.
 
@@ -474,7 +461,7 @@ def convexeity(objects, areas=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
@@ -500,22 +487,21 @@ def convexeity(objects, areas=None):
     """
 
     print('Calculating convexeity...')
+    gdf = gdf.copy()
 
     if areas is None:
-        series = objects.geometry.area / objects.geometry.convex_hull.area
+        series = gdf.geometry.area / gdf.geometry.convex_hull.area
     else:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
-        series = objects[areas] / objects.geometry.convex_hull.area
-        if 'mm_a' in objects.columns:
-            objects.drop(columns=['mm_a'], inplace=True)
+        series = gdf[areas] / gdf.geometry.convex_hull.area
 
     print('Convexeity calculated.')
     return series
 
 
-def courtyard_index(objects, courtyard_areas, areas=None):
+def courtyard_index(gdf, courtyard_areas, areas=None):
     """
     Calculates courtyard index of each object in given geoDataFrame.
 
@@ -524,7 +510,7 @@ def courtyard_index(objects, courtyard_areas, areas=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     courtyard_areas : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored area value
@@ -562,28 +548,24 @@ def courtyard_index(objects, courtyard_areas, areas=None):
     """
 
     print('Calculating courtyard index...')
+    gdf = gdf.copy()
 
     if not isinstance(courtyard_areas, str):
-        objects['mm_ca'] = courtyard_areas
+        gdf['mm_ca'] = courtyard_areas
         courtyard_areas = 'mm_ca'
     if areas is None:
-        series = objects[courtyard_areas] / objects.geometry.area
+        series = gdf[courtyard_areas] / gdf.geometry.area
     else:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
-        series = objects[courtyard_areas] / objects[areas]
-
-    if 'mm_ca' in objects.columns:
-        objects.drop(columns=['mm_ca'], inplace=True)
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
+        series = gdf[courtyard_areas] / gdf[areas]
 
     print('Courtyard index calculated.')
     return series
 
 
-def rectangularity(objects, areas=None):
+def rectangularity(gdf, areas=None):
     """
     Calculates rectangularity of each object in given geoDataFrame.
 
@@ -592,7 +574,7 @@ def rectangularity(objects, areas=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
@@ -619,23 +601,21 @@ def rectangularity(objects, areas=None):
     """
 
     print('Calculating rectangularity...')
+    gdf = gdf.copy()
     if areas is None:
-        series = objects.apply(lambda row: row.geometry.area / (row.geometry.minimum_rotated_rectangle.area), axis=1)
+        series = gdf.apply(lambda row: row.geometry.area / (row.geometry.minimum_rotated_rectangle.area), axis=1)
 
     else:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
-        series = objects.apply(lambda row: row[areas] / (row.geometry.minimum_rotated_rectangle.area), axis=1)
-
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
+        series = gdf.apply(lambda row: row[areas] / (row.geometry.minimum_rotated_rectangle.area), axis=1)
 
     print('Rectangularity calculated.')
     return series
 
 
-def shape_index(objects, longest_axis, areas=None):
+def shape_index(gdf, longest_axis, areas=None):
     """
     Calculates shape index of each object in given geoDataFrame.
 
@@ -644,7 +624,7 @@ def shape_index(objects, longest_axis, areas=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     longest_axis : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored longest axis value
@@ -671,29 +651,25 @@ def shape_index(objects, longest_axis, areas=None):
     0.7564029493781987
     """
     print('Calculating shape index...')
+    gdf = gdf.copy()
 
     if not isinstance(longest_axis, str):
-        objects['mm_la'] = longest_axis
+        gdf['mm_la'] = longest_axis
         longest_axis = 'mm_la'
 
     if areas is None:
-        series = objects.apply(lambda row: math.sqrt(row.geometry.area / math.pi) / (0.5 * row[longest_axis]), axis=1)
+        series = gdf.apply(lambda row: math.sqrt(row.geometry.area / math.pi) / (0.5 * row[longest_axis]), axis=1)
     else:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
-        series = objects.apply(lambda row: math.sqrt(row[areas] / math.pi) / (0.5 * row[longest_axis]), axis=1)
-
-        if 'mm_a' in objects.columns:
-            objects.drop(columns=['mm_a'], inplace=True)
-        if 'mm_la' in objects.columns:
-            objects.drop(columns=['mm_la'], inplace=True)
+        series = gdf.apply(lambda row: math.sqrt(row[areas] / math.pi) / (0.5 * row[longest_axis]), axis=1)
 
     print('Shape index calculated.')
     return series
 
 
-def corners(objects):
+def corners(gdf):
     """
     Calculates number of corners of each object in given geoDataFrame.
 
@@ -704,7 +680,7 @@ def corners(objects):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
 
     Returns
@@ -746,7 +722,7 @@ def corners(objects):
         return False
 
     # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         corners = 0  # define empty variables
         points = list(row['geometry'].exterior.coords)  # get points of a shape
         stop = len(points) - 1  # define where to stop
@@ -781,7 +757,7 @@ def corners(objects):
     return series
 
 
-def squareness(objects):
+def squareness(gdf):
     """
     Calculates squareness of each object in given geoDataFrame.
 
@@ -792,7 +768,7 @@ def squareness(objects):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
 
     Returns
@@ -828,7 +804,7 @@ def squareness(objects):
         return angle
 
     # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         angles = []
         points = list(row['geometry'].exterior.coords)  # get points of a shape
         stop = len(points) - 1  # define where to stop
@@ -872,7 +848,7 @@ def squareness(objects):
     return series
 
 
-def equivalent_rectangular_index(objects, areas=None, perimeters=None):
+def equivalent_rectangular_index(gdf, areas=None, perimeters=None):
     """
     Calculates equivalent rectangular index of each object in given geoDataFrame.
 
@@ -881,7 +857,7 @@ def equivalent_rectangular_index(objects, areas=None, perimeters=None):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
@@ -915,36 +891,34 @@ def equivalent_rectangular_index(objects, areas=None, perimeters=None):
     # define empty list for results
     results_list = []
     print('Calculating equivalent rectangular index...')
+    gdf = gdf.copy()
 
     if perimeters is None:
-        objects['mm_p'] = objects.geometry.length
+        gdf['mm_p'] = gdf.geometry.length
         perimeters = 'mm_p'
     else:
         if not isinstance(perimeters, str):
-            objects['mm_p'] = perimeters
+            gdf['mm_p'] = perimeters
             perimeters = 'mm_p'
     if areas is None:
-        objects['mm_a'] = objects.geometry.area
+        gdf['mm_a'] = gdf.geometry.area
         areas = 'mm_a'
     else:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
     # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         bbox = row['geometry'].minimum_rotated_rectangle
         results_list.append(math.sqrt(row[areas] / bbox.area) * (bbox.length / row[perimeters]))
 
     series = pd.Series(results_list)
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
-    if 'mm_p' in objects.columns:
-        objects.drop(columns=['mm_p'], inplace=True)
+
     print('Equivalent rectangular index calculated.')
     return series
 
 
-def elongation(objects):
+def elongation(gdf):
     """
     Calculates elongation of object seen as elongation of its minimum bounding rectangle.
 
@@ -953,7 +927,7 @@ def elongation(objects):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
 
     Returns
@@ -981,7 +955,7 @@ def elongation(objects):
     print('Calculating elongation...')
 
     # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         bbox = row['geometry'].minimum_rotated_rectangle
         a = bbox.area
         p = bbox.length
@@ -1009,7 +983,7 @@ def elongation(objects):
     return series
 
 
-def centroid_corners(objects):
+def centroid_corners(gdf):
     """
     Calculates mean distance centroid - corners and st. deviation.
 
@@ -1018,7 +992,7 @@ def centroid_corners(objects):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
 
     Returns
@@ -1069,7 +1043,7 @@ def centroid_corners(objects):
         return False
 
     # iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         distances = []  # set empty list of distances
         centroid = row['geometry'].centroid  # define centroid
         points = list(row['geometry'].exterior.coords)  # get points of a shape
@@ -1114,7 +1088,7 @@ def centroid_corners(objects):
     return means, st_devs
 
 
-def linearity(objects):
+def linearity(gdf):
     """
     Calculates linearity of each LineString object in given geoDataFrame.
 
@@ -1123,7 +1097,7 @@ def linearity(objects):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
 
     Returns
@@ -1151,7 +1125,7 @@ def linearity(objects):
     print('Calculating linearity...')
 
     # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         euclidean = Point(row['geometry'].coords[0]).distance(Point(row['geometry'].coords[-1]))
         results_list.append(euclidean / row['geometry'].length)
 
@@ -1161,7 +1135,7 @@ def linearity(objects):
     return series
 
 
-def compactness_weighted_axis(objects, areas=None, perimeters=None, longest_axis=None):
+def compactness_weighted_axis(gdf, areas=None, perimeters=None, longest_axis=None):
     """
     Calculates compactness-weighted axis of each object in given geoDataFrame.
 
@@ -1172,7 +1146,7 @@ def compactness_weighted_axis(objects, areas=None, perimeters=None, longest_axis
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
@@ -1199,37 +1173,32 @@ def compactness_weighted_axis(objects, areas=None, perimeters=None, longest_axis
     """
 
     print('Calculating compactness-weighted axis...')
+    gdf = gdf.copy()
 
     if perimeters is None:
-        objects['mm_p'] = objects.geometry.length
+        gdf['mm_p'] = gdf.geometry.length
         perimeters = 'mm_p'
     else:
         if not isinstance(perimeters, str):
-            objects['mm_p'] = perimeters
+            gdf['mm_p'] = perimeters
             perimeters = 'mm_p'
 
     if longest_axis is None:
         from .dimension import longest_axis_length
-        objects['mm_la'] = longest_axis_length(objects)
+        gdf['mm_la'] = longest_axis_length(gdf)
         longest_axis = 'mm_la'
     else:
         if not isinstance(longest_axis, str):
-            objects['mm_la'] = longest_axis
+            gdf['mm_la'] = longest_axis
             longest_axis = 'mm_la'
 
     if areas is None:
-        series = objects.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row.geometry.area) / ((row[perimeters]) ** 2)), axis=1)
+        series = gdf.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row.geometry.area) / ((row[perimeters]) ** 2)), axis=1)
     else:
         if not isinstance(areas, str):
-            objects['mm_a'] = areas
+            gdf['mm_a'] = areas
             areas = 'mm_a'
-        series = objects.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row[areas]) / ((row[perimeters]) ** 2)), axis=1)
+        series = gdf.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row[areas]) / ((row[perimeters]) ** 2)), axis=1)
 
-    if 'mm_a' in objects.columns:
-        objects.drop(columns=['mm_a'], inplace=True)
-    if 'mm_p' in objects.columns:
-        objects.drop(columns=['mm_p'], inplace=True)
-    if 'mm_la' in objects.columns:
-        objects.drop(columns=['mm_la'], inplace=True)
     print('Compactness-weighted axis calculated.')
     return series

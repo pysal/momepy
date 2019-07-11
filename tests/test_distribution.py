@@ -50,9 +50,9 @@ class TestDistribution:
 
     def test_alignment(self):
         self.df_buildings['orient'] = mm.orientation(self.df_buildings)
-        self.df_buildings['align'] = mm.alignment(self.df_buildings, 'orient', self.df_tessellation, 'uID')
+        self.df_buildings['align'] = mm.alignment(self.df_buildings, self.df_tessellation, 'orient', 'uID')
         sw = Queen.from_dataframe(self.df_tessellation)
-        self.df_buildings['align_sw'] = mm.alignment(self.df_buildings, 'orient', self.df_tessellation, 'uID', sw)
+        self.df_buildings['align_sw'] = mm.alignment(self.df_buildings, self.df_tessellation, 'orient', 'uID', sw)
         check = 18.299481296455237
         assert self.df_buildings['align'][0] == check
         assert self.df_buildings['align_sw'][0] == check
@@ -98,8 +98,3 @@ class TestDistribution:
         assert self.df_tessellation['nei'].mean() == check
         assert self.df_tessellation['nei_sw'].mean() == check
         assert self.df_tessellation['nei_wei'].mean() == check_w
-
-    def test_node_degree(self):
-        graph = mm.gdf_to_nx(self.df_streets)
-        deg1 = mm.node_degree(graph=graph)
-        assert deg1.nodes[(1603650.450422848, 6464368.600601688)]['degree'] == 4

@@ -9,7 +9,7 @@ import pandas as pd
 import scipy as sp
 
 
-def rng(objects, values, spatial_weights=None, order=None, rng=(0, 100), **kwargs):
+def rng(gdf, values, spatial_weights=None, order=None, rng=(0, 100), **kwargs):
     """
     Calculates the range of values within k steps of morphological tessellation
 
@@ -20,7 +20,7 @@ def rng(objects, values, spatial_weights=None, order=None, rng=(0, 100), **kwarg
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored character value.
@@ -49,26 +49,26 @@ def rng(objects, values, spatial_weights=None, order=None, rng=(0, 100), **kwarg
     """
     # define empty list for results
     results_list = []
-
+    gdf = gdf.copy()
     print('Calculating range...')
 
     if spatial_weights is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(k=order, geodataframe=objects)
+        spatial_weights = Queen_higher(k=order, geodataframe=gdf)
     else:
-        if not all(objects.index == range(len(objects))):
+        if not all(gdf.index == range(len(gdf))):
             raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     if values is not None:
         if not isinstance(values, str):
-            objects['mm_v'] = values
+            gdf['mm_v'] = values
             values = 'mm_v'
 
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[index]
-        values_list = objects.iloc[neighbours][values].tolist()
+        values_list = gdf.iloc[neighbours][values].tolist()
         if values_list:
             values_list.append(row[values])
         else:
@@ -78,14 +78,11 @@ def rng(objects, values, spatial_weights=None, order=None, rng=(0, 100), **kwarg
 
     series = pd.Series(results_list)
 
-    if 'mm_v' in objects.columns:
-        objects.drop(columns=['mm_v'], inplace=True)
-
     print('Range calculated.')
     return series
 
 
-def theil(objects, values, spatial_weights=None, order=None, rng=(0, 100)):
+def theil(gdf, values, spatial_weights=None, order=None, rng=(0, 100)):
     """
     Calculates the Theil measure of inequality of values within k steps of morphological tessellation
 
@@ -96,7 +93,7 @@ def theil(objects, values, spatial_weights=None, order=None, rng=(0, 100)):
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored character value.
@@ -124,6 +121,7 @@ def theil(objects, values, spatial_weights=None, order=None, rng=(0, 100)):
     from pysal.explore.inequality.theil import Theil
     # define empty list for results
     results_list = []
+    gdf = gdf.copy()
 
     print('Calculating Theil index...')
 
@@ -131,19 +129,19 @@ def theil(objects, values, spatial_weights=None, order=None, rng=(0, 100)):
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(k=order, geodataframe=objects)
+        spatial_weights = Queen_higher(k=order, geodataframe=gdf)
     else:
-        if not all(objects.index == range(len(objects))):
+        if not all(gdf.index == range(len(gdf))):
             raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     if values is not None:
         if not isinstance(values, str):
-            objects['mm_v'] = values
+            gdf['mm_v'] = values
             values = 'mm_v'
 
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[index]
-        values_list = objects.iloc[neighbours][values].tolist()
+        values_list = gdf.iloc[neighbours][values].tolist()
         if values_list:
             values_list.append(row[values])
         else:
@@ -156,14 +154,11 @@ def theil(objects, values, spatial_weights=None, order=None, rng=(0, 100)):
 
     series = pd.Series(results_list)
 
-    if 'mm_v' in objects.columns:
-        objects.drop(columns=['mm_v'], inplace=True)
-
     print('Theil index calculated.')
     return series
 
 
-def simpson(objects, values, spatial_weights=None, order=None, binning='HeadTailBreaks', **classification_kwds):
+def simpson(gdf, values, spatial_weights=None, order=None, binning='HeadTailBreaks', **classification_kwds):
     """
     Calculates the Simpson\'s diversity index of values within k steps of morphological tessellation
 
@@ -245,28 +240,28 @@ def simpson(objects, values, spatial_weights=None, order=None, binning='HeadTail
 
     # define empty list for results
     results_list = []
-
+    gdf = gdf.copy()
     print('Calculating Simpson\'s diversity index...')
 
     if spatial_weights is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
         from momepy import Queen_higher
         # matrix to define area of analysis (more steps)
-        spatial_weights = Queen_higher(k=order, geodataframe=objects)
+        spatial_weights = Queen_higher(k=order, geodataframe=gdf)
     else:
-        if not all(objects.index == range(len(objects))):
+        if not all(gdf.index == range(len(gdf))):
             raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
 
     if values is not None:
         if not isinstance(values, str):
-            objects['mm_v'] = values
+            gdf['mm_v'] = values
             values = 'mm_v'
 
-    bins = schemes[binning](objects[values], **classification_kwds).bins
+    bins = schemes[binning](gdf[values], **classification_kwds).bins
 
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[index]
-        values_list = objects.iloc[neighbours][values].tolist()
+        values_list = gdf.iloc[neighbours][values].tolist()
         if values_list:
             values_list.append(row[values])
         else:
@@ -278,8 +273,5 @@ def simpson(objects, values, spatial_weights=None, order=None, binning='HeadTail
 
     series = pd.Series(results_list)
 
-    if 'mm_v' in objects.columns:
-        objects.drop(columns=['mm_v'], inplace=True)
-
-    print('Simpson\'s diversity index calculated.')
+    print("Simpson's diversity index calculated.")
     return series

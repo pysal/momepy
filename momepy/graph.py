@@ -8,6 +8,43 @@ from tqdm import tqdm
 import numpy as np
 
 
+def node_degree(graph, name='degree'):
+    """
+    Calculates node degree for each node.
+
+    Wrapper around `networkx.degree()`
+
+    .. math::
+
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph representing street network.
+        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+    name : str, optional
+        calculated attribute name
+
+    Returns
+    -------
+    Graph
+        networkx.Graph
+
+    References
+    ----------
+
+    Examples
+    --------
+
+    """
+    netx = graph
+
+    degree = dict(nx.degree(netx))
+    nx.set_node_attributes(netx, degree, name)
+
+    return netx
+
+
 def meshedness(graph, radius=5, name='meshedness', distance=None):
     """
     Calculates meshedness for subgraph around each node.
@@ -97,7 +134,7 @@ def mean_node_dist(graph, name='meanlen', length='mm_len'):
     return netx
 
 
-def cds_length(graph=None, radius=5, mode='sum', name='cds_len', degree='degree', length='mm_len', distance=None):
+def cds_length(graph, radius=5, mode='sum', name='cds_len', degree='degree', length='mm_len', distance=None):
     """
     Calculates length of cul-de-sacs for subgraph around each node.
 

@@ -4,6 +4,6 @@ from .utils import *
 from .elements import *
 from .diversity import *
 from .distribution import *
-from .connectivity import *
+from .graph import *
 from .shape import *
 import momepy.datasets
