@@ -125,6 +125,7 @@ utilities
 
    gdf_to_nx
    limit_range
+   network_false_nodes
    nx_to_gdf
    preprocess
    unique_id
