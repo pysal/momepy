@@ -355,7 +355,7 @@ def circular_compactness(objects, areas=None):
     Calculates compactness index of each object in given geoDataFrame.
 
     .. math::
-        area \over \\textit{area of enclosing circle}
+        area \\over \\textit{area of enclosing circle}
 
     Parameters
     ----------
@@ -470,7 +470,7 @@ def convexeity(objects, areas=None):
     Calculates convexeity index of each object in given geoDataFrame.
 
     .. math::
-        area \over \\textit{convex hull area}
+        area \\over \\textit{convex hull area}
 
     Parameters
     ----------
@@ -520,7 +520,7 @@ def courtyard_index(objects, courtyard_areas, areas=None):
     Calculates courtyard index of each object in given geoDataFrame.
 
     .. math::
-        \\textit{area of courtyards} \over \\textit{total area}
+        \\textit{area of courtyards} \\over \\textit{total area}
 
     Parameters
     ----------
@@ -588,7 +588,7 @@ def rectangularity(objects, areas=None):
     Calculates rectangularity of each object in given geoDataFrame.
 
     .. math::
-        {area \over \\textit{minimum bounding rotated rectangle area}}
+        {area \\over \\textit{minimum bounding rotated rectangle area}}
 
     Parameters
     ----------
@@ -640,7 +640,7 @@ def shape_index(objects, longest_axis, areas=None):
     Calculates shape index of each object in given geoDataFrame.
 
     .. math::
-        {\\sqrt{{area} \over {\\pi}}} \over {0.5 * \\textit{longest axis}}
+        {\\sqrt{{area} \\over {\\pi}}} \\over {0.5 * \\textit{longest axis}}
 
     Parameters
     ----------
@@ -877,7 +877,7 @@ def equivalent_rectangular_index(objects, areas=None, perimeters=None):
     Calculates equivalent rectangular index of each object in given geoDataFrame.
 
     .. math::
-        \\sqrt{{area} \over \\textit{area of bounding rectangle}} * {\\textit{perimeter of bounding rectangle} \over {perimeter}}
+        \\sqrt{{area} \\over \\textit{area of bounding rectangle}} * {\\textit{perimeter of bounding rectangle} \\over {perimeter}}
 
     Parameters
     ----------
@@ -949,7 +949,7 @@ def elongation(objects):
     Calculates elongation of object seen as elongation of its minimum bounding rectangle.
 
     .. math::
-        {{p - \\sqrt{p^2 - 16a}} \over {4}} \over {{{p} \over {2}} - {{p - \\sqrt{p^2 - 16a}} \over {4}}}
+        {{p - \\sqrt{p^2 - 16a}} \\over {4}} \\over {{{p} \\over {2}} - {{p - \\sqrt{p^2 - 16a}} \\over {4}}}
 
     Parameters
     ----------
