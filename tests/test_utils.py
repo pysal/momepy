@@ -72,4 +72,4 @@ class TestUtils:
         test_file_path2 = mm.datasets.get_path('tests')
         self.false_network = gpd.read_file(test_file_path2, layer='network')
         fixed = mm.network_false_nodes(self.false_network)
-        assert len(fixed) == 50
+        assert len(fixed) == 55

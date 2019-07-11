@@ -349,7 +349,8 @@ def network_false_nodes(gdf):
     -------
     gdf : GeoDataFrame
     """
-    streets = gdf.copy()
+    streets = gdf.copy().explode()
+    streets.reset_index(inplace=True)
     sindex = streets.sindex
 
     false_points = []
