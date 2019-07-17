@@ -243,15 +243,13 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     blg = buildings.copy()
     for l in range(0, 2):
         print('Loop', l + 1, 'out of 2.')
-        blg.reset_index(inplace=True)
+        blg.reset_index(inplace=True, drop=True)
         blg['mm_uid'] = range(len(blg))
         sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
         blg['neighbors'] = sw.neighbors
         blg['neighbors'] = blg['neighbors'].map(sw.neighbors)
         blg['n_count'] = blg.apply(lambda row: len(row.neighbors), axis=1)
         blg['circu'] = circular_compactness(blg)
-        # blg['con1'] = None
-        # blg.loc[delete, 'con1'] = 'island'
 
         # idetify those smaller than x with only one neighbor and attaches it to it.
         join = {}
@@ -332,8 +330,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
                 blg.loc[blg.loc[blg['mm_uid'] == key].index[0], 'geometry'] = new_geom
 
         blg.drop(delete, inplace=True)
-    blg.drop(['neighbors', 'n_count', 'circu', 'mm_uid'], axis=1, inplace=True)
-    return blg
+    return blg[buildings.columns]
 
 
 def network_false_nodes(gdf):
