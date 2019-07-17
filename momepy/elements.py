@@ -41,18 +41,19 @@ def tessellation(gdf, unique_id='uID', cut_buffer=50, queen_corners=False, minim
     -------
     Fix saw-like geometry.
     """
-    # reprojected_crs = buildings.crs.copy()
-    #
-    # reprojected_crs['x_0'] = 0
-    # reprojected_crs['y_0'] = 0
 
     tqdm.pandas()
-    # move dataframe close to 0 to eliminate imprecision of Qhull
-    bounds = gdf['geometry'].bounds
-    centre_x = -(bounds['maxx'].max() + bounds['minx'].min()) / 2
-    centre_y = -(bounds['maxy'].max() + bounds['miny'].min()) / 2
     objects = gdf.copy()
-    objects['geometry'] = objects['geometry'].translate(xoff=centre_x, yoff=centre_y)
+    # move dataframe close to 0 to eliminate imprecision of Qhull
+
+    def _get_centre(gdf):
+        bounds = gdf['geometry'].bounds
+        centre_x = (bounds['maxx'].max() + bounds['minx'].min()) / 2
+        centre_y = (bounds['maxy'].max() + bounds['miny'].min()) / 2
+        return centre_x, centre_y
+
+    centre = _get_centre(gdf)
+    objects['geometry'] = objects['geometry'].translate(xoff=-centre[0], yoff=-centre[1])
 
     # buffer geometry to resolve shared walls
     print('Bufferring geometry...')
@@ -312,7 +313,7 @@ def tessellation(gdf, unique_id='uID', cut_buffer=50, queen_corners=False, minim
                           'unique_id of affected elements: {}'.format(list(uids)))
 
     # translate back to true position
-    morphological_tessellation['geometry'] = morphological_tessellation['geometry'].translate(xoff=-centre_x, yoff=-centre_y)
+    morphological_tessellation['geometry'] = morphological_tessellation['geometry'].translate(xoff=centre[0], yoff=centre[1])
     print('Tessellation finished.')
     return morphological_tessellation
 
