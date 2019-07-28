@@ -19,7 +19,7 @@ import operator
 from libpysal.weights import Queen
 
 
-def tessellation(gdf, unique_id='uID', cut_buffer=50, queen_corners=False, minimum=2):
+def tessellation(gdf, unique_id='uID', cut_buffer=50, queen_corners=False, minimum=2, inset=0.5, segment=2):
     """
     Generate morphological tessellation around given buildings.
 
@@ -52,12 +52,12 @@ def tessellation(gdf, unique_id='uID', cut_buffer=50, queen_corners=False, minim
         centre_y = (bounds['maxy'].max() + bounds['miny'].min()) / 2
         return centre_x, centre_y
 
-    centre = _get_centre(gdf)
+    centre = _get_centre(objects)
     objects['geometry'] = objects['geometry'].translate(xoff=-centre[0], yoff=-centre[1])
 
     # buffer geometry to resolve shared walls
     print('Bufferring geometry...')
-    objects['geometry'] = objects.geometry.apply(lambda g: g.buffer(-0.5, cap_style=2, join_style=2))
+    objects['geometry'] = objects.geometry.apply(lambda g: g.buffer(-inset, cap_style=2, join_style=2))
 
     # simplify geometry before Voronoi
     print('Simplifying geometry...')
@@ -82,7 +82,7 @@ def tessellation(gdf, unique_id='uID', cut_buffer=50, queen_corners=False, minim
         poly = geom
         wkt = geom.wkt  # shapely Polygon to wkt
         geom = ogr.CreateGeometryFromWkt(wkt)  # create ogr geometry
-        geom.Segmentize(2)  # densify geometry by 2 metres
+        geom.Segmentize(segment)  # densify geometry by 2 metres
         geom.CloseRings()  # fix for GDAL 2.4.1 bug
         wkt2 = geom.ExportToWkt()  # ogr geometry to wkt
         try:
