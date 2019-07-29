@@ -241,6 +241,8 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
         GeoDataFrame containing preprocessed geometry
     """
     blg = buildings.copy()
+    blg = blg.explode()
+    blg.reset_index(drop=True, inplace=True)
     for l in range(0, 2):
         print('Loop', l + 1, 'out of 2.')
         blg.reset_index(inplace=True, drop=True)
