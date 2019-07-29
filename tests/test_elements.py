@@ -12,13 +12,14 @@ class TestElements:
         self.df_tessellation = gpd.read_file(test_file_path, layer='tessellation')
         self.df_streets = gpd.read_file(test_file_path, layer='streets')
         self.df_streets['nID'] = range(len(self.df_streets))
+        self.limit = mm.buffered_limit(self.df_buildings, 50)
 
     def test_tessellation(self):
-        tessellation = mm.tessellation(self.df_buildings)
+        tessellation = mm.tessellation(self.df_buildings, 'uID', self.limit, segment=2)
         assert len(tessellation) == len(self.df_tessellation)
-        queen_corners = mm.tessellation(self.df_buildings, queen_corners=True)
+        queen_corners = mm.tessellation(self.df_buildings, 'uID', self.limit, segment=2, queen_corners=True)
         w = libpysal.weights.Queen.from_dataframe(queen_corners)
-        assert w.neighbors[14] == [35, 36, 13, 15, 26, 27, 28, 30]
+        assert w.neighbors[14] == [35, 36, 13, 15, 26, 27, 28, 30, 31]
 
     def test_snap_street_network_edge(self):
         snapped = mm.snap_street_network_edge(self.df_streets, self.df_buildings, self.df_tessellation, 20, 70)

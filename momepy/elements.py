@@ -99,7 +99,7 @@ def _point_array(objects, unique_id):
     return points, ids
 
 
-def _regions(voronoi_diagram, unique_id, crs):
+def _regions(voronoi_diagram, unique_id, ids, crs):
     """
     Generate GeoDataFrame of Voronoi regions from scipy.spatial.Voronoi.
     """
@@ -132,7 +132,7 @@ def _regions(voronoi_diagram, unique_id, crs):
     return regions_gdf
 
 
-def _cut(tessellation, limit):
+def _cut(tessellation, limit, unique_id):
     """
     Cut tessellation by the limit (Multi)Polygon.
 
@@ -160,7 +160,7 @@ def _cut(tessellation, limit):
 
     print('Cutting...')
     for idx, row in tqdm(tessellation.loc[subselection].iterrows(), total=tessellation.loc[subselection].shape[0]):
-        intersection = row.geometry.intersection(built_up)
+        intersection = row.geometry.intersection(limit)
         if intersection.type == 'MultiPolygon':
             areas = {}
             for p in range(len(intersection)):
@@ -338,14 +338,14 @@ def tessellation(gdf, unique_id, limit, shrink=0.4, segment=0.5, queen_corners=F
     voronoi_diagram = Voronoi(np.array(points))
 
     print('Generating GeoDataFrame...')
-    regions_gdf = _regions(voronoi_diagram, unique_id, crs=gdf.crs)
+    regions_gdf = _regions(voronoi_diagram, unique_id, ids, crs=gdf.crs)
 
     print('Dissolving Voronoi polygons...')
     morphological_tessellation = regions_gdf[[unique_id, 'geometry']].dissolve(by=unique_id, as_index=False)
 
     morphological_tessellation['geometry'] = morphological_tessellation['geometry'].translate(xoff=centre[0], yoff=centre[1])
 
-    morphological_tessellation, sindex = _cut(morphological_tessellation, limit)
+    morphological_tessellation, sindex = _cut(morphological_tessellation, limit, unique_id)
 
     if queen_corners is True:
         morphological_tessellation = _queen_corners(morphological_tessellation, sensitivity, sindex)
