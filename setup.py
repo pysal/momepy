@@ -18,10 +18,6 @@ for item in os.listdir("momepy/datasets"):
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open('requirements.txt') as f:
-    requirements_lines = f.readlines()
-install_requires = [r.strip() for r in requirements_lines]
-
 setup(name='momepy',
       version='0.1.0',
       description='Urban Morphology Measuring Toolkit',
@@ -41,4 +37,10 @@ setup(name='momepy',
                    "Operating System :: OS Independent",
                    "Intended Audience :: Science/Research",
                    "Topic :: Scientific/Engineering :: GIS"],
+      install_requires=["geopandas>=0.5.1",
+                        "networkx>=2.3",
+                        "libpysal>=4.0.1",
+                        "tqdm>=4.25.0",
+                        "Rtree>=0.8.3"
+                        ]
       )

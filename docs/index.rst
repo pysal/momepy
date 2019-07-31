@@ -31,17 +31,12 @@ https://github.com/martinfleis/momepy
 Install
 -------
 
-Momepy is not yet released. At this moment, you can either download the GitHub
-repository to work with ``momepy`` or install the latest development version
-from GitHub::
+You can install ``momepy`` using pip from PyPI::
 
-  pip install git+git://github.com/martinfleis/momepy.git
+  pip install momepy CHANGE TO ENSURE IT IS CONDA-FORGE ENV
 
-Please ensure that you have all dependencies installed as ``momepy`` setup
-currently does not specify dependency requirements.
-Momepy depends on the following packages: ``geopandas``, ``libpysal``
-and ``tqdm``. All of the packages are currently required, which will be
-changed in future.
+Momepy depends on the following packages: ``geopandas``, ``libpysal``, ``networkx``
+and ``tqdm``.
 
 References
 ----------
