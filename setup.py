@@ -40,7 +40,6 @@ setup(name='momepy',
       install_requires=["geopandas>=0.5.1",
                         "networkx>=2.3",
                         "libpysal>=4.0.1",
-                        "tqdm>=4.25.0",
-                        "Rtree>=0.8.3"
+                        "tqdm>=4.25.0"
                         ]
       )
