@@ -15,9 +15,7 @@ frameworks for a description of urban structures.
 
     *momepy* stands for Morphological Measuring in Python
 
-The development of momepy is still in its initial phase. The whole
-structure of the package can always be changed, until the release of
-first versions on PIP. Momepy is a result of ongoing research of `Urban
+Momepy is a result of ongoing research of `Urban
 Design Studies Unit (UDSU) <http://udsu-strath.com>`__ supported by the
 Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form
 Resilience Project” in partnership with University of Strathclyde in Glasgow,
@@ -31,12 +29,17 @@ https://github.com/martinfleis/momepy
 Install
 -------
 
-You can install ``momepy`` using pip from PyPI::
+You can install ``momepy`` using Conda from conda-forge (recommended)::
 
-  pip install momepy CHANGE TO ENSURE IT IS CONDA-FORGE ENV
+  conda install -c conda-forge momepy
 
-Momepy depends on the following packages: ``geopandas``, ``libpysal``, ``networkx``
-and ``tqdm``.
+or from PyPI using pip::
+
+  pip install momepy
+
+See the :doc:`installation docs <install.rst>` for detailed instructions.
+Momepy depends on python geospatial stack, which might cause some dependency
+issues.
 
 References
 ----------
