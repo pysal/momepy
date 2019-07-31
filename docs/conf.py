@@ -176,7 +176,7 @@ html_theme_options = {
     'navbar_links': [
                     # ("Gallery", "auto_examples/index"),
                     ("Installation", "install"),
-                    ("Tutorial", "tutorial"),
+                    ("User Guide", "https://guide.momepy.org/intro"),
                     ("API", "api"),
                     ("Contributing", "contributing"),
                     ("References", "references"),
