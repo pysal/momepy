@@ -37,17 +37,11 @@ or from PyPI using pip::
 
   pip install momepy
 
-See the :doc:`installation docs <install.rst>` for detailed instructions.
+See the :doc:`installation docs <install>` for detailed instructions.
 Momepy depends on python geospatial stack, which might cause some dependency
 issues.
 
-References
-----------
 
--  Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of
-   spaces: Morphometric foundations of urban form evolution. Environment
-   and Planning B: Urban Analytics and City Science 24(1):
-   239980831772507–24.
 
 
 .. toctree::
@@ -57,6 +51,7 @@ References
    install
    tutorial
    api
+   references
 
 
 Indices and tables

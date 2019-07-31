@@ -16,18 +16,15 @@ Comments, suggestions, feedback, and contributions, as well as bug reports, are 
 Documentation of `momepy` is available at [docs.momepy.org](https://docs.momepy.org/).
 
 ## Install
-Momepy is not yet released. At this moment, you can either download the GitHub
-repository to work with `momepy` or install the latest development version
-from GitHub:
+You can install `momepy` using Conda from `conda-forge` (recommended):
 
-    pip install git+git://github.com/martinfleis/momepy.git
+    conda install -c conda-forge momepy
 
-Please ensure that you have all dependencies installed as `momepy` setup
-currently does not specify dependency requirements.
-Momepy depends on the following packages: `geopandas`, `libpysal`, and `tqdm`. All of the packages are currently required, which will be changed in future.
+or from PyPI using `pip`:
 
-## References
-- Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution. Environment and Planning B: Urban Analytics and City Science 24(1): 239980831772507–24.
+    pip install momepy
 
+See the [installation instructions](http://docs.momepy.org/en/latest/install.html) for detailed instructions.
+Momepy depends on python geospatial stack, which might cause some dependency issues.
 
 Copyright (c) 2018-2019 Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit

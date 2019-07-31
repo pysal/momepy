@@ -57,7 +57,7 @@ author = 'Martin Fleischmann'
 # The short X.Y version
 version = '0.1'
 # The full version, including alpha/beta/rc tags
-release = '0.1alpha'
+release = '0.1.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -178,6 +178,7 @@ html_theme_options = {
                     ("Installation", "install"),
                     ("Tutorial", "tutorial"),
                     ("API", "api"),
+                    ("References", "references"),
     ],
 }
 
