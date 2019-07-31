@@ -814,13 +814,13 @@ def get_network_id(left, right, unique_id, network_id, min_size=100):
         pbox = (p.x - MIN_SIZE, p.y - MIN_SIZE, p.x + MIN_SIZE, p.y + MIN_SIZE)
         hits = list(idx.intersection(pbox))
         d = INFTY
-        id = None
+        nid = None
         for h in hits:
             new_d = p.distance(right.geometry.loc[h])
             if d >= new_d:
                 d = new_d
                 id = right[network_id].loc[h]
-        if id is None:
+        if nid is None:
             result.append(np.nan)
         else:
             result.append(id)
