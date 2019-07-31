@@ -39,7 +39,7 @@ from GitHub::
 
 Please ensure that you have all dependencies installed as ``momepy`` setup
 currently does not specify dependency requirements.
-Momepy depends on the following packages: ``geopandas``, ``libpysal``, ``osmnx``
+Momepy depends on the following packages: ``geopandas``, ``libpysal``
 and ``tqdm``. All of the packages are currently required, which will be
 changed in future.
 

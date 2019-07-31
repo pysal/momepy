@@ -46,3 +46,11 @@ class TestElements:
         self.df_buildings['nID'] = mm.get_network_id(self.df_buildings, self.df_streets, 'uID', 'nID')
         ids = mm.get_node_id(self.df_buildings, nodes, edges, 'nodeID', 'nID')
         assert not ids.isna().any()
+
+    def test__split_lines(self):
+        large = mm.buffered_limit(self.df_buildings, 100)
+        dense = mm.elements._split_lines(large, 100, self.df_buildings.crs)
+        small = mm.buffered_limit(self.df_buildings, 30)
+        dense2 = mm.elements._split_lines(small, 100, self.df_buildings.crs)
+        assert len(dense) == 237
+        assert len(dense2) == 573
