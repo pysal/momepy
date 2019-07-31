@@ -9,7 +9,7 @@ from GitHub via PIP::
 
 Please ensure that you have all dependencies installed as ``momepy`` setup
 currently does not specify dependency requirements.
-Momepy depends on the following packages: ``geopandas``, ``libpysal``, ``osmnx``
+Momepy depends on the following packages: ``geopandas``, ``libpysal``
 and ``tqdm``. All of the packages are currently required, which will be
 changed in future.
 
@@ -21,6 +21,6 @@ to install all dependencies via `conda` from `conda-forge`::
 
     conda config --add channels conda-forge  # ensure that conda-forge is in your list of channels on the top
     conda config --set channel_priority strict  # strict priority to install all from conda-forge
-    conda create --name momepy_env geopandas libpysal osmnx tqdm
+    conda create --name momepy_env geopandas libpysal tqdm
     conda activate momepy_env
     pip install git+git://github.com/martinfleis/momepy.git

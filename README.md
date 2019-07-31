@@ -24,7 +24,7 @@ from GitHub:
 
 Please ensure that you have all dependencies installed as `momepy` setup
 currently does not specify dependency requirements.
-Momepy depends on the following packages: `geopandas`, `libpysal`, `osmnx` and `tqdm`. All of the packages are currently required, which will be changed in future.
+Momepy depends on the following packages: `geopandas`, `libpysal`, and `tqdm`. All of the packages are currently required, which will be changed in future.
 
 ## References
 - Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution. Environment and Planning B: Urban Analytics and City Science 24(1): 239980831772507–24.

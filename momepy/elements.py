@@ -14,7 +14,6 @@ import numpy as np
 from scipy.spatial import Voronoi
 from shapely.geometry import Point, LineString, Polygon, MultiPolygon
 import shapely
-import osmnx as ox
 import operator
 from libpysal.weights import Queen
 
@@ -37,7 +36,7 @@ def buffered_limit(gdf, buffer=100):
 
     """
     study_area = gdf.copy()
-    study_area['geometry'] = study_area.buffer(100)
+    study_area['geometry'] = study_area.buffer(buffer)
     study_area['diss'] = 1
     built_up_df = study_area.dissolve(by='diss')
     built_up = built_up_df.geometry[1]
@@ -132,6 +131,30 @@ def _regions(voronoi_diagram, unique_id, ids, crs):
     return regions_gdf
 
 
+def _split_lines(polygon, distance, crs):
+    dense = _densify(polygon, distance)
+    boundary = dense.boundary
+
+    def _pair(coords):
+        '''Iterate over pairs in a list -> pair of points '''
+        for i in range(1, len(coords)):
+            yield coords[i - 1], coords[i]
+
+    segments = []
+    if boundary.type == 'LineString':
+        for seg_start, seg_end in _pair(boundary.coords):
+            segment = LineString([seg_start, seg_end])
+            segments.append(segment)
+    elif boundary.type == 'MultiLineString':
+        for ls in boundary:
+            for seg_start, seg_end in _pair(ls.coords):
+                segment = LineString([seg_start, seg_end])
+                segments.append(segment)
+
+    cutted = gpd.GeoSeries(segments, crs=crs)
+    return cutted
+
+
 def _cut(tessellation, limit, unique_id):
     """
     Cut tessellation by the limit (Multi)Polygon.
@@ -139,9 +162,8 @@ def _cut(tessellation, limit, unique_id):
     ADD: add option to delete everything outside of limit. Now it keeps it.
     """
     # cut infinity of voronoi by set buffer (thanks for script to Geoff Boeing)
-    print('Preparing buffer zone for edge resolving (quadrat cut)...')
-    geometry = limit.boundary
-    geometry_cut = ox.quadrat_cut_geometry(geometry, quadrat_width=100)
+    print('Preparing buffer zone for edge resolving...')
+    geometry_cut = _split_lines(limit, 100, tessellation.crs)
 
     print('Building R-tree...')
     sindex = tessellation.sindex
