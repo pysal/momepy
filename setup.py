@@ -15,13 +15,30 @@ for item in os.listdir("momepy/datasets"):
         elif item.endswith('.gpkg'):
             data_files.append(os.path.join("datasets", item))
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+with open('requirements.txt') as f:
+    requirements_lines = f.readlines()
+install_requires = [r.strip() for r in requirements_lines]
+
 setup(name='momepy',
-      version='0.1alpha',
+      version='0.1.0',
       description='Urban Morphology Measuring Toolkit',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       license="MIT",
       author='Martin Fleischmann',
       author_email='martin@martinfleischmann.net',
-      url='https://github.com/martinfleis/momepy',
+      keywords=["urban morphology",
+                "urban morphometrics",
+                "tessellation"],
+      url='http://momepy.org',
       packages=['momepy', 'momepy.datasets'],
       package_data={'momepy': data_files},
+      classifiers=["Programming Language :: Python :: 3",
+                   "License :: OSI Approved :: MIT License",
+                   "Operating System :: OS Independent",
+                   "Intended Audience :: Science/Research",
+                   "Topic :: Scientific/Engineering :: GIS"],
       )
