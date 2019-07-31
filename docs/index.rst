@@ -51,6 +51,7 @@ issues.
    install
    tutorial
    api
+   contributing
    references
 
 

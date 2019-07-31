@@ -18,8 +18,8 @@ import sphinx_bootstrap_theme
 
 sys.path.insert(0, os.path.abspath('../../'))
 
-autodoc_mock_imports = ['numpy', 'scipy', 'pandas', 'shapely', 'rtree',
-                        'geopandas', 'tqdm', 'osmnx',
+autodoc_mock_imports = ['numpy', 'scipy', 'pandas', 'shapely',
+                        'geopandas', 'tqdm',
                         'libpysal', 'networkx', 'osgeo']
 
 # class Mock(object):
@@ -178,6 +178,7 @@ html_theme_options = {
                     ("Installation", "install"),
                     ("Tutorial", "tutorial"),
                     ("API", "api"),
+                    ("Contributing", "contributing"),
                     ("References", "references"),
     ],
 }
