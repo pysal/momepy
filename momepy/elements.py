@@ -819,11 +819,11 @@ def get_network_id(left, right, unique_id, network_id, min_size=100):
             new_d = p.distance(right.geometry.loc[h])
             if d >= new_d:
                 d = new_d
-                id = right[network_id].loc[h]
+                nid = right[network_id].loc[h]
         if nid is None:
             result.append(np.nan)
         else:
-            result.append(id)
+            result.append(nid)
 
     series = pd.Series(result)
 
