@@ -17,7 +17,7 @@ def area(gdf):
     Calculates area of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
-    It is a simple wrapper for geopandas gdf.geometry.area for consistency of momepy.
+    It is a simple wrapper for geopandas `gdf.geometry.area` for consistency of momepy.
 
     Parameters
     ----------
@@ -53,7 +53,7 @@ def perimeter(gdf):
     Calculates perimeter of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
-    It is a simple wrapper for geopandas gdf.geometry.length for consistency of momepy.
+    It is a simple wrapper for geopandas `gdf.geometry.length` for consistency of momepy.
 
     Parameters
     ----------
@@ -168,13 +168,13 @@ def floor_area(gdf, heights, areas=None):
 
     Examples
     --------
-    >>> buildings['floor_area'] = momepy.volume(buildings, heights='height_col')
+    >>> buildings['floor_area'] = momepy.floor_area(buildings, heights='height_col')
     Calculating floor areas...
     Floor areas calculated.
     >>> buildings.floor_area[0]
     2185.672484113309
 
-    >>> buildings['floor_area'] = momepy.volume(buildings, heights='height_col', areas='area_col')
+    >>> buildings['floor_area'] = momepy.floor_area(buildings, heights='height_col', areas='area_col')
     Calculating floor areas...
     Floor areas calculated.
     >>> buildings.floor_area[0]
@@ -362,7 +362,13 @@ def mean_character(gdf, values, spatial_weights, unique_id, rng=None):
 
 def street_profile(left, right, heights=None, distance=10, tick_length=50):
     """
-    Calculates the street profile widths, standard deviation of width, heights, and ratio height/width
+    Calculates the street profile characters.
+
+    Returns a dictionary with widths, standard deviation of width, openness, heights,
+    standard deviation of height and ratio height/width. Algorithm generates perpendicular
+    lines to `right` dataframe features every `distance` and measures values on intersection
+    with features of `left.` If no feature is reached within
+    `tick_length` its value is set as width (being theoretical maximum).
 
     .. math::
         \\
@@ -376,9 +382,9 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
     heights: str, list, np.array, pd.Series (default None)
         the name of the buildings dataframe column, np.array, or pd.Series where is stored building height. If set to None,
         height and ratio height/width will not be calculated.
-    distance : int, optional
+    distance : int (default 10)
         distance between perpendicular ticks
-    tick_length : int, optional
+    tick_length : int (default 50)
         lenght of ticks
 
     Returns
@@ -401,7 +407,11 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
     References
     ----------
     Oliveira V (2013) Morpho: a methodology for assessing urban form. Urban Morphology 17(1): 21–33.
-    Araldi and Fusco...
+
+    Araldi A and Fusco G (2017) Decomposing and Recomposing Urban Fabric: The City from the Pedestrian
+    Point of View. In: Gervasi O, Murgante B, Misra S, et al. (eds), Computational Science and Its
+    Applications – ICCSA 2017, Lecture Notes in Computer Science, Cham: Springer International
+    Publishing, pp. 365–376. Available from: http://link.springer.com/10.1007/978-3-319-62407-5.
 
     Examples
     --------
@@ -411,11 +421,6 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
     Street profile calculated.
     >>> streets_df['width'] = street_profile['widths']
     >>> streets_df['deviations'] = street_profile['width_deviations']
-
-    Notes
-    -----
-    Add explanation of algorithm
-
     """
 
     print('Calculating street profile...')
@@ -626,19 +631,14 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
 
     References
     ----------
-    Jacob
+    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.
+    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.
 
     Examples
     --------
-    >>> buildings_df['w_height'] = momepy.weighted_character(buildings_df, tessellation_df, characters='height', unique_id='uID')
-    Generating weights matrix (Queen) of 3 topological steps...
-    Calculating weighted height...
-    100%|██████████| 144/144 [00:00<00:00, 385.52it/s]
-    Weighted height calculated.
-
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation_df, threshold=100, silence_warnings=True)
-    >>> buildings_df['w_height_100'] = momepy.weighted_character(buildings_df, tessellation_df, characters='height',
-                                                                 unique_id='uID', spatial_weights=sw)
+    >>> buildings_df['w_height_100'] = momepy.weighted_character(buildings_df, values='height', spatial_weights=sw,
+                                                                 unique_id='uID')
     Calculating weighted height...
     100%|██████████| 144/144 [00:00<00:00, 361.60it/s]
     Weighted height calculated.
@@ -663,15 +663,12 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
             building_neighbours = gdf.loc[gdf[unique_id].isin(neighbours)]
 
             if areas is not None:
-                results_list.append((sum(building_neighbours[values]
-                                         * building_neighbours[areas])
-                                    + (row[values] * row[areas]))
-                                    / (sum(building_neighbours[areas]) + row[areas]))
+                results_list.append((sum(building_neighbours[values] * building_neighbours[
+                                    areas]) + (row[values] * row[areas])) / (sum(building_neighbours[areas]) + row[areas]))
             else:
-                results_list.append((sum(building_neighbours[values]
-                                         * building_neighbours.geometry.area)
-                                    + (row[values] * row.geometry.area))
-                                    / (sum(building_neighbours.geometry.area) + row.geometry.area))
+                results_list.append((sum(building_neighbours[values] * building_neighbours.geometry.area
+                                         ) + (row[values] * row.geometry.area)
+                                     ) / (sum(building_neighbours.geometry.area) + row.geometry.area))
         else:
             results_list.append(row[values])
     series = pd.Series(results_list)
@@ -693,7 +690,7 @@ def covered_area(gdf, spatial_weights, unique_id):
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
-    spatial_weights : libpysal.weights, optional
+    spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str
         name of the column with unique id used as spatial_weights index.
@@ -703,11 +700,13 @@ def covered_area(gdf, spatial_weights, unique_id):
     Series
         Series containing resulting values.
 
-    References
-    ----------
-
     Examples
     --------
+    >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
+    >>> tessellation_df['covered3steps'] = mm.covered_area(tessellation_df, sw, 'uID')
+    Calculating covered area...
+    100%|██████████| 144/144 [00:00<00:00, 549.15it/s]
+    Covered area calculated.
 
     """
     # define empty list for results
@@ -744,9 +743,18 @@ def wall(gdf, spatial_weights=None):
     Series
         Series containing resulting values.
 
+    Examples
+    --------
+    >>> buildings_df['wall_length'] = mm.wall(buildings_df)
+    Calculating perimeter wall length...
+    Calculating spatial weights...
+    Spatial weights ready...
+    100%|██████████| 144/144 [00:00<00:00, 4171.39it/s]
+    Perimeter wall length calculated.
+
     Notes
     -----
-    Script is not optimised at all, so it is currently extremely slow.
+    It might take a while to compute this character.
     """
     # define empty list for results
     results_list = []
@@ -810,7 +818,7 @@ def segments_length(gdf, spatial_weights=None, mean=False):
         GeoDataFrame containing streets (edges) to analyse
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on streets (note: based on index, not ID).
+        based on streets (note: spatial_weights shoud be based on index, not unique ID).
     mean : boolean, optional
         If mean=False it will return total length, if mean=True it will return mean value
 
@@ -818,6 +826,14 @@ def segments_length(gdf, spatial_weights=None, mean=False):
     -------
     Series
         Series containing resulting values.
+
+    Examples
+    --------
+    >>> streets_df['length_neighbours'] = mm.segments_length(streets_df, mean=True)
+    Calculating segments length...
+    Calculating spatial weights...
+    Spatial weights ready...
+    Segments length calculated.
     """
     results_list = []
 

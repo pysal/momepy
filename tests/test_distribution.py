@@ -43,7 +43,7 @@ class TestDistribution:
     def test_cell_alignment(self):
         self.df_buildings['orient'] = mm.orientation(self.df_buildings)
         self.df_tessellation['orient'] = mm.orientation(self.df_tessellation)
-        self.df_buildings['c_align'] = mm.cell_alignment(self.df_buildings, self.df_tessellation, 'orient', 'orient', 'uID')
+        self.df_buildings['c_align'] = mm.cell_alignment(self.df_buildings, self.df_tessellation, 'orient', 'orient', 'uID', 'uID')
         check = abs(self.df_buildings['orient'][0] - self.df_tessellation[
             self.df_tessellation['uID'] == self.df_buildings['uID'][0]]['orient'].iloc[0])
         assert self.df_buildings['c_align'][0] == check

@@ -11,7 +11,7 @@ import scipy as sp
 
 def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
     """
-    Calculates the range of values within k steps of morphological tessellation
+    Calculates the range of values within neighbours defined in `spatial_weights`.
 
     Uses `scipy.stats.iqr` under the hood.
 
@@ -41,9 +41,17 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
 
     References
     ----------
+    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.
+    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.
 
     Examples
     --------
+    >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
+    >>> tessellation_df['area_IQR_3steps'] = mm.rng(tessellation_df, 'area', sw, 'uID', rng=(25, 75))
+    Calculating range...
+    100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
+    Range calculated.
+
 
     """
     # define empty list for results
@@ -74,9 +82,9 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
 
 def theil(gdf, values, spatial_weights, unique_id, rng=(0, 100)):
     """
-    Calculates the Theil measure of inequality of values within k steps of morphological tessellation
+    Calculates the Theil measure of inequality of values within neighbours defined in `spatial_weights`.
 
-    Uses `pysal.explore.inequality.theil.Theil` under the hood.
+    Uses `pysal.explore.inequality.theil.Theil` under the hood. Requires `pysal` dependency.
 
     .. math::
 
@@ -100,14 +108,20 @@ def theil(gdf, values, spatial_weights, unique_id, rng=(0, 100)):
     Series
         Series containing resulting values.
 
-    References
-    ----------
-
     Examples
     --------
-
+    >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
+    >>> tessellation_df['area_Theil'] = mm.theil(tessellation_df, 'area', sw, 'uID')
+    Calculating Theil index...
+    100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
+    Theil index calculated.
     """
-    from pysal.explore.inequality.theil import Theil
+    try:
+        from pysal.explore.inequality.theil import Theil
+    except ImportError:
+        raise ImportError(
+            "The 'pysal' package is required.")
+
     # define empty list for results
     results_list = []
     gdf = gdf.copy()
@@ -140,9 +154,9 @@ def theil(gdf, values, spatial_weights, unique_id, rng=(0, 100)):
 
 def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', **classification_kwds):
     """
-    Calculates the Simpson\'s diversity index of values within k steps of morphological tessellation
+    Calculates the Simpson\'s diversity index of values within neighbours defined in `spatial_weights`.
 
-    Uses `mapclassify.classifiers` under the hood for binning.
+    Uses `mapclassify.classifiers` under the hood for binning. Requires `mapclassify>=.2.1.0` dependency.
 
     .. math::
 
@@ -177,10 +191,16 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
 
     References
     ----------
+    Feliciotti A (2018) RESILIENCE AND URBAN DESIGN:A SYSTEMS APPROACH TO THE STUDY OF RESILIENCE
+    IN URBAN FORM. LEARNING FROM THE CASE OF GORBALS. Glasgow.
 
     Examples
     --------
-
+    >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
+    >>> tessellation_df['area_Simpson'] = mm.simpson(tessellation_df, 'area', sw, 'uID')
+    Calculating Simpson's diversity index...
+    100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
+    Simpson's diversity index calculated.
     """
     def simpson_di(data):
 
@@ -238,7 +258,7 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
             neighbours = row[unique_id]
         values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
 
-        sample_bins = mapclassify.classifiers.User_Defined(values_list, bins)
+        sample_bins = mapclassify.classifiers.UserDefined(values_list, bins)
         counts = dict(zip(bins, sample_bins.counts))
         results_list.append(simpson_di(counts))
 
