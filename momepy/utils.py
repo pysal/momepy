@@ -574,7 +574,7 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
     sindex = network.sindex
     print('Building R-tree for buildings...')
     bindex = buildings.sindex
-    if tessellation:
+    if tessellation is not None:
         print('Dissolving tesselation...')
         geometry = tessellation.geometry.unary_union.boundary
 
@@ -605,22 +605,22 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
         # start connected, extend  end
         elif first and not second:
             if extend_line(tolerance_street, idx) is False:
-                if tessellation:
+                if tessellation is not None:
                     extend_line_edge(tolerance_edge, idx)
         # end connected, extend start
         elif not first and second:
             l_coords.reverse()
             if extend_line(tolerance_street, idx) is False:
-                if tessellation:
+                if tessellation is not None:
                     extend_line_edge(tolerance_edge, idx)
         # unconnected, extend both ends
         elif not first and not second:
             if extend_line(tolerance_street, idx) is False:
-                if tessellation:
+                if tessellation is not None:
                     extend_line_edge(tolerance_edge, idx)
             l_coords.reverse()
             if extend_line(tolerance_street, idx) is False:
-                if tessellation:
+                if tessellation is not None:
                     extend_line_edge(tolerance_edge, idx)
         else:
             print('Something went wrong.')
