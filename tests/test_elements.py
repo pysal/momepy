@@ -26,9 +26,9 @@ class TestElements:
         assert sum(snapped.geometry.length) == 5980.041004739525
 
     def test_blocks(self):
-        buildings, cells, blocks = mm.blocks(self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')
-        assert not buildings.bID.isna().any()
-        assert not cells.bID.isna().any()
+        blocks, buildingsID, cellsID = mm.blocks(self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')
+        assert not buildingsID.isna().any()
+        assert not cellsID.isna().any()
         assert len(blocks) == 8
 
     def test_get_network_id(self):
