@@ -545,7 +545,7 @@ def local_closeness(graph, radius=5, name='closeness', distance=None, closeness_
     attribute.
 
     .. math::
-            C_{WF}(u) = \frac{n-1}{N-1} \frac{n - 1}{\sum_{v=1}^{n-1} d(v, u)}
+
 
     Parameters
     ----------
@@ -571,10 +571,12 @@ def local_closeness(graph, radius=5, name='closeness', distance=None, closeness_
 
     References
     ----------
-    Porta
+    Porta S, Crucitti P and Latora V (2006) The network analysis of urban streets: A primal approach.
+    Environment and Planning B: Planning and Design 33(5): 705–725.
 
     Examples
     --------
+    >>> network_graph = mm.local_closeness(network_graph, radius=400, distance='edge_length')
 
     """
     netx = graph
@@ -588,7 +590,7 @@ def local_closeness(graph, radius=5, name='closeness', distance=None, closeness_
 
 def eigenvector(graph, name='eigen', **kwargs):
     """
-    Calculates mean distance to neighbouring nodes.
+    Calculates eigenvector centrality of network.
 
     .. math::
 
@@ -608,11 +610,9 @@ def eigenvector(graph, name='eigen', **kwargs):
     Graph
         networkx.Graph
 
-    References
-    ----------
-
     Examples
     --------
+    >>> network_graph = mm.eigenvector(network_graph)
 
     """
     netx = graph
@@ -643,12 +643,9 @@ def clustering(graph, name='cluster'):
     Graph
         networkx.Graph
 
-    References
-    ----------
-
     Examples
     --------
-
+    >>> network_graph = mm.clustering(network_graph)
     """
     netx = graph
 
