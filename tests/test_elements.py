@@ -21,10 +21,6 @@ class TestElements:
         w = libpysal.weights.Queen.from_dataframe(queen_corners)
         assert w.neighbors[14] == [35, 36, 13, 15, 26, 27, 28, 30, 31]
 
-    def test_snap_street_network_edge(self):
-        snapped = mm.snap_street_network_edge(self.df_streets, self.df_buildings, self.df_tessellation, 20, 70)
-        assert sum(snapped.geometry.length) == 5980.041004739525
-
     def test_blocks(self):
         blocks, buildingsID, cellsID = mm.blocks(self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')
         assert not buildingsID.isna().any()

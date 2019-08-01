@@ -127,7 +127,9 @@ utilities
    gdf_to_nx
    limit_range
    network_false_nodes
+   snap
    nx_to_gdf
    preprocess
+   snap_street_network_edge
    unique_id
    Queen_higher
