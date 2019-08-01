@@ -409,7 +409,7 @@ def network_false_nodes(gdf):
     return streets
 
 
-def snap_street_network_edge(edges, buildings, tessellation, tolerance_street, tolerance_edge):
+def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=None, tolerance_edge=None):
     """
     Fix street network before performing blocks()
 
@@ -421,11 +421,11 @@ def snap_street_network_edge(edges, buildings, tessellation, tolerance_street, t
         GeoDataFrame containing street network
     buildings : GeoDataFrame
         GeoDataFrame containing building footprints
-    tessellation : GeoDataFrame
-        GeoDataFrame containing morphological tessellation
     tolerance_street : float
         tolerance in snapping to street network (by how much could be street segment extended).
-    tolerance_edge : float
+    tessellation : GeoDataFrame (default None)
+        GeoDataFrame containing morphological tessellation
+    tolerance_edge : float (default None)
         tolerance in snapping to edge of tessellated area (by how much could be street segment extended).
 
     Returns
@@ -574,8 +574,9 @@ def snap_street_network_edge(edges, buildings, tessellation, tolerance_street, t
     sindex = network.sindex
     print('Building R-tree for buildings...')
     bindex = buildings.sindex
-    print('Dissolving tesselation...')
-    geometry = tessellation.geometry.unary_union.boundary
+    if tessellation is not None:
+        print('Dissolving tesselation...')
+        geometry = tessellation.geometry.unary_union.boundary
 
     print('Snapping...')
     # iterating over each street segment
@@ -604,19 +605,23 @@ def snap_street_network_edge(edges, buildings, tessellation, tolerance_street, t
         # start connected, extend  end
         elif first and not second:
             if extend_line(tolerance_street, idx) is False:
-                extend_line_edge(tolerance_edge, idx)
+                if tessellation is not None:
+                    extend_line_edge(tolerance_edge, idx)
         # end connected, extend start
         elif not first and second:
             l_coords.reverse()
             if extend_line(tolerance_street, idx) is False:
-                extend_line_edge(tolerance_edge, idx)
+                if tessellation is not None:
+                    extend_line_edge(tolerance_edge, idx)
         # unconnected, extend both ends
         elif not first and not second:
             if extend_line(tolerance_street, idx) is False:
-                extend_line_edge(tolerance_edge, idx)
+                if tessellation is not None:
+                    extend_line_edge(tolerance_edge, idx)
             l_coords.reverse()
             if extend_line(tolerance_street, idx) is False:
-                extend_line_edge(tolerance_edge, idx)
+                if tessellation is not None:
+                    extend_line_edge(tolerance_edge, idx)
         else:
             print('Something went wrong.')
 
