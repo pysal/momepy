@@ -207,8 +207,8 @@ def courtyards(gdf, block_id, spatial_weights=None):
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    block_id : str
-        name of the column where is stored block ID
+    block_id : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored block ID
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on objects. It is to denote adjacent buildings (note: based on index).
@@ -218,14 +218,30 @@ def courtyards(gdf, block_id, spatial_weights=None):
     Series
         Series containing resulting values.
 
+    References
+    ---------
+    Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
+    Journal of Transport and Land Use 9(1): 101–130.
+
+    Examples
+    --------
+    >>> buildings_df['courtyards'] = mm.courtyards(buildings_df, 'bID')
+    Calculating courtyards...
+    Calculating spatial weights...
+    Spatial weights ready...
+    Courtyards calculated.
+
     Notes
     -----
-    Script is not optimised at all, so it is currently extremely slow.
+    Script is not well optimised, so it is currently slow.
     """
     # define empty list for results
     results_list = []
 
     print('Calculating courtyards...')
+    if not isinstance(block_id, str):
+        gdf['mm_bid'] = block_id
+        block_id = 'mm_bid'
 
     # if weights matrix is not passed, generate it from objects
     if spatial_weights is None:
@@ -259,7 +275,7 @@ def courtyards(gdf, block_id, spatial_weights=None):
             try:
                 interiors = len(list(dissolved.interiors))
             except(ValueError):
-                print('Something happened.')
+                print('Something unexpected happened.')
             for b in to_join:
                 courtyards[b] = interiors  # fill dict with values
     # copy values from dict to gdf
@@ -291,7 +307,6 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id):
     unique_id : str
         name of the column with unique id used as spatial_weights index.
 
-
     Returns
     -------
     Series
@@ -302,11 +317,12 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id):
     Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.
     Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.
 
-
     Examples
     --------
-
-
+    >>> sw4 = mm.Queen_higher(k=4, geodataframe='tessellation_df', ids='uID')
+    >>> tessellation_df['blocks_within_4'] = mm.blocks(tessellation_df, 'bID', sw4, 'uID')
+    Calculating blocks...
+    Blocks calculated.
     """
     # define empty list for results
     results_list = []
@@ -370,11 +386,11 @@ def reached(left, right, unique_id, spatial_weights=None, mode='count', values=N
     Series
         Series containing resulting values.
 
-    References
-    ----------
-
     Examples
     --------
+    >>> streets_df['reached_buildings'] = mm.reached(streets_df, buildings_df, 'uID')
+    Calculating reached count...
+    Reached count calculated.
 
     """
     # define empty list for results
@@ -447,9 +463,9 @@ def node_density(left, right, spatial_weights, weighted=False, node_degree=None,
         if True density will take into account node degree as k-1
     node_degree : str
         name of the column of left gdf containing node degree
-    node_start : str
+    node_start : str (default 'node_start')
         name of the column of right gdf containing id of starting node
-    node_end : str
+    node_end : str (default 'node_end')
         name of the column of right gdf containing id of ending node
 
     Returns
@@ -459,10 +475,14 @@ def node_density(left, right, spatial_weights, weighted=False, node_degree=None,
 
     References
     ---------
-    Jacob
+    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.
+    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.
 
-    Notes
-    -----
+    Examples
+    --------
+    >>> nodes['density'] = mm.node_density(nodes, edges, sw)
+    Calculating node density...
+    Node density calculated.
 
     """
     # define empty list for results
@@ -496,7 +516,7 @@ def node_density(left, right, spatial_weights, weighted=False, node_degree=None,
 
 def density(gdf, values, spatial_weights, unique_id, areas=None):
     """
-    Calculate the density
+    Calculate the gross density
 
     .. math::
 
@@ -522,7 +542,14 @@ def density(gdf, values, spatial_weights, unique_id, areas=None):
 
     References
     ---------
-    Jacob??
+    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.
+    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.
+
+    Examples
+    --------
+    >>> tessellation_df['floor_area_dens'] = mm.density(tessellation_df, 'floor_area', sw, 'uID')
+    Calculating gross density...
+    Gross density calculated.
     """
     # define empty list for results
     results_list = []

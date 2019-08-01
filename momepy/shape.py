@@ -25,7 +25,7 @@ def form_factor(gdf, volumes, areas=None):
         GeoDataFrame containing objects
     volumes : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored volume value.
-        (To calculate volume you can use :py:func:`momepy.dimension.volume`)
+        (To calculate volume you can use :py:func:`momepy.volume`)
     areas : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
@@ -1163,13 +1163,11 @@ def compactness_weighted_axis(gdf, areas=None, perimeters=None, longest_axis=Non
     Series
         Series containing resulting values.
 
-    References
-    ---------
-    Resilience project
-
     Examples
     --------
-
+    >>> blocks_df['cwa'] = mm.compactness_weighted_axis(blocks_df)
+    Calculating compactness-weighted axis...
+    Compactness-weighted axis calculated.
     """
 
     print('Calculating compactness-weighted axis...')
