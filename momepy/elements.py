@@ -466,6 +466,7 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
     """
 
     cells_copy = tessellation.copy()
+    cells_copy = cells_copy[[unique_id, 'geometry']]
 
     print('Buffering streets...')
     street_buff = edges.copy()
@@ -541,7 +542,7 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
     tempID_to_uID = centroids_tempID[[unique_id, id_name]]
 
     print('Attribute join (tesselation)...')
-    cells_copy = cells_copy.merge(tempID_to_uID, on=unique_id)
+    cells_copy = cells_copy.merge(tempID_to_uID, on=unique_id, how='left')
 
     print('Generating blocks...')
     blocks = cells_copy.dissolve(by=id_name)
@@ -576,10 +577,10 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
     bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
 
     print('Attribute join (buildings)...')
-    buildings_m = buildings.merge(bl_ID_to_uID, on=unique_id)
+    buildings_m = buildings[[unique_id]].merge(bl_ID_to_uID, on=unique_id, how='left')
 
     print('Attribute join (tesselation)...')
-    cells_m = tessellation.merge(bl_ID_to_uID, on=unique_id)
+    cells_m = tessellation[[unique_id]].merge(bl_ID_to_uID, on=unique_id, how='left')
 
     return (blocks_save, buildings_m[id_name], cells_m[id_name])
 
