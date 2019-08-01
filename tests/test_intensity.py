@@ -18,7 +18,8 @@ class TestIntensity:
         self.df_buildings['area'] = self.df_buildings.geometry.area
         self.df_buildings['fl_area'] = mm.floor_area(self.df_buildings, 'height')
         self.df_buildings['nID'] = mm.get_network_id(self.df_buildings, self.df_streets, 'uID', 'nID')
-        self.df_buildings, self.df_tessellation, self.blocks = mm.blocks(self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')
+        self.blocks, self.df_buildings['bID'], self.df_tessellation['bID'] = mm.blocks(
+            self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')
 
     def test_covered_area_ratio(self):
         car = mm.covered_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'area', 'uID')
