@@ -101,7 +101,7 @@ def orientation(gdf):
                 az = az - 2 * diff
             results_list.append(az)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Orientations calculated.')
     return series
 
@@ -176,7 +176,7 @@ def shared_walls_ratio(gdf, unique_id, perimeters=None):
                 subset = gdf.loc[i]['geometry']
                 length = length + row.geometry.intersection(subset).length
             results_list.append(length / row[perimeters])
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Shared walls ratio calculated.')
 
     return series
@@ -269,7 +269,7 @@ def street_alignment(left, right, orientations, left_network_id, right_network_i
                 diff = az - 45
                 az = az - 2 * diff
             results_list.append(abs(row[orientations] - az))
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=left.index)
 
     print('Street alignments calculated.')
     return series
@@ -331,7 +331,7 @@ def cell_alignment(left, right, left_orientations, right_orientations, left_uniq
 
         results_list.append(abs(row[left_orientations] - right[right[right_unique_id] == row[left_unique_id]][right_orientations].iloc[0]))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=left.index)
 
     print('Cell alignments calculated.')
     return series
@@ -394,7 +394,7 @@ def alignment(gdf, spatial_weights, unique_id, orientations):
         else:
             results_list.append(0)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Alignments calculated.')
     return series
@@ -449,7 +449,7 @@ def neighbour_distance(gdf, spatial_weights, unique_id):
         else:
             results_list.append(0)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Distances calculated.')
     return series
@@ -546,7 +546,7 @@ def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights
             selection = adj_list[adj_list.focal.isin(neighbours)][adj_list.neighbor.isin(neighbours)]
             results_list.append(np.nanmean(selection.distance))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Mean interbuilding distances calculated.')
     return series
 
@@ -615,7 +615,7 @@ def neighbouring_street_orientation_deviation(gdf):
             diff = az - 45
             az = az - 2 * diff
         results_list.append(az)
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     gdf['tmporient'] = series
 
@@ -643,7 +643,7 @@ def neighbouring_street_orientation_deviation(gdf):
         else:
             results_list.append(0)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Street alignments calculated.')
     return series
 
@@ -747,7 +747,7 @@ def building_adjacency(gdf, spatial_weights_higher, unique_id, spatial_weights=N
         else:
             results_list.append(0)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Adjacency calculated.')
     return series
@@ -804,6 +804,6 @@ def neighbours(gdf, spatial_weights, unique_id, weighted=False):
         else:
             neighbours.append(spatial_weights.cardinalities[row[unique_id]])
 
-    series = pd.Series(neighbours)
+    series = pd.Series(neighbours, index=gdf.index)
     print('Neighbours calculated.')
     return series

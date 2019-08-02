@@ -72,7 +72,7 @@ def covered_area_ratio(left, right, left_areas, right_areas, unique_id):
     for index, row in tqdm(objects_merged.iterrows(), total=objects_merged.shape[0]):
         results_list.append(row['lf_area'] / row[left_areas])
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=left.index)
 
     print('Covered area ratio calculated.')
     return series
@@ -135,7 +135,7 @@ def floor_area_ratio(left, right, left_areas, right_areas, unique_id):
     for index, row in tqdm(objects_merged.iterrows(), total=objects_merged.shape[0]):
         results_list.append(row['lf_area'] / row[left_areas])
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=left.index)
 
     print('Floor area ratio calculated.')
     return series
@@ -282,7 +282,7 @@ def courtyards(gdf, block_id, spatial_weights=None):
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         results_list.append(courtyards[index])
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Courtyards calculated.')
     return series
 
@@ -343,7 +343,7 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id):
 
         results_list.append(len(set(list(vicinity[block_id]))) / sum(vicinity.geometry.area))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Blocks calculated.')
     return series
@@ -435,7 +435,7 @@ def reached(left, right, unique_id, spatial_weights=None, mode='count', values=N
             else:
                 results_list.append(np.nanstd(right.loc[right[unique_id].isin(ids)].geometry.area))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=left.index)
 
     print('Reached {} calculated.'.format(mode))
     return series
@@ -509,7 +509,7 @@ def node_density(left, right, spatial_weights, weighted=False, node_degree=None,
         else:
             results_list.append(0)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=left.index)
     print('Node density calculated.')
     return series
 
@@ -580,6 +580,6 @@ def density(gdf, values, spatial_weights, unique_id, areas=None):
 
         results_list.append(sum(values_list) / sum(areas_list))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Gross density calculated.')
     return series

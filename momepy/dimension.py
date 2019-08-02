@@ -354,7 +354,7 @@ def mean_character(gdf, values, spatial_weights, unique_id, rng=None):
             values_list = limit_range(values_list.tolist(), rng=rng)
         results_list.append(np.mean(values_list))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Mean character value calculated.')
     return series
@@ -587,13 +587,13 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
                 heights_deviations_list.append(0)
 
     street_profile = {}
-    street_profile['widths'] = pd.Series(results_list)
-    street_profile['width_deviations'] = pd.Series(deviations_list)
-    street_profile['openness'] = pd.Series(openness_list)
+    street_profile['widths'] = pd.Series(results_list, index=left.index)
+    street_profile['width_deviations'] = pd.Series(deviations_list, index=left.index)
+    street_profile['openness'] = pd.Series(openness_list, index=left.index)
 
     if heights is not None:
-        street_profile['heights'] = pd.Series(heights_list)
-        street_profile['heights_deviations'] = pd.Series(heights_deviations_list)
+        street_profile['heights'] = pd.Series(heights_list, index=left.index)
+        street_profile['heights_deviations'] = pd.Series(heights_deviations_list, index=left.index)
         street_profile['profile'] = street_profile['heights'] / street_profile['widths']
 
     print('Street profile calculated.')
@@ -671,7 +671,7 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
                                      ) / (sum(building_neighbours.geometry.area) + row.geometry.area))
         else:
             results_list.append(row[values])
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Weighted {} calculated.'.format(values))
     return series
@@ -720,7 +720,7 @@ def covered_area(gdf, spatial_weights, unique_id):
         areas = gdf.loc[gdf[unique_id].isin(neighbours)].geometry.area
         results_list.append(sum(areas))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Covered area calculated.')
     return series
@@ -799,7 +799,7 @@ def wall(gdf, spatial_weights=None):
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         results_list.append(walls[index])
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Perimeter wall length calculated.')
     return series
 
@@ -854,6 +854,6 @@ def segments_length(gdf, spatial_weights=None, mean=False):
         else:
             results_list.append(sum(dims))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Segments length calculated.')
     return series

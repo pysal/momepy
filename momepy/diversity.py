@@ -74,7 +74,7 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
 
         results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Range calculated.')
     return series
@@ -146,7 +146,7 @@ def theil(gdf, values, spatial_weights, unique_id, rng=(0, 100)):
             values_list = limit_range(values_list.tolist(), rng=rng)
         results_list.append(Theil(values_list).T)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Theil index calculated.')
     return series
@@ -262,7 +262,7 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
         counts = dict(zip(bins, sample_bins.counts))
         results_list.append(simpson_di(counts))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print("Simpson's diversity index calculated.")
     return series
