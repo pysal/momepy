@@ -694,6 +694,8 @@ def get_network_id(left, right, unique_id, network_id, min_size=100):
 
         return result
 
+    left = left.copy()
+    right = right.copy()
     if not isinstance(unique_id, str):
         left['mm_uid'] = unique_id
         unique_id = 'mm_uid'
@@ -749,10 +751,6 @@ def get_network_id(left, right, unique_id, network_id, min_size=100):
         warnings.warn('Some objects were not attached to the network. '
                       'Set larger min_size. {} affected elements'.format(sum(elements_m[network_id].isnull())))
 
-    if 'mm_uid' in left.columns:
-        left.drop(columns=['mm_uid'], inplace=True)
-    if 'mm_nid' in right.columns:
-        right.drop(columns=['mm_nid'], inplace=True)
     return elements_m[network_id]
 
 
@@ -782,6 +780,7 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
         Series containing node ID for objects
 
     """
+    nodes = nodes.copy()
     if not isinstance(node_id, str):
         nodes['mm_noid'] = node_id
         node_id = 'mm_noid'
@@ -805,5 +804,5 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
             else:
                 results_list.append(startID)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=objects.index)
     return series

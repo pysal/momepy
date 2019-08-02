@@ -751,7 +751,7 @@ def corners(gdf):
 
         results_list.append(corners)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Corners calculated.')
     return series
@@ -842,7 +842,7 @@ def squareness(gdf):
             deviations.append(dev)
         results_list.append(np.mean(deviations))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Squareness calculated.')
     return series
@@ -912,7 +912,7 @@ def equivalent_rectangular_index(gdf, areas=None, perimeters=None):
         bbox = row['geometry'].minimum_rotated_rectangle
         results_list.append(math.sqrt(row[areas] / bbox.area) * (bbox.length / row[perimeters]))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Equivalent rectangular index calculated.')
     return series
@@ -977,7 +977,7 @@ def elongation(gdf):
 
         results_list.append(elo)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Elongation calculated.')
     return series
@@ -1081,8 +1081,8 @@ def centroid_corners(gdf):
         else:
             results_list.append(np.mean(distances))  # calculate mean
             results_list_sd.append(np.std(distances))  # calculate st.dev
-    means = pd.Series(results_list)
-    st_devs = pd.Series(results_list_sd)
+    means = pd.Series(results_list, index=gdf.index)
+    st_devs = pd.Series(results_list_sd, index=gdf.index)
 
     print('Distances centroid - corner calculated.')
     return means, st_devs
@@ -1129,7 +1129,7 @@ def linearity(gdf):
         euclidean = Point(row['geometry'].coords[0]).distance(Point(row['geometry'].coords[-1]))
         results_list.append(euclidean / row['geometry'].length)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Linearity calculated.')
     return series
