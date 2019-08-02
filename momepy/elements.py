@@ -137,28 +137,25 @@ def _regions(voronoi_diagram, unique_id, ids, crs):
     return regions_gdf
 
 
-def _split_lines(polygon, distance, crs):
+def _split_lines(polygon, distance):
     """Split polygon into GeoSeries of lines no longer than `distance`."""
-    dense = _densify(polygon, distance)
-    boundary = dense.boundary
+    list_points = []
+    current_dist = distance  # set the current distance to place the point
 
-    def _pair(coords):
-        '''Iterate over pairs in a list -> pair of points '''
-        for i in range(1, len(coords)):
-            yield coords[i - 1], coords[i]
-
-    segments = []
+    boundary = polygon.boundary  # make shapely MultiLineString object
     if boundary.type == 'LineString':
-        for seg_start, seg_end in _pair(boundary.coords):
-            segment = LineString([seg_start, seg_end])
-            segments.append(segment)
+        line_length = boundary.length  # get the total length of the line
+        while current_dist < line_length:  # while the current cumulative distance is less than the total length of the line
+            list_points.append(boundary.interpolate(current_dist))  # use interpolate and increase the current distance
+            current_dist += distance
     elif boundary.type == 'MultiLineString':
         for ls in boundary:
-            for seg_start, seg_end in _pair(ls.coords):
-                segment = LineString([seg_start, seg_end])
-                segments.append(segment)
+            line_length = ls.length  # get the total length of the line
+            while current_dist < line_length:  # while the current cumulative distance is less than the total length of the line
+                list_points.append(ls.interpolate(current_dist))  # use interpolate and increase the current distance
+                current_dist += distance
 
-    cutted = gpd.GeoSeries(segments, crs=crs)
+    cutted = shapely.ops.split(boundary, shapely.geometry.MultiPoint(list_points).buffer(0.001))
     return cutted
 
 
@@ -168,15 +165,15 @@ def _cut(tessellation, limit, unique_id):
 
     ADD: add option to delete everything outside of limit. Now it keeps it.
     """
-    # cut infinity of voronoi by set buffer (thanks for script to Geoff Boeing)
     print('Preparing buffer zone for edge resolving...')
-    geometry_cut = _split_lines(limit, 100, tessellation.crs)
+    geometry_cut = _split_lines(limit, 100)
 
     print('Building R-tree...')
     sindex = tessellation.sindex
     # find the points that intersect with each subpolygon and add them to points_within_geometry
+    print('Identifying edge cells...')
     to_cut = pd.DataFrame()
-    for poly in geometry_cut:
+    for poly in tqdm(geometry_cut, total=(len(geometry_cut))):
         # find approximate matches with r-tree, then precise matches from those approximate ones
         possible_matches_index = list(sindex.intersection(poly.bounds))
         possible_matches = tessellation.iloc[possible_matches_index]

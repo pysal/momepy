@@ -45,8 +45,8 @@ class TestElements:
 
     def test__split_lines(self):
         large = mm.buffered_limit(self.df_buildings, 100)
-        dense = mm.elements._split_lines(large, 100, self.df_buildings.crs)
+        dense = mm.elements._split_lines(large, 100)
         small = mm.buffered_limit(self.df_buildings, 30)
-        dense2 = mm.elements._split_lines(small, 100, self.df_buildings.crs)
-        assert len(dense) == 273
-        assert len(dense2) == 667
+        dense2 = mm.elements._split_lines(small, 100)
+        assert len(dense) == 53
+        assert len(dense2) == 51
