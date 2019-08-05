@@ -37,3 +37,12 @@ class TestDiversity:
         assert ht_sw[0] == 0.385
         quan_sw = mm.simpson(self.df_tessellation, 'area', self.sw, 'uID', binning='quantiles', k=3)
         assert quan_sw[0] == 0.395
+
+    def test_gini(self):
+        full_sw = mm.gini(self.df_tessellation, 'area', self.sw, 'uID')
+        assert full_sw[0] == 0.39453880038576933
+        limit = mm.gini(self.df_tessellation, 'area', self.sw, 'uID', rng=(10, 90))
+        assert limit[0] == 0.28532814171764387
+        self.df_tessellation['negative'] = self.df_tessellation.area - self.df_tessellation.area.mean()
+        neg = mm.gini(self.df_tessellation, 'negative', self.sw, 'uID')
+        assert neg[0] == 0.43135969210184627
