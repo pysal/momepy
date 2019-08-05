@@ -7,6 +7,7 @@
 from tqdm import tqdm  # progress bar
 import pandas as pd
 import scipy as sp
+import numpy as np
 
 
 def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
@@ -80,7 +81,7 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
     return series
 
 
-def theil(gdf, values, spatial_weights, unique_id, rng=(0, 100)):
+def theil(gdf, values, spatial_weights, unique_id, rng=None):
     """
     Calculates the Theil measure of inequality of values within neighbours defined in `spatial_weights`.
 
@@ -265,4 +266,85 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
     series = pd.Series(results_list, index=gdf.index)
 
     print("Simpson's diversity index calculated.")
+    return series
+
+
+def _gini(vals):
+    """Calculate the Gini coefficient of a numpy array."""
+    # based on bottom eq:
+    # http://www.statsdirect.com/help/generatedimages/equations/equation154.svg
+    # from:
+    # http://www.statsdirect.com/help/default.htm#nonparametric_methods/gini.htm
+    # All values are treated equally, arrays must be 1d:
+    vals = vals.flatten()
+    if np.amin(vals) < 0:
+        # Values cannot be negative:
+        vals -= np.amin(vals)
+    # Values cannot be 0:
+    vals += 0.0000001
+    # Values must be sorted:
+    vals = np.sort(vals)
+    # Index per array element:
+    index = np.arange(1, vals.shape[0] + 1)
+    # Number of array elements:
+    n = vals.shape[0]
+    # Gini coefficient:
+    return ((np.sum((2 * index - n - 1) * vals)) / (n * np.sum(vals)))
+
+
+def gini(gdf, values, spatial_weights, unique_id, rng=None):
+    """
+    Calculates the Gini index of values within neighbours defined in `spatial_weights`.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame
+        GeoDataFrame containing morphological tessellation
+    values : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored character value.
+    spatial_weights : libpysal.weights
+        spatial weights matrix
+    unique_id : str
+        name of the column with unique id used as spatial_weights index
+    rng : Two-element sequence containing floats in range of [0,100], optional
+        Percentiles over which to compute the range. Each must be
+        between 0 and 100, inclusive. The order of the elements is not important.
+
+    Returns
+    -------
+    Series
+        Series containing resulting values.
+
+    Examples
+    --------
+    >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
+    >>> tessellation_df['area_Theil'] = mm.theil(tessellation_df, 'area', sw, 'uID')
+    Calculating Gini index...
+    100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
+    Gini index calculated.
+    """
+    # define empty list for results
+    results_list = []
+    gdf = gdf.copy()
+    print('Calculating Gini index...')
+
+    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        neighbours = spatial_weights.neighbors[row[unique_id]]
+        if neighbours:
+            neighbours.append(row[unique_id])
+
+            values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values].values
+
+            if rng:
+                from momepy import limit_range
+                values_list = np.array(limit_range(values_list, rng=rng))
+            results_list.append(_gini(values_list))
+        else:
+            results_list.append(0)
+    series = pd.Series(results_list, index=gdf.index)
+
+    print('Gini index calculated.')
     return series

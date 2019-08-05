@@ -165,7 +165,7 @@ def _cut(tessellation, limit, unique_id):
 
     ADD: add option to delete everything outside of limit. Now it keeps it.
     """
-    print('Preparing buffer zone for edge resolving...')
+    print('Preparing limit for edge resolving...')
     geometry_cut = _split_lines(limit, 100)
 
     print('Building R-tree...')

@@ -65,14 +65,7 @@ def covered_area_ratio(left, right, left_areas, right_areas, unique_id):
 
     print('Calculating CAR...')
 
-    # define empty list for results
-    results_list = []
-
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects_merged.iterrows(), total=objects_merged.shape[0]):
-        results_list.append(row['lf_area'] / row[left_areas])
-
-    series = pd.Series(results_list, index=left.index)
+    series = objects_merged['lf_area'] / objects_merged[left_areas]
 
     print('Covered area ratio calculated.')
     return series
@@ -128,14 +121,7 @@ def floor_area_ratio(left, right, left_areas, right_areas, unique_id):
 
     print('Calculating FAR...')
 
-    # define empty list for results
-    results_list = []
-
-    # fill new column with the value of area, iterating over rows one by one
-    for index, row in tqdm(objects_merged.iterrows(), total=objects_merged.shape[0]):
-        results_list.append(row['lf_area'] / row[left_areas])
-
-    series = pd.Series(results_list, index=left.index)
+    series = objects_merged['lf_area'] / objects_merged[left_areas]
 
     print('Floor area ratio calculated.')
     return series

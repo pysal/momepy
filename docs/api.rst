@@ -118,6 +118,7 @@ diversity
    rng
    simpson
    theil
+   gini
 
 utilities
 ---------
