@@ -28,13 +28,8 @@ class TestUtils:
         assert from_sw.neighbors[0] == check
         assert from_df.neighbors[0] == check
 
-        with pytest.raises(Warning):
+        with pytest.raises(AttributeError):
             mm.Queen_higher(2, geodataframe=None, weights=None)
-
-        with pytest.raises(ValueError):
-            gdf = self.df_tessellation
-            gdf.index = gdf.index + 20
-            mm.Queen_higher(2, geodataframe=gdf, weights=None)
 
     def test_gdf_to_nx(self):
         nx = mm.gdf_to_nx(self.df_streets)
