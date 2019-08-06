@@ -10,5 +10,6 @@ dependencies:
   - pytest
   - pytest-cov
   - codecov
-  - inequality
   - mapclassify
+  - pip:
+    - inequality
