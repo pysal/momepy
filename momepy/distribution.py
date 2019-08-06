@@ -13,7 +13,7 @@ import statistics
 
 def orientation(gdf):
     """
-    Calculate orientation (azimuth) of object
+    Calculate the orientation of object
 
     Defined as an orientation of the longext axis of bounding rectangle in range 0 - 45.
     It captures the deviation of orientation from cardinal directions.
@@ -101,7 +101,7 @@ def orientation(gdf):
                 az = az - 2 * diff
             results_list.append(az)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Orientations calculated.')
     return series
 
@@ -176,7 +176,7 @@ def shared_walls_ratio(gdf, unique_id, perimeters=None):
                 subset = gdf.loc[i]['geometry']
                 length = length + row.geometry.intersection(subset).length
             results_list.append(length / row[perimeters])
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Shared walls ratio calculated.')
 
     return series
@@ -269,13 +269,13 @@ def street_alignment(left, right, orientations, left_network_id, right_network_i
                 diff = az - 45
                 az = az - 2 * diff
             results_list.append(abs(row[orientations] - az))
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=left.index)
 
     print('Street alignments calculated.')
     return series
 
 
-def cell_alignment(left, right, left_orientations, right_orientations, unique_id):
+def cell_alignment(left, right, left_orientations, right_orientations, left_unique_id, right_unique_id):
     """
     Calculate the difference between cell orientation and orientation of object
 
@@ -294,9 +294,10 @@ def cell_alignment(left, right, left_orientations, right_orientations, unique_id
     right_orientations : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored object orientation value
         (can be calculated using :py:func:`momepy.orientation`)
-    unique_id : str
-        the name of the dataframe column with unique id shared between a cell and a building
-        (must be present in both geodataframes)
+    left_unique_id : str
+        the name of the left dataframe column with unique id shared between left and right gdf
+    right_unique_id : str
+        the name of the right dataframe column with unique id shared between left and right gdf
 
     Returns
     -------
@@ -305,16 +306,13 @@ def cell_alignment(left, right, left_orientations, right_orientations, unique_id
 
     Examples
     --------
-    >>> buildings_df['cell_alignment'] = momepy.cell_alignment(buildings_df, tessellation_df, 'bl_orient', 'tes_orient', 'uID')
+    >>> buildings_df['cell_alignment'] = momepy.cell_alignment(buildings_df, tessellation_df, 'bl_orient', 'tes_orient', 'uID', 'uID')
     Calculating cell alignments...
     100%|██████████| 144/144 [00:00<00:00, 799.09it/s]
     Cell alignments calculated.
     >>> buildings_df['cell_alignment'][0]
     0.8795123936951939
 
-    Notes
-    -----
-    Allow left unique_id and right unique_id.
     """
     print('Calculating cell alignments...')
     left = left.copy()
@@ -331,9 +329,9 @@ def cell_alignment(left, right, left_orientations, right_orientations, unique_id
 
     for index, row in tqdm(left.iterrows(), total=left.shape[0]):
 
-        results_list.append(abs(row[left_orientations] - right[right[unique_id] == row[unique_id]][right_orientations].iloc[0]))
+        results_list.append(abs(row[left_orientations] - right[right[right_unique_id] == row[left_unique_id]][right_orientations].iloc[0]))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=left.index)
 
     print('Cell alignments calculated.')
     return series
@@ -396,7 +394,7 @@ def alignment(gdf, spatial_weights, unique_id, orientations):
         else:
             results_list.append(0)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Alignments calculated.')
     return series
@@ -426,7 +424,7 @@ def neighbour_distance(gdf, spatial_weights, unique_id):
     References
     ---------
     Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
-    Journal of Transport and Land Use 9(1): 101–130.
+    Journal of Transport and Land Use 9(1): 101–130. (adapted)
 
     Examples
     --------
@@ -451,7 +449,7 @@ def neighbour_distance(gdf, spatial_weights, unique_id):
         else:
             results_list.append(0)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Distances calculated.')
     return series
@@ -548,7 +546,7 @@ def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights
             selection = adj_list[adj_list.focal.isin(neighbours)][adj_list.neighbor.isin(neighbours)]
             results_list.append(np.nanmean(selection.distance))
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Mean interbuilding distances calculated.')
     return series
 
@@ -617,7 +615,7 @@ def neighbouring_street_orientation_deviation(gdf):
             diff = az - 45
             az = az - 2 * diff
         results_list.append(az)
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     gdf['tmporient'] = series
 
@@ -645,7 +643,7 @@ def neighbouring_street_orientation_deviation(gdf):
         else:
             results_list.append(0)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
     print('Street alignments calculated.')
     return series
 
@@ -749,7 +747,7 @@ def building_adjacency(gdf, spatial_weights_higher, unique_id, spatial_weights=N
         else:
             results_list.append(0)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=gdf.index)
 
     print('Adjacency calculated.')
     return series
@@ -789,9 +787,8 @@ def neighbours(gdf, spatial_weights, unique_id, weighted=False):
 
     Examples
     --------
-    >>> tessellation_df['neighbours'] = momepy.neighbours(tessellation_df)
-    Calculating spatial weights...
-    Spatial weights ready...
+    >>> sw = libpysal.weights.contiguity.Queen.from_dataframe(tessellation_df, ids='uID')
+    >>> tessellation_df['neighbours'] = momepy.neighbours(tessellation_df, sw, 'uID')
     Calculating neighbours...
     100%|██████████| 144/144 [00:00<00:00, 6909.50it/s]
     Neighbours calculated.
@@ -807,6 +804,6 @@ def neighbours(gdf, spatial_weights, unique_id, weighted=False):
         else:
             neighbours.append(spatial_weights.cardinalities[row[unique_id]])
 
-    series = pd.Series(neighbours)
+    series = pd.Series(neighbours, index=gdf.index)
     print('Neighbours calculated.')
     return series

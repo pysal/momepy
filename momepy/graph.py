@@ -22,7 +22,7 @@ def node_degree(graph, name='degree'):
     graph : networkx.Graph
         Graph representing street network.
         Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
-    name : str, optional
+    name : str(default 'degree')
         calculated attribute name
 
     Returns
@@ -30,12 +30,9 @@ def node_degree(graph, name='degree'):
     Graph
         networkx.Graph
 
-    References
-    ----------
-
     Examples
     --------
-
+    >>> network_graph = mm.node_degree(network_graph)
     """
     netx = graph
 
@@ -77,11 +74,12 @@ def meshedness(graph, radius=5, name='meshedness', distance=None):
 
     References
     ----------
-    Ale, Song et al 2013
+    Feliciotti A (2018) RESILIENCE AND URBAN DESIGN:A SYSTEMS APPROACH TO THE STUDY OF RESILIENCE IN URBAN FORM.
+    LEARNING FROM THE CASE OF GORBALS. Glasgow.
 
     Examples
     --------
-
+    >>> network_graph = mm.meshedness(network_graph, radius=800, distance='edge_length')
     """
     netx = graph
 
@@ -116,11 +114,9 @@ def mean_node_dist(graph, name='meanlen', length='mm_len'):
     Graph
         networkx.Graph
 
-    References
-    ----------
-
     Examples
     --------
+    >>> network_graph = mm.mean_node_dist(network_graph)
 
     """
     netx = graph
@@ -152,6 +148,8 @@ def cds_length(graph, radius=5, mode='sum', name='cds_len', degree='degree', len
         Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
     radius : int
         number of topological steps defining the extent of subgraph
+    mode : str (defualt 'sum')
+        if 'sum', calculate total length, if 'mean' calculate mean length
     name : str, optional
         calculated attribute name
     degree : str
@@ -169,12 +167,9 @@ def cds_length(graph, radius=5, mode='sum', name='cds_len', degree='degree', len
     Graph
         networkx.Graph
 
-    References
-    ----------
-
     Examples
     --------
-
+    >>> network_graph = mm.cds_length(network_graph, radius=9, mode='mean')
     """
     # node degree needed beforehand
     netx = graph
@@ -201,7 +196,7 @@ def cds_length(graph, radius=5, mode='sum', name='cds_len', degree='degree', len
 
 def mean_node_degree(graph, radius=5, name='mean_nd', degree='degree', distance=None):
     """
-    Calculates meshedness for subgraph around each node.
+    Calculates mean node degree for subgraph around each node.
 
     Subgraph is generated around each node within set radius. If distance=None,
     radius will define topological distance, otherwise it uses values in distance
@@ -231,12 +226,9 @@ def mean_node_degree(graph, radius=5, name='mean_nd', degree='degree', distance=
     Graph
         networkx.Graph
 
-    References
-    ----------
-
     Examples
     --------
-
+    >>> network_graph = mm.mean_node_degree(network_graph, radius=3)
     """
     netx = graph
 
@@ -283,12 +275,9 @@ def proportion(graph, radius=5, three=None, four=None, dead=None, degree='degree
     Graph
         networkx.Graph
 
-    References
-    ----------
-
     Examples
     --------
-
+    >>> network_graph = mm.proportion(network_graph, three='threeway', four='fourway', dead='deadends')
     """
     if not three and not four and not dead:
         raise ValueError('Nothing to calculate. Define names for at least one proportion to be calculated: three, four, dead.')
@@ -340,11 +329,12 @@ def cyclomatic(graph, radius=5, name='cyclomatic', distance=None):
 
     References
     ----------
-    Bourdic, Salat, Nowacki 2012 Assessing cities
+    Bourdic L, Salat S and Nowacki C (2012) Assessing cities: a new system of cross-scale spatial indicators.
+    Building Research & Information 40(5): 592–605.
 
     Examples
     --------
-
+    >>> network_graph = mm.cyclomatic(network_graph, radius=3)
     """
     netx = graph
 
@@ -389,11 +379,12 @@ def edge_node_ratio(graph, radius=5, name='edge_node_ratio', distance=None):
 
     References
     ----------
-    Dibble
+    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.
+    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.
 
     Examples
     --------
-
+    >>> network_graph = mm.edge_node_ratio(network_graph, radius=3)
     """
     netx = graph
 
@@ -438,10 +429,12 @@ def gamma(graph, radius=5, name='gamma', distance=None):
 
     References
     ----------
-    Dibble
+    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.
+    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.
 
     Examples
     --------
+    >>> network_graph = mm.gamma(network_graph, radius=3)
 
     """
     netx = graph
@@ -461,6 +454,7 @@ def gamma(graph, radius=5, name='gamma', distance=None):
 def _closeness_centrality(G, u=None, distance=None, wf_improved=True, len_graph=None):
     r"""Compute closeness centrality for nodes. Slight adaptation of networkx
     `closeness_centrality` to allow normalisation for local closeness.
+    Adapted script used in networkx.
 
     Closeness centrality [1]_ of a node `u` is the reciprocal of the
     average shortest path distance to `u` over all `n-1` reachable nodes.
@@ -507,27 +501,6 @@ def _closeness_centrality(G, u=None, distance=None, wf_improved=True, len_graph=
     -------
     nodes : dictionary
       Dictionary of nodes with closeness centrality as the value.
-
-    See Also
-    --------
-    betweenness_centrality, load_centrality, eigenvector_centrality,
-    degree_centrality
-
-    Notes
-    -----
-    The closeness centrality is normalized to `(n-1)/(|G|-1)` where
-    `n` is the number of nodes in the connected part of graph
-    containing the node.  If the graph is not completely connected,
-    this algorithm computes the closeness centrality for each
-    connected part separately scaled by that parts size.
-
-    If the 'distance' keyword is set to an edge attribute key then the
-    shortest-path length will be computed using Dijkstra's algorithm with
-    that edge attribute as the edge weight.
-
-    In NetworkX 2.2 and earlier a bug caused Dijkstra's algorithm to use the
-    outward distance rather than the inward distance. If you use a 'distance'
-    keyword and a DiGraph, your results will change between v2.2 and v2.3.
 
     References
     ----------
@@ -598,10 +571,12 @@ def local_closeness(graph, radius=5, name='closeness', distance=None, closeness_
 
     References
     ----------
-    Porta
+    Porta S, Crucitti P and Latora V (2006) The network analysis of urban streets: A primal approach.
+    Environment and Planning B: Planning and Design 33(5): 705–725.
 
     Examples
     --------
+    >>> network_graph = mm.local_closeness(network_graph, radius=400, distance='edge_length')
 
     """
     netx = graph
@@ -615,7 +590,7 @@ def local_closeness(graph, radius=5, name='closeness', distance=None, closeness_
 
 def eigenvector(graph, name='eigen', **kwargs):
     """
-    Calculates mean distance to neighbouring nodes.
+    Calculates eigenvector centrality of network.
 
     .. math::
 
@@ -635,11 +610,9 @@ def eigenvector(graph, name='eigen', **kwargs):
     Graph
         networkx.Graph
 
-    References
-    ----------
-
     Examples
     --------
+    >>> network_graph = mm.eigenvector(network_graph)
 
     """
     netx = graph
@@ -670,12 +643,9 @@ def clustering(graph, name='cluster'):
     Graph
         networkx.Graph
 
-    References
-    ----------
-
     Examples
     --------
-
+    >>> network_graph = mm.clustering(network_graph)
     """
     netx = graph
 

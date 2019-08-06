@@ -18,8 +18,8 @@ import sphinx_bootstrap_theme
 
 sys.path.insert(0, os.path.abspath('../../'))
 
-autodoc_mock_imports = ['numpy', 'scipy', 'pandas', 'shapely', 'rtree',
-                        'geopandas', 'tqdm', 'osmnx',
+autodoc_mock_imports = ['numpy', 'scipy', 'pandas', 'shapely',
+                        'geopandas', 'tqdm', 'rtree', 'osmnx',
                         'libpysal', 'networkx', 'osgeo']
 
 # class Mock(object):
@@ -57,7 +57,7 @@ author = 'Martin Fleischmann'
 # The short X.Y version
 version = '0.1'
 # The full version, including alpha/beta/rc tags
-release = '0.1alpha'
+release = '0.1.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -176,8 +176,10 @@ html_theme_options = {
     'navbar_links': [
                     # ("Gallery", "auto_examples/index"),
                     ("Installation", "install"),
-                    ("Tutorial", "tutorial"),
+                    ("User Guide", "https://guide.momepy.org/intro"),
                     ("API", "api"),
+                    ("Contributing", "contributing"),
+                    ("References", "references"),
     ],
 }
 

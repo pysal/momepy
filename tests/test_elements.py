@@ -21,14 +21,10 @@ class TestElements:
         w = libpysal.weights.Queen.from_dataframe(queen_corners)
         assert w.neighbors[14] == [35, 36, 13, 15, 26, 27, 28, 30, 31]
 
-    def test_snap_street_network_edge(self):
-        snapped = mm.snap_street_network_edge(self.df_streets, self.df_buildings, self.df_tessellation, 20, 70)
-        assert sum(snapped.geometry.length) == 5980.041004739525
-
     def test_blocks(self):
-        buildings, cells, blocks = mm.blocks(self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')
-        assert not buildings.bID.isna().any()
-        assert not cells.bID.isna().any()
+        blocks, buildingsID, cellsID = mm.blocks(self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')
+        assert not buildingsID.isna().any()
+        assert not cellsID.isna().any()
         assert len(blocks) == 8
 
     def test_get_network_id(self):
@@ -49,8 +45,8 @@ class TestElements:
 
     def test__split_lines(self):
         large = mm.buffered_limit(self.df_buildings, 100)
-        dense = mm.elements._split_lines(large, 100, self.df_buildings.crs)
+        dense = mm.elements._split_lines(large, 100)
         small = mm.buffered_limit(self.df_buildings, 30)
-        dense2 = mm.elements._split_lines(small, 100, self.df_buildings.crs)
-        assert len(dense) == 273
-        assert len(dense2) == 667
+        dense2 = mm.elements._split_lines(small, 100)
+        assert len(dense) == 53
+        assert len(dense2) == 51

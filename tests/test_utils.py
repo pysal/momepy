@@ -73,3 +73,9 @@ class TestUtils:
         self.false_network = gpd.read_file(test_file_path2, layer='network')
         fixed = mm.network_false_nodes(self.false_network)
         assert len(fixed) == 55
+
+    def test_snap_street_network_edge(self):
+        snapped = mm.snap_street_network_edge(self.df_streets, self.df_buildings, 20, self.df_tessellation, 70)
+        snapped_nonedge = mm.snap_street_network_edge(self.df_streets, self.df_buildings, 20)
+        assert sum(snapped.geometry.length) == 5980.041004739525
+        assert sum(snapped_nonedge.geometry.length) < 5980.041004739525

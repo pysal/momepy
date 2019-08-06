@@ -3,12 +3,13 @@
 
 import geopandas as gpd
 import libpysal
-from shapely.geometry import Point
+from shapely.geometry import Point, LineString
 import networkx as nx
 import numpy as np
 from tqdm import tqdm
 import operator
 import shapely
+import math
 
 from .shape import circular_compactness
 
@@ -406,3 +407,222 @@ def network_false_nodes(gdf):
     geoms_gdf.crs = streets.crs
     streets = geoms_gdf
     return streets
+
+
+def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=None, tolerance_edge=None):
+    """
+    Fix street network before performing blocks()
+
+    Extends unjoined ends of street segments to join with other segmets or tessellation boundary.
+
+    Parameters
+    ----------
+    edges : GeoDataFrame
+        GeoDataFrame containing street network
+    buildings : GeoDataFrame
+        GeoDataFrame containing building footprints
+    tolerance_street : float
+        tolerance in snapping to street network (by how much could be street segment extended).
+    tessellation : GeoDataFrame (default None)
+        GeoDataFrame containing morphological tessellation
+    tolerance_edge : float (default None)
+        tolerance in snapping to edge of tessellated area (by how much could be street segment extended).
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame of extended street network.
+
+    """
+    # extrapolating function - makes line as a extrapolation of existing with set length (tolerance)
+    def getExtrapoledLine(p1, p2, tolerance):
+        """
+        Creates a line extrapoled in p1->p2 direction.
+        """
+        EXTRAPOL_RATIO = tolerance  # length of a line
+        a = p2
+
+        # defining new point based on the vector between existing points
+        if p1[0] >= p2[0] and p1[1] >= p2[1]:
+            b = (p2[0] - EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
+                 p2[1] - EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
+        elif p1[0] <= p2[0] and p1[1] >= p2[1]:
+            b = (p2[0] + EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
+                 p2[1] - EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
+        elif p1[0] <= p2[0] and p1[1] <= p2[1]:
+            b = (p2[0] + EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
+                 p2[1] + EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
+        else:
+            b = (p2[0] - EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
+                 p2[1] + EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
+        return LineString([a, b])
+
+    # function extending line to closest object within set distance
+    def extend_line(tolerance, idx):
+        """
+        Extends a line geometry withing GeoDataFrame to snap on itself withing tolerance.
+        """
+        if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
+            if len(l_coords) > 2:
+                extra = l_coords[-3:-1]
+            else:
+                return False
+        else:
+            extra = l_coords[-2:]
+        extrapolation = getExtrapoledLine(*extra, tolerance=tolerance)  # we use the last two points
+
+        possible_intersections_index = list(sindex.intersection(extrapolation.bounds))
+        possible_intersections_lines = network.iloc[possible_intersections_index]
+        possible_intersections_clean = possible_intersections_lines.drop(idx, axis=0)
+        possible_intersections = possible_intersections_clean.intersection(extrapolation)
+
+        if possible_intersections.any():
+
+            true_int = []
+            for one in list(possible_intersections.index):
+                if possible_intersections[one].type == 'Point':
+                    true_int.append(possible_intersections[one])
+                elif possible_intersections[one].type == 'MultiPoint':
+                    true_int.append(possible_intersections[one][0])
+                    true_int.append(possible_intersections[one][1])
+
+            if len(true_int) >= 1:
+                if len(true_int) > 1:
+                    distances = {}
+                    ix = 0
+                    for p in true_int:
+                        distance = p.distance(Point(l_coords[-1]))
+                        distances[ix] = distance
+                        ix = ix + 1
+                    minimal = min(distances.items(), key=operator.itemgetter(1))[0]
+                    new_point_coords = true_int[minimal].coords[0]
+                else:
+                    new_point_coords = true_int[0].coords[0]
+
+                l_coords.append(new_point_coords)
+                new_extended_line = LineString(l_coords)
+
+                # check whether the line goes through buildings. if so, ignore it
+                possible_buildings_index = list(bindex.intersection(new_extended_line.bounds))
+                possible_buildings = buildings.iloc[possible_buildings_index]
+                possible_intersections = possible_buildings.intersection(new_extended_line)
+
+                if possible_intersections.any():
+                    pass
+                else:
+                    network.loc[idx, 'geometry'] = new_extended_line
+        else:
+            return False
+
+    # function extending line to closest object within set distance to edge defined by tessellation
+    def extend_line_edge(tolerance, idx):
+        """
+        Extends a line geometry withing GeoDataFrame to snap on the boundary of tessellation withing tolerance.
+        """
+        if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
+            if len(l_coords) > 2:
+                extra = l_coords[-3:-1]
+            else:
+                return False
+        else:
+            extra = l_coords[-2:]
+        extrapolation = getExtrapoledLine(*extra, tolerance)  # we use the last two points
+
+        # possible_intersections_index = list(qindex.intersection(extrapolation.bounds))
+        # possible_intersections_lines = geometry_cut.iloc[possible_intersections_index]
+        possible_intersections = geometry.intersection(extrapolation)
+
+        if possible_intersections.type != 'GeometryCollection':
+
+            true_int = []
+
+            if possible_intersections.type == 'Point':
+                true_int.append(possible_intersections)
+            elif possible_intersections.type == 'MultiPoint':
+                true_int.append(possible_intersections[0])
+                true_int.append(possible_intersections[1])
+
+            if len(true_int) >= 1:
+                if len(true_int) > 1:
+                    distances = {}
+                    ix = 0
+                    for p in true_int:
+                        distance = p.distance(Point(l_coords[-1]))
+                        distances[ix] = distance
+                        ix = ix + 1
+                    minimal = min(distances.items(), key=operator.itemgetter(1))[0]
+                    new_point_coords = true_int[minimal].coords[0]
+                else:
+                    new_point_coords = true_int[0].coords[0]
+
+                l_coords.append(new_point_coords)
+                new_extended_line = LineString(l_coords)
+
+                # check whether the line goes through buildings. if so, ignore it
+                possible_buildings_index = list(bindex.intersection(new_extended_line.bounds))
+                possible_buildings = buildings.iloc[possible_buildings_index]
+                possible_intersections = possible_buildings.intersection(new_extended_line)
+
+                if possible_intersections.any():
+                    pass
+                else:
+                    network.loc[idx, 'geometry'] = new_extended_line
+
+    network = edges.copy()
+    # generating spatial index (rtree)
+    print('Building R-tree for network...')
+    sindex = network.sindex
+    print('Building R-tree for buildings...')
+    bindex = buildings.sindex
+    if tessellation is not None:
+        print('Dissolving tesselation...')
+        geometry = tessellation.geometry.unary_union.boundary
+
+    print('Snapping...')
+    # iterating over each street segment
+    for idx, row in tqdm(network.iterrows(), total=network.shape[0]):
+
+        line = row['geometry']
+        l_coords = list(line.coords)
+        # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont intersect itself
+        start = Point(l_coords[0])
+        end = Point(l_coords[-1])
+
+        # find out whether ends of the line are connected or not
+        possible_first_index = list(sindex.intersection(start.bounds))
+        possible_first_matches = network.iloc[possible_first_index]
+        possible_first_matches_clean = possible_first_matches.drop(idx, axis=0)
+        first = possible_first_matches_clean.intersects(start).any()
+
+        possible_second_index = list(sindex.intersection(end.bounds))
+        possible_second_matches = network.iloc[possible_second_index]
+        possible_second_matches_clean = possible_second_matches.drop(idx, axis=0)
+        second = possible_second_matches_clean.intersects(end).any()
+
+        # both ends connected, do nothing
+        if first and second:
+            continue
+        # start connected, extend  end
+        elif first and not second:
+            if extend_line(tolerance_street, idx) is False:
+                if tessellation is not None:
+                    extend_line_edge(tolerance_edge, idx)
+        # end connected, extend start
+        elif not first and second:
+            l_coords.reverse()
+            if extend_line(tolerance_street, idx) is False:
+                if tessellation is not None:
+                    extend_line_edge(tolerance_edge, idx)
+        # unconnected, extend both ends
+        elif not first and not second:
+            if extend_line(tolerance_street, idx) is False:
+                if tessellation is not None:
+                    extend_line_edge(tolerance_edge, idx)
+            l_coords.reverse()
+            if extend_line(tolerance_street, idx) is False:
+                if tessellation is not None:
+                    extend_line_edge(tolerance_edge, idx)
+        else:
+            print('Something went wrong.')
+
+    return network

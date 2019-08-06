@@ -85,11 +85,10 @@ intensity
 
    blocks_count
    courtyards
-   covered_area_ratio
    density
    elements_count
-   floor_area_ratio
    node_density
+   object_area_ratio
    reached
 
 graph
@@ -118,6 +117,7 @@ diversity
    rng
    simpson
    theil
+   gini
 
 utilities
 ---------
@@ -129,5 +129,6 @@ utilities
    network_false_nodes
    nx_to_gdf
    preprocess
+   snap_street_network_edge
    unique_id
    Queen_higher

@@ -33,6 +33,12 @@ def buffered_limit(gdf, buffer=100):
     MultiPolygon
         MultiPolygon or Polygon defining the study area
 
+    Examples
+    --------
+    >>> limit = mm.buffered_limit(buildings_df)
+    >>> type(limit)
+    shapely.geometry.polygon.Polygon
+
     """
     study_area = gdf.copy()
     study_area['geometry'] = study_area.buffer(buffer)
@@ -130,27 +136,25 @@ def _regions(voronoi_diagram, unique_id, ids, crs):
     return regions_gdf
 
 
-def _split_lines(polygon, distance, crs):
-    dense = _densify(polygon, distance)
-    boundary = dense.boundary
+def _split_lines(polygon, distance):
+    """Split polygon into GeoSeries of lines no longer than `distance`."""
+    list_points = []
+    current_dist = distance  # set the current distance to place the point
 
-    def _pair(coords):
-        '''Iterate over pairs in a list -> pair of points '''
-        for i in range(1, len(coords)):
-            yield coords[i - 1], coords[i]
-
-    segments = []
+    boundary = polygon.boundary  # make shapely MultiLineString object
     if boundary.type == 'LineString':
-        for seg_start, seg_end in _pair(boundary.coords):
-            segment = LineString([seg_start, seg_end])
-            segments.append(segment)
+        line_length = boundary.length  # get the total length of the line
+        while current_dist < line_length:  # while the current cumulative distance is less than the total length of the line
+            list_points.append(boundary.interpolate(current_dist))  # use interpolate and increase the current distance
+            current_dist += distance
     elif boundary.type == 'MultiLineString':
         for ls in boundary:
-            for seg_start, seg_end in _pair(ls.coords):
-                segment = LineString([seg_start, seg_end])
-                segments.append(segment)
+            line_length = ls.length  # get the total length of the line
+            while current_dist < line_length:  # while the current cumulative distance is less than the total length of the line
+                list_points.append(ls.interpolate(current_dist))  # use interpolate and increase the current distance
+                current_dist += distance
 
-    cutted = gpd.GeoSeries(segments, crs=crs)
+    cutted = shapely.ops.split(boundary, shapely.geometry.MultiPoint(list_points).buffer(0.001))
     return cutted
 
 
@@ -160,15 +164,15 @@ def _cut(tessellation, limit, unique_id):
 
     ADD: add option to delete everything outside of limit. Now it keeps it.
     """
-    # cut infinity of voronoi by set buffer (thanks for script to Geoff Boeing)
-    print('Preparing buffer zone for edge resolving...')
-    geometry_cut = _split_lines(limit, 100, tessellation.crs)
+    print('Preparing limit for edge resolving...')
+    geometry_cut = _split_lines(limit, 100)
 
     print('Building R-tree...')
     sindex = tessellation.sindex
     # find the points that intersect with each subpolygon and add them to points_within_geometry
+    print('Identifying edge cells...')
     to_cut = pd.DataFrame()
-    for poly in geometry_cut:
+    for poly in tqdm(geometry_cut, total=(len(geometry_cut))):
         # find approximate matches with r-tree, then precise matches from those approximate ones
         possible_matches_index = list(sindex.intersection(poly.bounds))
         possible_matches = tessellation.iloc[possible_matches_index]
@@ -324,6 +328,30 @@ def tessellation(gdf, unique_id, limit, shrink=0.4, segment=0.5, queen_corners=F
     GeoDataFrame
         GeoDataFrame of morphological tessellation with the unique id based on original buildings.
 
+    Examples
+    --------
+    >>> tessellation_df = mm.tessellation(buildings_df, 'uID', limit=mm.buffered_limit(buildings_df))
+    Bufferring geometry...
+    Converting multipart geometry to singlepart...
+    Densifying geometry...
+    Generating input point array...
+    100%|██████████| 144/144 [00:00<00:00, 376.15it/s]
+    Generating Voronoi diagram...
+    Generating GeoDataFrame...
+    Vertices to Polygons: 100%|██████████| 33059/33059 [00:01<00:00, 31532.72it/s]
+    Dissolving Voronoi polygons...
+    Preparing buffer zone for edge resolving...
+    Building R-tree...
+    100%|██████████| 42/42 [00:00<00:00, 752.54it/s]
+    Cutting...
+    >>> tessellation_df2.head()
+        uID	geometry
+    0	1	POLYGON ((1603586.677274485 6464344.667944215,...
+    1	2	POLYGON ((1603048.399497852 6464176.180701573,...
+    2	3	POLYGON ((1603071.342637536 6464158.863329805,...
+    3	4	POLYGON ((1603055.834005827 6464093.614718676,...
+    4	5	POLYGON ((1603106.417554705 6464130.215958447,...
+
     Notes
     -------
     queen_corners and sensitivity are currently experimental only and can cause errors.
@@ -376,220 +404,6 @@ def tessellation(gdf, unique_id, limit, shrink=0.4, segment=0.5, queen_corners=F
     return morphological_tessellation
 
 
-def snap_street_network_edge(edges, buildings, tessellation, tolerance_street, tolerance_edge):
-    """
-    Fix street network before performing blocks()
-
-    Extends unjoined ends of street segments to join with other segmets or tessellation boundary.
-
-    Parameters
-    ----------
-    edges : GeoDataFrame
-        GeoDataFrame containing street network
-    buildings : GeoDataFrame
-        GeoDataFrame containing building footprints
-    tessellation : GeoDataFrame
-        GeoDataFrame containing morphological tessellation
-    tolerance_street : float
-        tolerance in snapping to street network (by how much could be street segment extended).
-    tolerance_edge : float
-        tolerance in snapping to edge of tessellated area (by how much could be street segment extended).
-
-    Returns
-    -------
-    GeoDataFrame
-        GeoDataFrame of extended street network.
-
-    """
-    # extrapolating function - makes line as a extrapolation of existing with set length (tolerance)
-    def getExtrapoledLine(p1, p2, tolerance):
-        """
-        Creates a line extrapoled in p1->p2 direction.
-        """
-        EXTRAPOL_RATIO = tolerance  # length of a line
-        a = p2
-
-        # defining new point based on the vector between existing points
-        if p1[0] >= p2[0] and p1[1] >= p2[1]:
-            b = (p2[0] - EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
-                 p2[1] - EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
-        elif p1[0] <= p2[0] and p1[1] >= p2[1]:
-            b = (p2[0] + EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
-                 p2[1] - EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
-        elif p1[0] <= p2[0] and p1[1] <= p2[1]:
-            b = (p2[0] + EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
-                 p2[1] + EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
-        else:
-            b = (p2[0] - EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
-                 p2[1] + EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
-        return LineString([a, b])
-
-    # function extending line to closest object within set distance
-    def extend_line(tolerance, idx):
-        """
-        Extends a line geometry withing GeoDataFrame to snap on itself withing tolerance.
-        """
-        if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
-            if len(l_coords) > 2:
-                extra = l_coords[-3:-1]
-            else:
-                return False
-        else:
-            extra = l_coords[-2:]
-        extrapolation = getExtrapoledLine(*extra, tolerance=tolerance)  # we use the last two points
-
-        possible_intersections_index = list(sindex.intersection(extrapolation.bounds))
-        possible_intersections_lines = network.iloc[possible_intersections_index]
-        possible_intersections_clean = possible_intersections_lines.drop(idx, axis=0)
-        possible_intersections = possible_intersections_clean.intersection(extrapolation)
-
-        if possible_intersections.any():
-
-            true_int = []
-            for one in list(possible_intersections.index):
-                if possible_intersections[one].type == 'Point':
-                    true_int.append(possible_intersections[one])
-                elif possible_intersections[one].type == 'MultiPoint':
-                    true_int.append(possible_intersections[one][0])
-                    true_int.append(possible_intersections[one][1])
-
-            if len(true_int) >= 1:
-                if len(true_int) > 1:
-                    distances = {}
-                    ix = 0
-                    for p in true_int:
-                        distance = p.distance(Point(l_coords[-1]))
-                        distances[ix] = distance
-                        ix = ix + 1
-                    minimal = min(distances.items(), key=operator.itemgetter(1))[0]
-                    new_point_coords = true_int[minimal].coords[0]
-                else:
-                    new_point_coords = true_int[0].coords[0]
-
-                l_coords.append(new_point_coords)
-                new_extended_line = LineString(l_coords)
-
-                # check whether the line goes through buildings. if so, ignore it
-                possible_buildings_index = list(bindex.intersection(new_extended_line.bounds))
-                possible_buildings = buildings.iloc[possible_buildings_index]
-                possible_intersections = possible_buildings.intersection(new_extended_line)
-
-                if possible_intersections.any():
-                    pass
-                else:
-                    network.loc[idx, 'geometry'] = new_extended_line
-        else:
-            return False
-
-    # function extending line to closest object within set distance to edge defined by tessellation
-    def extend_line_edge(tolerance, idx):
-        """
-        Extends a line geometry withing GeoDataFrame to snap on the boundary of tessellation withing tolerance.
-        """
-        if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
-            if len(l_coords) > 2:
-                extra = l_coords[-3:-1]
-            else:
-                return False
-        else:
-            extra = l_coords[-2:]
-        extrapolation = getExtrapoledLine(*extra, tolerance)  # we use the last two points
-
-        # possible_intersections_index = list(qindex.intersection(extrapolation.bounds))
-        # possible_intersections_lines = geometry_cut.iloc[possible_intersections_index]
-        possible_intersections = geometry.intersection(extrapolation)
-
-        if possible_intersections.type != 'GeometryCollection':
-
-            true_int = []
-
-            if possible_intersections.type == 'Point':
-                true_int.append(possible_intersections)
-            elif possible_intersections.type == 'MultiPoint':
-                true_int.append(possible_intersections[0])
-                true_int.append(possible_intersections[1])
-
-            if len(true_int) >= 1:
-                if len(true_int) > 1:
-                    distances = {}
-                    ix = 0
-                    for p in true_int:
-                        distance = p.distance(Point(l_coords[-1]))
-                        distances[ix] = distance
-                        ix = ix + 1
-                    minimal = min(distances.items(), key=operator.itemgetter(1))[0]
-                    new_point_coords = true_int[minimal].coords[0]
-                else:
-                    new_point_coords = true_int[0].coords[0]
-
-                l_coords.append(new_point_coords)
-                new_extended_line = LineString(l_coords)
-
-                # check whether the line goes through buildings. if so, ignore it
-                possible_buildings_index = list(bindex.intersection(new_extended_line.bounds))
-                possible_buildings = buildings.iloc[possible_buildings_index]
-                possible_intersections = possible_buildings.intersection(new_extended_line)
-
-                if possible_intersections.any():
-                    pass
-                else:
-                    network.loc[idx, 'geometry'] = new_extended_line
-
-    network = edges.copy()
-    # generating spatial index (rtree)
-    print('Building R-tree for network...')
-    sindex = network.sindex
-    print('Building R-tree for buildings...')
-    bindex = buildings.sindex
-    print('Dissolving tesselation...')
-    geometry = tessellation.geometry.unary_union.boundary
-
-    print('Snapping...')
-    # iterating over each street segment
-    for idx, row in tqdm(network.iterrows(), total=network.shape[0]):
-
-        line = row['geometry']
-        l_coords = list(line.coords)
-        # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont intersect itself
-        start = Point(l_coords[0])
-        end = Point(l_coords[-1])
-
-        # find out whether ends of the line are connected or not
-        possible_first_index = list(sindex.intersection(start.bounds))
-        possible_first_matches = network.iloc[possible_first_index]
-        possible_first_matches_clean = possible_first_matches.drop(idx, axis=0)
-        first = possible_first_matches_clean.intersects(start).any()
-
-        possible_second_index = list(sindex.intersection(end.bounds))
-        possible_second_matches = network.iloc[possible_second_index]
-        possible_second_matches_clean = possible_second_matches.drop(idx, axis=0)
-        second = possible_second_matches_clean.intersects(end).any()
-
-        # both ends connected, do nothing
-        if first and second:
-            continue
-        # start connected, extend  end
-        elif first and not second:
-            if extend_line(tolerance_street, idx) is False:
-                extend_line_edge(tolerance_edge, idx)
-        # end connected, extend start
-        elif not first and second:
-            l_coords.reverse()
-            if extend_line(tolerance_street, idx) is False:
-                extend_line_edge(tolerance_edge, idx)
-        # unconnected, extend both ends
-        elif not first and not second:
-            if extend_line(tolerance_street, idx) is False:
-                extend_line_edge(tolerance_edge, idx)
-            l_coords.reverse()
-            if extend_line(tolerance_street, idx) is False:
-                extend_line_edge(tolerance_edge, idx)
-        else:
-            print('Something went wrong.')
-
-    return network
-
-
 def blocks(tessellation, edges, buildings, id_name, unique_id):
     """
     Generate blocks based on buildings, tesselation and street network
@@ -612,17 +426,43 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
 
     Returns
     -------
-    buildings, cells, blocks : tuple
+    blocks, buildings_ID, cells_ID : tuple
 
-    buildings : GeoDataFrame
-        GeoDataFrame containing buildings with added block ID
-    cells : GeoDataFrame
-        GeoDataFrame containing morphological tessellation with added block ID
     blocks : GeoDataFrame
         GeoDataFrame containing generated blocks
+    buildings_ID : Series
+        Series derived from buildings with block ID
+    cells_ID : Series
+        Series derived from morphological tessellation with block ID
+
+    Examples
+    --------
+    >>> blocks, buildings_df['blockID'], tessellation_df['blockID'] = mm.blocks(tessellation_df, streets_df, buildings_df, 'bID', 'uID')
+    Buffering streets...
+    Generating spatial index...
+    Difference...
+    Defining adjacency...
+    Defining street-based blocks...
+    Defining block ID...
+    Generating centroids...
+    Spatial join...
+    Attribute join (tesselation)...
+    Generating blocks...
+    Multipart to singlepart...
+    Attribute join (buildings)...
+    Attribute join (tesselation)...
+    >>> blocks.head()
+        bID	geometry
+    0	1.0	POLYGON ((1603560.078648818 6464202.366899694,...
+    1	2.0	POLYGON ((1603457.225976106 6464299.454696888,...
+    2	3.0	POLYGON ((1603056.595487018 6464093.903488506,...
+    3	4.0	POLYGON ((1603260.943782872 6464141.327631323,...
+    4	5.0	POLYGON ((1603183.399594798 6463966.109982309,...
+
     """
 
     cells_copy = tessellation.copy()
+    cells_copy = cells_copy[[unique_id, 'geometry']]
 
     print('Buffering streets...')
     street_buff = edges.copy()
@@ -681,21 +521,16 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
 
     print('Defining street-based blocks...')
     blocks_single = blocks_gdf.dissolve(by='patch')
+    blocks_single.crs = buildings.crs
 
     blocks_single['geometry'] = blocks_single.buffer(0.1)
 
     print('Defining block ID...')  # street based
-    blocks_single[id_name] = None
-    blocks_single[id_name] = blocks_single[id_name].astype('float')
-    b_id = 1
-    for idx, row in tqdm(blocks_single.iterrows(), total=blocks_single.shape[0]):
-        blocks_single.loc[idx, id_name] = b_id
-        b_id = b_id + 1
+    blocks_single[id_name] = range(len(blocks_single))
 
     print('Generating centroids...')
     buildings_c = buildings.copy()
-    buildings_c['geometry'] = buildings_c.representative_point()  # make centroids
-    blocks_single.crs = buildings.crs
+    buildings_c['geometry'] = buildings_c.representative_point()  # make points
 
     print('Spatial join...')
     centroids_tempID = gpd.sjoin(buildings_c, blocks_single, how='left', op='intersects')
@@ -703,22 +538,19 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
     tempID_to_uID = centroids_tempID[[unique_id, id_name]]
 
     print('Attribute join (tesselation)...')
-    cells_copy = cells_copy.merge(tempID_to_uID, on=unique_id)
+    cells_copy = cells_copy.merge(tempID_to_uID, on=unique_id, how='left')
 
     print('Generating blocks...')
     blocks = cells_copy.dissolve(by=id_name)
-    cells_copy = cells_copy.drop([id_name], axis=1)
 
     print('Multipart to singlepart...')
     blocks = blocks.explode()
     blocks.reset_index(inplace=True, drop=True)
 
     blocks['geometry'] = blocks.exterior
+    blocks[id_name] = range(len(blocks))
 
-    uid = 1
     for idx, row in tqdm(blocks.iterrows(), total=blocks.shape[0]):
-        blocks.loc[idx, id_name] = uid
-        uid = uid + 1
         blocks.loc[idx, 'geometry'] = Polygon(row['geometry'])
 
     # if polygon is within another one, delete it
@@ -741,13 +573,12 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
     bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
 
     print('Attribute join (buildings)...')
-    buildings = buildings.merge(bl_ID_to_uID, on=unique_id)
+    buildings_m = buildings[[unique_id]].merge(bl_ID_to_uID, on=unique_id, how='left')
 
     print('Attribute join (tesselation)...')
-    cells = tessellation.merge(bl_ID_to_uID, on=unique_id)
+    cells_m = tessellation[[unique_id]].merge(bl_ID_to_uID, on=unique_id, how='left')
 
-    print('Done')
-    return (buildings, cells, blocks_save)
+    return (blocks_save, buildings_m[id_name], cells_m[id_name])
 
 
 def get_network_id(left, right, unique_id, network_id, min_size=100):
@@ -792,7 +623,9 @@ def get_network_id(left, right, unique_id, network_id, min_size=100):
     # point with edges of size 2*MIN_SIZE, you know a priori that at least one
     # segment is intersected with the box. Otherwise, you could get an inexact
     # solution, there is an exception checking this, though.
-
+    left = left.copy()
+    right = right.copy()
+    
     if not isinstance(unique_id, str):
         left['mm_uid'] = unique_id
         unique_id = 'mm_uid'
@@ -838,8 +671,8 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
     """
     Snap each building to closest street network node on the closest network edge.
 
-    Adds node ID to objects (preferably buildings). Gets ID of edge, and determines
-    which of its end points is closer.
+    Adds node ID to objects (preferably buildings). Gets ID of edge (:py:func:`momepy.get_node_id`)
+    , and determines which of its end points is closer to building centroid.
 
     Parameters
     ----------
@@ -859,10 +692,8 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
     node_ids : Series
         Series containing node ID for objects
 
-    Examples
-    --------
-
     """
+    nodes = nodes.copy()
     if not isinstance(node_id, str):
         nodes['mm_noid'] = node_id
         node_id = 'mm_noid'
@@ -886,220 +717,5 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
             else:
                 results_list.append(startID)
 
-    series = pd.Series(results_list)
+    series = pd.Series(results_list, index=objects.index)
     return series
-
-
-# '''
-# street_edges():
-#
-# Generate street edges based on buildings, blocks, tesselation and street network with street names
-# Adds nID and eID to buildings and tesselation.
-#
-#     buildings = gdf of buildings (with unique id)
-#     streets = gdf of street network (with street names and unique network segment id)
-#     tesselation = gdf of tesselation (with unique id and block id)
-#     street_name_column = column with street names
-#     unique_id_column = column with unique ids
-#     block_id_column = column with block ids
-#     network_id_column = column with network ids
-#     tesselation_to = path to save tesselation with nID, eID
-#     buildings_to = path to save buildings with nID, eID
-#     save_to = path to save street edges
-#
-# Optional:
-# '''
-#
-#
-# def street_edges(buildings, streets, tesselation, street_name_column,
-#                  unique_id_column, block_id_column, network_id_column,
-#                  tesselation_to, buildings_to, save_to):
-#     INFTY = 1000000000000
-#     MIN_SIZE = 100
-#     # MIN_SIZE should be a vaule such that if you build a box centered in each
-#     # point with edges of size 2*MIN_SIZE, you know a priori that at least one
-#     # segment is intersected with the box. Otherwise, you could get an inexact
-#     # solution, there is an exception checking this, though.
-#
-#     def distance(a, b):
-#         return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
-#
-#     def get_distance(apoint, segment):
-#         a = apoint
-#         b, c = segment
-#         # t = <a-b, c-b>/|c-b|**2
-#         # because p(a) = t*(c-b)+b is the ortogonal projection of vector a
-#         # over the rectline that includes the points b and c.
-#         t = (a[0] - b[0]) * (c[0] - b[0]) + (a[1] - b[1]) * (c[1] - b[1])
-#         t = t / ((c[0] - b[0]) ** 2 + (c[1] - b[1]) ** 2)
-#         # Only if t 0 <= t <= 1 the projection is in the interior of
-#         # segment b-c, and it is the point that minimize the distance
-#         # (by pythagoras theorem).
-#         if 0 < t < 1:
-#             pcoords = (t * (c[0] - b[0]) + b[0], t * (c[1] - b[1]) + b[1])
-#             dmin = distance(a, pcoords)
-#             return pcoords, dmin
-#         elif t <= 0:
-#             return b, distance(a, b)
-#         elif 1 <= t:
-#             return c, distance(a, c)
-#
-#     def get_rtree(lines):
-#         def generate_items():
-#             sindx = 0
-#             for lid, nid, l in tqdm(lines, total=len(lines)):
-#                 for i in range(len(l) - 1):
-#                     a, b = l[i]
-#                     c, d = l[i + 1]
-#                     segment = ((a, b), (c, d))
-#                     box = (min(a, c), min(b, d), max(a, c), max(b, d))
-#                     # box = left, bottom, right, top
-#                     yield (sindx, box, (lid, segment, nid))
-#                     sindx += 1
-#         return index.Index(generate_items())
-#
-#     def get_solution(idx, points):
-#         result = {}
-#         for p in tqdm(points, total=len(points)):
-#             pbox = (p[0] - MIN_SIZE, p[1] - MIN_SIZE, p[0] + MIN_SIZE, p[1] + MIN_SIZE)
-#             hits = idx.intersection(pbox, objects='raw')
-#             d = INFTY
-#             s = None
-#             for h in hits:
-#                 nearest_p, new_d = get_distance(p, h[1])
-#                 if d >= new_d:
-#                     d = new_d
-#                     # s = (h[0], h[1], nearest_p, new_d)
-#                     s = (h[0], h[1], h[-1])
-#             result[p] = s
-#             if s is None:
-#                 result[p] = (0, 0)
-#
-#             # some checking you could remove after you adjust the constants
-#             # if s is None:
-#             #     raise Warning("It seems INFTY is not big enough. Point was not attached to street. It might be too far.", p)
-#
-#             # pboxpol = ((pbox[0], pbox[1]), (pbox[2], pbox[1]),
-#             #            (pbox[2], pbox[3]), (pbox[0], pbox[3]))
-#             # if not Polygon(pboxpol).intersects(LineString(s[1])):
-#             #     msg = "It seems MIN_SIZE is not big enough. "
-#             #     msg += "You could get inexact solutions if remove this exception."
-#             #     raise Exception(msg)
-#
-#         return result
-#
-#     print('Generating centroids...')
-#     buildings_c = buildings.copy()
-#     buildings_c['geometry'] = buildings_c.centroid  # make centroids
-#
-#     print('Generating list of points...')
-#     # make points list for input
-#     centroid_list = []
-#     for idx, row in tqdm(buildings_c.iterrows(), total=buildings_c.shape[0]):
-#         centroid_list = centroid_list + list(row['geometry'].coords)
-#
-#     print('Generating list of lines...')
-#     # make streets list for input
-#     street_list = []
-#     for idx, row in tqdm(streets.iterrows(), total=streets.shape[0]):
-#         street_list.append((row[street_name_column], row[network_id_column], list(row['geometry'].coords)))
-#     print('Generating rtree...')
-#     idx = get_rtree(street_list)
-#
-#     print('Snapping...')
-#     solutions = get_solution(idx, centroid_list)
-#
-#     print('Forming DataFrame...')
-#     df = pd.DataFrame.from_dict(solutions, orient='index', columns=['street', 'unused', network_id_column])  # solutions dict to df
-#     df['point'] = df.index  # point to column
-#     df = df.reset_index()
-#     df['idx'] = df.index
-#     buildings_c['idx'] = buildings_c.index
-#
-#     print('Joining DataFrames...')
-#     joined = buildings_c.merge(df, on='idx')
-#     print('Cleaning DataFrames...')
-#     cleaned = joined[[unique_id_column, 'street', network_id_column]]
-#
-#     print('Merging with tesselation...')
-#     tesselation = tesselation.merge(cleaned, on=unique_id_column)
-#
-#     print('Defining merge ID...')
-#     for idx, row in tqdm(tesselation.iterrows(), total=tesselation.shape[0]):
-#         tesselation.loc[idx, 'mergeID'] = str(row['street']) + str(row[block_id_column])
-#
-#     print('Dissolving...')
-#     edges = tesselation.dissolve(by='mergeID')
-#
-#     # multipart geometry to singlepart
-#     def multi2single(gpdf):
-#         gpdf_singlepoly = gpdf[gpdf.geometry.type == 'Polygon']
-#         gpdf_multipoly = gpdf[gpdf.geometry.type == 'MultiPolygon']
-#
-#         for i, row in gpdf_multipoly.iterrows():
-#             Series_geometries = pd.Series(row.geometry)
-#             df = pd.concat([gpd.GeoDataFrame(row, crs=gpdf_multipoly.crs).T] * len(Series_geometries), ignore_index=True)
-#             df['geometry'] = Series_geometries
-#             gpdf_singlepoly = pd.concat([gpdf_singlepoly, df])
-#
-#         gpdf_singlepoly.reset_index(inplace=True, drop=True)
-#         return gpdf_singlepoly
-#
-#     edges_single = multi2single(edges)
-#     edges_single['geometry'] = edges_single.exterior
-#     print('Generating unique edge ID...')
-#     id = 1
-#     for idx, row in tqdm(edges_single.iterrows(), total=edges_single.shape[0]):
-#         edges_single.loc[idx, 'eID'] = id
-#         id = id + 1
-#         edges_single.loc[idx, 'geometry'] = Polygon(row['geometry'])
-#
-#     edges_clean = edges_single[['geometry', 'eID', block_id_column]]
-#
-#     print('Isolating islands...')
-#     sindex = edges_clean.sindex
-#     islands = []
-#     for idx, row in edges_clean.iterrows():
-#         possible_matches_index = list(sindex.intersection(row['geometry'].bounds))
-#         possible_matches = edges_clean.iloc[possible_matches_index]
-#         possible_matches = possible_matches.drop([idx], axis=0)
-#         if possible_matches.contains(row['geometry']).any():
-#             islands.append(idx)
-#
-#     edges_clean = edges_clean.drop(islands, axis=0)
-#     print(len(islands), 'islands deleted.')
-#     print('Cleaning edges...')
-#     edges_clean['geometry'] = edges_clean.buffer(0.000000001)
-#
-#     print('Saving street edges to', save_to)
-#     edges_clean.to_file(save_to)
-#
-#     print('Cleaning tesselation...')
-#     tesselation = tesselation.drop(['street', 'mergeID'], axis=1)
-#
-#     print('Tesselation spatial join [1/3]...')
-#     tess_centroid = tesselation.copy()
-#     tess_centroid['geometry'] = tess_centroid.centroid
-#
-#     edg_join = edges_clean.drop(['bID'], axis=1)
-#
-#     print('Tesselation spatial join [2/3]...')
-#     tess_with_eID = gpd.sjoin(tess_centroid, edg_join, how='left', op='intersects')
-#     tess_with_eID = tess_with_eID[['uID', 'eID']]
-#
-#     print('Tesselation spatial join [3/3]...')
-#     tesselation = tesselation.merge(tess_with_eID, on='uID')
-#
-#     print('Saving tesselation to', tesselation_to)
-#     tesselation.to_file(tesselation_to)
-#
-#     print('Buildings attribute join...')
-#     # attribute join cell -> building
-#     tess_nid_eid = tesselation[['uID', 'eID', 'nID']]
-#
-#     buildings = buildings.merge(tess_nid_eid, on='uID')
-#
-#     print('Saving buildings to', buildings_to)
-#     buildings.to_file(buildings_to)
-#
-#     print('Done.')
