@@ -378,7 +378,7 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
     left : GeoDataFrame
         GeoDataFrame containing streets to analyse
     right : GeoDataFrame
-        GeoDataFrame containing buildings along the streets
+        GeoDataFrame containing buildings along the streets (only Polygon geometry type is supported)
     heights: str, list, np.array, pd.Series (default None)
         the name of the buildings dataframe column, np.array, or pd.Series where is stored building height. If set to None,
         height and ratio height/width will not be calculated.
@@ -526,7 +526,7 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
                 possible_intersections_index = list(sindex.intersection(tick.bounds))
                 possible_intersections = right.iloc[possible_intersections_index]
                 real_intersections = possible_intersections.intersects(tick)
-                get_height = right.iloc[list(real_intersections.index)]
+                get_height = right.loc[list(real_intersections.index)]
                 possible_int = get_height.exterior.intersection(tick)
 
                 if possible_int.any():
@@ -561,7 +561,7 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
                             dist = row.geometry.distance(Point(tick.coords[-1]))
                             indices[idx] = dist
                         minim = min(indices, key=indices.get)
-                        m_heights.append(right.iloc[minim][heights])
+                        m_heights.append(right.loc[minim][heights])
 
         openness = (len(lefts) + len(rights)) / len(ticks * 2)
         openness_list.append(1 - openness)
