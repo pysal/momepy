@@ -75,7 +75,7 @@ Dependencies
 Required dependencies:
 
 - `geopandas`_
-- `libpysal`_
+- `libpysal`_ (>= 4.1.0)
 - `networkx`_
 - `tqdm`_
 
@@ -83,12 +83,15 @@ Some functions also depend on additional packages, which are optional:
 
 - `pysal`_
 - `mapclassify`_ (>= 2.1.1)
+- `inequality`_
 
 .. _geopandas: https://geopandas.org/
 
 .. _mapclassify: https://mapclassify.readthedocs.io/en/latest/
 
 .. _libpysal: https://libpysal.readthedocs.io
+
+.. inequality: https://inequality.readthedocs.io
 
 .. _networkx: http://networkx.github.io
 

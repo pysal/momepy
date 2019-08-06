@@ -39,7 +39,7 @@ setup(name='momepy',
                    "Topic :: Scientific/Engineering :: GIS"],
       install_requires=["geopandas>=0.5.1",
                         "networkx>=2.3",
-                        "libpysal>=4.0.1",
+                        "libpysal>=4.1.0",
                         "tqdm>=4.25.0"
                         ]
       )

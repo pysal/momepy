@@ -33,7 +33,7 @@ def unique_id(objects):
     return series
 
 
-def Queen_higher(k, geodataframe=None, weights=None, ids=None):
+def Queen_higher(k, geodataframe=None, weights=None, ids=None, silent=True):
     """
     Generate spatial weights based on Queen contiguity of order k
 
@@ -48,6 +48,8 @@ def Queen_higher(k, geodataframe=None, weights=None, ids=None):
         Otherwise, spatial weights will not match objects.
     weights : libpysal.weights
         libpysal.weights of order 1
+    silent : bool (default True)
+        silence libpysal islands warnings
 
     Returns
     -------
@@ -67,16 +69,14 @@ def Queen_higher(k, geodataframe=None, weights=None, ids=None):
     if weights is not None:
         first_order = weights
     elif geodataframe is not None:
-        if not all(geodataframe.index == range(len(geodataframe))):
-            raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-        first_order = libpysal.weights.Queen.from_dataframe(geodataframe, ids=ids)
+        first_order = libpysal.weights.Queen.from_dataframe(geodataframe, ids=ids, silence_warnings=silent)
     else:
-        raise Warning('GeoDataFrame of spatial weights must be given.')
+        raise AttributeError('GeoDataFrame of spatial weights must be given.')
 
     joined = first_order
     for i in list(range(2, k + 1)):
-        i_order = libpysal.weights.higher_order(first_order, k=i)
-        joined = libpysal.weights.w_union(joined, i_order)
+        i_order = libpysal.weights.higher_order(first_order, k=i, silence_warnings=silent)
+        joined = libpysal.weights.w_union(joined, i_order, silence_warnings=silent)
     return joined
 
 
