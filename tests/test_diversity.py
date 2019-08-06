@@ -4,6 +4,7 @@ import numpy as np
 
 from momepy import Queen_higher
 
+import pytest
 
 class TestDiversity:
 
@@ -40,9 +41,9 @@ class TestDiversity:
 
     def test_gini(self):
         full_sw = mm.gini(self.df_tessellation, 'area', self.sw, 'uID')
-        assert full_sw[0] == 0.39453880038576933
+        assert full_sw[0] == 0.39453880039926703
         limit = mm.gini(self.df_tessellation, 'area', self.sw, 'uID', rng=(10, 90))
-        assert limit[0] == 0.28532814171764387
+        assert limit[0] == 0.28532814172859305
         self.df_tessellation['negative'] = self.df_tessellation.area - self.df_tessellation.area.mean()
-        neg = mm.gini(self.df_tessellation, 'negative', self.sw, 'uID')
-        assert neg[0] == 0.43135969210184627
+        with pytest.raises(ValueError):
+            mm.gini(self.df_tessellation, 'negative', self.sw, 'uID')
