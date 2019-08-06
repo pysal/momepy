@@ -21,13 +21,11 @@ class TestIntensity:
         self.blocks, self.df_buildings['bID'], self.df_tessellation['bID'] = mm.blocks(
             self.df_tessellation, self.df_streets, self.df_buildings, 'bID', 'uID')
 
-    def test_covered_area_ratio(self):
-        car = mm.covered_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'area', 'uID')
+    def test_object_area_ratio(self):
+        car = mm.object_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'area', 'uID')
         check = 0.3206556897709747
         assert car.mean() == check
-
-    def test_floor_area_ratio(self):
-        far = mm.floor_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'fl_area', 'uID')
+        far = mm.object_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'fl_area', 'uID')
         check = 1.910949846262234
         assert far.mean() == check
 

@@ -321,7 +321,7 @@ def gini(gdf, values, spatial_weights, unique_id, rng=None):
     Examples
     --------
     >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Theil'] = mm.theil(tessellation_df, 'area', sw, 'uID')
+    >>> tessellation_df['area_Theil'] = mm.gini(tessellation_df, 'area', sw, 'uID')
     Calculating Gini index...
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
     Gini index calculated.
