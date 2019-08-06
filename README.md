@@ -19,14 +19,6 @@ Documentation of `momepy` is available at [docs.momepy.org](https://docs.momepy.
 User guide with examples of `momepy` usage is available at [guide.momepy.org](https://guide.momepy.org/).
 
 ## Install
-You can install `momepy` using Conda from `conda-forge` (recommended):
-
-    conda install -c conda-forge momepy
-
-or from PyPI using `pip`:
-
-    pip install momepy
-
 See the [installation instructions](http://docs.momepy.org/en/latest/install.html) for detailed instructions.
 Momepy depends on python geospatial stack, which might cause some dependency issues.
 
