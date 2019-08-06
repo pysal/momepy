@@ -85,11 +85,10 @@ intensity
 
    blocks_count
    courtyards
-   covered_area_ratio
    density
    elements_count
-   floor_area_ratio
    node_density
+   object_area_ratio
    reached
 
 graph
