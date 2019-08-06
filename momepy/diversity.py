@@ -85,7 +85,7 @@ def theil(gdf, values, spatial_weights, unique_id, rng=None):
     """
     Calculates the Theil measure of inequality of values within neighbours defined in `spatial_weights`.
 
-    Uses `pysal.explore.inequality.theil.Theil` under the hood. Requires `pysal` dependency.
+    Uses `pysal.explore.inequality.theil.Theil` under the hood. Requires 'inequality' or 'pysal' package.
 
     .. math::
 
@@ -118,10 +118,13 @@ def theil(gdf, values, spatial_weights, unique_id, rng=None):
     Theil index calculated.
     """
     try:
-        from pysal.explore.inequality.theil import Theil
+        from inequality.theil import Theil
     except ImportError:
-        raise ImportError(
-            "The 'pysal' package is required.")
+        try:
+            from pysal.explore.inequality.theil import Theil
+        except ImportError:
+            raise ImportError(
+                "The 'inequality' or 'pysal' package is required.")
 
     # define empty list for results
     results_list = []
@@ -157,7 +160,8 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
     """
     Calculates the Simpson\'s diversity index of values within neighbours defined in `spatial_weights`.
 
-    Uses `mapclassify.classifiers` under the hood for binning. Requires `mapclassify>=.2.1.0` dependency.
+    Uses `mapclassify.classifiers` under the hood for binning. Requires `mapclassify>=.2.1.0` dependency
+    or `pysal`.
 
     .. math::
 
@@ -225,14 +229,16 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
         return sum(p(n, N)**2 for n in data.values() if n != 0)
 
     try:
-        import mapclassify.classifiers
+        import mapclassify.classifiers as classifiers
     except ImportError:
-        raise ImportError(
-            "The 'mapclassify' package is required.")
+        try:
+            import pysal.viz.mapclassify.classifiers as classifiers
+        except ImportError:
+            raise ImportError("The 'mapclassify' or 'pysal' package is required")
 
     schemes = {}
-    for classifier in mapclassify.classifiers.CLASSIFIERS:
-        schemes[classifier.lower()] = getattr(mapclassify.classifiers,
+    for classifier in classifiers.CLASSIFIERS:
+        schemes[classifier.lower()] = getattr(classifiers,
                                               classifier)
     binning = binning.lower()
     if binning not in schemes:
@@ -259,7 +265,7 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
             neighbours = row[unique_id]
         values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
 
-        sample_bins = mapclassify.classifiers.UserDefined(values_list, bins)
+        sample_bins = classifiers.UserDefined(values_list, bins)
         counts = dict(zip(bins, sample_bins.counts))
         results_list.append(simpson_di(counts))
 
@@ -269,33 +275,11 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
     return series
 
 
-def _gini(vals):
-    """Calculate the Gini coefficient of a numpy array."""
-    # based on bottom eq:
-    # http://www.statsdirect.com/help/generatedimages/equations/equation154.svg
-    # from:
-    # http://www.statsdirect.com/help/default.htm#nonparametric_methods/gini.htm
-    # All values are treated equally, arrays must be 1d:
-    vals = vals.flatten()
-    if np.amin(vals) < 0:
-        # Values cannot be negative:
-        vals -= np.amin(vals)
-    # Values cannot be 0:
-    vals += 0.0000001
-    # Values must be sorted:
-    vals = np.sort(vals)
-    # Index per array element:
-    index = np.arange(1, vals.shape[0] + 1)
-    # Number of array elements:
-    n = vals.shape[0]
-    # Gini coefficient:
-    return ((np.sum((2 * index - n - 1) * vals)) / (n * np.sum(vals)))
-
-
 def gini(gdf, values, spatial_weights, unique_id, rng=None):
     """
     Calculates the Gini index of values within neighbours defined in `spatial_weights`.
 
+    Uses `pysal.explore.inequality.gini.Gini` under the hood. Requires 'inequality' or 'pysal' package.
     .. math::
 
 
@@ -321,14 +305,25 @@ def gini(gdf, values, spatial_weights, unique_id, rng=None):
     Examples
     --------
     >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Theil'] = mm.gini(tessellation_df, 'area', sw, 'uID')
+    >>> tessellation_df['area_Gini'] = mm.gini(tessellation_df, 'area', sw, 'uID')
     Calculating Gini index...
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
     Gini index calculated.
     """
+    try:
+        from inequality.gini import Gini
+    except ImportError:
+        try:
+            from pysal.explore.inequality.gini import Gini
+        except ImportError:
+            raise ImportError(
+                "The 'inequality' or 'pysal' package is required.")
     # define empty list for results
     results_list = []
     gdf = gdf.copy()
+    if gdf[values].min() < 0:
+        raise ValueError("Values contain negative numbers. Normalise data before"
+                         "using momepy.gini.")
     print('Calculating Gini index...')
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
@@ -341,7 +336,7 @@ def gini(gdf, values, spatial_weights, unique_id, rng=None):
             if rng:
                 from momepy import limit_range
                 values_list = np.array(limit_range(values_list, rng=rng))
-            results_list.append(_gini(values_list))
+            results_list.append(Gini(values_list).g)
         else:
             results_list.append(0)
     series = pd.Series(results_list, index=gdf.index)
