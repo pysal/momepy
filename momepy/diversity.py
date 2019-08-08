@@ -279,9 +279,7 @@ def gini(gdf, values, spatial_weights, unique_id, rng=None):
     """
     Calculates the Gini index of values within neighbours defined in `spatial_weights`.
 
-    Uses `pysal.explore.inequality.gini.Gini` under the hood. Requires 'inequality' or 'pysal' package.
-    .. math::
-
+    Uses `inequality.gini.Gini` under the hood. Requires 'inequality' or 'pysal' package.
 
     Parameters
     ----------

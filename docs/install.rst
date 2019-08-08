@@ -81,14 +81,18 @@ Required dependencies:
 
 Some functions also depend on additional packages, which are optional:
 
-- `pysal`_
+- `inequality`_
 - `mapclassify`_ (>= 2.1.1)
+or
+- `pysal`_
 
 .. _geopandas: https://geopandas.org/
 
 .. _mapclassify: https://mapclassify.readthedocs.io/en/latest/
 
 .. _libpysal: https://libpysal.readthedocs.io
+
+.. inequality: https://inequality.readthedocs.io
 
 .. _networkx: http://networkx.github.io
 
