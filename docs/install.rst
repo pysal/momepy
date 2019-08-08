@@ -83,8 +83,11 @@ Some functions also depend on additional packages, which are optional:
 
 - `inequality`_
 - `mapclassify`_ (>= 2.1.1)
+
 or
+
 - `pysal`_
+
 
 .. _geopandas: https://geopandas.org/
 
@@ -92,7 +95,7 @@ or
 
 .. _libpysal: https://libpysal.readthedocs.io
 
-.. inequality: https://inequality.readthedocs.io
+.. _inequality: https://inequality.readthedocs.io
 
 .. _networkx: http://networkx.github.io
 
