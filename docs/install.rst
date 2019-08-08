@@ -1,10 +1,6 @@
 Install
 =======
 
-.. note::
-
-    MOMEPY IS NOT YET AVAILABLE AT CONDA-FORGE. INSTRUCTIONS DOES NOT APPLY.
-
 Momepy, similar to GeoPandas, can be a bit complicated to install. However,
 if you follow recommended instructions below, there should be no issue. For
 more details on issues with geospatial python stack, please refer to `GeoPandas
@@ -20,6 +16,10 @@ to install all dependencies via `conda`_ from `conda-forge`_::
 
 Conda should be able to resolve any dependency conflicts and install momepy
 together with all necessary dependencies.
+
+If you do not have `conda-forge`_ in your conda channels, you can add it using::
+
+    conda config --add channels conda-forge
 
 .. note::
 

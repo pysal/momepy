@@ -29,6 +29,14 @@ https://github.com/martinfleis/momepy
 Install
 -------
 
+You can install ``momepy`` using Conda from conda-forge (recommended)::
+
+  conda install -c conda-forge momepy
+
+or from PyPI using pip::
+
+  pip install momepy
+
 See the :doc:`installation docs <install>` for detailed instructions.
 Momepy depends on python geospatial stack, which might cause some dependency
 issues.
