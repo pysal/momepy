@@ -576,11 +576,17 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
     sindex = network.sindex
     print('Building R-tree for buildings...')
     bindex = buildings.sindex
-    if tessellation is not None:
-        print('Dissolving tesselation...')
-        geometry = tessellation.geometry.unary_union.boundary
-    if edge is not None:
-        geometry = edge.boundary
+
+    def _get_geometry():
+        if edge is not None:
+            return edge.boundary
+        elif tessellation is not None:
+            print('Dissolving tesselation...')
+            return tessellation.geometry.unary_union.boundary
+        else:
+            return None
+
+    geometry = _get_geometry()
 
     print('Snapping...')
     # iterating over each street segment
