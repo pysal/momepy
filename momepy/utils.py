@@ -580,11 +580,10 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
     def _get_geometry():
         if edge is not None:
             return edge.boundary
-        elif tessellation is not None:
+        if tessellation is not None:
             print('Dissolving tesselation...')
             return tessellation.geometry.unary_union.boundary
-        else:
-            return None
+        return None
 
     geometry = _get_geometry()
 
