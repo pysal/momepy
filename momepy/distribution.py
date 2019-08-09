@@ -460,7 +460,7 @@ def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights
     Calculate the mean interbuilding distance within x topological steps
 
     Interbuilding distances are calculated between buildings on adjacent cells based on `spatial_weights`,
-    while the extend is defined in `spatial_weights_higher`.
+    while the extent is defined in `spatial_weights_higher`.
 
     .. math::
 
@@ -653,7 +653,8 @@ def building_adjacency(gdf, spatial_weights_higher, unique_id, spatial_weights=N
     Calculate the level of building adjacency
 
     Building adjacency reflects how much buildings tend to join together into larger structures.
-    It is calculated as a ratio of joined built-up structures and buildings within k topological steps.
+    It is calculated as a ratio of joined built-up structures and buildings within
+    the extent defined in `spatial_weights_higher`.
 
     .. math::
 
@@ -662,13 +663,13 @@ def building_adjacency(gdf, spatial_weights_higher, unique_id, spatial_weights=N
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    spatial_weights_higher : libpysal.weights, optional
+    spatial_weights_higher : libpysal.weights
         spatial weights matrix
     unique_id : str
         name of the column with unique id used as spatial_weights index
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on gdf. It is to denote adjacent buildings (note: based on index, not ID).
+        based on gdf. It is to denote adjacent buildings (note: based on unique ID).
 
     Returns
     -------

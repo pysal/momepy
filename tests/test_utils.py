@@ -77,5 +77,8 @@ class TestUtils:
     def test_snap_street_network_edge(self):
         snapped = mm.snap_street_network_edge(self.df_streets, self.df_buildings, 20, self.df_tessellation, 70)
         snapped_nonedge = mm.snap_street_network_edge(self.df_streets, self.df_buildings, 20)
+        snapped_edge = mm.snap_street_network_edge(self.df_streets, self.df_buildings, 20,
+                                                   tolerance_edge=70, edge=mm.buffered_limit(self.df_buildings, buffer=50))
         assert sum(snapped.geometry.length) == 5980.041004739525
+        assert sum(snapped_edge.geometry.length) == 5980.718889937014
         assert sum(snapped_nonedge.geometry.length) < 5980.041004739525

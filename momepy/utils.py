@@ -217,7 +217,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     If feature area is smaller than set size it will be a) deleted if it does not
     touch any other feature; b) will be joined to feature with which it shares the
     longest boundary. If feature is fully within other feature, these will be joined.
-    If feature's circular compactness (:py:func:`momepy.shape.circular compactness`)
+    If feature's circular compactness (:py:func:`momepy.circular_compactness`)
     is < 0.2, it will be joined to feature with which it shares the longest boundary.
     Function does two loops through.
 
@@ -409,7 +409,7 @@ def network_false_nodes(gdf):
     return streets
 
 
-def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=None, tolerance_edge=None):
+def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=None, tolerance_edge=None, edge=None):
     """
     Fix street network before performing blocks()
 
@@ -424,9 +424,11 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
     tolerance_street : float
         tolerance in snapping to street network (by how much could be street segment extended).
     tessellation : GeoDataFrame (default None)
-        GeoDataFrame containing morphological tessellation
+        GeoDataFrame containing morphological tessellation. If edge is not passed it will be used as edge.
     tolerance_edge : float (default None)
         tolerance in snapping to edge of tessellated area (by how much could be street segment extended).
+    edge : Polygon
+        edge of area covered by morphological tessellation (same as `limit` in :py:func:`momepy.tessellation`)
 
     Returns
     -------
@@ -574,9 +576,16 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
     sindex = network.sindex
     print('Building R-tree for buildings...')
     bindex = buildings.sindex
-    if tessellation is not None:
-        print('Dissolving tesselation...')
-        geometry = tessellation.geometry.unary_union.boundary
+
+    def _get_geometry():
+        if edge is not None:
+            return edge.boundary
+        if tessellation is not None:
+            print('Dissolving tesselation...')
+            return tessellation.geometry.unary_union.boundary
+        return None
+
+    geometry = _get_geometry()
 
     print('Snapping...')
     # iterating over each street segment
@@ -605,22 +614,22 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
         # start connected, extend  end
         elif first and not second:
             if extend_line(tolerance_street, idx) is False:
-                if tessellation is not None:
+                if geometry is not None:
                     extend_line_edge(tolerance_edge, idx)
         # end connected, extend start
         elif not first and second:
             l_coords.reverse()
             if extend_line(tolerance_street, idx) is False:
-                if tessellation is not None:
+                if geometry is not None:
                     extend_line_edge(tolerance_edge, idx)
         # unconnected, extend both ends
         elif not first and not second:
             if extend_line(tolerance_street, idx) is False:
-                if tessellation is not None:
+                if geometry is not None:
                     extend_line_edge(tolerance_edge, idx)
             l_coords.reverse()
             if extend_line(tolerance_street, idx) is False:
-                if tessellation is not None:
+                if geometry is not None:
                     extend_line_edge(tolerance_edge, idx)
         else:
             print('Something went wrong.')
