@@ -59,7 +59,7 @@ installing momepy from local directory::
 
 Alternatively, you can install the latest version directly from GitHub::
 
-    pip install git=git://github.com/martinfleis/momepy.git
+    pip install git+git://github.com/martinfleis/momepy.git
 
 Installing directly from repository might face the same dependency issues as
 described above regarding installing using pip. To ensure that environment is
