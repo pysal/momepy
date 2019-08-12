@@ -385,7 +385,7 @@ def alignment(gdf, spatial_weights, unique_id, orientations):
     # iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
 
-        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
         if neighbours:
             orientation = gdf.loc[gdf[unique_id].isin(neighbours)][orientations]
             deviations = abs(orientation - row[orientations])
@@ -536,7 +536,7 @@ def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights
         # id to match spatial weights
         uid = row[unique_id]
         # define neighbours based on weights matrix defining analysis area
-        neighbours = spatial_weights_higher.neighbors[uid]
+        neighbours = spatial_weights_higher.neighbors[uid].copy()
         neighbours.append(uid)
         if neighbours:
             selection = adj_list[adj_list.focal.isin(neighbours)][adj_list.neighbor.isin(neighbours)]
@@ -684,7 +684,6 @@ def building_adjacency(gdf, spatial_weights_higher, unique_id, spatial_weights=N
     Calculating spatial weights...
     Spatial weights ready...
     Generating weights matrix (Queen) of 3 topological steps...
-    Generating dictionary of built-up patches...
     100%|██████████| 144/144 [00:00<00:00, 9301.73it/s]
     Calculating adjacency within k steps...
     100%|██████████| 144/144 [00:00<00:00, 335.55it/s]
@@ -704,36 +703,11 @@ def building_adjacency(gdf, spatial_weights_higher, unique_id, spatial_weights=N
         spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True, ids=unique_id)
         print('Spatial weights ready...')
 
-    print('Generating dictionary of built-up patches...')
-    # dict to store nr of courtyards for each uID
-    patches = {}
-    jID = 1
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-
-        # if the id is already present in courtyards, continue (avoid repetition)
-        if row[unique_id] in patches:
-            continue
-        else:
-            to_join = [row[unique_id]]  # list of indices which should be joined together
-            neighbours = []  # list of neighbours
-            weights = spatial_weights.neighbors[row[unique_id]]  # neighbours from spatial weights
-            for w in weights:
-                neighbours.append(w)  # make a list from weigths
-            neighbours = spatial_weights.neighbors[row[unique_id]]
-
-            for n in neighbours:
-                while n not in to_join:  # until there is some neighbour which is not in to_join
-                    to_join.append(n)
-                    weights = spatial_weights.neighbors[n]
-                    for w in weights:
-                        neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
-            for b in to_join:
-                patches[b] = jID  # fill dict with values
-            jID = jID + 1
+    patches = dict(zip(gdf[unique_id], spatial_weights.component_labels))
 
     print('Calculating adjacency within k steps...')
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights_higher.neighbors[row[unique_id]]
+        neighbours = spatial_weights_higher.neighbors[row[unique_id]].copy()
         if neighbours:
             neighbours.append(row[unique_id])
 

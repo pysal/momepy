@@ -344,7 +344,7 @@ def mean_character(gdf, values, spatial_weights, unique_id, rng=None):
             values = 'mm_v'
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
         neighbours.append(row[unique_id])
 
         values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
@@ -715,7 +715,7 @@ def covered_area(gdf, spatial_weights, unique_id):
     print('Calculating covered area...')
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
         neighbours.append(row[unique_id])
         areas = gdf.loc[gdf[unique_id].isin(neighbours)].geometry.area
         results_list.append(sum(areas))
@@ -773,24 +773,15 @@ def wall(gdf, spatial_weights=None):
 
     # dict to store walls for each uID
     walls = {}
+    components = pd.Series(spatial_weights.component_labels, index=gdf.index)
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         # if the id is already present in walls, continue (avoid repetition)
         if index in walls:
             continue
         else:
-            to_join = [index]  # list of indices which should be joined together
-            neighbours = []  # list of neighbours
-            weights = spatial_weights.neighbors[index]  # neighbours from spatial weights
-            for w in weights:
-                neighbours.append(w)  # make a list from weigths
-
-            for n in neighbours:
-                while n not in to_join:  # until there is some neighbour which is not in to_join
-                    to_join.append(n)
-                    weights = spatial_weights.neighbors[n]
-                    for w in weights:
-                        neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
+            comp = spatial_weights.component_labels[index]
+            to_join = components[components == comp].index
             joined = gdf.iloc[to_join]
             dissolved = joined.geometry.buffer(0.01).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
             for b in to_join:
@@ -846,7 +837,7 @@ def segments_length(gdf, spatial_weights=None, mean=False):
         print('Spatial weights ready...')
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[index]
+        neighbours = spatial_weights.neighbors[index].copy()
         neighbours.append(index)
         dims = gdf.iloc[neighbours].geometry.length
         if mean:
