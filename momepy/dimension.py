@@ -646,7 +646,7 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
     # define empty list for results
     results_list = []
 
-    print('Calculating weighted {}...'.format(values))
+    print('Calculating weighted character...')
     gdf = gdf.copy()
     if areas is not None:
         if not isinstance(areas, str):
@@ -654,7 +654,7 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
             areas = 'mm_a'
     if not isinstance(values, str):
         gdf['mm_vals'] = values
-        values = 'mm_a'
+        values = 'mm_vals'
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[row[unique_id]]
@@ -673,7 +673,7 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
             results_list.append(row[values])
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Weighted {} calculated.'.format(values))
+    print('Weighted character calculated.')
     return series
 
 
