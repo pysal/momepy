@@ -287,12 +287,12 @@ def cell_alignment(left, right, left_orientations, right_orientations, left_uniq
     left : GeoDataFrame
         GeoDataFrame containing objects to analyse
     right : GeoDataFrame
-        GeoDataFrame containing street network
+        GeoDataFrame containing tessellation cells (or relevant spatial units)
     left_orientations : str, list, np.array, pd.Series
         the name of the left dataframe column, np.array, or pd.Series where is stored object orientation value
         (can be calculated using :py:func:`momepy.orientation`)
     right_orientations : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series where is stored object orientation value
+        the name of the right dataframe column, np.array, or pd.Series where is stored object orientation value
         (can be calculated using :py:func:`momepy.orientation`)
     left_unique_id : str
         the name of the left dataframe column with unique id shared between left and right gdf
@@ -411,7 +411,7 @@ def neighbour_distance(gdf, spatial_weights, unique_id):
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    spatial_weights : libpysal.weights, optional
+    spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str
         name of the column with unique id used as spatial_weights index.
@@ -472,7 +472,7 @@ def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights
     unique_id : str
         name of the column with unique id used as spatial_weights index
     spatial_weights : libpysal.weights
-        spatial weights matrix (order 1)
+        spatial weights matrix
     spatial_weights_higher : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity of higher order will be calculated
         based on spatial_weights
@@ -483,10 +483,6 @@ def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights
     -------
     Series
         Series containing resulting values.
-
-    References
-    ---------
-    ADD, but it is adapted quite a lot.
 
     Notes
     -----
@@ -768,7 +764,7 @@ def neighbours(gdf, spatial_weights, unique_id, weighted=False):
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    spatial_weights : libpysal.weights (default None)
+    spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str
         name of the column with unique id used as spatial_weights index
