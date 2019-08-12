@@ -66,11 +66,11 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
             values = 'mm_v'
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
         if neighbours:
             neighbours.append(row[unique_id])
         else:
-            neighbours = row[unique_id]
+            neighbours = [row[unique_id]]
         values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
 
         results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
@@ -138,11 +138,11 @@ def theil(gdf, values, spatial_weights, unique_id, rng=None):
             values = 'mm_v'
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
         if neighbours:
             neighbours.append(row[unique_id])
         else:
-            neighbours = row[unique_id]
+            neighbours = [row[unique_id]]
         values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
 
         if rng:
@@ -258,11 +258,11 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
     bins = schemes[binning](gdf[values], **classification_kwds).bins
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
         if neighbours:
             neighbours.append(row[unique_id])
         else:
-            neighbours = row[unique_id]
+            neighbours = [row[unique_id]]
         values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
 
         sample_bins = classifiers.UserDefined(values_list, bins)
@@ -325,7 +325,7 @@ def gini(gdf, values, spatial_weights, unique_id, rng=None):
     print('Calculating Gini index...')
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
         if neighbours:
             neighbours.append(row[unique_id])
 

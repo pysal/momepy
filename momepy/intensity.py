@@ -183,25 +183,15 @@ def courtyards(gdf, block_id, spatial_weights=None):
 
     # dict to store nr of courtyards for each uID
     courtyards = {}
-
+    components = pd.Series(spatial_weights.component_labels, index=gdf.index)
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         # if the id is already present in courtyards, continue (avoid repetition)
         if index in courtyards:
             continue
         else:
-            to_join = [index]  # list of indices which should be joined together
-            neighbours = []  # list of neighbours
-            weights = spatial_weights.neighbors[index]  # neighbours from spatial weights
-            for w in weights:
-                neighbours.append(w)  # make a list from weigths
-
-            for n in neighbours:
-                while n not in to_join:  # until there is some neighbour which is not in to_join
-                    to_join.append(n)
-                    weights = spatial_weights.neighbors[n]
-                    for w in weights:
-                        neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
-            joined = gdf.iloc[to_join]
+            comp = spatial_weights.component_labels[index]
+            to_join = components[components == comp].index
+            joined = gdf.loc[to_join]
             dissolved = joined.geometry.buffer(0.01).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
             try:
                 interiors = len(list(dissolved.interiors))
@@ -265,7 +255,7 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id):
     print('Calculating blocks...')
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
         if neighbours:
             neighbours.append(row[unique_id])
         else:
@@ -342,7 +332,7 @@ def reached(left, right, unique_id, spatial_weights=None, mode='count', values=N
         if spatial_weights is None:
             ids = [row.nID]
         else:
-            neighbours = spatial_weights.neighbors[index]
+            neighbours = spatial_weights.neighbors[index].copy()
             neighbours.append(index)
             ids = left.iloc[neighbours].nID
         if mode == 'count':
@@ -424,7 +414,7 @@ def node_density(left, right, spatial_weights, weighted=False, node_degree=None,
     # iterating over rows one by one
     for index, row in tqdm(left.iterrows(), total=left.shape[0]):
 
-        neighbours = list(spatial_weights.neighbors[index])
+        neighbours = spatial_weights.neighbors[index].copy()
         neighbours.append(index)
         if weighted:
             neighbour_nodes = left.iloc[neighbours]
@@ -497,7 +487,7 @@ def density(gdf, values, spatial_weights, unique_id, areas=None):
             areas = 'mm_a'
     # iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]]
+        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
         if neighbours:
             neighbours.append(row[unique_id])
         else:
