@@ -6,6 +6,7 @@ matrix:
   include:
     - env: ENV_FILE="ci/travis/37-pysal.yaml"
     - env: ENV_FILE="ci/travis/37-mc.yaml"
+    - env: ENV_FILE="ci/travis/37-dev.yaml" DEV=true
 
 install:
   - sudo apt-get update
@@ -24,6 +25,8 @@ install:
 
   - conda env create --file="${ENV_FILE}"
   - source activate test
+  - if [ "$DEV" ]; then pip install git+https://github.com/geopandas/geopandas.git; fi
+  - if [ "$DEV" ]; then pip install git+https://github.com/pysal/libpysal.git; fi
   - python setup.py install
   - conda list
 
