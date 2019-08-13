@@ -529,7 +529,7 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
                 get_height = right.loc[list(real_intersections.index)]
                 possible_int = get_height.exterior.intersection(tick)
 
-                if possible_int.any():
+                if not possible_int.is_empty.all():
                     true_int = []
                     for one in list(possible_int.index):
                         if possible_int[one].type == 'Point':

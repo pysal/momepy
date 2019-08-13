@@ -478,7 +478,7 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
         possible_intersections_clean = possible_intersections_lines.drop(idx, axis=0)
         possible_intersections = possible_intersections_clean.intersection(extrapolation)
 
-        if possible_intersections.any():
+        if not possible_intersections.is_empty.all():
 
             true_int = []
             for one in list(possible_intersections.index):
@@ -565,7 +565,7 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
                 possible_buildings = buildings.iloc[possible_buildings_index]
                 possible_intersections = possible_buildings.intersection(new_extended_line)
 
-                if possible_intersections.any():
+                if not possible_intersections.is_empty.all():
                     pass
                 else:
                     network.loc[idx, 'geometry'] = new_extended_line
