@@ -268,7 +268,7 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id):
     results_list = []
     gdf = gdf.copy()
     if not isinstance(block_id, str):
-        block_id['mm_bid'] = block_id
+        gdf['mm_bid'] = block_id
         block_id = 'mm_bid'
 
     print('Calculating blocks...')

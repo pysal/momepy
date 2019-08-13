@@ -61,7 +61,7 @@ class TestUtils:
     def test_limit_range(self):
         assert mm.limit_range(range(10), rng=(25, 75)) == [2, 3, 4, 5, 6, 7]
         assert mm.limit_range(range(10), rng=(10, 90)) == [1, 2, 3, 4, 5, 6, 7, 8]
-        assert mm.limit_range(range(2), rng=(25, 75)) == [0, 1]
+        assert mm.limit_range([0, 1], rng=(25, 75)) == [0, 1]
 
     def test_preprocess(self):
         test_file_path2 = mm.datasets.get_path('tests')

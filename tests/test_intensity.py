@@ -60,7 +60,7 @@ class TestIntensity:
     def test_blocks_count(self):
         sw = mm.Queen_higher(k=5, geodataframe=self.df_tessellation, ids='uID')
         count = mm.blocks_count(self.df_tessellation, 'bID', sw, 'uID')
-        count2 = mm.blocks_count(self.df_tessellation, self.df_buildings.bID, sw, 'uID')
+        count2 = mm.blocks_count(self.df_tessellation, self.df_tessellation.bID, sw, 'uID')
         check = 3.142437439120778e-05
         assert count.mean() == check
         assert count2.mean() == check
