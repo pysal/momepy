@@ -109,6 +109,9 @@ class TestDimensions:
                                                                values='area', rng=(10, 90), unique_id='uID')
         self.df_tessellation['mesh_iq'] = mm.average_character(self.df_tessellation, spatial_weights=spatial_weights,
                                                                values='area', rng=(25, 75), unique_id='uID')
+        with pytest.raises(ValueError):
+            self.df_tessellation['mesh_ar'] = mm.average_character(self.df_tessellation, values='area', spatial_weights=spatial_weights,
+                                                                   unique_id='uID', mode='nonexistent')
         assert self.df_tessellation['mesh_ar'][0] == 249.50382416977067
         assert self.df_tessellation['mesh_array'][0] == 2623.996266097268
         assert self.df_tessellation['mesh_id'][38] == 2250.2241176070806
