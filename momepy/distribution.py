@@ -238,9 +238,9 @@ def street_alignment(left, right, orientations, network_id=None, left_network_id
     else:
         if left_network_id is None and right_network_id is not None:
             raise ValueError('left_network_id not set.')
-        elif left_network_id is not None and right_network_id is None:
+        if left_network_id is not None and right_network_id is None:
             raise ValueError('right_network_id not set.')
-        elif left_network_id is None and right_network_id is None:
+        if left_network_id is None and right_network_id is None:
             raise ValueError('Network ID not set. Use either network_id or left_network_id and right_network_id.')
 
     if not isinstance(orientations, str):

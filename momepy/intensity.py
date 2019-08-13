@@ -65,9 +65,9 @@ def object_area_ratio(left, right, left_areas, right_areas, unique_id=None, left
     else:
         if left_unique_id is None and right_unique_id is not None:
             raise ValueError('left_unique_id not set.')
-        elif left_unique_id is not None and right_unique_id is None:
+        if left_unique_id is not None and right_unique_id is None:
             raise ValueError('right_network_id not set.')
-        elif left_unique_id is None and right_unique_id is None:
+        if left_unique_id is None and right_unique_id is None:
             raise ValueError('Unique ID not set. Use either network_id or left_unique_id and right_unique_id.')
 
     print('Calculating object area ratio...')
