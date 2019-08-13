@@ -53,9 +53,10 @@ class TestDistribution:
         assert self.df_buildings['street_a_arr'][0] == check
 
     def test_cell_alignment(self):
-        self.df_buildings['orient'] = mm.orientation(self.df_buildings)
-        self.df_tessellation['orient'] = mm.orientation(self.df_tessellation)
+        self.df_buildings['orient'] = blgori = mm.orientation(self.df_buildings)
+        self.df_tessellation['orient'] = tessori = mm.orientation(self.df_tessellation)
         self.df_buildings['c_align'] = mm.cell_alignment(self.df_buildings, self.df_tessellation, 'orient', 'orient', 'uID', 'uID')
+        self.df_buildings['c_align_array'] = mm.cell_alignment(self.df_buildings, self.df_tessellation, blgori, tessori, 'uID', 'uID')
         check = abs(self.df_buildings['orient'][0] - self.df_tessellation[
             self.df_tessellation['uID'] == self.df_buildings['uID'][0]]['orient'].iloc[0])
         assert self.df_buildings['c_align'][0] == check
@@ -63,7 +64,7 @@ class TestDistribution:
     def test_alignment(self):
         self.df_buildings['orient'] = mm.orientation(self.df_buildings)
         sw = Queen.from_dataframe(self.df_tessellation, ids='uID')
-        self.df_buildings['align_sw'] = mm.alignment(self.df_buildings, sw, 'uID', 'orient')
+        self.df_buildings['align_sw'] = mm.alignment(self.df_buildings, sw, 'uID', self.df_buildings['orient'])
         assert self.df_buildings['align_sw'][0] == 18.299481296455237
 
     def test_neighbour_distance(self):
@@ -76,8 +77,10 @@ class TestDistribution:
         sw = Queen.from_dataframe(self.df_tessellation, ids='uID')
         swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
         self.df_buildings['m_dist_sw'] = mm.mean_interbuilding_distance(self.df_buildings, sw, 'uID', swh)
+        self.df_buildings['m_dist'] = mm.mean_interbuilding_distance(self.df_buildings, sw, 'uID', order=3)
         check = 29.305457092042744
         assert self.df_buildings['m_dist_sw'][0] == check
+        assert self.df_buildings['m_dist'][0] == check
 
     def test_neighbouring_street_orientation_deviation(self):
         self.df_streets['dev'] = mm.neighbouring_street_orientation_deviation(self.df_streets)
@@ -88,8 +91,10 @@ class TestDistribution:
         sw = Queen.from_dataframe(self.df_buildings, ids='uID')
         swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
         self.df_buildings['adj_sw'] = mm.building_adjacency(self.df_buildings, spatial_weights=sw, unique_id='uID', spatial_weights_higher=swh)
+        self.df_buildings['adj_sw_none'] = mm.building_adjacency(self.df_buildings, unique_id='uID', spatial_weights_higher=swh)
         check = 0.2613824113909074
         assert self.df_buildings['adj_sw'].mean() == check
+        assert self.df_buildings['adj_sw_none'].mean() == check
 
     def test_neighbours(self):
         sw = Queen.from_dataframe(self.df_tessellation, ids='uID')

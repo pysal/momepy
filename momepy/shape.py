@@ -1074,7 +1074,7 @@ def centroid_corners(gdf):
                     distances.append(distance)
                 else:
                     continue
-        if not distances:
+        if not distances:  # circular buildings
             from momepy.dimension import _longest_axis
             results_list.append(_longest_axis(row['geometry'].convex_hull.exterior.coords) / 2)
             results_list_sd.append(0)
