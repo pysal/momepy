@@ -761,9 +761,6 @@ def wall(gdf, spatial_weights=None):
 
     print('Calculating perimeter wall length...')
 
-    if not all(gdf.index == range(len(gdf))):
-        raise ValueError('Index is not consecutive range 0:x, spatial weights will not match objects.')
-
     # if weights matrix is not passed, generate it from objects
     if spatial_weights is None:
         print('Calculating spatial weights...')

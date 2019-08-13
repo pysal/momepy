@@ -30,14 +30,16 @@ class TestDiversity:
     def test_theil(self):
         full_sw = mm.theil(self.df_tessellation, 'area', self.sw, 'uID')
         assert full_sw[0] == 0.25744684318865324
-        limit = mm.theil(self.df_tessellation, 'area', self.sw, 'uID', rng=(10, 90))
+        limit = mm.theil(self.df_tessellation, self.df_tessellation.area, self.sw, 'uID', rng=(10, 90))
         assert limit[0] == 0.13302952097969373
 
     def test_simpson(self):
         ht_sw = mm.simpson(self.df_tessellation, 'area', self.sw, 'uID')
         assert ht_sw[0] == 0.385
-        quan_sw = mm.simpson(self.df_tessellation, 'area', self.sw, 'uID', binning='quantiles', k=3)
+        quan_sw = mm.simpson(self.df_tessellation, self.df_tessellation.area, self.sw, 'uID', binning='quantiles', k=3)
         assert quan_sw[0] == 0.395
+        with pytest.raises(ValueError):
+            ht_sw = mm.simpson(self.df_tessellation, 'area', self.sw, 'uID', binning='nonexistent')
 
     def test_gini(self):
         full_sw = mm.gini(self.df_tessellation, 'area', self.sw, 'uID')
