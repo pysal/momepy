@@ -10,6 +10,7 @@ from .shape import _make_circle
 import pandas as pd
 import math
 import numpy as np
+import scipy as sp
 
 
 def area(gdf):
@@ -289,11 +290,12 @@ def longest_axis_length(gdf):
     return series
 
 
-def mean_character(gdf, values, spatial_weights, unique_id, rng=None):
+def average_character(gdf, values, spatial_weights, unique_id, rng=None, mode='mean'):
     """
-    Calculates the mean of a character within k steps of morphological tessellation
+    Calculates the average of a character within k steps of morphological tessellation
 
-    Mean value of the character within k topological steps defined in spatial_weights.
+    Average value of the character within k topological steps defined in spatial_weights.
+    Can be set to `mean`, `median` or `mode`.
 
     .. math::
         \\frac{1}{n}\\left(\\sum_{i=1}^{n} value_{i}\\right)
@@ -306,11 +308,13 @@ def mean_character(gdf, values, spatial_weights, unique_id, rng=None):
         the name of the dataframe column, np.array, or pd.Series where is stored character value.
     unique_id : str
         name of the column with unique id used as spatial_weights index.
-    spatial_weights : libpysal.weights, optional
+    spatial_weights : libpysal.weights
         spatial weights matrix
     rng : Two-element sequence containing floats in range of [0,100], optional
         Percentiles over which to compute the range. Each must be
         between 0 and 100, inclusive. The order of the elements is not important.
+    mode : str (default 'mean')
+        mode of average calculation. Can be set to `mean`, `median` or `mode`.
 
     Returns
     -------
@@ -325,17 +329,17 @@ def mean_character(gdf, values, spatial_weights, unique_id, rng=None):
     Examples
     --------
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True, ids='uID')
-    >>> tessellation['mesh_100'] = momepy.mean_character(tessellation, values='area', spatial_weights=sw, unique_id='uID')
-    Calculating mean character value...
+    >>> tessellation['mesh_100'] = momepy.average(tessellation, values='area', spatial_weights=sw, unique_id='uID')
+    Calculating average character value...
     100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
-    Mean character value calculated.
+    Average character value calculated.
     >>> tessellation.mesh_100[0]
     4823.1334436678835
     """
     # define empty list for results
     results_list = []
 
-    print('Calculating mean character value...')
+    print('Calculating average character value...')
     gdf = gdf.copy()
 
     if values is not None:
@@ -352,11 +356,18 @@ def mean_character(gdf, values, spatial_weights, unique_id, rng=None):
         if rng:
             from momepy import limit_range
             values_list = limit_range(values_list.tolist(), rng=rng)
-        results_list.append(np.mean(values_list))
+        if mode == 'mean':
+            results_list.append(np.mean(values_list))
+        elif mode == 'median':
+            results_list.append(np.median(values_list))
+        elif mode == 'mode':
+            results_list.append(sp.stats.mode(values_list)[0][0])
+        else:
+            raise ValueError('{} is not supported as mode.'.format(mode))
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Mean character value calculated.')
+    print('Average character value calculated.')
     return series
 
 
