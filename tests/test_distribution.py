@@ -5,6 +5,7 @@ from libpysal.weights import Queen
 
 import pytest
 
+
 class TestDistribution:
 
     def setup_method(self):
