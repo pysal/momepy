@@ -1,10 +1,6 @@
 Install
 =======
 
-.. note::
-
-    MOMEPY IS NOT YET AVAILABLE AT CONDA-FORGE. INSTRUCTIONS DOES NOT APPLY.
-
 Momepy, similar to GeoPandas, can be a bit complicated to install. However,
 if you follow recommended instructions below, there should be no issue. For
 more details on issues with geospatial python stack, please refer to `GeoPandas
@@ -20,6 +16,10 @@ to install all dependencies via `conda`_ from `conda-forge`_::
 
 Conda should be able to resolve any dependency conflicts and install momepy
 together with all necessary dependencies.
+
+If you do not have `conda-forge`_ in your conda channels, you can add it using::
+
+    conda config --add channels conda-forge
 
 .. note::
 
@@ -59,7 +59,7 @@ installing momepy from local directory::
 
 Alternatively, you can install the latest version directly from GitHub::
 
-    pip install git=git://github.com/martinfleis/momepy.git
+    pip install git+git://github.com/martinfleis/momepy.git
 
 Installing directly from repository might face the same dependency issues as
 described above regarding installing using pip. To ensure that environment is
@@ -81,9 +81,14 @@ Required dependencies:
 
 Some functions also depend on additional packages, which are optional:
 
-- `pysal`_
+- `inequality`_
 - `mapclassify`_ (>= 2.1.1)
 - `inequality`_
+
+or
+
+- `pysal`_
+
 
 .. _geopandas: https://geopandas.org/
 
@@ -91,7 +96,7 @@ Some functions also depend on additional packages, which are optional:
 
 .. _libpysal: https://libpysal.readthedocs.io
 
-.. inequality: https://inequality.readthedocs.io
+.. _inequality: https://inequality.readthedocs.io
 
 .. _networkx: http://networkx.github.io
 

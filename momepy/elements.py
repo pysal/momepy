@@ -6,12 +6,11 @@
 import geopandas as gpd
 import pandas as pd
 from tqdm import tqdm  # progress bar
-import math
 from osgeo import ogr
 from shapely.wkt import loads
 import numpy as np
 from scipy.spatial import Voronoi
-from shapely.geometry import Point, LineString, Polygon, MultiPolygon
+from shapely.geometry import Point, Polygon, MultiPolygon
 import shapely
 import operator
 from libpysal.weights import Queen
@@ -72,7 +71,7 @@ def _densify(geom, segment):
     try:
         new = loads(wkt2)  # wkt to shapely Polygon
         return new
-    except:
+    except Exception:
         return poly
 
 
@@ -625,7 +624,7 @@ def get_network_id(left, right, unique_id, network_id, min_size=100):
     # solution, there is an exception checking this, though.
     left = left.copy()
     right = right.copy()
-    
+
     if not isinstance(unique_id, str):
         left['mm_uid'] = unique_id
         unique_id = 'mm_uid'

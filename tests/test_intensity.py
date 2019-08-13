@@ -3,6 +3,8 @@ import geopandas as gpd
 import numpy as np
 from libpysal.weights import Queen
 
+import pytest
+
 
 class TestIntensity:
 
@@ -23,11 +25,19 @@ class TestIntensity:
 
     def test_object_area_ratio(self):
         car = mm.object_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'area', 'uID')
+        carlr = mm.object_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'area', left_unique_id='uID', right_unique_id='uID')
         check = 0.3206556897709747
         assert car.mean() == check
+        assert carlr.mean() == check
         far = mm.object_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'fl_area', 'uID')
         check = 1.910949846262234
         assert far.mean() == check
+        with pytest.raises(ValueError):
+            car = mm.object_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'area')
+        with pytest.raises(ValueError):
+            car = mm.object_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'area', left_unique_id='uID')
+        with pytest.raises(ValueError):
+            car = mm.object_area_ratio(self.df_tessellation, self.df_buildings, 'area', 'area', right_unique_id='uID')
 
     def test_elements_count(self):
         eib = mm.elements_count(self.blocks, self.df_buildings, 'bID', 'bID')
