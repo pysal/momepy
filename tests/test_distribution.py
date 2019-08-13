@@ -3,6 +3,7 @@ import geopandas as gpd
 import numpy as np
 from libpysal.weights import Queen
 
+import pytest
 
 class TestDistribution:
 
@@ -33,11 +34,21 @@ class TestDistribution:
 
     def test_street_alignment(self):
         self.df_buildings['orient'] = orient = mm.orientation(self.df_buildings)
-        self.df_buildings['street_alignment'] = mm.street_alignment(self.df_buildings, self.df_streets, 'orient', 'nID', 'nID')
+        self.df_buildings['street_alignment'] = mm.street_alignment(self.df_buildings, self.df_streets, 'orient', network_id='nID')
+        self.df_buildings['street_alignment2'] = mm.street_alignment(self.df_buildings, self.df_streets, 'orient',
+                                                                     left_network_id='nID', right_network_id='nID')
         self.df_buildings['street_a_arr'] = mm.street_alignment(self.df_buildings, self.df_streets, orient,
-                                                                self.df_buildings['nID'], self.df_streets['nID'])
+                                                                left_network_id=self.df_buildings['nID'], right_network_id=self.df_streets['nID'])
+
+        with pytest.raises(ValueError):
+            self.df_buildings['street_alignment'] = mm.street_alignment(self.df_buildings, self.df_streets, 'orient')
+        with pytest.raises(ValueError):
+            self.df_buildings['street_alignment'] = mm.street_alignment(self.df_buildings, self.df_streets, 'orient', left_network_id='nID')
+        with pytest.raises(ValueError):
+            self.df_buildings['street_alignment'] = mm.street_alignment(self.df_buildings, self.df_streets, 'orient', right_network_id='nID')
         check = 0.29073888476702336
         assert self.df_buildings['street_alignment'][0] == check
+        assert self.df_buildings['street_alignment2'][0] == check
         assert self.df_buildings['street_a_arr'][0] == check
 
     def test_cell_alignment(self):
