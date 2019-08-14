@@ -30,7 +30,7 @@ class TestUtils:
         assert from_df.neighbors[0] == check
         assert rook.neighbors[0] == check
 
-        with pytest.raises(Warning):
+        with pytest.raises(AttributeError):
             mm.sw_high(2, gdf=None, weights=None)
 
         with pytest.raises(ValueError):

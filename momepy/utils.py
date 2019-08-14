@@ -78,7 +78,7 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity='queen'):
         else:
             raise ValueError('{} is not supported. Use \'queen\' or \'rook\'.'.format(contiguity))
     else:
-        raise Warning('GeoDataFrame of spatial weights must be given.')
+        raise AttributeError('GeoDataFrame or spatial weights must be given.')
 
     joined = first_order
     for i in list(range(2, k + 1)):
@@ -175,7 +175,7 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False, nodeID='nodeID
         if spatial_weights is True:
             return gdf_nodes, gdf_edges, W
         return gdf_nodes, gdf_edges
-    elif nodes is True and edges is False:
+    if nodes is True and edges is False:
         if spatial_weights is True:
             return gdf_nodes, W
         return gdf_nodes

@@ -88,13 +88,13 @@ def _point_array(objects, unique_id):
                 for line in poly_ext:
                     point_coords = line.coords
                     row_array = np.array(point_coords).tolist()
-                    for i in range(len(row_array)):
+                    for i, a in enumerate(row_array):
                         points.append(row_array[i])
                         ids.append(row[unique_id])
             elif poly_ext.type == 'LineString':
                 point_coords = poly_ext.coords
                 row_array = np.array(point_coords).tolist()
-                for i in range(len(row_array)):
+                for i, a in enumerate(row_array):
                     points.append(row_array[i])
                     ids.append(row[unique_id])
             else:
@@ -187,7 +187,7 @@ def _cut(tessellation, limit, unique_id):
         intersection = row.geometry.intersection(limit)
         if intersection.type == 'MultiPolygon':
             areas = {}
-            for p in range(len(intersection)):
+            for p, i in enumerate(intersection):
                 area = intersection[p].area
                 areas[p] = area
             maximal = max(areas.items(), key=operator.itemgetter(1))[0]
@@ -246,7 +246,7 @@ def _queen_corners(tessellation, sensitivity, sindex):
                 corners.append(point)
 
         if len(corners) > 2:
-            for c in range(len(corners)):
+            for c, it in enumerate(corners):
                 next_c = c + 1
                 if c == (len(corners) - 1):
                     next_c = 0
@@ -276,7 +276,7 @@ def _queen_corners(tessellation, sensitivity, sindex):
                 moves[coords.index(x)] = changes[x]
         keys = list(moves.keys())
         delete_points = []
-        for move in range(len(keys)):
+        for move, k in enumerate(keys):
             if move < len(keys) - 1:
                 if moves[keys[move]][1] == moves[keys[move + 1]][1] and keys[move + 1] - keys[move] < 5:
                     delete_points = delete_points + (coords[keys[move]:keys[move + 1]])
@@ -294,7 +294,7 @@ def _queen_corners(tessellation, sensitivity, sindex):
                 if len(list(shapely.ops.polygonize(mls))) > 1:
                     newgeom = MultiPolygon(shapely.ops.polygonize(mls))
                     geoms = []
-                    for g in range(len(newgeom)):
+                    for g, n in enumerate(newgeom):
                         geoms.append(newgeom[g].area)
                     newgeom = newgeom[geoms.index(max(geoms))]
                 else:
@@ -378,7 +378,7 @@ def tessellation(gdf, unique_id, limit, shrink=0.4, segment=0.5, queen_corners=F
     hull = series.geometry[0].convex_hull.buffer(300)
     hull = _densify(hull, 20)
     hull_array = np.array(hull.boundary.coords).tolist()
-    for i in range(len(hull_array)):
+    for i, a in enumerate(hull_array):
         points.append(hull_array[i])
         ids.append(-1)
 
