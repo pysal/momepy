@@ -130,5 +130,5 @@ utilities
    nx_to_gdf
    preprocess
    snap_street_network_edge
+   sw_high
    unique_id
-   Queen_higher

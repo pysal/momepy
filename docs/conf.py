@@ -15,6 +15,7 @@
 import os
 import sys
 import sphinx_bootstrap_theme
+import momepy
 
 sys.path.insert(0, os.path.abspath('../../'))
 
@@ -55,9 +56,9 @@ copyright = '2018-2019, Martin Fleischmann, University of Strathclyde, Urban Des
 author = 'Martin Fleischmann'
 
 # The short X.Y version
-version = '0.1'
+version = momepy.__version__
 # The full version, including alpha/beta/rc tags
-release = '0.1.0'
+release = version
 
 
 # -- General configuration ---------------------------------------------------
@@ -176,7 +177,7 @@ html_theme_options = {
     'navbar_links': [
                     # ("Gallery", "auto_examples/index"),
                     ("Installation", "install"),
-                    ("User Guide", "https://guide.momepy.org/intro"),
+                    ("User Guide", "https://guide.momepy.org/", True),
                     ("API", "api"),
                     ("Contributing", "contributing"),
                     ("References", "references"),
