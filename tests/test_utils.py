@@ -20,21 +20,21 @@ class TestUtils:
         with pytest.raises(ValueError):
             mm.datasets.get_path('sffgkt')
 
-    def test_Queen_higher(self):
+    def test_sw_high(self):
         first_order = libpysal.weights.Queen.from_dataframe(self.df_tessellation)
-        from_sw = mm.Queen_higher(2, geodataframe=None, weights=first_order)
-        from_df = mm.Queen_higher(2, geodataframe=self.df_tessellation)
+        from_sw = mm.sw_high(2, gdf=None, weights=first_order)
+        from_df = mm.sw_high(2, gdf=self.df_tessellation)
+        rook = mm.sw_high(2, gdf=self.df_tessellation, contiguity='rook')
         check = [133, 134, 111, 112, 113, 114, 115, 121, 125]
         assert from_sw.neighbors[0] == check
         assert from_df.neighbors[0] == check
+        assert rook.neighbors[0] == check
 
         with pytest.raises(Warning):
-            mm.Queen_higher(2, geodataframe=None, weights=None)
+            mm.sw_high(2, gdf=None, weights=None)
 
         with pytest.raises(ValueError):
-            gdf = self.df_tessellation
-            gdf.index = gdf.index + 20
-            mm.Queen_higher(2, geodataframe=gdf, weights=None)
+            mm.sw_high(2, gdf=self.df_tessellation, contiguity='nonexistent')
 
     def test_gdf_to_nx(self):
         nx = mm.gdf_to_nx(self.df_streets)

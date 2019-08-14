@@ -75,7 +75,7 @@ class TestDistribution:
 
     def test_mean_interbuilding_distance(self):
         sw = Queen.from_dataframe(self.df_tessellation, ids='uID')
-        swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        swh = mm.sw_high(k=3, gdf=self.df_tessellation, ids='uID')
         self.df_buildings['m_dist_sw'] = mm.mean_interbuilding_distance(self.df_buildings, sw, 'uID', swh)
         self.df_buildings['m_dist'] = mm.mean_interbuilding_distance(self.df_buildings, sw, 'uID', order=3)
         check = 29.305457092042744
@@ -89,7 +89,7 @@ class TestDistribution:
 
     def test_building_adjacency(self):
         sw = Queen.from_dataframe(self.df_buildings, ids='uID')
-        swh = mm.Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        swh = mm.sw_high(k=3, gdf=self.df_tessellation, ids='uID')
         self.df_buildings['adj_sw'] = mm.building_adjacency(self.df_buildings, spatial_weights=sw, unique_id='uID', spatial_weights_higher=swh)
         self.df_buildings['adj_sw_none'] = mm.building_adjacency(self.df_buildings, unique_id='uID', spatial_weights_higher=swh)
         check = 0.2613824113909074

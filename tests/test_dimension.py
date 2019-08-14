@@ -5,7 +5,7 @@ from shapely.geometry import Polygon
 import numpy as np
 
 from momepy.shape import _make_circle
-from momepy import Queen_higher
+from momepy import sw_high
 
 
 class TestDimensions:
@@ -99,7 +99,7 @@ class TestDimensions:
         assert self.df_buildings['long_axis'][0] == check
 
     def test_average_character(self):
-        spatial_weights = Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        spatial_weights = sw_high(k=3, gdf=self.df_tessellation, ids='uID')
         self.df_tessellation['area'] = area = self.df_tessellation.geometry.area
         self.df_tessellation['mesh_ar'] = mm.average_character(self.df_tessellation, values='area', spatial_weights=spatial_weights,
                                                                unique_id='uID', mode='mode')
@@ -137,29 +137,29 @@ class TestDimensions:
         assert results['heights_deviations'][0] == 5.526848034418866
 
     def test_weighted_character_sw(self):
-        sw = Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        sw = sw_high(k=3, gdf=self.df_tessellation, ids='uID')
         weighted = mm.weighted_character(self.df_buildings, 'height', sw, 'uID')
         assert weighted[38] == 18.301521351817303
 
     def test_weighted_character_area(self):
         self.df_buildings['area'] = self.df_buildings.geometry.area
-        sw = Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        sw = sw_high(k=3, gdf=self.df_tessellation, ids='uID')
         weighted = mm.weighted_character(self.df_buildings, 'height', sw, 'uID', 'area')
         assert weighted[38] == 18.301521351817303
 
     def test_weighted_character_array(self):
         area = self.df_buildings.geometry.area
-        sw = Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        sw = sw_high(k=3, gdf=self.df_tessellation, ids='uID')
         weighted = mm.weighted_character(self.df_buildings, self.df_buildings.height, sw, 'uID', area)
         assert weighted[38] == 18.301521351817303
 
     def test_covered_area(self):
-        sw = Queen_higher(geodataframe=self.df_tessellation, k=1, ids='uID')
+        sw = sw_high(gdf=self.df_tessellation, k=1, ids='uID')
         covered_sw = mm.covered_area(self.df_tessellation, sw, 'uID')
         assert covered_sw[0] == 24115.667218339422
 
     def test_wall(self):
-        sw = Queen_higher(geodataframe=self.df_buildings, k=1)
+        sw = sw_high(gdf=self.df_buildings, k=1)
         wall = mm.wall(self.df_buildings)
         wall_sw = mm.wall(self.df_buildings, sw)
         assert wall[0] == wall_sw[0]

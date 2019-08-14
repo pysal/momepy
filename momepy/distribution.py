@@ -521,9 +521,9 @@ def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights
     print('Calculating mean interbuilding distances...')
     if spatial_weights_higher is None:
         print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
-        from momepy import Queen_higher
+        from momepy import sw_high
         # matrix to define area of analysis (more steps)
-        spatial_weights_higher = Queen_higher(k=order, weights=spatial_weights)
+        spatial_weights_higher = sw_high(k=order, weights=spatial_weights)
 
     # define empty list for results
     results_list = []

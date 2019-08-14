@@ -47,7 +47,7 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
 
     Examples
     --------
-    >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
+    >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
     >>> tessellation_df['area_IQR_3steps'] = mm.rng(tessellation_df, 'area', sw, 'uID', rng=(25, 75))
     Calculating range...
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
@@ -111,7 +111,7 @@ def theil(gdf, values, spatial_weights, unique_id, rng=None):
 
     Examples
     --------
-    >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
+    >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
     >>> tessellation_df['area_Theil'] = mm.theil(tessellation_df, 'area', sw, 'uID')
     Calculating Theil index...
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
@@ -201,7 +201,7 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
 
     Examples
     --------
-    >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
+    >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
     >>> tessellation_df['area_Simpson'] = mm.simpson(tessellation_df, 'area', sw, 'uID')
     Calculating Simpson's diversity index...
     100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
@@ -302,7 +302,7 @@ def gini(gdf, values, spatial_weights, unique_id, rng=None):
 
     Examples
     --------
-    >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
+    >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
     >>> tessellation_df['area_Gini'] = mm.gini(tessellation_df, 'area', sw, 'uID')
     Calculating Gini index...
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
