@@ -27,11 +27,11 @@ dimension
    :toctree: generated/
 
    area
+   average_character
    courtyard_area
    covered_area
    floor_area
    longest_axis_length
-   mean_character
    perimeter
    segments_length
    street_profile

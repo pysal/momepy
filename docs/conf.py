@@ -16,39 +16,11 @@ import os
 import sys
 import sphinx_bootstrap_theme
 
+import momepy
 
-sys.path.insert(0, os.path.abspath('../../'))
+# sys.path.insert(0, os.path.abspath('../../'))
 
-# autodoc_mock_imports = ['numpy', 'scipy', 'pandas', 'shapely',
-#                         'geopandas', 'tqdm', 'rtree', 'osmnx',
-#                         'libpysal', 'networkx', 'osgeo']
 
-# class Mock(object):
-#     def __init__(self, *args, **kwargs):
-#         pass
-#
-#     def __call__(self, *args, **kwargs):
-#         return Mock()
-#
-#     @classmethod
-#     def __getattr__(cls, name):
-#         if name in ('__file__', '__path__'):
-#             return '/dev/null'
-#         elif name[0] == name[0].upper():
-#             mockType = type(name, (), {})
-#             mockType.__module__ = __name__
-#             return mockType
-#         else:
-#             return Mock()
-#
-#
-# MOCK_MODULES = ['pandas', 'scipy', 'numpy' 'geopandas', 'tqdm', 'osmnx',
-#                 'libpysal', 'shapely', 'networkx', 'rtree', 'osgeo',
-#                 'shapely.geometry', 'scipy.spatial', 'libpysal.weights']
-# for mod_name in MOCK_MODULES:
-#     sys.modules[mod_name] = Mock()
-
-# import momepy
 # -- Project information -----------------------------------------------------
 
 project = 'momepy'
@@ -56,7 +28,7 @@ copyright = '2018-2019, Martin Fleischmann, University of Strathclyde, Urban Des
 author = 'Martin Fleischmann'
 
 # The short X.Y version
-import momepy
+
 version = momepy.__version__
 # The full version, including alpha/beta/rc tags
 release = version
