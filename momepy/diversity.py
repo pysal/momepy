@@ -207,7 +207,7 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
     100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
     Simpson's diversity index calculated.
     """
-    def simpson_di(data):
+    def _simpson_di(data):
 
         """ Given a hash { 'species': count } , returns the Simpson Diversity Index
 
@@ -221,8 +221,7 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
             """ Relative abundance """
             if n == 0:
                 return 0
-            else:
-                return float(n) / N
+            return float(n) / N
 
         N = sum(data.values())
 
@@ -267,7 +266,7 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
 
         sample_bins = classifiers.UserDefined(values_list, bins)
         counts = dict(zip(bins, sample_bins.counts))
-        results_list.append(simpson_di(counts))
+        results_list.append(_simpson_di(counts))
 
     series = pd.Series(results_list, index=gdf.index)
 

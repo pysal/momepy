@@ -280,9 +280,9 @@ def _make_circle_two_points(points, p, q):
     # Select which circle to return
     if left is None and right is None:
         return circ
-    elif left is None:
+    if left is None:
         return right
-    elif right is None:
+    if right is None:
         return left
     if (left[2] <= right[2]):
         return left
@@ -717,7 +717,7 @@ def corners(gdf):
 
         if np.degrees(angle) <= 170:
             return True
-        elif np.degrees(angle) >= 190:
+        if np.degrees(angle) >= 190:
             return True
         return False
 
@@ -1038,7 +1038,7 @@ def centroid_corners(gdf):
 
         if np.degrees(angle) <= 170:
             return True
-        elif np.degrees(angle) >= 190:
+        if np.degrees(angle) >= 190:
             return True
         return False
 

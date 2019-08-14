@@ -175,7 +175,7 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False, nodeID='nodeID
         if spatial_weights is True:
             return gdf_nodes, gdf_edges, W
         return gdf_nodes, gdf_edges
-    elif nodes is True and edges is False:
+    if nodes is True and edges is False:
         if spatial_weights is True:
             return gdf_nodes, W
         return gdf_nodes
