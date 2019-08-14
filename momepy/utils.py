@@ -78,7 +78,7 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity='queen'):
         else:
             raise ValueError('{} is not supported. Use \'queen\' or \'rook\'.'.format(contiguity))
     else:
-        raise Warning('GeoDataFrame of spatial weights must be given.')
+        raise AttributeError('GeoDataFrame or spatial weights must be given.')
 
     joined = first_order
     for i in list(range(2, k + 1)):
