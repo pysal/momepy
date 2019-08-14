@@ -32,7 +32,7 @@ Creating a new environment for momepy
 
 If you want to make sure, that everything will work as it should, you can create
 a new conda environment for momepy. Assuming we want to create a new environment
-called `momepy_env`::
+called ``momepy_env``::
 
     conda create -n momepy_env -c conda-forge -c defaults --override-channels python=3 momepy
 
@@ -86,7 +86,7 @@ Some functions also depend on additional packages, which are optional:
 
 or
 
-- `pysal`_
+- `pysal`_ (contains both inequality and mapclassify)
 
 
 .. _geopandas: https://geopandas.org/
