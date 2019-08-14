@@ -713,7 +713,7 @@ def covered_area(gdf, spatial_weights, unique_id):
 
     Examples
     --------
-    >>> sw = momepy.Queen_higher(k=3, geodataframe=tessellation_df, ids='uID')
+    >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
     >>> tessellation_df['covered3steps'] = mm.covered_area(tessellation_df, sw, 'uID')
     Calculating covered area...
     100%|██████████| 144/144 [00:00<00:00, 549.15it/s]

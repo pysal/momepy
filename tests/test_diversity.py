@@ -2,7 +2,7 @@ import momepy as mm
 import geopandas as gpd
 import numpy as np
 
-from momepy import Queen_higher
+from momepy import sw_high
 
 import pytest
 
@@ -16,7 +16,7 @@ class TestDiversity:
         self.df_tessellation = gpd.read_file(test_file_path, layer='tessellation')
         self.df_buildings['height'] = np.linspace(10., 30., 144)
         self.df_tessellation['area'] = mm.area(self.df_tessellation)
-        self.sw = Queen_higher(k=3, geodataframe=self.df_tessellation, ids='uID')
+        self.sw = sw_high(k=3, gdf=self.df_tessellation, ids='uID')
 
     def test_rng(self):
         full_sw = mm.rng(self.df_tessellation, 'area', self.sw, 'uID')
