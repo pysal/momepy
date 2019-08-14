@@ -27,11 +27,11 @@ dimension
    :toctree: generated/
 
    area
+   average_character
    courtyard_area
    covered_area
    floor_area
    longest_axis_length
-   mean_character
    perimeter
    segments_length
    street_profile
@@ -130,5 +130,5 @@ utilities
    nx_to_gdf
    preprocess
    snap_street_network_edge
+   sw_high
    unique_id
-   Queen_higher

@@ -259,7 +259,7 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id):
 
     Examples
     --------
-    >>> sw4 = mm.Queen_higher(k=4, geodataframe='tessellation_df', ids='uID')
+    >>> sw4 = mm.sw_high(k=4, gdf='tessellation_df', ids='uID')
     >>> tessellation_df['blocks_within_4'] = mm.blocks(tessellation_df, 'bID', sw4, 'uID')
     Calculating blocks...
     Blocks calculated.
@@ -268,7 +268,7 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id):
     results_list = []
     gdf = gdf.copy()
     if not isinstance(block_id, str):
-        block_id['mm_bid'] = block_id
+        gdf['mm_bid'] = block_id
         block_id = 'mm_bid'
 
     print('Calculating blocks...')

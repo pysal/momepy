@@ -33,21 +33,26 @@ def unique_id(objects):
     return series
 
 
-def Queen_higher(k, geodataframe=None, weights=None, ids=None, silent=True):
-    """
-    Generate spatial weights based on Queen contiguity of order k
+def sw_high(k, gdf=None, weights=None, ids=None, contiguity='queen', silent=True):
 
-    Pass either geoDataFrame or weights. If both are passed, weights is used.
+    """
+    Generate spatial weights based on Queen or Rook contiguity of order k.
+
+    Adjacent are all features within <= k steps. Pass either gdf or weights.
+    If both are passed, weights is used. If weights are passed, contiguity is
+    ignored and high order spatial weights based on `weights` are computed.
 
     Parameters
     ----------
     k : int
         order of contiguity
-    geodataframe : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse. Index has to be consecutive range 0:x.
         Otherwise, spatial weights will not match objects.
     weights : libpysal.weights
         libpysal.weights of order 1
+    contiguity : str (default 'queen')
+        type of contiguity weights. Can be 'queen' or 'rook'.
     silent : bool (default True)
         silence libpysal islands warnings
 
@@ -61,15 +66,20 @@ def Queen_higher(k, geodataframe=None, weights=None, ids=None, silent=True):
     >>> first_order = libpysal.weights.Queen.from_dataframe(geodataframe)
     >>> first_order.mean_neighbors
     5.848032564450475
-    >>> fourth_order = Queen_higher(k=4, geodataframe=geodataframe)
+    >>> fourth_order = sw_high(k=4, gdf=geodataframe)
     >>> fourth.mean_neighbors
     85.73188602442333
 
     """
     if weights is not None:
         first_order = weights
-    elif geodataframe is not None:
-        first_order = libpysal.weights.Queen.from_dataframe(geodataframe, ids=ids, silence_warnings=silent)
+    elif gdf is not None:
+        if contiguity == 'queen':
+            first_order = libpysal.weights.Queen.from_dataframe(gdf, ids=ids, silence_warnings=silent)
+        elif contiguity == 'rook':
+            first_order = libpysal.weights.Rook.from_dataframe(gdf, ids=ids, silence_warnings=silent)
+        else:
+            raise ValueError('{} is not supported. Use \'queen\' or \'rook\'.'.format(contiguity))
     else:
         raise AttributeError('GeoDataFrame of spatial weights must be given.')
 
