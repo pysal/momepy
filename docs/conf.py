@@ -15,7 +15,7 @@
 import os
 import sys
 import sphinx_bootstrap_theme
-import momepy
+
 
 sys.path.insert(0, os.path.abspath('../../'))
 
@@ -56,6 +56,7 @@ copyright = '2018-2019, Martin Fleischmann, University of Strathclyde, Urban Des
 author = 'Martin Fleischmann'
 
 # The short X.Y version
+import momepy
 version = momepy.__version__
 # The full version, including alpha/beta/rc tags
 release = version
