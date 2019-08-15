@@ -91,7 +91,7 @@ or
 
 .. _geopandas: https://geopandas.org/
 
-.. _mapclassify: https://mapclassify.readthedocs.io/en/latest/
+.. _mapclassify: http://pysal.org/mapclassify
 
 .. _libpysal: https://libpysal.readthedocs.io
 

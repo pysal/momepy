@@ -187,7 +187,7 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
     **classification_kwds : dict
         Keyword arguments for classification scheme
         For details see mapclassify documentation:
-        https://mapclassify.readthedocs.io/en/latest/api.html
+        https://pysal.org/mapclassify
 
     Returns
     -------
