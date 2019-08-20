@@ -80,7 +80,10 @@ def _point_array(objects, unique_id):
     points = []
     ids = []
     for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        poly_ext = row['geometry'].boundary
+        if row['geometry'].type in ['Polygon', 'MultiPolygon']:
+            poly_ext = row['geometry'].boundary
+        else:
+            poly_ext = row['geometry']
         if poly_ext is not None:
             if poly_ext.type == 'MultiLineString':
                 for line in poly_ext:
@@ -358,8 +361,9 @@ def tessellation(gdf, unique_id, limit, shrink=0.4, segment=0.5, queen_corners=F
     centre = _get_centre(objects)
     objects['geometry'] = objects['geometry'].translate(xoff=-centre[0], yoff=-centre[1])
 
+    polys = ['Polygon', 'MultiPolygon']
     print('Bufferring geometry...')
-    objects['geometry'] = objects.geometry.apply(lambda g: g.buffer(-shrink, cap_style=2, join_style=2))
+    objects['geometry'] = objects.geometry.apply(lambda g: g.buffer(-shrink, cap_style=2, join_style=2) if g.type in polys else g)
 
     print('Converting multipart geometry to singlepart...')
     objects = objects.explode()
