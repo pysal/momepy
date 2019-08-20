@@ -41,9 +41,7 @@ def buffered_limit(gdf, buffer=100):
     """
     study_area = gdf.copy()
     study_area['geometry'] = study_area.buffer(buffer)
-    study_area['diss'] = 1
-    built_up_df = study_area.dissolve(by='diss')
-    built_up = built_up_df.geometry[1]
+    built_up = study_area.geometry.unary_union
     return built_up
 
 
