@@ -308,25 +308,26 @@ def _queen_corners(tessellation, sensitivity, sindex):
 
 def tessellation(gdf, unique_id, limit, shrink=0.4, segment=0.5, queen_corners=False, sensitivity=2):
     """
-    Generate morphological tessellation around given buildings.
+    Generate morphological tessellation around given buildings or proximity bands around given
+    street network.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing building footprints
+        GeoDataFrame containing building footprints or street network
     unique_id : str
         name of the column with unique id
     limit : MultiPolygon or Polygon
         MultiPolygon or Polygon defining the study area limiting tessellation (otherwise it could go to infinity).
     shrink : float (default 0.4)
-        distance for negative buffer to generate space between adjacent buildings.
+        distance for negative buffer to generate space between adjacent polygons (if geometry type of gdf is (Multi)Polygon).
     segment : float (default 0.5)
-        maximum distance between points on Polygon after discretisation
+        maximum distance between points after discretisation
 
     Returns
     -------
     GeoDataFrame
-        GeoDataFrame of morphological tessellation with the unique id based on original buildings.
+        GeoDataFrame tessellation with the unique id based on original gdf.
 
     Examples
     --------
