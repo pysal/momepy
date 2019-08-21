@@ -149,8 +149,7 @@ def _cds_length(graph, mode, length):
         return sum(lens)
     if mode == 'mean':
         return np.mean(lens)
-    else:
-        raise ValueError("Mode {} is not supported. Use 'sum' or 'mean'.".format(mode))
+    raise ValueError("Mode {} is not supported. Use 'sum' or 'mean'.".format(mode))
 
 
 def cds_length(graph, radius=5, mode='sum', name='cds_len', degree='degree', length='mm_len', distance=None):
