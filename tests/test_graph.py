@@ -86,3 +86,12 @@ class TestGraph:
         net = mm.clustering(self.network)
         check = 0.09090909090909091
         assert net.nodes[(1603650.450422848, 6464368.600601688)]['cluster'] == check
+
+    def test_subgraph(self):
+        net = mm.subgraph(self.network)
+        nodes = mm.nx_to_gdf(net, edges=False)
+        cols = ['meshedness', 'cds_length', 'mean_node_degree',
+                'proportion_3', 'proportion_4', 'proportion_0', 'cyclomatic',
+                'edge_node_ratio', 'gamma', 'local_closeness']
+        for c in cols:
+            assert c in nodes.columns
