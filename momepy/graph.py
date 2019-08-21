@@ -147,8 +147,10 @@ def _cds_length(graph, mode, length):
             lens.append(graph[u][v][length])
     if mode == 'sum':
         return sum(lens)
-    elif mode == 'mean':
+    if mode == 'mean':
         return np.mean(lens)
+    else:
+        raise ValueError("Mode {} is not supported. Use 'sum' or 'mean'.".format(mode))
 
 
 def cds_length(graph, radius=5, mode='sum', name='cds_len', degree='degree', length='mm_len', distance=None):
@@ -448,8 +450,7 @@ def _gamma(graph):
     v = graph.number_of_nodes()
     if v == 2:
         return np.nan
-    else:
-        return e / (3 * (v - 2))  # save value calulated for subgraph to node
+    return e / (3 * (v - 2))  # save value calulated for subgraph to node
 
 
 def gamma(graph, radius=5, name='gamma', distance=None):

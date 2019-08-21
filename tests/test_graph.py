@@ -33,6 +33,8 @@ class TestGraph:
         mean = 219.20334486944023
         assert net.nodes[(1603650.450422848, 6464368.600601688)]['cds_len'] == sumval
         assert net2.nodes[(1603650.450422848, 6464368.600601688)]['cds_mean'] == mean
+        with pytest.raises(ValueError):
+            net2 = mm.cds_length(self.network, mode='nonexistent')
 
     def test_mean_node_degree(self):
         net = mm.mean_node_degree(self.network)
