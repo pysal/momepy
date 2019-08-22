@@ -433,7 +433,7 @@ def node_density(left, right, spatial_weights, weighted=False, node_degree=None,
     # iterating over rows one by one
     for index, row in tqdm(left.iterrows(), total=left.shape[0]):
 
-        neighbours = spatial_weights.neighbors[index].copy()
+        neighbours = list(spatial_weights.neighbors[index])
         neighbours.append(index)
         if weighted:
             neighbour_nodes = left.iloc[neighbours]
