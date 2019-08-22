@@ -108,6 +108,7 @@ graph
    meshedness
    node_degree
    proportion
+   subgraph
 
 diversity
 ---------

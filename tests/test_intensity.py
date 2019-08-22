@@ -66,15 +66,15 @@ class TestIntensity:
         assert count2.mean() == check
 
     def test_reached(self):
-        count = mm.reached(self.df_streets, self.df_buildings, 'nID')
-        area = mm.reached(self.df_streets, self.df_buildings, self.df_buildings.nID, mode='sum')
-        mean = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='mean')
-        std = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='std')
-        area_v = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='sum', values='fl_area')
-        mean_v = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='mean', values='fl_area')
-        std_v = mm.reached(self.df_streets, self.df_buildings, 'nID', mode='std', values='fl_area')
+        count = mm.reached(self.df_streets, self.df_buildings, 'nID', 'nID')
+        area = mm.reached(self.df_streets, self.df_buildings, self.df_streets.nID, self.df_buildings.nID, mode='sum')
+        mean = mm.reached(self.df_streets, self.df_buildings, 'nID', 'nID', mode='mean')
+        std = mm.reached(self.df_streets, self.df_buildings, 'nID', 'nID', mode='std')
+        area_v = mm.reached(self.df_streets, self.df_buildings, 'nID', 'nID', mode='sum', values='fl_area')
+        mean_v = mm.reached(self.df_streets, self.df_buildings, 'nID', 'nID', mode='mean', values='fl_area')
+        std_v = mm.reached(self.df_streets, self.df_buildings, 'nID', 'nID', mode='std', values='fl_area')
         sw = mm.sw_high(k=2, gdf=self.df_streets)
-        count_sw = mm.reached(self.df_streets, self.df_buildings, 'nID', sw)
+        count_sw = mm.reached(self.df_streets, self.df_buildings, 'nID', 'nID', sw)
         assert max(count) == 18
         assert max(area) == 18085.45897711331
         assert max(count_sw) == 138
