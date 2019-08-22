@@ -91,8 +91,10 @@ class TestIntensity:
         sw = mm.sw_high(k=3, weights=W)
         density = mm.node_density(nodes, edges, sw)
         weighted = mm.node_density(nodes, edges, sw, weighted=True, node_degree='degree')
+        array = mm.node_density(nodes, edges, W)
         assert density.mean() == 0.012690163074599968
         assert weighted.mean() == 0.023207675994368446
+        assert array.mean() == 0.008554067995928158
 
     def test_density(self):
         sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids='uID')
