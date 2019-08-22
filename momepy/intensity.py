@@ -289,14 +289,14 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id):
     return series
 
 
-def reached(left, right, unique_id, spatial_weights=None, mode='count', values=None):
+def reached(left, right, left_id, right_id, spatial_weights=None, mode='count', values=None):
     """
     Calculates the number of objects reached within topological steps on street network
 
     Number of elements within topological steps defined in spatial_weights. If
     spatial_weights are None, it will assume topological distance 0 (element itself).
     If mode='area', returns sum of areas of reached elements. Requires unique_id
-    of streets assigned beforehand (e.g. using :py:func:`momepy.get_network_id`).
+    of network assigned beforehand (e.g. using :py:func:`momepy.get_network_id`).
 
     .. math::
 
@@ -307,16 +307,19 @@ def reached(left, right, unique_id, spatial_weights=None, mode='count', values=N
         GeoDataFrame containing streets (either segments or nodes)
     right : GeoDataFrame
         GeoDataFrame containing elements to be counted
-    unique_id : str, list, np.array, pd.Series (default None)
+    left_id : str, list, np.array, pd.Series (default None)
+        the name of the left dataframe column, np.array, or pd.Series where is
+        stored ID of streets (segments or nodes).
+    right_id : str, list, np.array, pd.Series (default None)
         the name of the right dataframe column, np.array, or pd.Series where is
         stored ID of streets (segments or nodes).
     spatial_weights : libpysal.weights (default None)
         spatial weights matrix
     mode : str (default 'count')
-        mode of calculation. If `'count'` function will return the count of reached elements.
-        If `'sum'`, it will return sum of `'values'`. If `'mean'` it will return mean value
-        of `'values'`. If `'std'` it will return standard deviation
-        of `'values'`. If `'values'` not set it will use of areas
+        mode of calculation. If ``'count'`` function will return the count of reached elements.
+        If ``'sum'``, it will return sum of ``'values'``. If ``'mean'`` it will return mean value
+        of `'`values'``. If `'std'` it will return standard deviation
+        of ``'values'``. If ``'values'`` not set it will use of areas
         of reached elements.
     values : str (default None)
         the name of the objects dataframe column with values used for calculations
@@ -338,22 +341,27 @@ def reached(left, right, unique_id, spatial_weights=None, mode='count', values=N
 
     print('Calculating reached {}...'.format(mode))
 
-    if not isinstance(unique_id, str):
+    if not isinstance(right_id, str):
         right = right.copy()
-        right['mm_id'] = unique_id
-        unique_id = 'mm_id'
+        right['mm_id'] = right_id
+        right_id = 'mm_id'
+
+    if not isinstance(left_id, str):
+        left = left.copy()
+        left['mm_lid'] = left_id
+        left_id = 'mm_lid'
 
     if mode == 'count':
-        count = collections.Counter(right[unique_id])
+        count = collections.Counter(right[right_id])
 
     # iterating over rows one by one
     for index, row in tqdm(left.iterrows(), total=left.shape[0]):
         if spatial_weights is None:
-            ids = [row.nID]
+            ids = [row[left_id]]
         else:
-            neighbours = spatial_weights.neighbors[index].copy()
+            neighbours = list(spatial_weights.neighbors[index])
             neighbours.append(index)
-            ids = left.iloc[neighbours].nID
+            ids = left.iloc[neighbours][left_id]
         if mode == 'count':
             counts = []
             for nid in ids:
@@ -361,19 +369,19 @@ def reached(left, right, unique_id, spatial_weights=None, mode='count', values=N
             results_list.append(sum(counts))
         elif mode == 'sum':
             if values:
-                results_list.append(sum(right.loc[right[unique_id].isin(ids)][values]))
+                results_list.append(sum(right.loc[right[right_id].isin(ids)][values]))
             else:
-                results_list.append(sum(right.loc[right[unique_id].isin(ids)].geometry.area))
+                results_list.append(sum(right.loc[right[right_id].isin(ids)].geometry.area))
         elif mode == 'mean':
             if values:
-                results_list.append(np.nanmean(right.loc[right[unique_id].isin(ids)][values]))
+                results_list.append(np.nanmean(right.loc[right[right_id].isin(ids)][values]))
             else:
-                results_list.append(np.nanmean(right.loc[right[unique_id].isin(ids)].geometry.area))
+                results_list.append(np.nanmean(right.loc[right[right_id].isin(ids)].geometry.area))
         elif mode == 'std':
             if values:
-                results_list.append(np.nanstd(right.loc[right[unique_id].isin(ids)][values]))
+                results_list.append(np.nanstd(right.loc[right[right_id].isin(ids)][values]))
             else:
-                results_list.append(np.nanstd(right.loc[right[unique_id].isin(ids)].geometry.area))
+                results_list.append(np.nanstd(right.loc[right[right_id].isin(ids)].geometry.area))
 
     series = pd.Series(results_list, index=left.index)
 
