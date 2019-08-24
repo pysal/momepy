@@ -33,7 +33,7 @@ def unique_id(objects):
     return series
 
 
-def sw_high(k, gdf=None, weights=None, ids=None, contiguity='queen'):
+def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen"):
     """
     Generate spatial weights based on Queen or Rook contiguity of order k.
 
@@ -71,14 +71,16 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity='queen'):
     if weights is not None:
         first_order = weights
     elif gdf is not None:
-        if contiguity == 'queen':
+        if contiguity == "queen":
             first_order = libpysal.weights.Queen.from_dataframe(gdf, ids=ids)
-        elif contiguity == 'rook':
+        elif contiguity == "rook":
             first_order = libpysal.weights.Rook.from_dataframe(gdf, ids=ids)
         else:
-            raise ValueError('{} is not supported. Use \'queen\' or \'rook\'.'.format(contiguity))
+            raise ValueError(
+                "{} is not supported. Use 'queen' or 'rook'.".format(contiguity)
+            )
     else:
-        raise AttributeError('GeoDataFrame or spatial weights must be given.')
+        raise AttributeError("GeoDataFrame or spatial weights must be given.")
 
     joined = first_order
     for i in list(range(2, k + 1)):
@@ -87,7 +89,7 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity='queen'):
     return joined
 
 
-def gdf_to_nx(gdf_network, length='mm_len'):
+def gdf_to_nx(gdf_network, length="mm_len"):
     """
     Convert LineString GeoDataFrame to networkx.Graph
 
@@ -106,7 +108,7 @@ def gdf_to_nx(gdf_network, length='mm_len'):
     """
     # generate graph from GeoDataFrame of LineStrings
     net = nx.Graph()
-    net.graph['crs'] = gdf_network.crs
+    net.graph["crs"] = gdf_network.crs
     gdf_network[length] = gdf_network.geometry.length
     fields = list(gdf_network.columns)
 
@@ -121,7 +123,7 @@ def gdf_to_nx(gdf_network, length='mm_len'):
     return net
 
 
-def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False, nodeID='nodeID'):
+def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False, nodeID="nodeID"):
     """
     Convert networkx.Graph to LineString GeoDataFrame and Point GeoDataFrame
 
@@ -151,8 +153,10 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False, nodeID='nodeID
             net.nodes[n][nodeID] = nid
             nid += 1
         node_xy, node_data = zip(*net.nodes(data=True))
-        gdf_nodes = gpd.GeoDataFrame(list(node_data), geometry=[Point(i, j) for i, j in node_xy])
-        gdf_nodes.crs = net.graph['crs']
+        gdf_nodes = gpd.GeoDataFrame(
+            list(node_data), geometry=[Point(i, j) for i, j in node_xy]
+        )
+        gdf_nodes.crs = net.graph["crs"]
         if spatial_weights is True:
             W = libpysal.weights.W.from_networkx(net)
 
@@ -167,9 +171,9 @@ def nx_to_gdf(net, nodes=True, edges=True, spatial_weights=False, nodeID='nodeID
                 node_end.append(net.node[e][nodeID])
         gdf_edges = gpd.GeoDataFrame(list(edge_data))
         if nodes is True:
-            gdf_edges['node_start'] = node_start
-            gdf_edges['node_end'] = node_end
-        gdf_edges.crs = net.graph['crs']
+            gdf_edges["node_start"] = node_start
+            gdf_edges["node_end"] = node_end
+        gdf_edges.crs = net.graph["crs"]
 
     if nodes is True and edges is True:
         if spatial_weights is True:
@@ -201,8 +205,8 @@ def limit_range(vals, rng):
     if len(vals) > 2:
         limited = []
         rng = sorted(rng)
-        lower = np.percentile(vals, rng[0], interpolation='nearest')
-        higher = np.percentile(vals, rng[1], interpolation='nearest')
+        lower = np.percentile(vals, rng[0], interpolation="nearest")
+        higher = np.percentile(vals, rng[1], interpolation="nearest")
         for x in vals:
             if x >= lower and x <= higher:
                 limited.append(x)
@@ -252,20 +256,22 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     blg = blg.explode()
     blg.reset_index(drop=True, inplace=True)
     for l in range(0, 2):
-        print('Loop', l + 1, 'out of 2.')
+        print("Loop", l + 1, "out of 2.")
         blg.reset_index(inplace=True, drop=True)
-        blg['mm_uid'] = range(len(blg))
+        blg["mm_uid"] = range(len(blg))
         sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
-        blg['neighbors'] = sw.neighbors
-        blg['neighbors'] = blg['neighbors'].map(sw.neighbors)
-        blg['n_count'] = blg.apply(lambda row: len(row.neighbors), axis=1)
-        blg['circu'] = circular_compactness(blg)
+        blg["neighbors"] = sw.neighbors
+        blg["neighbors"] = blg["neighbors"].map(sw.neighbors)
+        blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
+        blg["circu"] = circular_compactness(blg)
 
         # idetify those smaller than x with only one neighbor and attaches it to it.
         join = {}
         delete = []
 
-        for idx, row in tqdm(blg.iterrows(), total=blg.shape[0], desc='Identifying changes'):
+        for idx, row in tqdm(
+            blg.iterrows(), total=blg.shape[0], desc="Identifying changes"
+        ):
             if size:
                 if row.geometry.area < size:
                     if row.n_count == 1:
@@ -280,7 +286,9 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
                     elif row.n_count > 1:
                         shares = {}
                         for n in row.neighbors:
-                            shares[n] = row.geometry.intersection(blg.at[n, 'geometry']).length
+                            shares[n] = row.geometry.intersection(
+                                blg.at[n, "geometry"]
+                            ).length
                         maximal = max(shares.items(), key=operator.itemgetter(1))[0]
                         uid = blg.loc[maximal].mm_uid
                         if uid in join:
@@ -304,7 +312,9 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
                     elif row.n_count > 1:
                         shares = {}
                         for n in row.neighbors:
-                            shares[n] = row.geometry.intersection(blg.at[n, 'geometry']).length
+                            shares[n] = row.geometry.intersection(
+                                blg.at[n, "geometry"]
+                            ).length
                         maximal = max(shares.items(), key=operator.itemgetter(1))[0]
                         uid = blg.loc[maximal].mm_uid
                         if uid in join:
@@ -316,7 +326,9 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
 
             if islands:
                 if row.n_count == 1:
-                    shared = row.geometry.intersection(blg.at[row.neighbors[0], 'geometry']).length
+                    shared = row.geometry.intersection(
+                        blg.at[row.neighbors[0], "geometry"]
+                    ).length
                     if shared == row.geometry.exterior.length:
                         uid = blg.iloc[row.neighbors[0]].mm_uid
                         if uid in join:
@@ -326,18 +338,18 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
                         else:
                             join[uid] = [row.mm_uid]
 
-        for key in tqdm(join, total=len(join), desc='Changing geometry'):
-            selection = blg[blg['mm_uid'] == key]
+        for key in tqdm(join, total=len(join), desc="Changing geometry"):
+            selection = blg[blg["mm_uid"] == key]
             if not selection.empty:
                 geoms = [selection.iloc[0].geometry]
 
                 for j in join[key]:
-                    subset = blg[blg['mm_uid'] == j]
+                    subset = blg[blg["mm_uid"] == j]
                     if not subset.empty:
-                        geoms.append(blg[blg['mm_uid'] == j].iloc[0].geometry)
-                        blg.drop(blg[blg['mm_uid'] == j].index[0], inplace=True)
+                        geoms.append(blg[blg["mm_uid"] == j].iloc[0].geometry)
+                        blg.drop(blg[blg["mm_uid"] == j].index[0], inplace=True)
                 new_geom = shapely.ops.unary_union(geoms)
-                blg.loc[blg.loc[blg['mm_uid'] == key].index[0], 'geometry'] = new_geom
+                blg.loc[blg.loc[blg["mm_uid"] == key].index[0], "geometry"] = new_geom
 
         blg.drop(delete, inplace=True)
     return blg[buildings.columns]
@@ -361,9 +373,9 @@ def network_false_nodes(gdf):
     sindex = streets.sindex
 
     false_points = []
-    print('Identifying false points...')
+    print("Identifying false points...")
     for idx, row in tqdm(streets.iterrows(), total=streets.shape[0]):
-        line = row['geometry']
+        line = row["geometry"]
         l_coords = list(line.coords)
         # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont intersect itself
         start = Point(l_coords[0])
@@ -373,12 +385,16 @@ def network_false_nodes(gdf):
         possible_first_index = list(sindex.intersection(start.bounds))
         possible_first_matches = streets.iloc[possible_first_index]
         possible_first_matches_clean = possible_first_matches.drop(idx, axis=0)
-        real_first_matches = possible_first_matches_clean[possible_first_matches_clean.intersects(start)]
+        real_first_matches = possible_first_matches_clean[
+            possible_first_matches_clean.intersects(start)
+        ]
 
         possible_second_index = list(sindex.intersection(end.bounds))
         possible_second_matches = streets.iloc[possible_second_index]
         possible_second_matches_clean = possible_second_matches.drop(idx, axis=0)
-        real_second_matches = possible_second_matches_clean[possible_second_matches_clean.intersects(end)]
+        real_second_matches = possible_second_matches_clean[
+            possible_second_matches_clean.intersects(end)
+        ]
 
         if len(real_first_matches) == 1:
             false_points.append(start)
@@ -397,7 +413,7 @@ def network_false_nodes(gdf):
 
     geoms = streets.geometry
 
-    print('Merging segments...')
+    print("Merging segments...")
     for point in tqdm(false_unique):
         matches = list(geoms[geoms.intersects(point)].index)
         idx = max(geoms.index) + 1
@@ -408,7 +424,12 @@ def network_false_nodes(gdf):
             geoms = geoms.drop(matches)
         except IndexError:
             import warnings
-            warnings.warn('An exception during merging occured. Lines at point [{x}, {y}] were not merged.'.format(x=point.x, y=point.y))
+
+            warnings.warn(
+                "An exception during merging occured. Lines at point [{x}, {y}] were not merged.".format(
+                    x=point.x, y=point.y
+                )
+            )
 
     geoms_gdf = gpd.GeoDataFrame(geometry=geoms)
     geoms_gdf.crs = streets.crs
@@ -416,7 +437,14 @@ def network_false_nodes(gdf):
     return streets
 
 
-def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=None, tolerance_edge=None, edge=None):
+def snap_street_network_edge(
+    edges,
+    buildings,
+    tolerance_street,
+    tessellation=None,
+    tolerance_edge=None,
+    edge=None,
+):
     """
     Fix street network before performing blocks()
 
@@ -453,17 +481,81 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
 
         # defining new point based on the vector between existing points
         if p1[0] >= p2[0] and p1[1] >= p2[1]:
-            b = (p2[0] - EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
-                 p2[1] - EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
+            b = (
+                p2[0]
+                - EXTRAPOL_RATIO
+                * math.cos(
+                    math.atan(
+                        math.fabs(p1[1] - p2[1] + 0.000001)
+                        / math.fabs(p1[0] - p2[0] + 0.000001)
+                    )
+                ),
+                p2[1]
+                - EXTRAPOL_RATIO
+                * math.sin(
+                    math.atan(
+                        math.fabs(p1[1] - p2[1] + 0.000001)
+                        / math.fabs(p1[0] - p2[0] + 0.000001)
+                    )
+                ),
+            )
         elif p1[0] <= p2[0] and p1[1] >= p2[1]:
-            b = (p2[0] + EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
-                 p2[1] - EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
+            b = (
+                p2[0]
+                + EXTRAPOL_RATIO
+                * math.cos(
+                    math.atan(
+                        math.fabs(p1[1] - p2[1] + 0.000001)
+                        / math.fabs(p1[0] - p2[0] + 0.000001)
+                    )
+                ),
+                p2[1]
+                - EXTRAPOL_RATIO
+                * math.sin(
+                    math.atan(
+                        math.fabs(p1[1] - p2[1] + 0.000001)
+                        / math.fabs(p1[0] - p2[0] + 0.000001)
+                    )
+                ),
+            )
         elif p1[0] <= p2[0] and p1[1] <= p2[1]:
-            b = (p2[0] + EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
-                 p2[1] + EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
+            b = (
+                p2[0]
+                + EXTRAPOL_RATIO
+                * math.cos(
+                    math.atan(
+                        math.fabs(p1[1] - p2[1] + 0.000001)
+                        / math.fabs(p1[0] - p2[0] + 0.000001)
+                    )
+                ),
+                p2[1]
+                + EXTRAPOL_RATIO
+                * math.sin(
+                    math.atan(
+                        math.fabs(p1[1] - p2[1] + 0.000001)
+                        / math.fabs(p1[0] - p2[0] + 0.000001)
+                    )
+                ),
+            )
         else:
-            b = (p2[0] - EXTRAPOL_RATIO * math.cos(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))),
-                 p2[1] + EXTRAPOL_RATIO * math.sin(math.atan(math.fabs(p1[1] - p2[1] + 0.000001) / math.fabs(p1[0] - p2[0] + 0.000001))))
+            b = (
+                p2[0]
+                - EXTRAPOL_RATIO
+                * math.cos(
+                    math.atan(
+                        math.fabs(p1[1] - p2[1] + 0.000001)
+                        / math.fabs(p1[0] - p2[0] + 0.000001)
+                    )
+                ),
+                p2[1]
+                + EXTRAPOL_RATIO
+                * math.sin(
+                    math.atan(
+                        math.fabs(p1[1] - p2[1] + 0.000001)
+                        / math.fabs(p1[0] - p2[0] + 0.000001)
+                    )
+                ),
+            )
         return LineString([a, b])
 
     # function extending line to closest object within set distance
@@ -478,20 +570,24 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
                 return False
         else:
             extra = l_coords[-2:]
-        extrapolation = getExtrapoledLine(*extra, tolerance=tolerance)  # we use the last two points
+        extrapolation = getExtrapoledLine(
+            *extra, tolerance=tolerance
+        )  # we use the last two points
 
         possible_intersections_index = list(sindex.intersection(extrapolation.bounds))
         possible_intersections_lines = network.iloc[possible_intersections_index]
         possible_intersections_clean = possible_intersections_lines.drop(idx, axis=0)
-        possible_intersections = possible_intersections_clean.intersection(extrapolation)
+        possible_intersections = possible_intersections_clean.intersection(
+            extrapolation
+        )
 
         if not possible_intersections.is_empty.all():
 
             true_int = []
             for one in list(possible_intersections.index):
-                if possible_intersections[one].type == 'Point':
+                if possible_intersections[one].type == "Point":
                     true_int.append(possible_intersections[one])
-                elif possible_intersections[one].type == 'MultiPoint':
+                elif possible_intersections[one].type == "MultiPoint":
                     true_int.append(possible_intersections[one][0])
                     true_int.append(possible_intersections[one][1])
 
@@ -512,14 +608,18 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
                 new_extended_line = LineString(l_coords)
 
                 # check whether the line goes through buildings. if so, ignore it
-                possible_buildings_index = list(bindex.intersection(new_extended_line.bounds))
+                possible_buildings_index = list(
+                    bindex.intersection(new_extended_line.bounds)
+                )
                 possible_buildings = buildings.iloc[possible_buildings_index]
-                possible_intersections = possible_buildings.intersection(new_extended_line)
+                possible_intersections = possible_buildings.intersection(
+                    new_extended_line
+                )
 
                 if possible_intersections.any():
                     pass
                 else:
-                    network.loc[idx, 'geometry'] = new_extended_line
+                    network.loc[idx, "geometry"] = new_extended_line
         else:
             return False
 
@@ -535,19 +635,21 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
                 return False
         else:
             extra = l_coords[-2:]
-        extrapolation = getExtrapoledLine(*extra, tolerance)  # we use the last two points
+        extrapolation = getExtrapoledLine(
+            *extra, tolerance
+        )  # we use the last two points
 
         # possible_intersections_index = list(qindex.intersection(extrapolation.bounds))
         # possible_intersections_lines = geometry_cut.iloc[possible_intersections_index]
         possible_intersections = geometry.intersection(extrapolation)
 
-        if possible_intersections.type != 'GeometryCollection':
+        if possible_intersections.type != "GeometryCollection":
 
             true_int = []
 
-            if possible_intersections.type == 'Point':
+            if possible_intersections.type == "Point":
                 true_int.append(possible_intersections)
-            elif possible_intersections.type == 'MultiPoint':
+            elif possible_intersections.type == "MultiPoint":
                 true_int.append(possible_intersections[0])
                 true_int.append(possible_intersections[1])
 
@@ -568,37 +670,41 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
                 new_extended_line = LineString(l_coords)
 
                 # check whether the line goes through buildings. if so, ignore it
-                possible_buildings_index = list(bindex.intersection(new_extended_line.bounds))
+                possible_buildings_index = list(
+                    bindex.intersection(new_extended_line.bounds)
+                )
                 possible_buildings = buildings.iloc[possible_buildings_index]
-                possible_intersections = possible_buildings.intersection(new_extended_line)
+                possible_intersections = possible_buildings.intersection(
+                    new_extended_line
+                )
 
                 if not possible_intersections.is_empty.all():
                     pass
                 else:
-                    network.loc[idx, 'geometry'] = new_extended_line
+                    network.loc[idx, "geometry"] = new_extended_line
 
     network = edges.copy()
     # generating spatial index (rtree)
-    print('Building R-tree for network...')
+    print("Building R-tree for network...")
     sindex = network.sindex
-    print('Building R-tree for buildings...')
+    print("Building R-tree for buildings...")
     bindex = buildings.sindex
 
     def _get_geometry():
         if edge is not None:
             return edge.boundary
         if tessellation is not None:
-            print('Dissolving tesselation...')
+            print("Dissolving tesselation...")
             return tessellation.geometry.unary_union.boundary
         return None
 
     geometry = _get_geometry()
 
-    print('Snapping...')
+    print("Snapping...")
     # iterating over each street segment
     for idx, row in tqdm(network.iterrows(), total=network.shape[0]):
 
-        line = row['geometry']
+        line = row["geometry"]
         l_coords = list(line.coords)
         # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont intersect itself
         start = Point(l_coords[0])
@@ -639,6 +745,6 @@ def snap_street_network_edge(edges, buildings, tolerance_street, tessellation=No
                 if geometry is not None:
                     extend_line_edge(tolerance_edge, idx)
         else:
-            print('Something went wrong.')
+            print("Something went wrong.")
 
     return network

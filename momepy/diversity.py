@@ -58,12 +58,12 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
     # define empty list for results
     results_list = []
     gdf = gdf.copy()
-    print('Calculating range...')
+    print("Calculating range...")
 
     if values is not None:
         if not isinstance(values, str):
-            gdf['mm_v'] = values
-            values = 'mm_v'
+            gdf["mm_v"] = values
+            values = "mm_v"
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[row[unique_id]].copy()
@@ -77,7 +77,7 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Range calculated.')
+    print("Range calculated.")
     return series
 
 
@@ -123,19 +123,18 @@ def theil(gdf, values, spatial_weights, unique_id, rng=None):
         try:
             from pysal.explore.inequality.theil import Theil
         except ImportError:
-            raise ImportError(
-                "The 'inequality' or 'pysal' package is required.")
+            raise ImportError("The 'inequality' or 'pysal' package is required.")
 
     # define empty list for results
     results_list = []
     gdf = gdf.copy()
 
-    print('Calculating Theil index...')
+    print("Calculating Theil index...")
 
     if values is not None:
         if not isinstance(values, str):
-            gdf['mm_v'] = values
-            values = 'mm_v'
+            gdf["mm_v"] = values
+            values = "mm_v"
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[row[unique_id]].copy()
@@ -147,16 +146,24 @@ def theil(gdf, values, spatial_weights, unique_id, rng=None):
 
         if rng:
             from momepy import limit_range
+
             values_list = limit_range(values_list.tolist(), rng=rng)
         results_list.append(Theil(values_list).T)
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Theil index calculated.')
+    print("Theil index calculated.")
     return series
 
 
-def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', **classification_kwds):
+def simpson(
+    gdf,
+    values,
+    spatial_weights,
+    unique_id,
+    binning="HeadTailBreaks",
+    **classification_kwds
+):
     """
     Calculates the Simpson\'s diversity index of values within neighbours defined in `spatial_weights`.
 
@@ -207,6 +214,7 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
     100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
     Simpson's diversity index calculated.
     """
+
     def _simpson_di(data):
 
         """ Given a hash { 'species': count } , returns the Simpson Diversity Index
@@ -225,7 +233,7 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
 
         N = sum(data.values())
 
-        return sum(p(n, N)**2 for n in data.values() if n != 0)
+        return sum(p(n, N) ** 2 for n in data.values() if n != 0)
 
     try:
         import mapclassify.classifiers as classifiers
@@ -237,22 +245,22 @@ def simpson(gdf, values, spatial_weights, unique_id, binning='HeadTailBreaks', *
 
     schemes = {}
     for classifier in classifiers.CLASSIFIERS:
-        schemes[classifier.lower()] = getattr(classifiers,
-                                              classifier)
+        schemes[classifier.lower()] = getattr(classifiers, classifier)
     binning = binning.lower()
     if binning not in schemes:
-        raise ValueError("Invalid binning. Binning must be in the"
-                         " set: %r" % schemes.keys())
+        raise ValueError(
+            "Invalid binning. Binning must be in the" " set: %r" % schemes.keys()
+        )
 
     # define empty list for results
     results_list = []
     gdf = gdf.copy()
-    print('Calculating Simpson\'s diversity index...')
+    print("Calculating Simpson's diversity index...")
 
     if values is not None:
         if not isinstance(values, str):
-            gdf['mm_v'] = values
-            values = 'mm_v'
+            gdf["mm_v"] = values
+            values = "mm_v"
 
     bins = schemes[binning](gdf[values], **classification_kwds).bins
 
@@ -313,15 +321,16 @@ def gini(gdf, values, spatial_weights, unique_id, rng=None):
         try:
             from pysal.explore.inequality.gini import Gini
         except ImportError:
-            raise ImportError(
-                "The 'inequality' or 'pysal' package is required.")
+            raise ImportError("The 'inequality' or 'pysal' package is required.")
     # define empty list for results
     results_list = []
     gdf = gdf.copy()
     if gdf[values].min() < 0:
-        raise ValueError("Values contain negative numbers. Normalise data before"
-                         "using momepy.gini.")
-    print('Calculating Gini index...')
+        raise ValueError(
+            "Values contain negative numbers. Normalise data before"
+            "using momepy.gini."
+        )
+    print("Calculating Gini index...")
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[row[unique_id]].copy()
@@ -332,11 +341,12 @@ def gini(gdf, values, spatial_weights, unique_id, rng=None):
 
             if rng:
                 from momepy import limit_range
+
                 values_list = np.array(limit_range(values_list, rng=rng))
             results_list.append(Gini(values_list).g)
         else:
             results_list.append(0)
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Gini index calculated.')
+    print("Gini index calculated.")
     return series

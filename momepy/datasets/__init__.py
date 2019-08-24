@@ -1,10 +1,10 @@
 import os
 
 
-__all__ = ['available', 'get_path']
+__all__ = ["available", "get_path"]
 
 _module_path = os.path.dirname(__file__)
-available = ['bubenec', 'tests']
+available = ["bubenec", "tests"]
 
 
 def get_path(dataset):
@@ -17,8 +17,7 @@ def get_path(dataset):
         all options.
     """
     if dataset in available:
-        return os.path.abspath(
-            os.path.join(_module_path, dataset + '.gpkg'))
+        return os.path.abspath(os.path.join(_module_path, dataset + ".gpkg"))
     msg = "The dataset '{data}' is not available. ".format(data=dataset)
     msg += "Available datasets are {}".format(", ".join(available))
     raise ValueError(msg)

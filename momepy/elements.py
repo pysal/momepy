@@ -40,7 +40,7 @@ def buffered_limit(gdf, buffer=100):
 
     """
     study_area = gdf.copy()
-    study_area['geometry'] = study_area.buffer(buffer)
+    study_area["geometry"] = study_area.buffer(buffer)
     built_up = study_area.geometry.unary_union
     return built_up
 
@@ -49,9 +49,9 @@ def _get_centre(gdf):
     """
     Returns centre coords of gdf.
     """
-    bounds = gdf['geometry'].bounds
-    centre_x = (bounds['maxx'].max() + bounds['minx'].min()) / 2
-    centre_y = (bounds['maxy'].max() + bounds['miny'].min()) / 2
+    bounds = gdf["geometry"].bounds
+    centre_x = (bounds["maxx"].max() + bounds["minx"].min()) / 2
+    centre_y = (bounds["maxy"].max() + bounds["miny"].min()) / 2
     return centre_x, centre_y
 
 
@@ -80,26 +80,26 @@ def _point_array(objects, unique_id):
     points = []
     ids = []
     for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        if row['geometry'].type in ['Polygon', 'MultiPolygon']:
-            poly_ext = row['geometry'].boundary
+        if row["geometry"].type in ["Polygon", "MultiPolygon"]:
+            poly_ext = row["geometry"].boundary
         else:
-            poly_ext = row['geometry']
+            poly_ext = row["geometry"]
         if poly_ext is not None:
-            if poly_ext.type == 'MultiLineString':
+            if poly_ext.type == "MultiLineString":
                 for line in poly_ext:
                     point_coords = line.coords
                     row_array = np.array(point_coords).tolist()
                     for i, a in enumerate(row_array):
                         points.append(row_array[i])
                         ids.append(row[unique_id])
-            elif poly_ext.type == 'LineString':
+            elif poly_ext.type == "LineString":
                 point_coords = poly_ext.coords
                 row_array = np.array(point_coords).tolist()
                 for i, a in enumerate(row_array):
                     points.append(row_array[i])
                     ids.append(row[unique_id])
             else:
-                raise Exception('Boundary type is {}'.format(poly_ext.type))
+                raise Exception("Boundary type is {}".format(poly_ext.type))
     return points, ids
 
 
@@ -110,28 +110,32 @@ def _regions(voronoi_diagram, unique_id, ids, crs):
     # generate DataFrame of results
     regions = pd.DataFrame()
     regions[unique_id] = ids  # add unique id
-    regions['region'] = voronoi_diagram.point_region  # add region id for each point
+    regions["region"] = voronoi_diagram.point_region  # add region id for each point
 
     # add vertices of each polygon
     vertices = []
     for region in regions.region:
         vertices.append(voronoi_diagram.regions[region])
-    regions['vertices'] = vertices
+    regions["vertices"] = vertices
 
     # convert vertices to Polygons
     polygons = []
-    for region in tqdm(regions.vertices, desc='Vertices to Polygons'):
+    for region in tqdm(regions.vertices, desc="Vertices to Polygons"):
         if -1 not in region:
             polygons.append(Polygon(voronoi_diagram.vertices[region]))
         else:
             polygons.append(None)
     # save polygons as geometry column
-    regions['geometry'] = polygons
+    regions["geometry"] = polygons
 
     # generate GeoDataFrame
-    regions_gdf = gpd.GeoDataFrame(regions.dropna(), geometry='geometry')
-    regions_gdf = regions_gdf.loc[regions_gdf['geometry'].length < 1000000]  # delete errors
-    regions_gdf = regions_gdf.loc[regions_gdf[unique_id] != -1]  # delete hull-based cells
+    regions_gdf = gpd.GeoDataFrame(regions.dropna(), geometry="geometry")
+    regions_gdf = regions_gdf.loc[
+        regions_gdf["geometry"].length < 1000000
+    ]  # delete errors
+    regions_gdf = regions_gdf.loc[
+        regions_gdf[unique_id] != -1
+    ]  # delete hull-based cells
     regions_gdf.crs = crs
     return regions_gdf
 
@@ -142,19 +146,29 @@ def _split_lines(polygon, distance):
     current_dist = distance  # set the current distance to place the point
 
     boundary = polygon.boundary  # make shapely MultiLineString object
-    if boundary.type == 'LineString':
+    if boundary.type == "LineString":
         line_length = boundary.length  # get the total length of the line
-        while current_dist < line_length:  # while the current cumulative distance is less than the total length of the line
-            list_points.append(boundary.interpolate(current_dist))  # use interpolate and increase the current distance
+        while (
+            current_dist < line_length
+        ):  # while the current cumulative distance is less than the total length of the line
+            list_points.append(
+                boundary.interpolate(current_dist)
+            )  # use interpolate and increase the current distance
             current_dist += distance
-    elif boundary.type == 'MultiLineString':
+    elif boundary.type == "MultiLineString":
         for ls in boundary:
             line_length = ls.length  # get the total length of the line
-            while current_dist < line_length:  # while the current cumulative distance is less than the total length of the line
-                list_points.append(ls.interpolate(current_dist))  # use interpolate and increase the current distance
+            while (
+                current_dist < line_length
+            ):  # while the current cumulative distance is less than the total length of the line
+                list_points.append(
+                    ls.interpolate(current_dist)
+                )  # use interpolate and increase the current distance
                 current_dist += distance
 
-    cutted = shapely.ops.split(boundary, shapely.geometry.MultiPoint(list_points).buffer(0.001))
+    cutted = shapely.ops.split(
+        boundary, shapely.geometry.MultiPoint(list_points).buffer(0.001)
+    )
     return cutted
 
 
@@ -164,13 +178,13 @@ def _cut(tessellation, limit, unique_id):
 
     ADD: add option to delete everything outside of limit. Now it keeps it.
     """
-    print('Preparing limit for edge resolving...')
+    print("Preparing limit for edge resolving...")
     geometry_cut = _split_lines(limit, 100)
 
-    print('Building R-tree...')
+    print("Building R-tree...")
     sindex = tessellation.sindex
     # find the points that intersect with each subpolygon and add them to points_within_geometry
-    print('Identifying edge cells...')
+    print("Identifying edge cells...")
     to_cut = pd.DataFrame()
     for poly in tqdm(geometry_cut, total=(len(geometry_cut))):
         # find approximate matches with r-tree, then precise matches from those approximate ones
@@ -183,24 +197,27 @@ def _cut(tessellation, limit, unique_id):
     to_cut = to_cut.drop_duplicates(subset=[unique_id])
     subselection = list(to_cut.index)
 
-    print('Cutting...')
-    for idx, row in tqdm(tessellation.loc[subselection].iterrows(), total=tessellation.loc[subselection].shape[0]):
+    print("Cutting...")
+    for idx, row in tqdm(
+        tessellation.loc[subselection].iterrows(),
+        total=tessellation.loc[subselection].shape[0],
+    ):
         intersection = row.geometry.intersection(limit)
-        if intersection.type == 'MultiPolygon':
+        if intersection.type == "MultiPolygon":
             areas = {}
             for p, i in enumerate(intersection):
                 area = intersection[p].area
                 areas[p] = area
             maximal = max(areas.items(), key=operator.itemgetter(1))[0]
-            tessellation.loc[idx, 'geometry'] = intersection[maximal]
-        elif intersection.type == 'GeometryCollection':
+            tessellation.loc[idx, "geometry"] = intersection[maximal]
+        elif intersection.type == "GeometryCollection":
             for geom in list(intersection.geoms):
-                if geom.type != 'Polygon':
+                if geom.type != "Polygon":
                     pass
                 else:
-                    tessellation.loc[idx, 'geometry'] = geom
+                    tessellation.loc[idx, "geometry"] = geom
         else:
-            tessellation.loc[idx, 'geometry'] = intersection
+            tessellation.loc[idx, "geometry"] = intersection
     return tessellation, sindex
 
 
@@ -213,16 +230,22 @@ def _check_result(tesselation, orig_gdf, unique_id):
     ids_generated = list(tesselation[unique_id])
     if len(ids_original) != len(ids_generated):
         import warnings
+
         diff = set(ids_original).difference(ids_generated)
-        warnings.warn("Tessellation does not fully match buildings. {len} element(s) collapsed "
-                      "during generation - unique_id: {i}".format(len=len(diff), i=diff))
+        warnings.warn(
+            "Tessellation does not fully match buildings. {len} element(s) collapsed "
+            "during generation - unique_id: {i}".format(len=len(diff), i=diff)
+        )
 
     # check MultiPolygons - usually caused by error in input geometry
-    uids = tesselation[tesselation.geometry.type == 'MultiPolygon'][unique_id]
+    uids = tesselation[tesselation.geometry.type == "MultiPolygon"][unique_id]
     if len(uids) > 0:
         import warnings
-        warnings.warn('Tessellation contains MultiPolygon elements. Initial objects should be edited. '
-                      'unique_id of affected elements: {}'.format(list(uids)))
+
+        warnings.warn(
+            "Tessellation contains MultiPolygon elements. Initial objects should be edited. "
+            "unique_id of affected elements: {}".format(list(uids))
+        )
 
 
 def _queen_corners(tessellation, sensitivity, sindex):
@@ -279,8 +302,13 @@ def _queen_corners(tessellation, sensitivity, sindex):
         delete_points = []
         for move, k in enumerate(keys):
             if move < len(keys) - 1:
-                if moves[keys[move]][1] == moves[keys[move + 1]][1] and keys[move + 1] - keys[move] < 5:
-                    delete_points = delete_points + (coords[keys[move]:keys[move + 1]])
+                if (
+                    moves[keys[move]][1] == moves[keys[move + 1]][1]
+                    and keys[move + 1] - keys[move] < 5
+                ):
+                    delete_points = delete_points + (
+                        coords[keys[move] : keys[move + 1]]
+                    )
                     # change the code above to have if based on distance not number
 
         newcoords = [changes[x][0] if x in changes.keys() else x for x in coords]
@@ -302,11 +330,13 @@ def _queen_corners(tessellation, sensitivity, sindex):
                     newgeom = list(shapely.ops.polygonize(mls))[0]
             else:
                 newgeom = Polygon(newcoords, holes=cell.interiors)
-            tessellation.loc[ix, 'geometry'] = newgeom
+            tessellation.loc[ix, "geometry"] = newgeom
     return tessellation
 
 
-def tessellation(gdf, unique_id, limit, shrink=0.4, segment=0.5, queen_corners=False, sensitivity=2):
+def tessellation(
+    gdf, unique_id, limit, shrink=0.4, segment=0.5, queen_corners=False, sensitivity=2
+):
     """
     Generate morphological tessellation around given buildings or proximity bands around given
     street network.
@@ -360,24 +390,30 @@ def tessellation(gdf, unique_id, limit, shrink=0.4, segment=0.5, queen_corners=F
     objects = gdf.copy()
 
     centre = _get_centre(objects)
-    objects['geometry'] = objects['geometry'].translate(xoff=-centre[0], yoff=-centre[1])
+    objects["geometry"] = objects["geometry"].translate(
+        xoff=-centre[0], yoff=-centre[1]
+    )
 
-    polys = ['Polygon', 'MultiPolygon']
-    print('Bufferring geometry...')
-    objects['geometry'] = objects.geometry.apply(lambda g: g.buffer(-shrink, cap_style=2, join_style=2) if g.type in polys else g)
+    polys = ["Polygon", "MultiPolygon"]
+    print("Bufferring geometry...")
+    objects["geometry"] = objects.geometry.apply(
+        lambda g: g.buffer(-shrink, cap_style=2, join_style=2) if g.type in polys else g
+    )
 
-    print('Converting multipart geometry to singlepart...')
+    print("Converting multipart geometry to singlepart...")
     objects = objects.explode()
     objects.reset_index(inplace=True, drop=True)
 
-    print('Densifying geometry...')
-    objects['geometry'] = objects['geometry'].apply(_densify, segment=segment)
+    print("Densifying geometry...")
+    objects["geometry"] = objects["geometry"].apply(_densify, segment=segment)
 
-    print('Generating input point array...')
+    print("Generating input point array...")
     points, ids = _point_array(objects, unique_id)
 
     # add convex hull buffered large distance to eliminate infinity issues
-    series = gpd.GeoSeries(limit, crs=gdf.crs).translate(xoff=-centre[0], yoff=-centre[1])
+    series = gpd.GeoSeries(limit, crs=gdf.crs).translate(
+        xoff=-centre[0], yoff=-centre[1]
+    )
     hull = series.geometry[0].convex_hull.buffer(300)
     hull = _densify(hull, 20)
     hull_array = np.array(hull.boundary.coords).tolist()
@@ -385,21 +421,29 @@ def tessellation(gdf, unique_id, limit, shrink=0.4, segment=0.5, queen_corners=F
         points.append(hull_array[i])
         ids.append(-1)
 
-    print('Generating Voronoi diagram...')
+    print("Generating Voronoi diagram...")
     voronoi_diagram = Voronoi(np.array(points))
 
-    print('Generating GeoDataFrame...')
+    print("Generating GeoDataFrame...")
     regions_gdf = _regions(voronoi_diagram, unique_id, ids, crs=gdf.crs)
 
-    print('Dissolving Voronoi polygons...')
-    morphological_tessellation = regions_gdf[[unique_id, 'geometry']].dissolve(by=unique_id, as_index=False)
+    print("Dissolving Voronoi polygons...")
+    morphological_tessellation = regions_gdf[[unique_id, "geometry"]].dissolve(
+        by=unique_id, as_index=False
+    )
 
-    morphological_tessellation['geometry'] = morphological_tessellation['geometry'].translate(xoff=centre[0], yoff=centre[1])
+    morphological_tessellation["geometry"] = morphological_tessellation[
+        "geometry"
+    ].translate(xoff=centre[0], yoff=centre[1])
 
-    morphological_tessellation, sindex = _cut(morphological_tessellation, limit, unique_id)
+    morphological_tessellation, sindex = _cut(
+        morphological_tessellation, limit, unique_id
+    )
 
     if queen_corners is True:
-        morphological_tessellation = _queen_corners(morphological_tessellation, sensitivity, sindex)
+        morphological_tessellation = _queen_corners(
+            morphological_tessellation, sensitivity, sindex
+        )
 
     _check_result(morphological_tessellation, gdf, unique_id=unique_id)
 
@@ -464,16 +508,16 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
     """
 
     cells_copy = tessellation.copy()
-    cells_copy = cells_copy[[unique_id, 'geometry']]
+    cells_copy = cells_copy[[unique_id, "geometry"]]
 
-    print('Buffering streets...')
+    print("Buffering streets...")
     street_buff = edges.copy()
-    street_buff['geometry'] = street_buff.buffer(0.1)
+    street_buff["geometry"] = street_buff.buffer(0.1)
 
-    print('Generating spatial index...')
+    print("Generating spatial index...")
     streets_index = street_buff.sindex
 
-    print('Difference...')
+    print("Difference...")
     cells_geom = cells_copy.geometry
     new_geom = []
 
@@ -484,9 +528,9 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
         new_geom.append(cell.difference(possible_matches.geometry.unary_union))
 
     single_geom = []
-    print('Defining adjacency...')
+    print("Defining adjacency...")
     for p in new_geom:
-        if p.type == 'MultiPolygon':
+        if p.type == "MultiPolygon":
             for polygon in p:
                 single_geom.append(polygon)
         else:
@@ -510,50 +554,56 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
                 neighbours.append(w)  # make a list from weigths
 
             for n in neighbours:
-                while n not in to_join:  # until there is some neighbour which is not in to_join
+                while (
+                    n not in to_join
+                ):  # until there is some neighbour which is not in to_join
                     to_join.append(n)
                     weights = spatial_weights.neighbors[n]
                     for w in weights:
-                        neighbours.append(w)  # extend neighbours by neighbours of neighbours :)
+                        neighbours.append(
+                            w
+                        )  # extend neighbours by neighbours of neighbours :)
             for b in to_join:
                 patches[b] = jID  # fill dict with values
             jID = jID + 1
 
-    blocks_gdf['patch'] = blocks_gdf.index.map(patches)
+    blocks_gdf["patch"] = blocks_gdf.index.map(patches)
 
-    print('Defining street-based blocks...')
-    blocks_single = blocks_gdf.dissolve(by='patch')
+    print("Defining street-based blocks...")
+    blocks_single = blocks_gdf.dissolve(by="patch")
     blocks_single.crs = buildings.crs
 
-    blocks_single['geometry'] = blocks_single.buffer(0.1)
+    blocks_single["geometry"] = blocks_single.buffer(0.1)
 
-    print('Defining block ID...')  # street based
+    print("Defining block ID...")  # street based
     blocks_single[id_name] = range(len(blocks_single))
 
-    print('Generating centroids...')
+    print("Generating centroids...")
     buildings_c = buildings.copy()
-    buildings_c['geometry'] = buildings_c.representative_point()  # make points
+    buildings_c["geometry"] = buildings_c.representative_point()  # make points
 
-    print('Spatial join...')
-    centroids_tempID = gpd.sjoin(buildings_c, blocks_single, how='left', op='intersects')
+    print("Spatial join...")
+    centroids_tempID = gpd.sjoin(
+        buildings_c, blocks_single, how="left", op="intersects"
+    )
 
     tempID_to_uID = centroids_tempID[[unique_id, id_name]]
 
-    print('Attribute join (tesselation)...')
-    cells_copy = cells_copy.merge(tempID_to_uID, on=unique_id, how='left')
+    print("Attribute join (tesselation)...")
+    cells_copy = cells_copy.merge(tempID_to_uID, on=unique_id, how="left")
 
-    print('Generating blocks...')
+    print("Generating blocks...")
     blocks = cells_copy.dissolve(by=id_name)
 
-    print('Multipart to singlepart...')
+    print("Multipart to singlepart...")
     blocks = blocks.explode()
     blocks.reset_index(inplace=True, drop=True)
 
-    blocks['geometry'] = blocks.exterior
+    blocks["geometry"] = blocks.exterior
     blocks[id_name] = range(len(blocks))
 
     for idx, row in tqdm(blocks.iterrows(), total=blocks.shape[0]):
-        blocks.loc[idx, 'geometry'] = Polygon(row['geometry'])
+        blocks.loc[idx, "geometry"] = Polygon(row["geometry"])
 
     # if polygon is within another one, delete it
     sindex = blocks.sindex
@@ -563,22 +613,24 @@ def blocks(tessellation, edges, buildings, id_name, unique_id):
         possible = blocks.iloc[possible_matches]
 
         for idx2, row2 in possible.iterrows():
-            if row['geometry'].within(row2['geometry']):
-                blocks.loc[idx, 'delete'] = 1
+            if row["geometry"].within(row2["geometry"]):
+                blocks.loc[idx, "delete"] = 1
 
-    if 'delete' in blocks.columns:
-        blocks = blocks.drop(list(blocks.loc[blocks['delete'] == 1].index))
+    if "delete" in blocks.columns:
+        blocks = blocks.drop(list(blocks.loc[blocks["delete"] == 1].index))
 
-    blocks_save = blocks[[id_name, 'geometry']]
+    blocks_save = blocks[[id_name, "geometry"]]
 
-    centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks_save, how='left', op='intersects')
+    centroids_w_bl_ID2 = gpd.sjoin(
+        buildings_c, blocks_save, how="left", op="intersects"
+    )
     bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
 
-    print('Attribute join (buildings)...')
-    buildings_m = buildings[[unique_id]].merge(bl_ID_to_uID, on=unique_id, how='left')
+    print("Attribute join (buildings)...")
+    buildings_m = buildings[[unique_id]].merge(bl_ID_to_uID, on=unique_id, how="left")
 
-    print('Attribute join (tesselation)...')
-    cells_m = tessellation[[unique_id]].merge(bl_ID_to_uID, on=unique_id, how='left')
+    print("Attribute join (tesselation)...")
+    cells_m = tessellation[[unique_id]].merge(bl_ID_to_uID, on=unique_id, how="left")
 
     return (blocks_save, buildings_m[id_name], cells_m[id_name])
 
@@ -629,22 +681,24 @@ def get_network_id(left, right, unique_id, network_id, min_size=100):
     right = right.copy()
 
     if not isinstance(unique_id, str):
-        left['mm_uid'] = unique_id
-        unique_id = 'mm_uid'
+        left["mm_uid"] = unique_id
+        unique_id = "mm_uid"
     if not isinstance(network_id, str):
-        right['mm_nid'] = network_id
-        network_id = 'mm_nid'
+        right["mm_nid"] = network_id
+        network_id = "mm_nid"
 
-    print('Generating centroids...')
+    print("Generating centroids...")
     buildings_c = left.copy()
 
-    buildings_c['geometry'] = buildings_c.centroid  # make centroids
+    buildings_c["geometry"] = buildings_c.centroid  # make centroids
 
-    print('Generating rtree...')
+    print("Generating rtree...")
     idx = right.sindex
 
     result = []
-    for ix, r in tqdm(buildings_c.iterrows(), total=buildings_c.shape[0], desc='Snapping'):
+    for ix, r in tqdm(
+        buildings_c.iterrows(), total=buildings_c.shape[0], desc="Snapping"
+    ):
         p = r.geometry
         pbox = (p.x - MIN_SIZE, p.y - MIN_SIZE, p.x + MIN_SIZE, p.y + MIN_SIZE)
         hits = list(idx.intersection(pbox))
@@ -664,8 +718,11 @@ def get_network_id(left, right, unique_id, network_id, min_size=100):
 
     if series.isnull().any():
         import warnings
-        warnings.warn('Some objects were not attached to the network. '
-                      'Set larger min_size. {} affected elements'.format(sum(series.isnull())))
+
+        warnings.warn(
+            "Some objects were not attached to the network. "
+            "Set larger min_size. {} affected elements".format(sum(series.isnull()))
+        )
     return series
 
 
@@ -697,8 +754,8 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
     """
     nodes = nodes.copy()
     if not isinstance(node_id, str):
-        nodes['mm_noid'] = node_id
-        node_id = 'mm_noid'
+        nodes["mm_noid"] = node_id
+        node_id = "mm_noid"
 
     results_list = []
     for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
