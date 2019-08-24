@@ -29,6 +29,7 @@ install:
   - if [ "$DEV" ]; then pip install git+https://github.com/pysal/libpysal.git; fi
   - python setup.py install
   - conda list
+  - black --check .
 
 script:
   - pytest -v --cov-config .coveragerc --cov=momepy tests

@@ -13,3 +13,4 @@ dependencies:
   - mapclassify
   - pip:
     - inequality
+    - black

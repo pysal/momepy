@@ -11,3 +11,5 @@ dependencies:
   - pytest-cov
   - codecov
   - pysal
+  - pip:
+    - black
