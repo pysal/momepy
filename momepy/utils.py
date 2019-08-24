@@ -443,7 +443,7 @@ def snap_street_network_edge(
     tolerance_street,
     tessellation=None,
     tolerance_edge=None,
-    edge=None,
+    edge=None
 ):
     """
     Fix street network before performing blocks()
