@@ -33,7 +33,7 @@ def unique_id(objects):
     return series
 
 
-def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen"):
+def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True):
     """
     Generate spatial weights based on Queen or Rook contiguity of order k.
 
@@ -52,6 +52,8 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen"):
         libpysal.weights of order 1
     contiguity : str (default 'queen')
         type of contiguity weights. Can be 'queen' or 'rook'.
+    silent : bool (default True)
+        silence libpysal islands warnings
 
     Returns
     -------
@@ -72,9 +74,13 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen"):
         first_order = weights
     elif gdf is not None:
         if contiguity == "queen":
-            first_order = libpysal.weights.Queen.from_dataframe(gdf, ids=ids)
+            first_order = libpysal.weights.Queen.from_dataframe(
+                gdf, ids=ids, silence_warnings=silent
+            )
         elif contiguity == "rook":
-            first_order = libpysal.weights.Rook.from_dataframe(gdf, ids=ids)
+            first_order = libpysal.weights.Rook.from_dataframe(
+                gdf, ids=ids, silence_warnings=silent
+            )
         else:
             raise ValueError(
                 "{} is not supported. Use 'queen' or 'rook'.".format(contiguity)
@@ -84,8 +90,10 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen"):
 
     joined = first_order
     for i in list(range(2, k + 1)):
-        i_order = libpysal.weights.higher_order(first_order, k=i)
-        joined = libpysal.weights.w_union(joined, i_order)
+        i_order = libpysal.weights.higher_order(
+            first_order, k=i, silence_warnings=silent
+        )
+        joined = libpysal.weights.w_union(joined, i_order, silence_warnings=silent)
     return joined
 
 
