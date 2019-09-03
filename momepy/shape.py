@@ -59,20 +59,30 @@ def form_factor(gdf, volumes, areas=None):
 
     """
 
-    print('Calculating form factor...')
+    print("Calculating form factor...")
     gdf = gdf.copy()
     if not isinstance(volumes, str):
-        gdf['mm_v'] = volumes
-        volumes = 'mm_v'
+        gdf["mm_v"] = volumes
+        volumes = "mm_v"
     if areas is None:
-        series = gdf.apply(lambda row: row.geometry.area / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
+        series = gdf.apply(
+            lambda row: row.geometry.area / (row[volumes] ** (2 / 3))
+            if row[volumes] != 0
+            else 0,
+            axis=1,
+        )
     else:
         if not isinstance(areas, str):
-            gdf['mm_a'] = areas
-            areas = 'mm_a'
-        series = gdf.apply(lambda row: row[areas] / (row[volumes] ** (2 / 3)) if row[volumes] != 0 else 0, axis=1)
+            gdf["mm_a"] = areas
+            areas = "mm_a"
+        series = gdf.apply(
+            lambda row: row[areas] / (row[volumes] ** (2 / 3))
+            if row[volumes] != 0
+            else 0,
+            axis=1,
+        )
 
-    print('Form factor calculated.')
+    print("Form factor calculated.")
     return series
 
 
@@ -115,25 +125,30 @@ def fractal_dimension(gdf, areas=None, perimeters=None):
     0.5363389283519454
     """
 
-    print('Calculating fractal dimension...')
+    print("Calculating fractal dimension...")
     gdf = gdf.copy()
 
     if perimeters is None:
-        gdf['mm_p'] = gdf.geometry.length
-        perimeters = 'mm_p'
+        gdf["mm_p"] = gdf.geometry.length
+        perimeters = "mm_p"
     else:
         if not isinstance(perimeters, str):
-            gdf['mm_p'] = perimeters
-            perimeters = 'mm_p'
+            gdf["mm_p"] = perimeters
+            perimeters = "mm_p"
     if areas is None:
-        series = gdf.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row.geometry.area), axis=1)
+        series = gdf.apply(
+            lambda row: math.log(row[perimeters] / 4) / math.log(row.geometry.area),
+            axis=1,
+        )
     else:
         if not isinstance(areas, str):
-            gdf['mm_a'] = areas
-            areas = 'mm_a'
-        series = gdf.apply(lambda row: math.log(row[perimeters] / 4) / math.log(row[areas]), axis=1)
+            gdf["mm_a"] = areas
+            areas = "mm_a"
+        series = gdf.apply(
+            lambda row: math.log(row[perimeters] / 4) / math.log(row[areas]), axis=1
+        )
 
-    print('Fractal dimension calculated.')
+    print("Fractal dimension calculated.")
     return series
 
 
@@ -176,27 +191,27 @@ def volume_facade_ratio(gdf, heights, volumes=None, perimeters=None):
     5.310715735236504
     """
 
-    print('Calculating volume/facade ratio...')
+    print("Calculating volume/facade ratio...")
     gdf = gdf.copy()
     if perimeters is None:
-        gdf['mm_p'] = gdf.geometry.length
-        perimeters = 'mm_p'
+        gdf["mm_p"] = gdf.geometry.length
+        perimeters = "mm_p"
     else:
         if not isinstance(perimeters, str):
-            gdf['mm_p'] = perimeters
-            perimeters = 'mm_p'
+            gdf["mm_p"] = perimeters
+            perimeters = "mm_p"
 
     if volumes is None:
-        gdf['mm_v'] = gdf.geometry.area * gdf[heights]
-        volumes = 'mm_v'
+        gdf["mm_v"] = gdf.geometry.area * gdf[heights]
+        volumes = "mm_v"
     else:
         if not isinstance(volumes, str):
-            gdf['mm_v'] = volumes
-            volumes = 'mm_v'
+            gdf["mm_v"] = volumes
+            volumes = "mm_v"
 
     series = gdf[volumes] / (gdf[perimeters] * gdf[heights])
 
-    print('Volume/facade ratio calculated.')
+    print("Volume/facade ratio calculated.")
     return series
 
 
@@ -272,19 +287,27 @@ def _make_circle_two_points(points, p, q):
         c = _make_circumcircle(p, q, r)
         if c is None:
             continue
-        elif cross > 0.0 and (left is None or _cross_product(px, py, qx, qy, c[0], c[1]) > _cross_product(px, py, qx, qy, left[0], left[1])):
+        elif cross > 0.0 and (
+            left is None
+            or _cross_product(px, py, qx, qy, c[0], c[1])
+            > _cross_product(px, py, qx, qy, left[0], left[1])
+        ):
             left = c
-        elif cross < 0.0 and (right is None or _cross_product(px, py, qx, qy, c[0], c[1]) < _cross_product(px, py, qx, qy, right[0], right[1])):
+        elif cross < 0.0 and (
+            right is None
+            or _cross_product(px, py, qx, qy, c[0], c[1])
+            < _cross_product(px, py, qx, qy, right[0], right[1])
+        ):
             right = c
 
     # Select which circle to return
     if left is None and right is None:
         return circ
-    elif left is None:
+    if left is None:
         return right
-    elif right is None:
+    if right is None:
         return left
-    if (left[2] <= right[2]):
+    if left[2] <= right[2]:
         return left
     return right
 
@@ -305,8 +328,24 @@ def _make_circumcircle(p0, p1, p2):
     d = (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)) * 2.0
     if d == 0.0:
         return None
-    x = ox + ((ax * ax + ay * ay) * (by - cy) + (bx * bx + by * by) * (cy - ay) + (cx * cx + cy * cy) * (ay - by)) / d
-    y = oy + ((ax * ax + ay * ay) * (cx - bx) + (bx * bx + by * by) * (ax - cx) + (cx * cx + cy * cy) * (bx - ax)) / d
+    x = (
+        ox
+        + (
+            (ax * ax + ay * ay) * (by - cy)
+            + (bx * bx + by * by) * (cy - ay)
+            + (cx * cx + cy * cy) * (ay - by)
+        )
+        / d
+    )
+    y = (
+        oy
+        + (
+            (ax * ax + ay * ay) * (cx - bx)
+            + (bx * bx + by * by) * (ax - cx)
+            + (cx * cx + cy * cy) * (bx - ax)
+        )
+        / d
+    )
     ra = math.hypot(x - p0[0], y - p0[1])
     rb = math.hypot(x - p1[0], y - p1[1])
     rc = math.hypot(x - p2[0], y - p2[1])
@@ -325,19 +364,24 @@ _MULTIPLICATIVE_EPSILON = 1 + 1e-14
 
 
 def _is_in_circle(c, p):
-    return c is not None and math.hypot(p[0] - c[0], p[1] - c[1]) <= c[2] * _MULTIPLICATIVE_EPSILON
+    return (
+        c is not None
+        and math.hypot(p[0] - c[0], p[1] - c[1]) <= c[2] * _MULTIPLICATIVE_EPSILON
+    )
 
 
 # Returns twice the signed area of the triangle defined by (x0, y0), (x1, y1), (x2, y2).
 def _cross_product(x0, y0, x1, y1, x2, y2):
     return (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0)
+
+
 # end of Nayuiki script to define the smallest enclosing circle
 
 
 # calculate the area of circumcircle
 def _circle_area(points):
     circ = _make_circle(points)
-    return(math.pi * circ[2] ** 2)
+    return math.pi * circ[2] ** 2
 
 
 def circular_compactness(gdf, areas=None):
@@ -375,18 +419,26 @@ def circular_compactness(gdf, areas=None):
     0.572145421828038
     """
 
-    print('Calculating compactness index...')
+    print("Calculating compactness index...")
     gdf = gdf.copy()
 
     if areas is None:
-        series = gdf.apply(lambda row: (row.geometry.area) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
+        series = gdf.apply(
+            lambda row: (row.geometry.area)
+            / (_circle_area(list(row["geometry"].convex_hull.exterior.coords))),
+            axis=1,
+        )
     else:
         if not isinstance(areas, str):
-            gdf['mm_a'] = areas
-            areas = 'mm_a'
-        series = gdf.apply(lambda row: (row[areas]) / (_circle_area(list(row['geometry'].convex_hull.exterior.coords))), axis=1)
+            gdf["mm_a"] = areas
+            areas = "mm_a"
+        series = gdf.apply(
+            lambda row: (row[areas])
+            / (_circle_area(list(row["geometry"].convex_hull.exterior.coords))),
+            axis=1,
+        )
 
-    print('Compactness index calculated.')
+    print("Compactness index calculated.")
     return series
 
 
@@ -430,25 +482,30 @@ def square_compactness(gdf, areas=None, perimeters=None):
 
     """
 
-    print('Calculating compactness index...')
+    print("Calculating compactness index...")
     gdf = gdf.copy()
 
     if perimeters is None:
-        gdf['mm_p'] = gdf.geometry.length
-        perimeters = 'mm_p'
+        gdf["mm_p"] = gdf.geometry.length
+        perimeters = "mm_p"
     else:
         if not isinstance(perimeters, str):
-            gdf['mm_p'] = perimeters
-            perimeters = 'mm_p'
+            gdf["mm_p"] = perimeters
+            perimeters = "mm_p"
     if areas is None:
-        series = gdf.apply(lambda row: ((4 * math.sqrt(row.geometry.area)) / (row[perimeters])) ** 2, axis=1)
+        series = gdf.apply(
+            lambda row: ((4 * math.sqrt(row.geometry.area)) / (row[perimeters])) ** 2,
+            axis=1,
+        )
     else:
         if not isinstance(areas, str):
-            gdf['mm_a'] = areas
-            areas = 'mm_a'
-        series = gdf.apply(lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1)
+            gdf["mm_a"] = areas
+            areas = "mm_a"
+        series = gdf.apply(
+            lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1
+        )
 
-    print('Compactness index calculated.')
+    print("Compactness index calculated.")
     return series
 
 
@@ -486,18 +543,18 @@ def convexeity(gdf, areas=None):
     0.8151964258521672
     """
 
-    print('Calculating convexeity...')
+    print("Calculating convexeity...")
     gdf = gdf.copy()
 
     if areas is None:
         series = gdf.geometry.area / gdf.geometry.convex_hull.area
     else:
         if not isinstance(areas, str):
-            gdf['mm_a'] = areas
-            areas = 'mm_a'
+            gdf["mm_a"] = areas
+            areas = "mm_a"
         series = gdf[areas] / gdf.geometry.convex_hull.area
 
-    print('Convexeity calculated.')
+    print("Convexeity calculated.")
     return series
 
 
@@ -547,21 +604,21 @@ def courtyard_index(gdf, courtyard_areas, areas=None):
     0.16605915738643523
     """
 
-    print('Calculating courtyard index...')
+    print("Calculating courtyard index...")
     gdf = gdf.copy()
 
     if not isinstance(courtyard_areas, str):
-        gdf['mm_ca'] = courtyard_areas
-        courtyard_areas = 'mm_ca'
+        gdf["mm_ca"] = courtyard_areas
+        courtyard_areas = "mm_ca"
     if areas is None:
         series = gdf[courtyard_areas] / gdf.geometry.area
     else:
         if not isinstance(areas, str):
-            gdf['mm_a'] = areas
-            areas = 'mm_a'
+            gdf["mm_a"] = areas
+            areas = "mm_a"
         series = gdf[courtyard_areas] / gdf[areas]
 
-    print('Courtyard index calculated.')
+    print("Courtyard index calculated.")
     return series
 
 
@@ -600,18 +657,25 @@ def rectangularity(gdf, areas=None):
     0.6942676157646379
     """
 
-    print('Calculating rectangularity...')
+    print("Calculating rectangularity...")
     gdf = gdf.copy()
     if areas is None:
-        series = gdf.apply(lambda row: row.geometry.area / (row.geometry.minimum_rotated_rectangle.area), axis=1)
+        series = gdf.apply(
+            lambda row: row.geometry.area
+            / (row.geometry.minimum_rotated_rectangle.area),
+            axis=1,
+        )
 
     else:
         if not isinstance(areas, str):
-            gdf['mm_a'] = areas
-            areas = 'mm_a'
-        series = gdf.apply(lambda row: row[areas] / (row.geometry.minimum_rotated_rectangle.area), axis=1)
+            gdf["mm_a"] = areas
+            areas = "mm_a"
+        series = gdf.apply(
+            lambda row: row[areas] / (row.geometry.minimum_rotated_rectangle.area),
+            axis=1,
+        )
 
-    print('Rectangularity calculated.')
+    print("Rectangularity calculated.")
     return series
 
 
@@ -650,22 +714,29 @@ def shape_index(gdf, longest_axis, areas=None):
     >>> buildings_df['shape_index'][0]
     0.7564029493781987
     """
-    print('Calculating shape index...')
+    print("Calculating shape index...")
     gdf = gdf.copy()
 
     if not isinstance(longest_axis, str):
-        gdf['mm_la'] = longest_axis
-        longest_axis = 'mm_la'
+        gdf["mm_la"] = longest_axis
+        longest_axis = "mm_la"
 
     if areas is None:
-        series = gdf.apply(lambda row: math.sqrt(row.geometry.area / math.pi) / (0.5 * row[longest_axis]), axis=1)
+        series = gdf.apply(
+            lambda row: math.sqrt(row.geometry.area / math.pi)
+            / (0.5 * row[longest_axis]),
+            axis=1,
+        )
     else:
         if not isinstance(areas, str):
-            gdf['mm_a'] = areas
-            areas = 'mm_a'
-        series = gdf.apply(lambda row: math.sqrt(row[areas] / math.pi) / (0.5 * row[longest_axis]), axis=1)
+            gdf["mm_a"] = areas
+            areas = "mm_a"
+        series = gdf.apply(
+            lambda row: math.sqrt(row[areas] / math.pi) / (0.5 * row[longest_axis]),
+            axis=1,
+        )
 
-    print('Shape index calculated.')
+    print("Shape index calculated.")
     return series
 
 
@@ -705,7 +776,7 @@ def corners(gdf):
     """
     # define empty list for results
     results_list = []
-    print('Calculating corners...')
+    print("Calculating corners...")
 
     # calculate angle between points, return true or false if real corner
     def true_angle(a, b, c):
@@ -717,16 +788,18 @@ def corners(gdf):
 
         if np.degrees(angle) <= 170:
             return True
-        elif np.degrees(angle) >= 190:
+        if np.degrees(angle) >= 190:
             return True
         return False
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         corners = 0  # define empty variables
-        points = list(row['geometry'].exterior.coords)  # get points of a shape
+        points = list(row["geometry"].exterior.coords)  # get points of a shape
         stop = len(points) - 1  # define where to stop
-        for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
+        for i in np.arange(
+            len(points)
+        ):  # for every point, calculate angle and add 1 if True angle
             if i == 0:
                 continue
             elif i == stop:
@@ -753,7 +826,7 @@ def corners(gdf):
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Corners calculated.')
+    print("Corners calculated.")
     return series
 
 
@@ -792,7 +865,7 @@ def squareness(gdf):
     """
     # define empty list for results
     results_list = []
-    print('Calculating squareness...')
+    print("Calculating squareness...")
 
     def _angle(a, b, c):
         ba = a - b
@@ -806,9 +879,11 @@ def squareness(gdf):
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         angles = []
-        points = list(row['geometry'].exterior.coords)  # get points of a shape
+        points = list(row["geometry"].exterior.coords)  # get points of a shape
         stop = len(points) - 1  # define where to stop
-        for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
+        for i in np.arange(
+            len(points)
+        ):  # for every point, calculate angle and add 1 if True angle
             if i == 0:
                 continue
             elif i == stop:
@@ -844,7 +919,7 @@ def squareness(gdf):
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Squareness calculated.')
+    print("Squareness calculated.")
     return series
 
 
@@ -890,31 +965,33 @@ def equivalent_rectangular_index(gdf, areas=None, perimeters=None):
     """
     # define empty list for results
     results_list = []
-    print('Calculating equivalent rectangular index...')
+    print("Calculating equivalent rectangular index...")
     gdf = gdf.copy()
 
     if perimeters is None:
-        gdf['mm_p'] = gdf.geometry.length
-        perimeters = 'mm_p'
+        gdf["mm_p"] = gdf.geometry.length
+        perimeters = "mm_p"
     else:
         if not isinstance(perimeters, str):
-            gdf['mm_p'] = perimeters
-            perimeters = 'mm_p'
+            gdf["mm_p"] = perimeters
+            perimeters = "mm_p"
     if areas is None:
-        gdf['mm_a'] = gdf.geometry.area
-        areas = 'mm_a'
+        gdf["mm_a"] = gdf.geometry.area
+        areas = "mm_a"
     else:
         if not isinstance(areas, str):
-            gdf['mm_a'] = areas
-            areas = 'mm_a'
+            gdf["mm_a"] = areas
+            areas = "mm_a"
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        bbox = row['geometry'].minimum_rotated_rectangle
-        results_list.append(math.sqrt(row[areas] / bbox.area) * (bbox.length / row[perimeters]))
+        bbox = row["geometry"].minimum_rotated_rectangle
+        results_list.append(
+            math.sqrt(row[areas] / bbox.area) * (bbox.length / row[perimeters])
+        )
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Equivalent rectangular index calculated.')
+    print("Equivalent rectangular index calculated.")
     return series
 
 
@@ -952,15 +1029,15 @@ def elongation(gdf):
     """
     # define empty list for results
     results_list = []
-    print('Calculating elongation...')
+    print("Calculating elongation...")
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        bbox = row['geometry'].minimum_rotated_rectangle
+        bbox = row["geometry"].minimum_rotated_rectangle
         a = bbox.area
         p = bbox.length
-        cond1 = (p ** 2)
-        cond2 = (16 * a)
+        cond1 = p ** 2
+        cond2 = 16 * a
         if cond1 >= cond2:
             sqrt = cond1 - cond2
         else:
@@ -979,7 +1056,7 @@ def elongation(gdf):
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Elongation calculated.')
+    print("Elongation calculated.")
     return series
 
 
@@ -1026,7 +1103,7 @@ def centroid_corners(gdf):
     # define empty list for results
     results_list = []
     results_list_sd = []
-    print('Calculating distance centroid - corner...')
+    print("Calculating distance centroid - corner...")
 
     # calculate angle between points, return true or false if real corner
     def true_angle(a, b, c):
@@ -1038,17 +1115,19 @@ def centroid_corners(gdf):
 
         if np.degrees(angle) <= 170:
             return True
-        elif np.degrees(angle) >= 190:
+        if np.degrees(angle) >= 190:
             return True
         return False
 
     # iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         distances = []  # set empty list of distances
-        centroid = row['geometry'].centroid  # define centroid
-        points = list(row['geometry'].exterior.coords)  # get points of a shape
+        centroid = row["geometry"].centroid  # define centroid
+        points = list(row["geometry"].exterior.coords)  # get points of a shape
         stop = len(points) - 1  # define where to stop
-        for i in np.arange(len(points)):  # for every point, calculate angle and add 1 if True angle
+        for i in np.arange(
+            len(points)
+        ):  # for every point, calculate angle and add 1 if True angle
             if i == 0:
                 continue
             elif i == stop:
@@ -1058,7 +1137,9 @@ def centroid_corners(gdf):
                 p = Point(points[i])
 
                 if true_angle(a, b, c) is True:
-                    distance = centroid.distance(p)  # calculate distance point - centroid
+                    distance = centroid.distance(
+                        p
+                    )  # calculate distance point - centroid
                     distances.append(distance)  # add distance to the list
                 else:
                     continue
@@ -1076,7 +1157,10 @@ def centroid_corners(gdf):
                     continue
         if not distances:  # circular buildings
             from momepy.dimension import _longest_axis
-            results_list.append(_longest_axis(row['geometry'].convex_hull.exterior.coords) / 2)
+
+            results_list.append(
+                _longest_axis(row["geometry"].convex_hull.exterior.coords) / 2
+            )
             results_list_sd.append(0)
         else:
             results_list.append(np.mean(distances))  # calculate mean
@@ -1084,7 +1168,7 @@ def centroid_corners(gdf):
     means = pd.Series(results_list, index=gdf.index)
     st_devs = pd.Series(results_list_sd, index=gdf.index)
 
-    print('Distances centroid - corner calculated.')
+    print("Distances centroid - corner calculated.")
     return means, st_devs
 
 
@@ -1122,16 +1206,18 @@ def linearity(gdf):
     """
     # define empty list for results
     results_list = []
-    print('Calculating linearity...')
+    print("Calculating linearity...")
 
     # fill new column with the value of area, iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        euclidean = Point(row['geometry'].coords[0]).distance(Point(row['geometry'].coords[-1]))
-        results_list.append(euclidean / row['geometry'].length)
+        euclidean = Point(row["geometry"].coords[0]).distance(
+            Point(row["geometry"].coords[-1])
+        )
+        results_list.append(euclidean / row["geometry"].length)
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Linearity calculated.')
+    print("Linearity calculated.")
     return series
 
 
@@ -1170,33 +1256,42 @@ def compactness_weighted_axis(gdf, areas=None, perimeters=None, longest_axis=Non
     Compactness-weighted axis calculated.
     """
 
-    print('Calculating compactness-weighted axis...')
+    print("Calculating compactness-weighted axis...")
     gdf = gdf.copy()
 
     if perimeters is None:
-        gdf['mm_p'] = gdf.geometry.length
-        perimeters = 'mm_p'
+        gdf["mm_p"] = gdf.geometry.length
+        perimeters = "mm_p"
     else:
         if not isinstance(perimeters, str):
-            gdf['mm_p'] = perimeters
-            perimeters = 'mm_p'
+            gdf["mm_p"] = perimeters
+            perimeters = "mm_p"
 
     if longest_axis is None:
         from .dimension import longest_axis_length
-        gdf['mm_la'] = longest_axis_length(gdf)
-        longest_axis = 'mm_la'
+
+        gdf["mm_la"] = longest_axis_length(gdf)
+        longest_axis = "mm_la"
     else:
         if not isinstance(longest_axis, str):
-            gdf['mm_la'] = longest_axis
-            longest_axis = 'mm_la'
+            gdf["mm_la"] = longest_axis
+            longest_axis = "mm_la"
 
     if areas is None:
-        series = gdf.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row.geometry.area) / ((row[perimeters]) ** 2)), axis=1)
+        series = gdf.apply(
+            lambda row: row[longest_axis]
+            * ((4 / math.pi) - (16 * row.geometry.area) / ((row[perimeters]) ** 2)),
+            axis=1,
+        )
     else:
         if not isinstance(areas, str):
-            gdf['mm_a'] = areas
-            areas = 'mm_a'
-        series = gdf.apply(lambda row: row[longest_axis] * ((4 / math.pi) - (16 * row[areas]) / ((row[perimeters]) ** 2)), axis=1)
+            gdf["mm_a"] = areas
+            areas = "mm_a"
+        series = gdf.apply(
+            lambda row: row[longest_axis]
+            * ((4 / math.pi) - (16 * row[areas]) / ((row[perimeters]) ** 2)),
+            axis=1,
+        )
 
-    print('Compactness-weighted axis calculated.')
+    print("Compactness-weighted axis calculated.")
     return series

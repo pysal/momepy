@@ -57,9 +57,9 @@ All discussion will then take place on GitHub to keep the development of momepy
 transparent.
 
 If you decide to contribute to the codebase, ensure that you are using an
-up-to-date `master` branch. The latest development version will always be there,
-including a significant part of the documentation (powered by `sphinx`). The
-user guide is located in the `gh-pages` branch and is powered by `Jupyter book`.
+up-to-date ``master`` branch. The latest development version will always be there,
+including a significant part of the documentation (powered by ``sphinx``). The
+user guide is located in the ``gh-pages`` branch and is powered by ``Jupyter book``.
 
 Details are available in the :doc:`contributing guide <contributing>`.
 

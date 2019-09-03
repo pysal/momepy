@@ -8,7 +8,7 @@ from tqdm import tqdm
 import numpy as np
 
 
-def node_degree(graph, name='degree'):
+def node_degree(graph, name="degree"):
     """
     Calculates node degree for each node.
 
@@ -34,7 +34,7 @@ def node_degree(graph, name='degree'):
     --------
     >>> network_graph = mm.node_degree(network_graph)
     """
-    netx = graph
+    netx = graph.copy()
 
     degree = dict(nx.degree(netx))
     nx.set_node_attributes(netx, degree, name)
@@ -42,7 +42,16 @@ def node_degree(graph, name='degree'):
     return netx
 
 
-def meshedness(graph, radius=5, name='meshedness', distance=None):
+def _meshedness(graph):
+    """
+    Calculates meshedness of a graph.
+    """
+    e = graph.number_of_edges()
+    v = graph.number_of_nodes()
+    return (e - v + 1) / (2 * v - 5)
+
+
+def meshedness(graph, radius=5, name="meshedness", distance=None):
     """
     Calculates meshedness for subgraph around each node.
 
@@ -81,18 +90,20 @@ def meshedness(graph, radius=5, name='meshedness', distance=None):
     --------
     >>> network_graph = mm.meshedness(network_graph, radius=800, distance='edge_length')
     """
-    netx = graph
+    netx = graph.copy()
 
     for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(netx, n, radius=radius, undirected=True, distance=distance)  # define subgraph of steps=radius
-        e = sub.number_of_edges()
-        v = sub.number_of_nodes()
-        netx.nodes[n][name] = (e - v + 1) / (2 * v - 5)  # save value calulated for subgraph to node
+        sub = nx.ego_graph(
+            netx, n, radius=radius, undirected=True, distance=distance
+        )  # define subgraph of steps=radius
+        netx.nodes[n][name] = _meshedness(
+            sub
+        )  # save value calulated for subgraph to node
 
     return netx
 
 
-def mean_node_dist(graph, name='meanlen', length='mm_len'):
+def mean_node_dist(graph, name="meanlen", length="mm_len"):
     """
     Calculates mean distance to neighbouring nodes.
 
@@ -119,7 +130,7 @@ def mean_node_dist(graph, name='meanlen', length='mm_len'):
     >>> network_graph = mm.mean_node_dist(network_graph)
 
     """
-    netx = graph
+    netx = graph.copy()
 
     for n, nbrs in tqdm(netx.adj.items(), total=len(netx)):
         lengths = []
@@ -130,7 +141,30 @@ def mean_node_dist(graph, name='meanlen', length='mm_len'):
     return netx
 
 
-def cds_length(graph, radius=5, mode='sum', name='cds_len', degree='degree', length='mm_len', distance=None):
+def _cds_length(graph, mode, length):
+    """
+    Calculates cul-de-sac length in a graph.
+    """
+    lens = []
+    for u, v, cds in graph.edges.data("cdsbool"):
+        if cds:
+            lens.append(graph[u][v][length])
+    if mode == "sum":
+        return sum(lens)
+    if mode == "mean":
+        return np.mean(lens)
+    raise ValueError("Mode {} is not supported. Use 'sum' or 'mean'.".format(mode))
+
+
+def cds_length(
+    graph,
+    radius=5,
+    mode="sum",
+    name="cds_len",
+    degree="degree",
+    length="mm_len",
+    distance=None,
+):
     """
     Calculates length of cul-de-sacs for subgraph around each node.
 
@@ -172,29 +206,33 @@ def cds_length(graph, radius=5, mode='sum', name='cds_len', degree='degree', len
     >>> network_graph = mm.cds_length(network_graph, radius=9, mode='mean')
     """
     # node degree needed beforehand
-    netx = graph
+    netx = graph.copy()
 
     for u, v in netx.edges():
         if netx.nodes[u][degree] == 1 or netx.nodes[v][degree] == 1:
-            netx[u][v]['cdsbool'] = True
+            netx[u][v]["cdsbool"] = True
         else:
-            netx[u][v]['cdsbool'] = False
+            netx[u][v]["cdsbool"] = False
 
     for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(netx, n, radius=radius, undirected=True, distance=distance)  # define subgraph of steps=radius
-        lens = []
-        for u, v, cds in sub.edges.data('cdsbool'):
-            if cds:
-                lens.append(sub[u][v][length])
-        if mode == 'sum':
-            netx.nodes[n][name] = sum(lens)  # save value calulated for subgraph to node
-        elif mode == 'mean':
-            netx.nodes[n][name] = np.mean(lens)  # save value calulated for subgraph to node
+        sub = nx.ego_graph(
+            netx, n, radius=radius, undirected=True, distance=distance
+        )  # define subgraph of steps=radius
+        netx.nodes[n][name] = _cds_length(
+            sub, mode=mode, length=length
+        )  # save value calulated for subgraph to node
 
     return netx
 
 
-def mean_node_degree(graph, radius=5, name='mean_nd', degree='degree', distance=None):
+def _mean_node_degree(graph, degree):
+    """
+    Calculates mean node degree in a graph.
+    """
+    return np.mean(list(dict(graph.nodes(degree)).values()))
+
+
+def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=None):
     """
     Calculates mean node degree for subgraph around each node.
 
@@ -230,16 +268,31 @@ def mean_node_degree(graph, radius=5, name='mean_nd', degree='degree', distance=
     --------
     >>> network_graph = mm.mean_node_degree(network_graph, radius=3)
     """
-    netx = graph
+    netx = graph.copy()
 
     for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(netx, n, radius=radius, undirected=True, distance=distance)  # define subgraph of steps=radius
-        netx.nodes[n][name] = np.mean(list(dict(sub.nodes('degree')).values()))
+        sub = nx.ego_graph(
+            netx, n, radius=radius, undirected=True, distance=distance
+        )  # define subgraph of steps=radius
+        netx.nodes[n][name] = _mean_node_degree(sub, degree=degree)
 
     return netx
 
 
-def proportion(graph, radius=5, three=None, four=None, dead=None, degree='degree', distance=None):
+def _proportion(graph, degree):
+    """
+    Calculates the proportion of intersection types in a graph.
+    """
+    import collections
+
+    values = list(dict(graph.nodes(degree)).values())
+    counts = collections.Counter(values)
+    return counts
+
+
+def proportion(
+    graph, radius=5, three=None, four=None, dead=None, degree="degree", distance=None
+):
     """
     Calculates the proportion of intersection types for subgraph around each node.
 
@@ -280,14 +333,16 @@ def proportion(graph, radius=5, three=None, four=None, dead=None, degree='degree
     >>> network_graph = mm.proportion(network_graph, three='threeway', four='fourway', dead='deadends')
     """
     if not three and not four and not dead:
-        raise ValueError('Nothing to calculate. Define names for at least one proportion to be calculated: three, four, dead.')
-    netx = graph
-    import collections
+        raise ValueError(
+            "Nothing to calculate. Define names for at least one proportion to be calculated: three, four, dead."
+        )
+    netx = graph.copy()
 
     for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(netx, n, radius=radius, undirected=True, distance=distance)  # define subgraph of steps=radius
-        values = list(dict(sub.nodes('degree')).values())
-        counts = collections.Counter(values)
+        sub = nx.ego_graph(
+            netx, n, radius=radius, undirected=True, distance=distance
+        )  # define subgraph of steps=radius
+        counts = _proportion(sub, degree=degree)
         if three:
             netx.nodes[n][three] = counts[3] / len(sub)
         if four:
@@ -297,9 +352,18 @@ def proportion(graph, radius=5, three=None, four=None, dead=None, degree='degree
     return netx
 
 
-def cyclomatic(graph, radius=5, name='cyclomatic', distance=None):
+def _cyclomatic(graph):
     """
-    Calculates cyclomatic compelxity for subgraph around each node.
+    Calculates the cyclomatic complexity of a graph.
+    """
+    e = graph.number_of_edges()
+    v = graph.number_of_nodes()
+    return e - v + 1
+
+
+def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
+    """
+    Calculates cyclomatic complexity for subgraph around each node.
 
     Subgraph is generated around each node within set radius. If distance=None,
     radius will define topological distance, otherwise it uses values in distance
@@ -336,18 +400,29 @@ def cyclomatic(graph, radius=5, name='cyclomatic', distance=None):
     --------
     >>> network_graph = mm.cyclomatic(network_graph, radius=3)
     """
-    netx = graph
+    netx = graph.copy()
 
     for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(netx, n, radius=radius, undirected=True, distance=distance)  # define subgraph of steps=radius
-        e = sub.number_of_edges()
-        v = sub.number_of_nodes()
-        netx.nodes[n][name] = (e - v + 1)  # save value calulated for subgraph to node
+        sub = nx.ego_graph(
+            netx, n, radius=radius, undirected=True, distance=distance
+        )  # define subgraph of steps=radius
+        netx.nodes[n][name] = _cyclomatic(
+            sub
+        )  # save value calulated for subgraph to node
 
     return netx
 
 
-def edge_node_ratio(graph, radius=5, name='edge_node_ratio', distance=None):
+def _edge_node_ratio(graph):
+    """
+    Calculates edge / node ratio of a graph.
+    """
+    e = graph.number_of_edges()
+    v = graph.number_of_nodes()
+    return e / v
+
+
+def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
     """
     Calculates edge / node ratio for subgraph around each node.
 
@@ -386,18 +461,31 @@ def edge_node_ratio(graph, radius=5, name='edge_node_ratio', distance=None):
     --------
     >>> network_graph = mm.edge_node_ratio(network_graph, radius=3)
     """
-    netx = graph
+    netx = graph.copy()
 
     for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(netx, n, radius=radius, undirected=True, distance=distance)  # define subgraph of steps=radius
-        e = sub.number_of_edges()
-        v = sub.number_of_nodes()
-        netx.nodes[n][name] = e / v  # save value calulated for subgraph to node
+        sub = nx.ego_graph(
+            netx, n, radius=radius, undirected=True, distance=distance
+        )  # define subgraph of steps=radius
+        netx.nodes[n][name] = _edge_node_ratio(
+            sub
+        )  # save value calulated for subgraph to node
 
     return netx
 
 
-def gamma(graph, radius=5, name='gamma', distance=None):
+def _gamma(graph):
+    """
+    Calculates gamma index of a graph.
+    """
+    e = graph.number_of_edges()
+    v = graph.number_of_nodes()
+    if v == 2:
+        return np.nan
+    return e / (3 * (v - 2))  # save value calulated for subgraph to node
+
+
+def gamma(graph, radius=5, name="gamma", distance=None):
     """
     Calculates connectivity gamma index for subgraph around each node.
 
@@ -437,16 +525,13 @@ def gamma(graph, radius=5, name='gamma', distance=None):
     >>> network_graph = mm.gamma(network_graph, radius=3)
 
     """
-    netx = graph
+    netx = graph.copy()
 
     for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(netx, n, radius=radius, undirected=True, distance=distance)  # define subgraph of steps=radius
-        e = sub.number_of_edges()
-        v = sub.number_of_nodes()
-        if v == 2:
-            netx.nodes[n][name] = np.nan
-        else:
-            netx.nodes[n][name] = e / (3 * (v - 2))  # save value calulated for subgraph to node
+        sub = nx.ego_graph(
+            netx, n, radius=radius, undirected=True, distance=distance
+        )  # define subgraph of steps=radius
+        netx.nodes[n][name] = _gamma(sub)
 
     return netx
 
@@ -514,9 +599,11 @@ def _closeness_centrality(G, u=None, distance=None, wf_improved=True, len_graph=
 
     if distance is not None:
         import functools
+
         # use Dijkstra's algorithm with specified attribute as edge weight
-        path_length = functools.partial(nx.single_source_dijkstra_path_length,
-                                        weight=distance)
+        path_length = functools.partial(
+            nx.single_source_dijkstra_path_length, weight=distance
+        )
     else:
         path_length = nx.single_source_shortest_path_length
 
@@ -536,7 +623,9 @@ def _closeness_centrality(G, u=None, distance=None, wf_improved=True, len_graph=
     return closeness_centrality[u]
 
 
-def local_closeness(graph, radius=5, name='closeness', distance=None, closeness_distance=None):
+def local_closeness(
+    graph, radius=5, name="closeness", distance=None, closeness_distance=None
+):
     """
     Calculates local closeness for each node based on the defined distance.
 
@@ -579,16 +668,20 @@ def local_closeness(graph, radius=5, name='closeness', distance=None, closeness_
     >>> network_graph = mm.local_closeness(network_graph, radius=400, distance='edge_length')
 
     """
-    netx = graph
+    netx = graph.copy()
     lengraph = len(netx)
     for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(netx, n, radius=radius, undirected=True, distance=distance)  # define subgraph of steps=radius
-        netx.nodes[n][name] = _closeness_centrality(sub, n, distance=closeness_distance, len_graph=lengraph)
+        sub = nx.ego_graph(
+            netx, n, radius=radius, undirected=True, distance=distance
+        )  # define subgraph of steps=radius
+        netx.nodes[n][name] = _closeness_centrality(
+            sub, n, distance=closeness_distance, len_graph=lengraph
+        )
 
     return netx
 
 
-def eigenvector(graph, name='eigen', **kwargs):
+def eigenvector(graph, name="eigen", **kwargs):
     """
     Calculates eigenvector centrality of network.
 
@@ -615,7 +708,7 @@ def eigenvector(graph, name='eigen', **kwargs):
     >>> network_graph = mm.eigenvector(network_graph)
 
     """
-    netx = graph
+    netx = graph.copy()
 
     vals = nx.eigenvector_centrality(netx, **kwargs)
     nx.set_node_attributes(netx, vals, name)
@@ -623,7 +716,7 @@ def eigenvector(graph, name='eigen', **kwargs):
     return netx
 
 
-def clustering(graph, name='cluster'):
+def clustering(graph, name="cluster"):
     """
     Calculates the squares clustering coefficient for nodes.
 
@@ -647,9 +740,131 @@ def clustering(graph, name='cluster'):
     --------
     >>> network_graph = mm.clustering(network_graph)
     """
-    netx = graph
+    netx = graph.copy()
 
     vals = nx.square_clustering(netx)
     nx.set_node_attributes(netx, vals, name)
+
+    return netx
+
+
+def subgraph(
+    graph,
+    radius=5,
+    distance=None,
+    meshedness=True,
+    cds_length=True,
+    mode="sum",
+    degree="degree",
+    length="mm_len",
+    mean_node_degree=True,
+    proportion={3: True, 4: True, 0: True},
+    cyclomatic=True,
+    edge_node_ratio=True,
+    gamma=True,
+    local_closeness=True,
+    closeness_distance=None,
+):
+    """
+    Calculates all subgraph-based characters.
+
+    Generating subgraph might be a time consuming activity. If we want to use the same
+    subgraph for more characters, ``subgraph`` allows this by generating subgraph and
+    then analysing it using selected options.
+
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph representing street network.
+        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+    radius: int
+        radius defining the extent of subgraph
+    distance : str, optional
+        Use specified edge data key as distance.
+        For example, setting distance=’weight’ will use the edge weight to
+        measure the distance from the node n.
+    meshedness : bool, default True
+        Calculate meshedness (True/False)
+    cds_length : bool, default True
+        Calculate cul-de-sac length (True/False)
+    mode : str (defualt 'sum')
+        if 'sum', calculate total cds_length, if 'mean' calculate mean cds_length
+    degree : str
+        name of attribute of node degree (:py:func:`momepy.node_degree`)
+    length : str, default `mm_len`
+        name of attribute of segment length (geographical)
+    mean_node_degree : bool, default True
+        Calculate mean node degree (True/False)
+    proportion : dict, default {3: True, 4: True, 0: True}
+        Calculate proportion {3: True/False, 4: True/False, 0: True/False}
+    cyclomatic : bool, default True
+        Calculate cyclomatic complexity (True/False)
+    edge_node_ratio : bool, default True
+        Calculate edge node ratio (True/False)
+    gamma : bool, default True
+        Calculate gamma index (True/False)
+    local_closeness : bool, default True
+        Calculate local closeness centrality (True/False)
+    closeness_distance : str, optional
+      Use the specified edge attribute as the edge distance in shortest
+      path calculations in closeness centrality algorithm
+
+
+    Returns
+    -------
+    Graph
+        networkx.Graph
+
+    Examples
+    --------
+    >>> network_graph = mm.subgraph(network_graph)
+    """
+
+    netx = graph.copy()
+
+    for n in tqdm(netx, total=len(netx)):
+        sub = nx.ego_graph(
+            netx, n, radius=radius, undirected=True, distance=distance
+        )  # define subgraph of steps=radius
+
+        if meshedness:
+            netx.nodes[n]["meshedness"] = _meshedness(sub)
+
+        if cds_length:
+            for u, v in netx.edges():
+                if netx.nodes[u][degree] == 1 or netx.nodes[v][degree] == 1:
+                    netx[u][v]["cdsbool"] = True
+                else:
+                    netx[u][v]["cdsbool"] = False
+
+            netx.nodes[n]["cds_length"] = _cds_length(sub, mode=mode, length=length)
+
+        if mean_node_degree:
+            netx.nodes[n]["mean_node_degree"] = _mean_node_degree(sub, degree=degree)
+
+        if proportion:
+            counts = _proportion(sub, degree=degree)
+            if proportion[3]:
+                netx.nodes[n]["proportion_3"] = counts[3] / len(sub)
+            if proportion[4]:
+                netx.nodes[n]["proportion_4"] = counts[4] / len(sub)
+            if proportion[0]:
+                netx.nodes[n]["proportion_0"] = counts[1] / len(sub)
+
+        if cyclomatic:
+            netx.nodes[n]["cyclomatic"] = _cyclomatic(sub)
+
+        if edge_node_ratio:
+            netx.nodes[n]["edge_node_ratio"] = _edge_node_ratio(sub)
+
+        if gamma:
+            netx.nodes[n]["gamma"] = _gamma(sub)
+
+        if local_closeness:
+            lengraph = len(netx)
+            netx.nodes[n]["local_closeness"] = _closeness_centrality(
+                sub, n, distance=closeness_distance, len_graph=lengraph
+            )
 
     return netx

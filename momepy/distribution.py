@@ -45,16 +45,16 @@ def orientation(gdf):
     # define empty list for results
     results_list = []
 
-    print('Calculating orientations...')
+    print("Calculating orientations...")
 
     def _azimuth(point1, point2):
-        '''azimuth between 2 shapely points (interval 0 - 180)'''
+        """azimuth between 2 shapely points (interval 0 - 180)"""
         angle = np.arctan2(point2.x - point1.x, point2.y - point1.y)
-        return np.degrees(angle)if angle > 0 else np.degrees(angle) + 180
+        return np.degrees(angle) if angle > 0 else np.degrees(angle) + 180
 
     # iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        bbox = list(row['geometry'].minimum_rotated_rectangle.exterior.coords)
+        bbox = list(row["geometry"].minimum_rotated_rectangle.exterior.coords)
         centroid_ab = LineString([bbox[0], bbox[1]]).centroid
         centroid_cd = LineString([bbox[2], bbox[3]]).centroid
         axis1 = centroid_ab.distance(centroid_cd)
@@ -102,7 +102,7 @@ def orientation(gdf):
             results_list.append(az)
 
     series = pd.Series(results_list, index=gdf.index)
-    print('Orientations calculated.')
+    print("Orientations calculated.")
     return series
 
 
@@ -144,24 +144,24 @@ def shared_walls_ratio(gdf, unique_id, perimeters=None):
     >>> buildings_df['swr'][10]
     0.3424804411228673
     """
-    print('Generating spatial index...')
+    print("Generating spatial index...")
     gdf = gdf.copy()
     sindex = gdf.sindex  # define rtree index
     # define empty list for results
     results_list = []
 
-    print('Calculating shared walls ratio...')
+    print("Calculating shared walls ratio...")
 
     if perimeters is None:
-        gdf['mm_p'] = gdf.geometry.length
-        perimeters = 'mm_p'
+        gdf["mm_p"] = gdf.geometry.length
+        perimeters = "mm_p"
     else:
         if not isinstance(perimeters, str):
-            gdf['mm_p'] = perimeters
-            perimeters = 'mm_p'
+            gdf["mm_p"] = perimeters
+            perimeters = "mm_p"
     if not isinstance(unique_id, str):
-        gdf['mm_uid'] = unique_id
-        unique_id = 'mm_uid'
+        gdf["mm_uid"] = unique_id
+        unique_id = "mm_uid"
 
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbors = list(sindex.intersection(row.geometry.bounds))
@@ -173,16 +173,23 @@ def shared_walls_ratio(gdf, unique_id, perimeters=None):
             results_list.append(0)
         else:
             for i in neighbors:
-                subset = gdf.loc[i]['geometry']
+                subset = gdf.loc[i]["geometry"]
                 length = length + row.geometry.intersection(subset).length
             results_list.append(length / row[perimeters])
     series = pd.Series(results_list, index=gdf.index)
-    print('Shared walls ratio calculated.')
+    print("Shared walls ratio calculated.")
 
     return series
 
 
-def street_alignment(left, right, orientations, network_id=None, left_network_id=None, right_network_id=None):
+def street_alignment(
+    left,
+    right,
+    orientations,
+    network_id=None,
+    left_network_id=None,
+    right_network_id=None,
+):
     """
     Calculate the difference between street orientation and orientation of object in degrees
 
@@ -228,7 +235,7 @@ def street_alignment(left, right, orientations, network_id=None, left_network_id
     # define empty list for results
     results_list = []
 
-    print('Calculating street alignments...')
+    print("Calculating street alignments...")
     left = left.copy()
     right = right.copy()
 
@@ -237,26 +244,28 @@ def street_alignment(left, right, orientations, network_id=None, left_network_id
         right_network_id = network_id
     else:
         if left_network_id is None and right_network_id is not None:
-            raise ValueError('left_network_id not set.')
+            raise ValueError("left_network_id not set.")
         if left_network_id is not None and right_network_id is None:
-            raise ValueError('right_network_id not set.')
+            raise ValueError("right_network_id not set.")
         if left_network_id is None and right_network_id is None:
-            raise ValueError('Network ID not set. Use either network_id or left_network_id and right_network_id.')
+            raise ValueError(
+                "Network ID not set. Use either network_id or left_network_id and right_network_id."
+            )
 
     if not isinstance(orientations, str):
-        left['mm_o'] = orientations
-        orientations = 'mm_o'
+        left["mm_o"] = orientations
+        orientations = "mm_o"
     if not isinstance(left_network_id, str):
-        left['mm_nid'] = left_network_id
-        left_network_id = 'mm_nid'
+        left["mm_nid"] = left_network_id
+        left_network_id = "mm_nid"
     if not isinstance(right_network_id, str):
-        right['mm_nis'] = right_network_id
-        right_network_id = 'mm_nis'
+        right["mm_nis"] = right_network_id
+        right_network_id = "mm_nis"
 
     def azimuth(point1, point2):
-        '''azimuth between 2 shapely points (interval 0 - 180)'''
+        """azimuth between 2 shapely points (interval 0 - 180)"""
         angle = np.arctan2(point2.x - point1.x, point2.y - point1.y)
-        return np.degrees(angle)if angle > 0 else np.degrees(angle) + 180
+        return np.degrees(angle) if angle > 0 else np.degrees(angle) + 180
 
     # iterating over rows one by one
     for index, row in tqdm(left.iterrows(), total=left.shape[0]):
@@ -265,8 +274,8 @@ def street_alignment(left, right, orientations, network_id=None, left_network_id
         else:
             network_id = row[left_network_id]
             streetssub = right.loc[right[right_network_id] == network_id]
-            start = Point(streetssub.iloc[0]['geometry'].coords[0])
-            end = Point(streetssub.iloc[0]['geometry'].coords[-1])
+            start = Point(streetssub.iloc[0]["geometry"].coords[0])
+            end = Point(streetssub.iloc[0]["geometry"].coords[-1])
             az = azimuth(start, end)
             if 90 > az >= 45:
                 diff = az - 45
@@ -286,11 +295,13 @@ def street_alignment(left, right, orientations, network_id=None, left_network_id
             results_list.append(abs(row[orientations] - az))
     series = pd.Series(results_list, index=left.index)
 
-    print('Street alignments calculated.')
+    print("Street alignments calculated.")
     return series
 
 
-def cell_alignment(left, right, left_orientations, right_orientations, left_unique_id, right_unique_id):
+def cell_alignment(
+    left, right, left_orientations, right_orientations, left_unique_id, right_unique_id
+):
     """
     Calculate the difference between cell orientation and orientation of object
 
@@ -329,26 +340,33 @@ def cell_alignment(left, right, left_orientations, right_orientations, left_uniq
     0.8795123936951939
 
     """
-    print('Calculating cell alignments...')
+    print("Calculating cell alignments...")
     left = left.copy()
     right = right.copy()
     if not isinstance(left_orientations, str):
-        left['mm_o'] = left_orientations
-        left_orientations = 'mm_o'
+        left["mm_o"] = left_orientations
+        left_orientations = "mm_o"
     if not isinstance(right_orientations, str):
-        right['mm_o'] = right_orientations
-        right_orientations = 'mm_o'
+        right["mm_o"] = right_orientations
+        right_orientations = "mm_o"
 
     # define empty list for results
     results_list = []
 
     for index, row in tqdm(left.iterrows(), total=left.shape[0]):
 
-        results_list.append(abs(row[left_orientations] - right[right[right_unique_id] == row[left_unique_id]][right_orientations].iloc[0]))
+        results_list.append(
+            abs(
+                row[left_orientations]
+                - right[right[right_unique_id] == row[left_unique_id]][
+                    right_orientations
+                ].iloc[0]
+            )
+        )
 
     series = pd.Series(results_list, index=left.index)
 
-    print('Cell alignments calculated.')
+    print("Cell alignments calculated.")
     return series
 
 
@@ -392,10 +410,10 @@ def alignment(gdf, spatial_weights, unique_id, orientations):
     results_list = []
     gdf = gdf.copy()
     if not isinstance(orientations, str):
-        gdf['mm_o'] = orientations
-        orientations = 'mm_o'
+        gdf["mm_o"] = orientations
+        orientations = "mm_o"
 
-    print('Calculating alignments...')
+    print("Calculating alignments...")
 
     # iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
@@ -411,7 +429,7 @@ def alignment(gdf, spatial_weights, unique_id, orientations):
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Alignments calculated.')
+    print("Alignments calculated.")
     return series
 
 
@@ -453,24 +471,28 @@ def neighbour_distance(gdf, spatial_weights, unique_id):
     # define empty list for results
     results_list = []
 
-    print('Calculating distances...')
+    print("Calculating distances...")
 
     # iterating over rows one by one
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights.neighbors[row[unique_id]]
         building_neighbours = gdf.loc[gdf[unique_id].isin(neighbours)]
         if len(building_neighbours) > 0:
-            results_list.append(np.mean(building_neighbours.geometry.distance(row['geometry'])))
+            results_list.append(
+                np.mean(building_neighbours.geometry.distance(row["geometry"]))
+            )
         else:
             results_list.append(0)
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Distances calculated.')
+    print("Distances calculated.")
     return series
 
 
-def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights_higher=None, order=3):
+def mean_interbuilding_distance(
+    gdf, spatial_weights, unique_id, spatial_weights_higher=None, order=3
+):
     """
     Calculate the mean interbuilding distance within x topological steps
 
@@ -518,34 +540,41 @@ def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights
     29.305457092042744
     """
 
-    print('Calculating mean interbuilding distances...')
+    print("Calculating mean interbuilding distances...")
     if spatial_weights_higher is None:
-        print('Generating weights matrix (Queen) of {} topological steps...'.format(order))
+        print(
+            "Generating weights matrix (Queen) of {} topological steps...".format(order)
+        )
         from momepy import sw_high
+
         # matrix to define area of analysis (more steps)
         spatial_weights_higher = sw_high(k=order, weights=spatial_weights)
 
     # define empty list for results
     results_list = []
 
-    print('Generating adjacency matrix based on weights matrix...')
+    print("Generating adjacency matrix based on weights matrix...")
     # define adjacency list from lipysal
     adj_list = spatial_weights.to_adjlist()
-    adj_list['distance'] = -1
+    adj_list["distance"] = -1
 
-    print('Computing interbuilding distances...')
+    print("Computing interbuilding distances...")
     # measure each interbuilding distance of neighbours and save them to adjacency list
     for index, row in tqdm(adj_list.iterrows(), total=adj_list.shape[0]):
-        inverted = adj_list[(adj_list.focal == row.neighbor)][(adj_list.neighbor == row.focal)].iloc[0]['distance']
+        inverted = adj_list[(adj_list.focal == row.neighbor)][
+            (adj_list.neighbor == row.focal)
+        ].iloc[0]["distance"]
         if inverted == -1:
             building_object = gdf.loc[gdf[unique_id] == row.focal.astype(int)]
 
             building_neighbour = gdf.loc[gdf[unique_id] == row.neighbor.astype(int)]
-            adj_list.loc[index, 'distance'] = building_neighbour.iloc[0].geometry.distance(building_object.iloc[0].geometry)
+            adj_list.loc[index, "distance"] = building_neighbour.iloc[
+                0
+            ].geometry.distance(building_object.iloc[0].geometry)
         else:
-            adj_list.at[index, 'distance'] = inverted
+            adj_list.at[index, "distance"] = inverted
 
-    print('Computing mean interbuilding distances...')
+    print("Computing mean interbuilding distances...")
     # iterate over objects to get the final values
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         # id to match spatial weights
@@ -554,11 +583,13 @@ def mean_interbuilding_distance(gdf, spatial_weights, unique_id, spatial_weights
         neighbours = spatial_weights_higher.neighbors[uid].copy()
         neighbours.append(uid)
         if neighbours:
-            selection = adj_list[adj_list.focal.isin(neighbours)][adj_list.neighbor.isin(neighbours)]
+            selection = adj_list[adj_list.focal.isin(neighbours)][
+                adj_list.neighbor.isin(neighbours)
+            ]
             results_list.append(np.nanmean(selection.distance))
 
     series = pd.Series(results_list, index=gdf.index)
-    print('Mean interbuilding distances calculated.')
+    print("Mean interbuilding distances calculated.")
     return series
 
 
@@ -596,19 +627,19 @@ def neighbouring_street_orientation_deviation(gdf):
     # define empty list for results
     results_list = []
     gdf = gdf.copy()
-    print('Calculating street alignments...')
+    print("Calculating street alignments...")
 
     def azimuth(point1, point2):
-        '''azimuth between 2 shapely points (interval 0 - 180)'''
+        """azimuth between 2 shapely points (interval 0 - 180)"""
         angle = np.arctan2(point2.x - point1.x, point2.y - point1.y)
-        return np.degrees(angle)if angle > 0 else np.degrees(angle) + 180
+        return np.degrees(angle) if angle > 0 else np.degrees(angle) + 180
 
     # iterating over rows one by one
-    print(' Preparing street orientations...')
+    print(" Preparing street orientations...")
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
 
-        start = Point(row['geometry'].coords[0])
-        end = Point(row['geometry'].coords[-1])
+        start = Point(row["geometry"].coords[0])
+        end = Point(row["geometry"].coords[-1])
         az = azimuth(start, end)
         if 90 > az >= 45:
             diff = az - 45
@@ -628,9 +659,9 @@ def neighbouring_street_orientation_deviation(gdf):
         results_list.append(az)
     series = pd.Series(results_list, index=gdf.index)
 
-    gdf['tmporient'] = series
+    gdf["tmporient"] = series
 
-    print(' Generating spatial index...')
+    print(" Generating spatial index...")
     sindex = gdf.sindex
     results_list = []
 
@@ -655,7 +686,7 @@ def neighbouring_street_orientation_deviation(gdf):
             results_list.append(0)
 
     series = pd.Series(results_list, index=gdf.index)
-    print('Street alignments calculated.')
+    print("Street alignments calculated.")
     return series
 
 
@@ -709,18 +740,21 @@ def building_adjacency(gdf, spatial_weights_higher, unique_id, spatial_weights=N
     # define empty list for results
     results_list = []
 
-    print('Calculating adjacency...')
+    print("Calculating adjacency...")
 
     # if weights matrix is not passed, generate it from gdf
     if spatial_weights is None:
-        print('Calculating spatial weights...')
+        print("Calculating spatial weights...")
         from libpysal.weights import Queen
-        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True, ids=unique_id)
-        print('Spatial weights ready...')
+
+        spatial_weights = Queen.from_dataframe(
+            gdf, silence_warnings=True, ids=unique_id
+        )
+        print("Spatial weights ready...")
 
     patches = dict(zip(gdf[unique_id], spatial_weights.component_labels))
 
-    print('Calculating adjacency within k steps...')
+    print("Calculating adjacency within k steps...")
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         neighbours = spatial_weights_higher.neighbors[row[unique_id]].copy()
         if neighbours:
@@ -735,7 +769,7 @@ def building_adjacency(gdf, spatial_weights_higher, unique_id, spatial_weights=N
 
     series = pd.Series(results_list, index=gdf.index)
 
-    print('Adjacency calculated.')
+    print("Adjacency calculated.")
     return series
 
 
@@ -782,14 +816,16 @@ def neighbours(gdf, spatial_weights, unique_id, weighted=False):
     4
     """
 
-    print('Calculating neighbours...')
+    print("Calculating neighbours...")
     neighbours = []
     for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
         if weighted is True:
-            neighbours.append(spatial_weights.cardinalities[row[unique_id]] / row.geometry.length)
+            neighbours.append(
+                spatial_weights.cardinalities[row[unique_id]] / row.geometry.length
+            )
         else:
             neighbours.append(spatial_weights.cardinalities[row[unique_id]])
 
     series = pd.Series(neighbours, index=gdf.index)
-    print('Neighbours calculated.')
+    print("Neighbours calculated.")
     return series

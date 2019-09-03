@@ -7,24 +7,23 @@ import pytest
 
 
 class TestUtils:
-
     def setup_method(self):
 
-        test_file_path = mm.datasets.get_path('bubenec')
-        self.df_buildings = gpd.read_file(test_file_path, layer='buildings')
-        self.df_tessellation = gpd.read_file(test_file_path, layer='tessellation')
-        self.df_streets = gpd.read_file(test_file_path, layer='streets')
-        self.df_buildings['height'] = np.linspace(10., 30., 144)
+        test_file_path = mm.datasets.get_path("bubenec")
+        self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
+        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
+        self.df_streets = gpd.read_file(test_file_path, layer="streets")
+        self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
 
     def test_dataset_missing(self):
         with pytest.raises(ValueError):
-            mm.datasets.get_path('sffgkt')
+            mm.datasets.get_path("sffgkt")
 
     def test_sw_high(self):
         first_order = libpysal.weights.Queen.from_dataframe(self.df_tessellation)
         from_sw = mm.sw_high(2, gdf=None, weights=first_order)
         from_df = mm.sw_high(2, gdf=self.df_tessellation)
-        rook = mm.sw_high(2, gdf=self.df_tessellation, contiguity='rook')
+        rook = mm.sw_high(2, gdf=self.df_tessellation, contiguity="rook")
         check = [133, 134, 111, 112, 113, 114, 115, 121, 125]
         assert from_sw.neighbors[0] == check
         assert from_df.neighbors[0] == check
@@ -34,7 +33,7 @@ class TestUtils:
             mm.sw_high(2, gdf=None, weights=None)
 
         with pytest.raises(ValueError):
-            mm.sw_high(2, gdf=self.df_tessellation, contiguity='nonexistent')
+            mm.sw_high(2, gdf=self.df_tessellation, contiguity="nonexistent")
 
     def test_gdf_to_nx(self):
         nx = mm.gdf_to_nx(self.df_streets)
@@ -64,22 +63,31 @@ class TestUtils:
         assert mm.limit_range([0, 1], rng=(25, 75)) == [0, 1]
 
     def test_preprocess(self):
-        test_file_path2 = mm.datasets.get_path('tests')
-        self.os_buildings = gpd.read_file(test_file_path2, layer='os')
+        test_file_path2 = mm.datasets.get_path("tests")
+        self.os_buildings = gpd.read_file(test_file_path2, layer="os")
         processed = mm.preprocess(self.os_buildings)
         assert len(processed) == 5
 
     def test_network_false_nodes(self):
-        test_file_path2 = mm.datasets.get_path('tests')
-        self.false_network = gpd.read_file(test_file_path2, layer='network')
+        test_file_path2 = mm.datasets.get_path("tests")
+        self.false_network = gpd.read_file(test_file_path2, layer="network")
         fixed = mm.network_false_nodes(self.false_network)
         assert len(fixed) == 55
 
     def test_snap_street_network_edge(self):
-        snapped = mm.snap_street_network_edge(self.df_streets, self.df_buildings, 20, self.df_tessellation, 70)
-        snapped_nonedge = mm.snap_street_network_edge(self.df_streets, self.df_buildings, 20)
-        snapped_edge = mm.snap_street_network_edge(self.df_streets, self.df_buildings, 20,
-                                                   tolerance_edge=70, edge=mm.buffered_limit(self.df_buildings, buffer=50))
+        snapped = mm.snap_street_network_edge(
+            self.df_streets, self.df_buildings, 20, self.df_tessellation, 70
+        )
+        snapped_nonedge = mm.snap_street_network_edge(
+            self.df_streets, self.df_buildings, 20
+        )
+        snapped_edge = mm.snap_street_network_edge(
+            self.df_streets,
+            self.df_buildings,
+            20,
+            tolerance_edge=70,
+            edge=mm.buffered_limit(self.df_buildings, buffer=50),
+        )
         assert sum(snapped.geometry.length) == 5980.041004739525
         assert sum(snapped_edge.geometry.length) == 5980.718889937014
         assert sum(snapped_nonedge.geometry.length) < 5980.041004739525

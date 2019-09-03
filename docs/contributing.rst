@@ -22,7 +22,7 @@ user guide is located in the ``gh-pages`` branch and is powered by
 `Jupyter book`_.
 
 
-Seven Steps for Contributing
+Eight Steps for Contributing
 ----------------------------
 
 There are seven basic steps to contributing to momepy:
@@ -33,7 +33,8 @@ There are seven basic steps to contributing to momepy:
 4. Make a development build of momepy
 5. Make changes to code and add tests
 6. Update the documentation
-7. Submit a Pull Request
+7. Format code
+8. Submit a Pull Request
 
 Each of the steps is detailed below.
 
@@ -190,7 +191,24 @@ and run::
 
 Then you can push your fork to GitHub.
 
-7. Submitting a Pull Request
+7. Formatting the code
+^^^^^^^^^^^^^^^^^^^^^^
+
+Python (PEP8 / black)
+~~~~~~~~~~~~~~~~~~~~~
+
+*momepy* follows the `PEP8 <http://www.python.org/dev/peps/pep-0008/>`_ standard
+and uses `Black`_ to ensure a consistent code format throughout the project.
+
+Travis CI will run ``black --check`` and fails if there are files which would be
+auto-formatted by ``black``. Therefore, it is helpful before submitting code to
+auto-format your code::
+
+    black momepy
+
+Additionally, many editors have plugins that will apply ``black`` as you edit files.
+
+8. Submitting a Pull Request
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once you've made changes and pushed them to your forked repository, you then
@@ -204,3 +222,5 @@ You can find a pull request (or PR) tutorial in the `GitHub's Help Docs <https:/
 .. _Jupyter book: https://jupyter.org/jupyter-book/intro.html
 
 .. _sphinx: https://www.sphinx-doc.org/
+
+.. _Black: https://black.readthedocs.io/en/stable/
