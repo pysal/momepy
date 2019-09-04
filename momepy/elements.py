@@ -88,13 +88,13 @@ def _point_array(objects, unique_id):
             if poly_ext.type == "MultiLineString":
                 for line in poly_ext:
                     point_coords = line.coords
-                    row_array = np.array(point_coords).tolist()
+                    row_array = np.array(point_coords[:-1]).tolist()
                     for i, a in enumerate(row_array):
                         points.append(row_array[i])
                         ids.append(row[unique_id])
             elif poly_ext.type == "LineString":
                 point_coords = poly_ext.coords
-                row_array = np.array(point_coords).tolist()
+                row_array = np.array(point_coords[:-1]).tolist()
                 for i, a in enumerate(row_array):
                     points.append(row_array[i])
                     ids.append(row[unique_id])
