@@ -115,18 +115,20 @@ def gdf_to_nx(gdf_network, length="mm_len"):
 
     """
     # generate graph from GeoDataFrame of LineStrings
-    net = nx.Graph()
+    net = nx.MultiGraph()
     net.graph["crs"] = gdf_network.crs
     gdf_network[length] = gdf_network.geometry.length
     fields = list(gdf_network.columns)
 
+    key = 0
     for index, row in gdf_network.iterrows():
         first = row.geometry.coords[0]
         last = row.geometry.coords[-1]
 
         data = [row[f] for f in fields]
         attributes = dict(zip(fields, data))
-        net.add_edge(first, last, **attributes)
+        net.add_edge(first, last, key=key, **attributes)
+        key += 1
 
     return net
 

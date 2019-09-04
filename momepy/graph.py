@@ -134,8 +134,9 @@ def mean_node_dist(graph, name="meanlen", length="mm_len"):
 
     for n, nbrs in tqdm(netx.adj.items(), total=len(netx)):
         lengths = []
-        for nbr, eattr in nbrs.items():
-            lengths.append(eattr[length])
+        for nbr, keydict in nbrs.items():
+            for key, eattr in keydict.items():
+                lengths.append(eattr[length])
         netx.nodes[n][name] = np.mean(lengths)
 
     return netx
@@ -146,9 +147,9 @@ def _cds_length(graph, mode, length):
     Calculates cul-de-sac length in a graph.
     """
     lens = []
-    for u, v, cds in graph.edges.data("cdsbool"):
+    for u, v, k, cds in graph.edges.data("cdsbool", keys=True):
         if cds:
-            lens.append(graph[u][v][length])
+            lens.append(graph[u][v][k][length])
     if mode == "sum":
         return sum(lens)
     if mode == "mean":
@@ -208,11 +209,11 @@ def cds_length(
     # node degree needed beforehand
     netx = graph.copy()
 
-    for u, v in netx.edges():
+    for u, v, k in netx.edges(keys=True):
         if netx.nodes[u][degree] == 1 or netx.nodes[v][degree] == 1:
-            netx[u][v]["cdsbool"] = True
+            netx[u][v][k]["cdsbool"] = True
         else:
-            netx[u][v]["cdsbool"] = False
+            netx[u][v][k]["cdsbool"] = False
 
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
@@ -681,41 +682,6 @@ def local_closeness(
     return netx
 
 
-def eigenvector(graph, name="eigen", **kwargs):
-    """
-    Calculates eigenvector centrality of network.
-
-    .. math::
-
-
-    Parameters
-    ----------
-    graph : networkx.Graph
-        Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
-    name : str, optional
-        calculated attribute name
-    **kwargs : keyword arguments
-        kwargs for `nx.eigenvector_centrality`
-
-    Returns
-    -------
-    Graph
-        networkx.Graph
-
-    Examples
-    --------
-    >>> network_graph = mm.eigenvector(network_graph)
-
-    """
-    netx = graph.copy()
-
-    vals = nx.eigenvector_centrality(netx, **kwargs)
-    nx.set_node_attributes(netx, vals, name)
-
-    return netx
-
-
 def clustering(graph, name="cluster"):
     """
     Calculates the squares clustering coefficient for nodes.
@@ -832,11 +798,11 @@ def subgraph(
             netx.nodes[n]["meshedness"] = _meshedness(sub)
 
         if cds_length:
-            for u, v in netx.edges():
+            for u, v, k in netx.edges(keys=True):
                 if netx.nodes[u][degree] == 1 or netx.nodes[v][degree] == 1:
-                    netx[u][v]["cdsbool"] = True
+                    netx[u][v][k]["cdsbool"] = True
                 else:
-                    netx[u][v]["cdsbool"] = False
+                    netx[u][v][k]["cdsbool"] = False
 
             netx.nodes[n]["cds_length"] = _cds_length(sub, mode=mode, length=length)
 

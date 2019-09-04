@@ -81,11 +81,6 @@ class TestGraph:
         check = 0.0015544070362478774
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
 
-    def test_eigenvector(self):
-        net = mm.eigenvector(self.network)
-        check = 0.26732838680271764
-        assert net.nodes[(1603650.450422848, 6464368.600601688)]["eigen"] == check
-
     def test_clustering(self):
         net = mm.clustering(self.network)
         check = 0.09090909090909091
