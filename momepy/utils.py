@@ -115,7 +115,7 @@ def gdf_to_nx(gdf_network, length="mm_len"):
 
     """
     # generate graph from GeoDataFrame of LineStrings
-    net = nx.Graph()
+    net = nx.MultiGraph()
     net.graph["crs"] = gdf_network.crs
     gdf_network[length] = gdf_network.geometry.length
     fields = list(gdf_network.columns)
