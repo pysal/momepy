@@ -100,7 +100,6 @@ graph
    clustering
    cyclomatic
    edge_node_ratio
-   eigenvector
    gamma
    local_closeness
    mean_node_degree
