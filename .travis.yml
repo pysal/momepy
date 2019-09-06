@@ -27,6 +27,8 @@ install:
   - source activate test
   - if [ "$DEV" ]; then pip install git+https://github.com/geopandas/geopandas.git; fi
   - if [ "$DEV" ]; then pip install git+https://github.com/pysal/libpysal.git; fi
+  - if [ "$DEV" ]; then pip install git+https://github.com/networkx/networkx.git; fi
+
   - python setup.py install
   - conda list
   - black --check .
