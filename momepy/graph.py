@@ -6,6 +6,7 @@
 import networkx as nx
 from tqdm import tqdm
 import numpy as np
+import math
 
 
 def node_degree(graph, name="degree"):
@@ -537,6 +538,40 @@ def gamma(graph, radius=5, name="gamma", distance=None):
     return netx
 
 
+def clustering(graph, name="cluster"):
+    """
+    Calculates the squares clustering coefficient for nodes.
+
+    Wrapper around ``networkx.square_clustering``.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph representing street network.
+        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+    name : str, optional
+        calculated attribute name
+
+    Returns
+    -------
+    Graph
+        networkx.Graph
+
+    Examples
+    --------
+    >>> network_graph = mm.clustering(network_graph)
+    """
+    netx = graph.copy()
+
+    vals = nx.square_clustering(netx)
+    nx.set_node_attributes(netx, vals, name)
+
+    return netx
+
+
 def _closeness_centrality(G, u=None, distance=None, wf_improved=True, len_graph=None):
     r"""Compute closeness centrality for nodes. Slight adaptation of networkx
     `closeness_centrality` to allow normalisation for local closeness.
@@ -682,9 +717,11 @@ def local_closeness(
     return netx
 
 
-def clustering(graph, name="cluster"):
+def global_closeness(graph, name="closeness", length="mm_len", **kwargs):
     """
-    Calculates the squares clustering coefficient for nodes.
+    Calculates the closeness centrality for nodes.
+
+    Wrapper around ``networkx.closeness_centrality``.
 
     .. math::
 
@@ -696,6 +733,10 @@ def clustering(graph, name="cluster"):
         Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
     name : str, optional
         calculated attribute name
+    length : str (default 'mm_len')
+        attribute holding length of edge
+    **kwargs
+        kwargs for ``networkx.closeness_centrality``
 
     Returns
     -------
@@ -704,11 +745,152 @@ def clustering(graph, name="cluster"):
 
     Examples
     --------
-    >>> network_graph = mm.clustering(network_graph)
+    >>> network_graph = mm.global_closeness(network_graph)
     """
     netx = graph.copy()
 
-    vals = nx.square_clustering(netx)
+    vals = nx.closeness_centrality(netx, distance=length, **kwargs)
+    nx.set_node_attributes(netx, vals, name)
+
+    return netx
+
+
+def betweenness_centrality(
+    graph, name="betweenness", mode="nodes", length="mm_len", **kwargs
+):
+    """
+    Calculates the shortest-path betweenness centrality for nodes.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph representing street network.
+        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+    name : str, optional
+        calculated attribute name
+    mode : str, default 'nodes'
+        mode of betweenness calculation. 'node' for node-based, 'edges' for edge-based
+    length : str (default 'mm_len')
+        attribute holding length of edge
+    **kwargs
+        kwargs for ``networkx.betweenness_centrality`` or ``networkx.edge_betweenness_centrality``
+
+    Returns
+    -------
+    Graph
+        networkx.Graph
+
+    References
+    ----------
+    Porta S, Crucitti P and Latora V (2006) The network analysis of urban streets: A primal approach.
+    Environment and Planning B: Planning and Design 33(5): 705–725.
+
+    Examples
+    --------
+    >>> network_graph = mm.betweenness_centrality(network_graph)
+    """
+    netx = graph.copy()
+
+    # has to be Graph not MultiGraph as MG is not supported by networkx2.4
+    G = nx.Graph()
+    for u, v, k, data in netx.edges(data=True, keys=True):
+        if G.has_edge(u, v):
+            if G[u][v][length] > netx[u][v][k][length]:
+                nx.set_edge_attributes(G, {(u, v): data})
+        else:
+            G.add_edge(u, v, **data)
+
+    if mode == "nodes":
+        vals = nx.betweenness_centrality(G, **kwargs)
+        nx.set_node_attributes(netx, vals, name)
+    elif mode == "edges":
+        vals = nx.edge_betweenness_centrality(G, **kwargs)
+        for u, v, k in netx.edges(keys=True):
+            try:
+                val = vals[u, v]
+            except KeyError:
+                val = vals[v, u]
+            netx[u][v][k][name] = val
+    else:
+        raise ValueError(
+            "Mode {} is not supported. Use 'nodes' or 'edges'.".format(mode)
+        )
+
+    return netx
+
+
+def _euclidean(n, m):
+    """helper for straightness"""
+    return math.sqrt((n[0] - m[0]) ** 2 + (n[1] - m[1]) ** 2)
+
+
+def _straightness_centrality(G, distance, normalized=True):
+    """
+    Calculates straightness centrality.
+    """
+    straightness_centrality = {}
+
+    for n in tqdm(G.nodes(), total=G.number_of_nodes()):
+        straightness = 0
+        sp = nx.single_source_dijkstra_path_length(G, n, weight=distance)
+
+        if len(sp) > 0 and len(G) > 1:
+            for target in sp:
+                if n != target:
+                    network_dist = sp[target]
+                    euclidean_dist = _euclidean(n, target)
+                    straightness = straightness + (euclidean_dist / network_dist)
+            straightness_centrality[n] = straightness * (1.0 / (len(G) - 1.0))
+            # normalize to number of nodes-1 in connected part
+            if normalized:
+                s = (len(G) - 1.0) / (len(sp) - 1.0)
+                straightness_centrality[n] *= s
+        else:
+            straightness_centrality[n] = 0.0
+    return straightness_centrality
+
+
+def straightness_centrality(
+    graph, length="mm_len", normalized=True, name="straightness"
+):
+    """
+    Calculates the straightness centrality for nodes.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        Graph representing street network.
+        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+    length : str (default 'mm_len')
+        attribute holding length of edge
+    normalized : bool
+        normalize to number of nodes-1 in connected part
+    name : str, optional
+        calculated attribute name
+
+    Returns
+    -------
+    Graph
+        networkx.Graph
+
+    References
+    ----------
+    Porta S, Crucitti P and Latora V (2006) The network analysis of urban streets: A primal approach.
+    Environment and Planning B: Planning and Design 33(5): 705–725.
+
+    Examples
+    --------
+    >>> network_graph = mm.straightness_centrality(network_graph)
+    """
+    netx = graph.copy()
+
+    vals = _straightness_centrality(netx, distance=length, normalized=normalized)
     nx.set_node_attributes(netx, vals, name)
 
     return netx
@@ -834,3 +1016,12 @@ def subgraph(
             )
 
     return netx
+
+
+def mean_nodes(G, attr):
+    """
+    Calculates mean value of nodes attr for each edge.
+    """
+    for u, v, k in tqdm(G.edges(keys=True), total=G.number_of_edges()):
+        mean = (G.nodes[u][attr] + G.nodes[v][attr]) / 2
+        G[u][v][k][attr] = mean
