@@ -72,14 +72,59 @@ class TestGraph:
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["gamma"] == check
 
     def test_local_closeness(self):
-        net = mm.local_closeness(self.network)
+        net = mm.local_closeness_centrality(self.network)
         check = 0.27557319223985893
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
+        net2 = mm.local_closeness_centrality(self.network, length="mm_len")
+        check2 = 0.0015544070362478774
+        assert net2.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check2
 
-    def test_local_closeness_distance(self):
-        net = mm.local_closeness(self.network, closeness_distance="mm_len")
-        check = 0.0015544070362478774
+    def test_global_closeness_centrality(self):
+        net = mm.global_closeness_centrality(self.network, length="mm_len")
+        check = 0.0016066095164175716
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
+
+    def test_betweenness_centrality(self):
+        net = mm.betweenness_centrality(self.network)
+        net2 = mm.betweenness_centrality(self.network, mode="edges")
+        with pytest.raises(ValueError):
+            mm.betweenness_centrality(self.network, mode="nonexistent")
+        node = 0.15806878306878305
+        edge = 0.20320197044334976
+        assert net.nodes[(1603650.450422848, 6464368.600601688)]["betweenness"] == node
+        assert (
+            net2.edges[
+                (1603226.9576840235, 6464160.158361825),
+                (1603039.9632033885, 6464087.491175889),
+                8,
+            ]["betweenness"]
+            == edge
+        )
+
+    def test_straightness_centrality(self):
+        net = mm.straightness_centrality(self.network)
+        net2 = mm.straightness_centrality(
+            self.network, normalized=False, name="nonnorm"
+        )
+        check = 0.8574045143712158
+        nonnorm = 0.8574045143712158
+        assert (
+            net.nodes[(1603650.450422848, 6464368.600601688)]["straightness"] == check
+        )
+        assert net2.nodes[(1603650.450422848, 6464368.600601688)]["nonnorm"] == nonnorm
+
+    def test_mean_nodes(self):
+        net = mm.straightness_centrality(self.network)
+        mm.mean_nodes(net, "straightness")
+        edge = 0.8777302256084243
+        assert (
+            net.edges[
+                (1603226.9576840235, 6464160.158361825),
+                (1603039.9632033885, 6464087.491175889),
+                8,
+            ]["straightness"]
+            == edge
+        )
 
     def test_clustering(self):
         net = mm.clustering(self.network)
