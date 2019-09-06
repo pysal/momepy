@@ -572,7 +572,7 @@ def clustering(graph, name="cluster"):
     return netx
 
 
-def _closeness_centrality(G, u=None, distance=None, wf_improved=True, len_graph=None):
+def _closeness_centrality(G, u=None, length=None, wf_improved=True, len_graph=None):
     r"""Compute closeness centrality for nodes. Slight adaptation of networkx
     `closeness_centrality` to allow normalisation for local closeness.
     Adapted script used in networkx.
@@ -633,12 +633,12 @@ def _closeness_centrality(G, u=None, distance=None, wf_improved=True, len_graph=
        Cambridge University Press.
     """
 
-    if distance is not None:
+    if length is not None:
         import functools
 
         # use Dijkstra's algorithm with specified attribute as edge weight
         path_length = functools.partial(
-            nx.single_source_dijkstra_path_length, weight=distance
+            nx.single_source_dijkstra_path_length, weight=length
         )
     else:
         path_length = nx.single_source_shortest_path_length
@@ -659,8 +659,8 @@ def _closeness_centrality(G, u=None, distance=None, wf_improved=True, len_graph=
     return closeness_centrality[u]
 
 
-def local_closeness(
-    graph, radius=5, name="closeness", distance=None, closeness_distance=None
+def local_closeness_centrality(
+    graph, radius=5, name="closeness", distance=None, length=None
 ):
     """
     Calculates local closeness for each node based on the defined distance.
@@ -685,7 +685,7 @@ def local_closeness(
         Use specified edge data key as distance.
         For example, setting distance=’weight’ will use the edge weight to
         measure the distance from the node n.
-    closeness_distance : str, optional
+    length : str, optional
       Use the specified edge attribute as the edge distance in shortest
       path calculations in closeness centrality algorithm
 
@@ -701,7 +701,7 @@ def local_closeness(
 
     Examples
     --------
-    >>> network_graph = mm.local_closeness(network_graph, radius=400, distance='edge_length')
+    >>> network_graph = mm.local_closeness_centrality(network_graph, radius=400, distance='edge_length')
 
     """
     netx = graph.copy()
@@ -711,13 +711,13 @@ def local_closeness(
             netx, n, radius=radius, undirected=True, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _closeness_centrality(
-            sub, n, distance=closeness_distance, len_graph=lengraph
+            sub, n, length=length, len_graph=lengraph
         )
 
     return netx
 
 
-def global_closeness(graph, name="closeness", length="mm_len", **kwargs):
+def global_closeness_centrality(graph, name="closeness", length="mm_len", **kwargs):
     """
     Calculates the closeness centrality for nodes.
 
@@ -745,7 +745,7 @@ def global_closeness(graph, name="closeness", length="mm_len", **kwargs):
 
     Examples
     --------
-    >>> network_graph = mm.global_closeness(network_graph)
+    >>> network_graph = mm.global_closeness_centrality(network_graph)
     """
     netx = graph.copy()
 
@@ -911,7 +911,7 @@ def subgraph(
     edge_node_ratio=True,
     gamma=True,
     local_closeness=True,
-    closeness_distance=None,
+    closeness_length=None,
 ):
     """
     Calculates all subgraph-based characters.
@@ -954,7 +954,7 @@ def subgraph(
         Calculate gamma index (True/False)
     local_closeness : bool, default True
         Calculate local closeness centrality (True/False)
-    closeness_distance : str, optional
+    closeness_length : str, optional
       Use the specified edge attribute as the edge distance in shortest
       path calculations in closeness centrality algorithm
 
@@ -1012,7 +1012,7 @@ def subgraph(
         if local_closeness:
             lengraph = len(netx)
             netx.nodes[n]["local_closeness"] = _closeness_centrality(
-                sub, n, distance=closeness_distance, len_graph=lengraph
+                sub, n, length=closeness_length, len_graph=lengraph
             )
 
     return netx

@@ -96,17 +96,21 @@ graph
 .. autosummary::
    :toctree: generated/
 
+   betweenness_centrality
    cds_length
    clustering
    cyclomatic
    edge_node_ratio
    gamma
-   local_closeness
+   global_closeness_centrality
+   local_closeness_centrality
    mean_node_degree
    mean_node_dist
+   mean_nodes
    meshedness
    node_degree
    proportion
+   straightness_centrality
    subgraph
 
 diversity
