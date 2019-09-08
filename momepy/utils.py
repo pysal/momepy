@@ -114,6 +114,10 @@ def _angle(a, b, c):
 
 
 def _generate_primal(G, gdf_network, fields):
+    """
+    Generate primal graph.
+    Helper for gdf_to_nx.
+    """
     G.graph["approach"] = "primal"
     key = 0
     for index, row in gdf_network.iterrows():
@@ -127,6 +131,10 @@ def _generate_primal(G, gdf_network, fields):
 
 
 def _generate_dual(G, gdf_network, fields):
+    """
+    Generate dual graph
+    Helper for gdf_to_nx.
+    """
     G.graph["approach"] = "dual"
     sw = libpysal.weights.Queen.from_dataframe(gdf_network)
     gdf_network["mm_cent"] = gdf_network.geometry.centroid
@@ -193,34 +201,57 @@ def gdf_to_nx(gdf_network, approach="primal", length="mm_len"):
     return net
 
 
-def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
+def _points_to_gdf(net, spatial_weights, nodeID):
+    """
+    Generate point gdf from nodes.
+    Helper for nx_to_gdf.
+    """
+    nid = 1
+    for n in net:
+        net.nodes[n][nodeID] = nid
+        nid += 1
+    node_xy, node_data = zip(*net.nodes(data=True))
+    gdf_nodes = gpd.GeoDataFrame(
+        list(node_data), geometry=[Point(i, j) for i, j in node_xy]
+    )
+    gdf_nodes.crs = net.graph["crs"]
+    return gdf_nodes
+
+
+def _lines_to_gdf(net, lines, points, nodeID):
+    """
+    Generate linestring gdf from edges.
+    Helper for nx_to_gdf.
+    """
+    starts, ends, edge_data = zip(*net.edges(data=True))
+    if lines is True:
+        node_start = []
+        node_end = []
+        for s in starts:
+            node_start.append(net.node[s][nodeID])
+        for e in ends:
+            node_end.append(net.node[e][nodeID])
+    gdf_edges = gpd.GeoDataFrame(list(edge_data))
     if points is True:
-        nid = 1
-        for n in net:
-            net.nodes[n][nodeID] = nid
-            nid += 1
-        node_xy, node_data = zip(*net.nodes(data=True))
-        gdf_nodes = gpd.GeoDataFrame(
-            list(node_data), geometry=[Point(i, j) for i, j in node_xy]
-        )
-        gdf_nodes.crs = net.graph["crs"]
+        gdf_edges["node_start"] = node_start
+        gdf_edges["node_end"] = node_end
+    gdf_edges.crs = net.graph["crs"]
+    return gdf_edges
+
+
+def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
+    """
+    Generate gdf(s) from primal network.
+    Helper for nx_to_gdf.
+    """
+    if points is True:
+        gdf_nodes = _points_to_gdf(net, spatial_weights, nodeID)
+
         if spatial_weights is True:
             W = libpysal.weights.W.from_networkx(net)
 
     if lines is True:
-        starts, ends, edge_data = zip(*net.edges(data=True))
-        if lines is True:
-            node_start = []
-            node_end = []
-            for s in starts:
-                node_start.append(net.node[s][nodeID])
-            for e in ends:
-                node_end.append(net.node[e][nodeID])
-        gdf_edges = gpd.GeoDataFrame(list(edge_data))
-        if points is True:
-            gdf_edges["node_start"] = node_start
-            gdf_edges["node_end"] = node_end
-        gdf_edges.crs = net.graph["crs"]
+        gdf_edges = _lines_to_gdf(net, lines, points, nodeID)
 
     if points is True and lines is True:
         if spatial_weights is True:
@@ -234,6 +265,10 @@ def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
 
 
 def _dual_to_gdf(net):
+    """
+    Generate linestring gdf from dual network.
+    Helper for nx_to_gdf.
+    """
     starts, edge_data = zip(*net.nodes(data=True))
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
     gdf_edges.crs = net.graph["crs"]
@@ -273,14 +308,13 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
                 spatial_weights=spatial_weights,
                 nodeID=nodeID,
             )
-        elif net.graph["approach"] == "dual":
+        if net.graph["approach"] == "dual":
             return _dual_to_gdf(net)
-        else:
-            raise ValueError(
-                "Approach {} is not supported. Use 'primal' or 'dual'.".format(
-                    net.graph["approach"]
-                )
+        raise ValueError(
+            "Approach {} is not supported. Use 'primal' or 'dual'.".format(
+                net.graph["approach"]
             )
+        )
     except KeyError:
         raise KeyError(
             "Approach is not set. Graph needs an attribute 'approach' to be set"
