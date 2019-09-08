@@ -201,15 +201,11 @@ def gdf_to_nx(gdf_network, approach="primal", length="mm_len"):
     return net
 
 
-def _points_to_gdf(net, spatial_weights, nodeID):
+def _points_to_gdf(net, spatial_weights):
     """
     Generate point gdf from nodes.
     Helper for nx_to_gdf.
     """
-    nid = 1
-    for n in net:
-        net.nodes[n][nodeID] = nid
-        nid += 1
     node_xy, node_data = zip(*net.nodes(data=True))
     gdf_nodes = gpd.GeoDataFrame(
         list(node_data), geometry=[Point(i, j) for i, j in node_xy]
@@ -301,6 +297,10 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
     # generate nodes and edges geodataframes from graph
     try:
         if net.graph["approach"] == "primal":
+            nid = 1
+            for n in net:
+                net.nodes[n][nodeID] = nid
+                nid += 1
             return _primal_to_gdf(
                 net,
                 points=points,
