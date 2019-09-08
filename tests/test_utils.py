@@ -2,6 +2,7 @@ import momepy as mm
 import geopandas as gpd
 import numpy as np
 import libpysal
+import networkx
 
 import pytest
 
@@ -39,6 +40,11 @@ class TestUtils:
         nx = mm.gdf_to_nx(self.df_streets)
         assert nx.number_of_nodes() == 29
         assert nx.number_of_edges() == 35
+        dual = mm.gdf_to_nx(self.df_streets, approach="dual")
+        assert dual.number_of_nodes() == 35
+        assert dual.number_of_edges() == 148
+        with pytest.raises(ValueError):
+            mm.gdf_to_nx(self.df_streets, approach="nonexistent")
 
     def test_nx_to_gdf(self):
         nx = mm.gdf_to_nx(self.df_streets)
@@ -49,13 +55,22 @@ class TestUtils:
         nodes, edges = mm.nx_to_gdf(nx)
         assert len(nodes) == 29
         assert len(edges) == 35
-        edges = mm.nx_to_gdf(nx, nodes=False)
+        edges = mm.nx_to_gdf(nx, points=False)
         assert len(edges) == 35
-        nodes, W = mm.nx_to_gdf(nx, edges=False, spatial_weights=True)
+        nodes, W = mm.nx_to_gdf(nx, lines=False, spatial_weights=True)
         assert len(nodes) == 29
         assert W.n == 29
-        nodes = mm.nx_to_gdf(nx, edges=False, spatial_weights=False)
+        nodes = mm.nx_to_gdf(nx, lines=False, spatial_weights=False)
         assert len(nodes) == 29
+        dual = mm.gdf_to_nx(self.df_streets, approach="dual")
+        edges = mm.nx_to_gdf(dual)
+        assert len(edges) == 35
+        dual.graph["approach"] = "nonexistent"
+        with pytest.raises(ValueError):
+            mm.nx_to_gdf(dual)
+        G = networkx.Graph()
+        with pytest.raises(KeyError):
+            mm.nx_to_gdf(G)
 
     def test_limit_range(self):
         assert mm.limit_range(range(10), rng=(25, 75)) == [2, 3, 4, 5, 6, 7]

@@ -660,7 +660,7 @@ def _closeness_centrality(G, u=None, length=None, wf_improved=True, len_graph=No
 
 
 def local_closeness_centrality(
-    graph, radius=5, name="closeness", distance=None, length=None
+    graph, radius=5, name="closeness", distance=None, weight=None
 ):
     """
     Calculates local closeness for each node based on the defined distance.
@@ -684,8 +684,8 @@ def local_closeness_centrality(
     distance : str, optional
         Use specified edge data key as distance.
         For example, setting distance=’weight’ will use the edge weight to
-        measure the distance from the node n.
-    length : str, optional
+        measure the distance from the node n during ego_graph generation.
+    weight : str, optional
       Use the specified edge attribute as the edge distance in shortest
       path calculations in closeness centrality algorithm
 
@@ -711,13 +711,13 @@ def local_closeness_centrality(
             netx, n, radius=radius, undirected=True, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _closeness_centrality(
-            sub, n, length=length, len_graph=lengraph
+            sub, n, length=weight, len_graph=lengraph
         )
 
     return netx
 
 
-def global_closeness_centrality(graph, name="closeness", length="mm_len", **kwargs):
+def global_closeness_centrality(graph, name="closeness", weight="mm_len", **kwargs):
     """
     Calculates the closeness centrality for nodes.
 
@@ -733,8 +733,8 @@ def global_closeness_centrality(graph, name="closeness", length="mm_len", **kwar
         Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
     name : str, optional
         calculated attribute name
-    length : str (default 'mm_len')
-        attribute holding length of edge
+    weight : str (default 'mm_len')
+        attribute holding the weight of edge (e.g. length, angle)
     **kwargs
         kwargs for ``networkx.closeness_centrality``
 
@@ -749,14 +749,14 @@ def global_closeness_centrality(graph, name="closeness", length="mm_len", **kwar
     """
     netx = graph.copy()
 
-    vals = nx.closeness_centrality(netx, distance=length, **kwargs)
+    vals = nx.closeness_centrality(netx, distance=weight, **kwargs)
     nx.set_node_attributes(netx, vals, name)
 
     return netx
 
 
 def betweenness_centrality(
-    graph, name="betweenness", mode="nodes", length="mm_len", **kwargs
+    graph, name="betweenness", mode="nodes", weight="mm_len", endpoints=True, **kwargs
 ):
     """
     Calculates the shortest-path betweenness centrality for nodes.
@@ -773,8 +773,8 @@ def betweenness_centrality(
         calculated attribute name
     mode : str, default 'nodes'
         mode of betweenness calculation. 'node' for node-based, 'edges' for edge-based
-    length : str (default 'mm_len')
-        attribute holding length of edge
+    weight : str (default 'mm_len')
+        attribute holding the weight of edge (e.g. length, angle)
     **kwargs
         kwargs for ``networkx.betweenness_centrality`` or ``networkx.edge_betweenness_centrality``
 
@@ -798,16 +798,18 @@ def betweenness_centrality(
     G = nx.Graph()
     for u, v, k, data in netx.edges(data=True, keys=True):
         if G.has_edge(u, v):
-            if G[u][v][length] > netx[u][v][k][length]:
+            if G[u][v][weight] > netx[u][v][k][weight]:
                 nx.set_edge_attributes(G, {(u, v): data})
         else:
             G.add_edge(u, v, **data)
 
     if mode == "nodes":
-        vals = nx.betweenness_centrality(G, **kwargs)
+        vals = nx.betweenness_centrality(
+            G, weight=weight, endpoints=endpoints, **kwargs
+        )
         nx.set_node_attributes(netx, vals, name)
     elif mode == "edges":
-        vals = nx.edge_betweenness_centrality(G, **kwargs)
+        vals = nx.edge_betweenness_centrality(G, weight=weight, **kwargs)
         for u, v, k in netx.edges(keys=True):
             try:
                 val = vals[u, v]
@@ -827,7 +829,7 @@ def _euclidean(n, m):
     return math.sqrt((n[0] - m[0]) ** 2 + (n[1] - m[1]) ** 2)
 
 
-def _straightness_centrality(G, distance, normalized=True):
+def _straightness_centrality(G, weight, normalized=True):
     """
     Calculates straightness centrality.
     """
@@ -835,7 +837,7 @@ def _straightness_centrality(G, distance, normalized=True):
 
     for n in tqdm(G.nodes(), total=G.number_of_nodes()):
         straightness = 0
-        sp = nx.single_source_dijkstra_path_length(G, n, weight=distance)
+        sp = nx.single_source_dijkstra_path_length(G, n, weight=weight)
 
         if len(sp) > 0 and len(G) > 1:
             for target in sp:
@@ -854,7 +856,7 @@ def _straightness_centrality(G, distance, normalized=True):
 
 
 def straightness_centrality(
-    graph, length="mm_len", normalized=True, name="straightness"
+    graph, weight="mm_len", normalized=True, name="straightness"
 ):
     """
     Calculates the straightness centrality for nodes.
@@ -867,7 +869,7 @@ def straightness_centrality(
     graph : networkx.Graph
         Graph representing street network.
         Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
-    length : str (default 'mm_len')
+    weight : str (default 'mm_len')
         attribute holding length of edge
     normalized : bool
         normalize to number of nodes-1 in connected part
@@ -890,7 +892,7 @@ def straightness_centrality(
     """
     netx = graph.copy()
 
-    vals = _straightness_centrality(netx, distance=length, normalized=normalized)
+    vals = _straightness_centrality(netx, weight=weight, normalized=normalized)
     nx.set_node_attributes(netx, vals, name)
 
     return netx
@@ -911,7 +913,7 @@ def subgraph(
     edge_node_ratio=True,
     gamma=True,
     local_closeness=True,
-    closeness_length=None,
+    closeness_weight=None,
 ):
     """
     Calculates all subgraph-based characters.
@@ -954,7 +956,7 @@ def subgraph(
         Calculate gamma index (True/False)
     local_closeness : bool, default True
         Calculate local closeness centrality (True/False)
-    closeness_length : str, optional
+    closeness_weight : str, optional
       Use the specified edge attribute as the edge distance in shortest
       path calculations in closeness centrality algorithm
 
@@ -1012,7 +1014,7 @@ def subgraph(
         if local_closeness:
             lengraph = len(netx)
             netx.nodes[n]["local_closeness"] = _closeness_centrality(
-                sub, n, length=closeness_length, len_graph=lengraph
+                sub, n, length=closeness_weight, len_graph=lengraph
             )
 
     return netx

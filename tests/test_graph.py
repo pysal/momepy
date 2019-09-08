@@ -10,6 +10,7 @@ class TestGraph:
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.network = mm.gdf_to_nx(self.df_streets)
         self.network = mm.node_degree(self.network)
+        self.dual = mm.gdf_to_nx(self.df_streets, approach="dual")
 
     def test_node_degree(self):
         deg1 = mm.node_degree(graph=self.network)
@@ -71,26 +72,28 @@ class TestGraph:
         check = 0.4444444444444444
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["gamma"] == check
 
-    def test_local_closeness(self):
+    def test_local_closeness_centrality(self):
         net = mm.local_closeness_centrality(self.network)
         check = 0.27557319223985893
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
-        net2 = mm.local_closeness_centrality(self.network, length="mm_len")
+        net2 = mm.local_closeness_centrality(self.network, weight="mm_len")
         check2 = 0.0015544070362478774
         assert net2.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check2
 
     def test_global_closeness_centrality(self):
-        net = mm.global_closeness_centrality(self.network, length="mm_len")
+        net = mm.global_closeness_centrality(self.network, weight="mm_len")
         check = 0.0016066095164175716
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
 
     def test_betweenness_centrality(self):
         net = mm.betweenness_centrality(self.network)
         net2 = mm.betweenness_centrality(self.network, mode="edges")
+        angular = mm.betweenness_centrality(self.dual, weight="angle")
         with pytest.raises(ValueError):
             mm.betweenness_centrality(self.network, mode="nonexistent")
-        node = 0.15806878306878305
-        edge = 0.20320197044334976
+        node = 0.2413793103448276
+        edge = 0.16995073891625617
+        ang_b = 0.16470588235294117
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["betweenness"] == node
         assert (
             net2.edges[
@@ -99,6 +102,10 @@ class TestGraph:
                 8,
             ]["betweenness"]
             == edge
+        )
+        assert (
+            angular.nodes[(1603315.3564306537, 6464044.376339891)]["betweenness"]
+            == ang_b
         )
 
     def test_straightness_centrality(self):
@@ -133,7 +140,7 @@ class TestGraph:
 
     def test_subgraph(self):
         net = mm.subgraph(self.network)
-        nodes = mm.nx_to_gdf(net, edges=False)
+        nodes = mm.nx_to_gdf(net, lines=False)
         cols = [
             "meshedness",
             "cds_length",
