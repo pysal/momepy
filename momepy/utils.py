@@ -241,7 +241,7 @@ def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
     Helper for nx_to_gdf.
     """
     if points is True:
-        gdf_nodes = _points_to_gdf(net, spatial_weights, nodeID)
+        gdf_nodes = _points_to_gdf(net, spatial_weights)
 
         if spatial_weights is True:
             W = libpysal.weights.W.from_networkx(net)
