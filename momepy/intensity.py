@@ -71,13 +71,10 @@ def object_area_ratio(
         left_unique_id = unique_id
         right_unique_id = unique_id
     else:
-        if left_unique_id is None and right_unique_id is not None:
-            raise ValueError("left_unique_id not set.")
-        if left_unique_id is not None and right_unique_id is None:
-            raise ValueError("right_network_id not set.")
-        if left_unique_id is None and right_unique_id is None:
+        if left_unique_id is None or right_unique_id is None:
             raise ValueError(
-                "Unique ID not set. Use either network_id or left_unique_id and right_unique_id."
+                "Unique ID not correctly set. Use either network_id or both"
+                "left_unique_id and right_unique_id."
             )
 
     print("Calculating object area ratio...")
@@ -148,7 +145,7 @@ def elements_count(left, right, left_id, right_id, weighted=False):
     count = collections.Counter(right[right_id])
     df = pd.DataFrame.from_dict(count, orient="index", columns=["mm_count"])
     joined = left[[left_id, "geometry"]].join(df["mm_count"], on=left_id)
-    joined["mm_count"][np.isnan(joined["mm_count"])] = 0
+    joined.loc[joined["mm_count"].isna(), "mm_count"] = 0
 
     if weighted:
         if left.geometry[0].type in ["Polygon", "MultiPolygon"]:
@@ -242,11 +239,11 @@ def courtyards(gdf, block_id, spatial_weights=None):
     return series
 
 
-def blocks_count(gdf, block_id, spatial_weights, unique_id):
+def blocks_count(gdf, block_id, spatial_weights, unique_id, weighted=True):
     """
     Calculates the weighted number of blocks
 
-    Number of blocks within `k` topological steps defined in spatial_weights weighted by the analysed area.
+    Number of blocks within `k` topological steps defined in spatial_weights.
 
     .. math::
 
@@ -260,7 +257,9 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id):
     spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str
-        name of the column with unique id used as spatial_weights index.
+        name of the column with unique id used as spatial_weights index
+    weigted : bool, default True
+        return value weighted by the analysed area (True) or pure count (False)
 
     Returns
     -------
@@ -296,9 +295,14 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id):
             neighbours = row[unique_id]
         vicinity = gdf.loc[gdf[unique_id].isin(neighbours)]
 
-        results_list.append(
-            len(set(list(vicinity[block_id]))) / sum(vicinity.geometry.area)
-        )
+        if weighted is True:
+            results_list.append(
+                len(set(list(vicinity[block_id]))) / sum(vicinity.geometry.area)
+            )
+        elif weighted is False:
+            results_list.append(len(set(list(vicinity[block_id]))))
+        else:
+            raise ValueError("Attribute 'weighted' needs to be True or False.")
 
     series = pd.Series(results_list, index=gdf.index)
 
