@@ -98,9 +98,18 @@ class TestIntensity:
         count2 = mm.blocks_count(
             self.df_tessellation, self.df_tessellation.bID, sw, "uID"
         )
+        unweigthed = mm.blocks_count(
+            self.df_tessellation, "bID", sw, "uID", weighted=False
+        )
         check = 3.142437439120778e-05
+        check2 = 5.222222222222222
         assert count.mean() == check
         assert count2.mean() == check
+        assert unweigthed.mean() == check2
+        with pytest.raises(ValueError):
+            count = mm.blocks_count(
+                self.df_tessellation, "bID", sw, "uID", weighted="yes"
+            )
 
     def test_reached(self):
         count = mm.reached(self.df_streets, self.df_buildings, "nID", "nID")
