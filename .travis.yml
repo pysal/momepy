@@ -31,10 +31,10 @@ install:
 
   - python setup.py install
   - conda list
-  - black --check .
 
 script:
   - pytest -v --cov-config .coveragerc --cov=momepy tests
 
 after_success:
   - codecov
+  - black --check .

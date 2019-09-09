@@ -279,10 +279,10 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
     ----------
     net : networkx.Graph
         networkx.Graph
-    nodes : bool
-        export nodes gdf
-    edges : bool
-        export edges gdf
+    points : bool
+        export point-based gdf representing intersections
+    lines : bool
+        export line-based gdf representing streets
     spatial_weights : bool
         export libpysal spatial weights for nodes
     nodeID : str
