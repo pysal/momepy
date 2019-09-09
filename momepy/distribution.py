@@ -173,7 +173,7 @@ def shared_walls_ratio(gdf, unique_id, perimeters=None):
             results_list.append(0)
         else:
             for i in neighbors:
-                subset = gdf.loc[i]["geometry"]
+                subset = gdf.iloc[i]["geometry"]
                 length = length + row.geometry.intersection(subset).length
             results_list.append(length / row[perimeters])
     series = pd.Series(results_list, index=gdf.index)
