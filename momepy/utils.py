@@ -569,7 +569,7 @@ def network_false_nodes(gdf):
 
     geoms_gdf = gpd.GeoDataFrame(geometry=geoms)
     geoms_gdf.crs = streets.crs
-    streets = geoms_gdf
+    streets = geoms_gdf.explode().reset_index(drop=True)
     return streets
 
 
