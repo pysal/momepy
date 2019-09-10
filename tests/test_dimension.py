@@ -6,6 +6,7 @@ import numpy as np
 
 from momepy.shape import _make_circle
 from momepy import sw_high
+from pytest import approx
 
 
 class TestDimensions:
@@ -156,10 +157,10 @@ class TestDimensions:
                 unique_id="uID",
                 mode="nonexistent",
             )
-        assert self.df_tessellation["mesh_ar"][0] == 249.50382416977067
-        assert self.df_tessellation["mesh_array"][0] == 2623.996266097268
-        assert self.df_tessellation["mesh_id"][38] == 2250.2241176070806
-        assert self.df_tessellation["mesh_iq"][38] == 2118.6091427330666
+        assert self.df_tessellation["mesh_ar"][0] == approx(249.503, rel=1e-3)
+        assert self.df_tessellation["mesh_array"][0] == approx(2623.996, rel=1e-3)
+        assert self.df_tessellation["mesh_id"][38] == approx(2250.224, rel=1e-3)
+        assert self.df_tessellation["mesh_iq"][38] == approx(2118.609, rel=1e-3)
 
     def test_street_profile(self):
         results = mm.street_profile(
@@ -187,13 +188,13 @@ class TestDimensions:
     def test_weighted_character_sw(self):
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         weighted = mm.weighted_character(self.df_buildings, "height", sw, "uID")
-        assert weighted[38] == 18.301521351817303
+        assert weighted[38] == approx(18.301, rel=1e-3)
 
     def test_weighted_character_area(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         weighted = mm.weighted_character(self.df_buildings, "height", sw, "uID", "area")
-        assert weighted[38] == 18.301521351817303
+        assert weighted[38] == approx(18.301, rel=1e-3)
 
     def test_weighted_character_array(self):
         area = self.df_buildings.geometry.area
@@ -201,12 +202,12 @@ class TestDimensions:
         weighted = mm.weighted_character(
             self.df_buildings, self.df_buildings.height, sw, "uID", area
         )
-        assert weighted[38] == 18.301521351817303
+        assert weighted[38] == approx(18.301, rel=1e-3)
 
     def test_covered_area(self):
         sw = sw_high(gdf=self.df_tessellation, k=1, ids="uID")
         covered_sw = mm.covered_area(self.df_tessellation, sw, "uID")
-        assert covered_sw[0] == 24115.667218339422
+        assert covered_sw[0] == approx(24115.667, rel=1e-3)
 
     def test_wall(self):
         sw = sw_high(gdf=self.df_buildings, k=1)

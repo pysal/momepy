@@ -5,6 +5,7 @@ import numpy as np
 from momepy import sw_high
 
 import pytest
+from pytest import approx
 
 
 class TestDiversity:
@@ -20,16 +21,16 @@ class TestDiversity:
 
     def test_rng(self):
         full_sw = mm.rng(self.df_tessellation, "area", self.sw, "uID")
-        assert full_sw[0] == 8255.372874447059
+        assert full_sw[0] == approx(8255.372, rel=1e-3)
         area = self.df_tessellation["area"]
         full2 = mm.rng(self.df_tessellation, area, self.sw, "uID")
-        assert full2[0] == 8255.372874447059
+        assert full2[0] == approx(8255.372, rel=1e-3)
         limit = mm.rng(self.df_tessellation, "area", self.sw, "uID", rng=(10, 90))
-        assert limit[0] == 4122.139212736442
+        assert limit[0] == approx(4122.139, rel=1e-3)
 
     def test_theil(self):
         full_sw = mm.theil(self.df_tessellation, "area", self.sw, "uID")
-        assert full_sw[0] == 0.25744684318865324
+        assert full_sw[0] == approx(0.25744684)
         limit = mm.theil(
             self.df_tessellation,
             self.df_tessellation.area,
@@ -37,7 +38,7 @@ class TestDiversity:
             "uID",
             rng=(10, 90),
         )
-        assert limit[0] == 0.13302952097969373
+        assert limit[0] == approx(0.1330295)
 
     def test_simpson(self):
         ht_sw = mm.simpson(self.df_tessellation, "area", self.sw, "uID")
@@ -58,9 +59,9 @@ class TestDiversity:
 
     def test_gini(self):
         full_sw = mm.gini(self.df_tessellation, "area", self.sw, "uID")
-        assert full_sw[0] == 0.39453880039926703
+        assert full_sw[0] == approx(0.3945388)
         limit = mm.gini(self.df_tessellation, "area", self.sw, "uID", rng=(10, 90))
-        assert limit[0] == 0.28532814172859305
+        assert limit[0] == approx(0.28532814)
         self.df_tessellation["negative"] = (
             self.df_tessellation.area - self.df_tessellation.area.mean()
         )

@@ -57,21 +57,23 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
     """
     # define empty list for results
     results_list = []
-    gdf = gdf.copy()
+    data = gdf.copy()
     print("Calculating range...")
 
     if values is not None:
         if not isinstance(values, str):
-            gdf["mm_v"] = values
+            data["mm_v"] = values
             values = "mm_v"
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
+    data = data.set_index(unique_id)
+
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        neighbours = spatial_weights.neighbors[index].copy()
         if neighbours:
-            neighbours.append(row[unique_id])
+            neighbours.append(index)
         else:
-            neighbours = [row[unique_id]]
-        values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
+            neighbours = [index]
+        values_list = data.loc[neighbours][values]
 
         results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
 
@@ -127,22 +129,24 @@ def theil(gdf, values, spatial_weights, unique_id, rng=None):
 
     # define empty list for results
     results_list = []
-    gdf = gdf.copy()
+    data = gdf.copy()
 
     print("Calculating Theil index...")
 
     if values is not None:
         if not isinstance(values, str):
-            gdf["mm_v"] = values
+            data["mm_v"] = values
             values = "mm_v"
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
+    data = data.set_index(unique_id)
+
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        neighbours = spatial_weights.neighbors[index].copy()
         if neighbours:
-            neighbours.append(row[unique_id])
+            neighbours.append(index)
         else:
-            neighbours = [row[unique_id]]
-        values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
+            neighbours = [index]
+        values_list = data.loc[neighbours][values]
 
         if rng:
             from momepy import limit_range
@@ -254,23 +258,24 @@ def simpson(
 
     # define empty list for results
     results_list = []
-    gdf = gdf.copy()
+    data = gdf.copy()
     print("Calculating Simpson's diversity index...")
 
     if values is not None:
         if not isinstance(values, str):
-            gdf["mm_v"] = values
+            data["mm_v"] = values
             values = "mm_v"
 
-    bins = schemes[binning](gdf[values], **classification_kwds).bins
+    bins = schemes[binning](data[values], **classification_kwds).bins
+    data = data.set_index(unique_id)
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        neighbours = spatial_weights.neighbors[index].copy()
         if neighbours:
-            neighbours.append(row[unique_id])
+            neighbours.append(index)
         else:
-            neighbours = [row[unique_id]]
-        values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
+            neighbours = [index]
+        values_list = data.loc[neighbours][values]
 
         sample_bins = classifiers.UserDefined(values_list, bins)
         counts = dict(zip(bins, sample_bins.counts))
@@ -324,20 +329,27 @@ def gini(gdf, values, spatial_weights, unique_id, rng=None):
             raise ImportError("The 'inequality' or 'pysal' package is required.")
     # define empty list for results
     results_list = []
-    gdf = gdf.copy()
-    if gdf[values].min() < 0:
+    data = gdf.copy()
+
+    if values is not None:
+        if not isinstance(values, str):
+            data["mm_v"] = values
+            values = "mm_v"
+
+    if data[values].min() < 0:
         raise ValueError(
             "Values contain negative numbers. Normalise data before"
             "using momepy.gini."
         )
     print("Calculating Gini index...")
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
+    data = data.set_index(unique_id)
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        neighbours = spatial_weights.neighbors[index].copy()
         if neighbours:
-            neighbours.append(row[unique_id])
+            neighbours.append(index)
 
-            values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values].values
+            values_list = data.loc[neighbours][values].values
 
             if rng:
                 from momepy import limit_range
