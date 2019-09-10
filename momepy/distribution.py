@@ -414,13 +414,14 @@ def alignment(gdf, spatial_weights, unique_id, orientations):
         orientations = "mm_o"
 
     print("Calculating alignments...")
+    data = gdf.set_index(unique_id)
 
     # iterating over rows one by one
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
 
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
+        neighbours = spatial_weights.neighbors[index].copy()
         if neighbours:
-            orientation = gdf.loc[gdf[unique_id].isin(neighbours)][orientations]
+            orientation = data.loc[neighbours][orientations]
             deviations = abs(orientation - row[orientations])
 
             results_list.append(statistics.mean(deviations))
@@ -472,11 +473,12 @@ def neighbour_distance(gdf, spatial_weights, unique_id):
     results_list = []
 
     print("Calculating distances...")
+    data = gdf.set_index(unique_id)
 
     # iterating over rows one by one
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]]
-        building_neighbours = gdf.loc[gdf[unique_id].isin(neighbours)]
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        neighbours = spatial_weights.neighbors[index]
+        building_neighbours = data.loc[neighbours]
         if len(building_neighbours) > 0:
             results_list.append(
                 np.mean(building_neighbours.geometry.distance(row["geometry"]))

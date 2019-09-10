@@ -339,7 +339,7 @@ def average_character(gdf, values, spatial_weights, unique_id, rng=None, mode="m
     Examples
     --------
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True, ids='uID')
-    >>> tessellation['mesh_100'] = momepy.average(tessellation, values='area', spatial_weights=sw, unique_id='uID')
+    >>> tessellation['mesh_100'] = momepy.average_character(tessellation, values='area', spatial_weights=sw, unique_id='uID')
     Calculating average character value...
     100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
     Average character value calculated.
@@ -350,18 +350,20 @@ def average_character(gdf, values, spatial_weights, unique_id, rng=None, mode="m
     results_list = []
 
     print("Calculating average character value...")
-    gdf = gdf.copy()
+    data = gdf.copy()
 
     if values is not None:
         if not isinstance(values, str):
-            gdf["mm_v"] = values
+            data["mm_v"] = values
             values = "mm_v"
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
-        neighbours.append(row[unique_id])
+    data = data.set_index(unique_id)
 
-        values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        neighbours = spatial_weights.neighbors[index].copy()
+        neighbours.append(index)
+
+        values_list = data.loc[neighbours][values]
 
         if rng:
             from momepy import limit_range
@@ -681,20 +683,22 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
     results_list = []
 
     print("Calculating weighted character...")
-    gdf = gdf.copy()
+    data = gdf.copy()
     if areas is not None:
         if not isinstance(areas, str):
-            gdf["mm_a"] = areas
+            data["mm_a"] = areas
             areas = "mm_a"
     if not isinstance(values, str):
-        gdf["mm_vals"] = values
+        data["mm_vals"] = values
         values = "mm_vals"
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]]
+    data = data.set_index(unique_id)
+
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        neighbours = spatial_weights.neighbors[index]
 
         if neighbours:
-            building_neighbours = gdf.loc[gdf[unique_id].isin(neighbours)]
+            building_neighbours = data.loc[neighbours]
 
             if areas is not None:
                 results_list.append(
@@ -759,11 +763,15 @@ def covered_area(gdf, spatial_weights, unique_id):
     results_list = []
 
     print("Calculating covered area...")
+    data = gdf.set_index(unique_id)
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
-        neighbours.append(row[unique_id])
-        areas = gdf.loc[gdf[unique_id].isin(neighbours)].geometry.area
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        neighbours = spatial_weights.neighbors[index].copy()
+        if neighbours:
+            neighbours.append(index)
+        else:
+            neighbours = [index]
+        areas = data.loc[neighbours].geometry.area
         results_list.append(sum(areas))
 
     series = pd.Series(results_list, index=gdf.index)

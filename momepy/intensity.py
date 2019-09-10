@@ -280,20 +280,22 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id, weighted=True):
     """
     # define empty list for results
     results_list = []
-    gdf = gdf.copy()
+    data = gdf.copy()
     if not isinstance(block_id, str):
-        gdf["mm_bid"] = block_id
+        data["mm_bid"] = block_id
         block_id = "mm_bid"
+
+    data = data.set_index(unique_id)
 
     print("Calculating blocks...")
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        neighbours = spatial_weights.neighbors[index].copy()
         if neighbours:
-            neighbours.append(row[unique_id])
+            neighbours.append(index)
         else:
             neighbours = row[unique_id]
-        vicinity = gdf.loc[gdf[unique_id].isin(neighbours)]
+        vicinity = data.loc[neighbours]
 
         if weighted is True:
             results_list.append(
@@ -544,25 +546,26 @@ def density(gdf, values, spatial_weights, unique_id, areas=None):
     """
     # define empty list for results
     results_list = []
-    gdf = gdf.copy()
+    data = gdf.copy()
 
     print("Calculating gross density...")
     if values is not None:
         if not isinstance(values, str):
-            gdf["mm_v"] = values
+            data["mm_v"] = values
             values = "mm_v"
     if areas is not None:
         if not isinstance(areas, str):
-            gdf["mm_a"] = areas
+            data["mm_a"] = areas
             areas = "mm_a"
+    data = data.set_index(unique_id)
     # iterating over rows one by one
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
+    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        neighbours = spatial_weights.neighbors[index].copy()
         if neighbours:
-            neighbours.append(row[unique_id])
+            neighbours.append(index)
         else:
-            neighbours = row[unique_id]
-        subset = gdf.loc[gdf[unique_id].isin(neighbours)]
+            neighbours = index
+        subset = data.loc[neighbours]
         values_list = subset[values]
         if areas is not None:
             areas_list = subset[areas]

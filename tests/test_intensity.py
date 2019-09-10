@@ -5,6 +5,8 @@ from libpysal.weights import Queen
 
 import pytest
 
+from pytest import approx
+
 
 class TestIntensity:
     def setup_method(self):
@@ -183,6 +185,6 @@ class TestIntensity:
         dens2 = mm.density(
             self.df_tessellation, self.df_buildings["fl_area"], sw, "uID"
         )
-        check = 1.6615871155383324
-        assert dens.mean() == check
-        assert dens2.mean() == check
+        check = 1.661587
+        assert dens.mean() == approx(check)
+        assert dens2.mean() == approx(check)
