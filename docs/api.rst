@@ -27,17 +27,17 @@ dimension
    :toctree: generated/
 
    Area
-   average_character
+   AverageCharacter
    CourtyardArea
-   covered_area
+   CoveredArea
    FloorArea
    LongestAxisLength
    Perimeter
-   segments_length
-   street_profile
+   PerimeterWall
+   SegmentsLength
+   StreetProfile
    Volume
-   wall
-   weighted_character
+   WeightedCharacter
 
 shape
 -----

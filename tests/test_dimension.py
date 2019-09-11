@@ -171,39 +171,39 @@ class TestDimensions:
         assert results2.o[0] == 0.5535714285714286
         assert results2.hd[0] == 5.526848034418866
 
-    def test_weighted_character_sw(self):
+    def test_WeightedCharacter(self):
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
-        weighted = mm.weighted_character(self.df_buildings, "height", sw, "uID")
+        weighted = mm.WeightedCharacter(self.df_buildings, "height", sw, "uID").wc
         assert weighted[38] == approx(18.301, rel=1e-3)
 
-    def test_weighted_character_area(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
-        weighted = mm.weighted_character(self.df_buildings, "height", sw, "uID", "area")
+        weighted = mm.WeightedCharacter(
+            self.df_buildings, "height", sw, "uID", "area"
+        ).wc
         assert weighted[38] == approx(18.301, rel=1e-3)
 
-    def test_weighted_character_array(self):
         area = self.df_buildings.geometry.area
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
-        weighted = mm.weighted_character(
+        weighted = mm.WeightedCharacter(
             self.df_buildings, self.df_buildings.height, sw, "uID", area
-        )
+        ).wc
         assert weighted[38] == approx(18.301, rel=1e-3)
 
-    def test_covered_area(self):
+    def test_CoveredArea(self):
         sw = sw_high(gdf=self.df_tessellation, k=1, ids="uID")
-        covered_sw = mm.covered_area(self.df_tessellation, sw, "uID")
+        covered_sw = mm.CoveredArea(self.df_tessellation, sw, "uID").ca
         assert covered_sw[0] == approx(24115.667, rel=1e-3)
 
-    def test_wall(self):
+    def test_PerimeterWall(self):
         sw = sw_high(gdf=self.df_buildings, k=1)
-        wall = mm.wall(self.df_buildings)
-        wall_sw = mm.wall(self.df_buildings, sw)
+        wall = mm.PerimeterWall(self.df_buildings).wall
+        wall_sw = mm.PerimeterWall(self.df_buildings, sw).wall
         assert wall[0] == wall_sw[0]
         assert wall[0] == 137.2106961418436
 
-    def test_segments_length(self):
-        absol = mm.segments_length(self.df_streets)
-        mean = mm.segments_length(self.df_streets, mean=True)
+    def test_SegmentsLength(self):
+        absol = mm.SegmentsLength(self.df_streets).sl
+        mean = mm.SegmentsLength(self.df_streets, mean=True).sl
         assert max(absol) == 1907.502238338006
         assert max(mean) == 249.5698434867373

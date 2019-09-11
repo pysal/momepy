@@ -15,7 +15,7 @@ import scipy as sp
 
 class Area:
     """
-    Calculates area of each object in given shapefile. It can be used for any
+    Calculates area of each object in given GeoDataFrame. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
     It is a simple wrapper for geopandas `gdf.geometry.area` for the consistency of momepy.
@@ -49,7 +49,7 @@ class Area:
 
 class Perimeter:
     """
-    Calculates perimeter of each object in given shapefile. It can be used for any
+    Calculates perimeter of each object in given GeoDataFrame. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
     It is a simple wrapper for geopandas `gdf.geometry.length` for the consistency of momepy.
@@ -82,7 +82,7 @@ class Perimeter:
 
 class Volume:
     """
-    Calculates volume of each object in given shapefile based on its height and area.
+    Calculates volume of each object in given GeoDataFrame based on its height and area.
 
     .. math::
         area * height
@@ -532,20 +532,22 @@ class StreetProfile:
             for num, pt in enumerate(list_points, 1):
                 # start chainage 0
                 if num == 1:
-                    angle = _getAngle(pt, list_points[num])
-                    line_end_1 = _getPoint1(pt, angle, tick_length / 2)
-                    angle = _getAngle(line_end_1, pt)
-                    line_end_2 = _getPoint2(line_end_1, angle, tick_length)
+                    angle = self._getAngle(pt, list_points[num])
+                    line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
+                    angle = self._getAngle(line_end_1, pt)
+                    line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
                     tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
                     tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
                     ticks.append([tick1, tick2])
 
                 # everything in between
                 if num < len(list_points) - 1:
-                    angle = _getAngle(pt, list_points[num])
-                    line_end_1 = _getPoint1(list_points[num], angle, tick_length / 2)
-                    angle = _getAngle(line_end_1, list_points[num])
-                    line_end_2 = _getPoint2(line_end_1, angle, tick_length)
+                    angle = self._getAngle(pt, list_points[num])
+                    line_end_1 = self._getPoint1(
+                        list_points[num], angle, tick_length / 2
+                    )
+                    angle = self._getAngle(line_end_1, list_points[num])
+                    line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
                     tick1 = LineString(
                         [
                             (line_end_1.x, line_end_1.y),
@@ -562,10 +564,10 @@ class StreetProfile:
 
                 # end chainage
                 if num == len(list_points):
-                    angle = _getAngle(list_points[num - 2], pt)
-                    line_end_1 = _getPoint1(pt, angle, tick_length / 2)
-                    angle = _getAngle(line_end_1, pt)
-                    line_end_2 = _getPoint2(line_end_1, angle, tick_length)
+                    angle = self._getAngle(list_points[num - 2], pt)
+                    line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
+                    angle = self._getAngle(line_end_1, pt)
+                    line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
                     tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
                     tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
                     ticks.append([tick1, tick2])
@@ -679,7 +681,7 @@ class StreetProfile:
         return Point(x, y)
 
 
-def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
+class WeightedCharacter:
     """
     Calculates the weighted character
 
@@ -703,10 +705,20 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
         the name of the left dataframe column, np.array, or pd.Series where is stored area value
 
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    wc : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : GeoDataFrame
+        Series containing used values
+    areas : GeoDataFrame
+        Series containing used areas
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
 
     References
     ----------
@@ -722,55 +734,45 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
     100%|██████████| 144/144 [00:00<00:00, 361.60it/s]
     Weighted height calculated.
     """
-    # define empty list for results
-    results_list = []
 
-    print("Calculating weighted character...")
-    data = gdf.copy()
-    if areas is not None:
+    def __init__(self, gdf, values, spatial_weights, unique_id, areas=None):
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+
+        data = gdf.copy()
+        if areas is None:
+            areas = gdf.geometry.area
+
         if not isinstance(areas, str):
             data["mm_a"] = areas
             areas = "mm_a"
-    if not isinstance(values, str):
-        data["mm_vals"] = values
-        values = "mm_vals"
+        if not isinstance(values, str):
+            data["mm_vals"] = values
+            values = "mm_vals"
 
-    data = data.set_index(unique_id)
+        self.areas = data[areas]
+        self.values = data[values]
 
-    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-        neighbours = spatial_weights.neighbors[index]
+        data = data.set_index(unique_id)
 
-        if neighbours:
-            building_neighbours = data.loc[neighbours]
-
-            if areas is not None:
-                results_list.append(
-                    (
-                        sum(building_neighbours[values] * building_neighbours[areas])
-                        + (row[values] * row[areas])
-                    )
-                    / (sum(building_neighbours[areas]) + row[areas])
-                )
+        results_list = []
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
             else:
-                results_list.append(
-                    (
-                        sum(
-                            building_neighbours[values]
-                            * building_neighbours.geometry.area
-                        )
-                        + (row[values] * row.geometry.area)
-                    )
-                    / (sum(building_neighbours.geometry.area) + row.geometry.area)
-                )
-        else:
-            results_list.append(row[values])
-    series = pd.Series(results_list, index=gdf.index)
+                neighbours = [index]
 
-    print("Weighted character calculated.")
-    return series
+            subset = data.loc[neighbours]
+            results_list.append(
+                (sum(subset[values] * subset[areas])) / (sum(subset[areas]))
+            )
+
+        self.wc = pd.Series(results_list, index=gdf.index)
 
 
-def covered_area(gdf, spatial_weights, unique_id):
+class CoveredArea:
     """
     Calculates the area covered by k steps of morphological tessellation
 
@@ -788,10 +790,16 @@ def covered_area(gdf, spatial_weights, unique_id):
     unique_id : str
         name of the column with unique id used as spatial_weights index.
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    ca : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
 
     Examples
     --------
@@ -802,28 +810,29 @@ def covered_area(gdf, spatial_weights, unique_id):
     Covered area calculated.
 
     """
-    # define empty list for results
-    results_list = []
 
-    print("Calculating covered area...")
-    data = gdf.set_index(unique_id)
+    def __init__(self, gdf, spatial_weights, unique_id):
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
 
-    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-        neighbours = spatial_weights.neighbors[index].copy()
-        if neighbours:
-            neighbours.append(index)
-        else:
-            neighbours = [index]
-        areas = data.loc[neighbours].geometry.area
-        results_list.append(sum(areas))
+        data = gdf.set_index(unique_id)
 
-    series = pd.Series(results_list, index=gdf.index)
+        results_list = []
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = [index]
 
-    print("Covered area calculated.")
-    return series
+            areas = data.loc[neighbours].geometry.area
+            results_list.append(sum(areas))
+
+        self.ca = pd.Series(results_list, index=gdf.index)
 
 
-def wall(gdf, spatial_weights=None):
+class PerimeterWall:
     """
     Calculate the perimeter wall length the joined structure.
 
@@ -835,10 +844,14 @@ def wall(gdf, spatial_weights=None):
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on gdf. It is to denote adjacent buildings (note: based on index, not ID).
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    wall : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    sw : libpysal.weights
+        spatial weights matrix
 
     Examples
     --------
@@ -853,46 +866,43 @@ def wall(gdf, spatial_weights=None):
     -----
     It might take a while to compute this character.
     """
-    # define empty list for results
-    results_list = []
 
-    print("Calculating perimeter wall length...")
+    def __init__(self, gdf, spatial_weights=None):
+        self.gdf = gdf
 
-    # if weights matrix is not passed, generate it from objects
-    if spatial_weights is None:
-        print("Calculating spatial weights...")
-        from libpysal.weights import Queen
+        if spatial_weights is None:
+            print("Calculating spatial weights...")
+            from libpysal.weights import Queen
 
-        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
-        print("Spatial weights ready...")
+            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            print("Spatial weights ready...")
+        self.sw = spatial_weights
 
-    # dict to store walls for each uID
-    walls = {}
-    components = pd.Series(spatial_weights.component_labels, index=gdf.index)
+        # dict to store walls for each uID
+        walls = {}
+        components = pd.Series(spatial_weights.component_labels, index=gdf.index)
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        # if the id is already present in walls, continue (avoid repetition)
-        if index in walls:
-            continue
-        else:
-            comp = spatial_weights.component_labels[index]
-            to_join = components[components == comp].index
-            joined = gdf.iloc[to_join]
-            dissolved = joined.geometry.buffer(
-                0.01
-            ).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
-            for b in to_join:
-                walls[b] = dissolved.exterior.length  # fill dict with values
-    # copy values from dict to gdf
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        results_list.append(walls[index])
+        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            # if the id is already present in walls, continue (avoid repetition)
+            if index in walls:
+                continue
+            else:
+                comp = spatial_weights.component_labels[index]
+                to_join = components[components == comp].index
+                joined = gdf.iloc[to_join]
+                dissolved = joined.geometry.buffer(
+                    0.01
+                ).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
+                for b in to_join:
+                    walls[b] = dissolved.exterior.length
 
-    series = pd.Series(results_list, index=gdf.index)
-    print("Perimeter wall length calculated.")
-    return series
+        results_list = []
+        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            results_list.append(walls[index])
+        self.wall = pd.Series(results_list, index=gdf.index)
 
 
-def segments_length(gdf, spatial_weights=None, mean=False):
+class SegmentsLength:
     """
     Calculate the cummulative or mean length of segments.
 
@@ -910,10 +920,16 @@ def segments_length(gdf, spatial_weights=None, mean=False):
     mean : boolean, optional
         If mean=False it will return total length, if mean=True it will return mean value
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    sl : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    sw : libpysal.weights
+        spatial weights matrix
+    mean : boolean
+        used mean boolean value
 
     Examples
     --------
@@ -923,26 +939,31 @@ def segments_length(gdf, spatial_weights=None, mean=False):
     Spatial weights ready...
     Segments length calculated.
     """
-    results_list = []
 
-    print("Calculating segments length...")
+    def __init__(self, gdf, spatial_weights=None, mean=False):
+        self.gdf = gdf
+        self.mean = mean
 
-    if spatial_weights is None:
-        print("Calculating spatial weights...")
-        from libpysal.weights import Queen
+        if spatial_weights is None:
+            print("Calculating spatial weights...")
+            from libpysal.weights import Queen
 
-        spatial_weights = Queen.from_dataframe(gdf)
-        print("Spatial weights ready...")
+            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            print("Spatial weights ready...")
+        self.sw = spatial_weights
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[index].copy()
-        neighbours.append(index)
-        dims = gdf.iloc[neighbours].geometry.length
-        if mean:
-            results_list.append(np.mean(dims))
-        else:
-            results_list.append(sum(dims))
+        results_list = []
+        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = [index]
 
-    series = pd.Series(results_list, index=gdf.index)
-    print("Segments length calculated.")
-    return series
+            dims = gdf.iloc[neighbours].geometry.length
+            if mean:
+                results_list.append(np.mean(dims))
+            else:
+                results_list.append(sum(dims))
+
+        self.sl = pd.Series(results_list, index=gdf.index)
