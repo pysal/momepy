@@ -14,6 +14,12 @@ import math
 from .shape import circular_compactness
 
 
+def _checkcol(gdf, vals, name):
+    if not isinstance(vals, str):
+        gdf[name] = vals
+        vals = name
+
+
 def unique_id(objects):
     """
     Add an attribute with unique ID to each row of GeoDataFrame.

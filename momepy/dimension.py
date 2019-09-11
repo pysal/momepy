@@ -11,80 +11,77 @@ import pandas as pd
 import math
 import numpy as np
 import scipy as sp
+from .utils import _checkcol
 
 
-def area(gdf):
+class Area:
     """
     Calculates area of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
-    It is a simple wrapper for geopandas `gdf.geometry.area` for consistency of momepy.
+    It is a simple wrapper for geopandas `gdf.geometry.area` for the consistency of momepy.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
 
-    Returns
+    Attributes
     -------
-    Series
-        Series containing resulting values.
+    area : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
 
     Examples
     --------
     >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='buildings')
-    >>> buildings['area'] = momepy.area(buildings)
-    Calculating areas...
-    Areas calculated.
+    >>> buildings['area'] = momepy.Area(buildings).area
     >>> buildings.area[0]
     728.5574947044363
 
     """
 
-    print("Calculating areas...")
-
-    series = gdf.geometry.area
-
-    print("Areas calculated.")
-    return series
+    def __init__(self, gdf):
+        self.gdf = gdf
+        self.area = self.gdf.geometry.area
 
 
-def perimeter(gdf):
+class Perimeter:
     """
     Calculates perimeter of each object in given shapefile. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
-    It is a simple wrapper for geopandas `gdf.geometry.length` for consistency of momepy.
+    It is a simple wrapper for geopandas `gdf.geometry.length` for the consistency of momepy.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
 
-    Returns
+    Attributes
     -------
-    Series
-        Series containing resulting values.
+    perimeter : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
 
     Examples
     --------
     >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='buildings')
-    >>> buildings['perimeter'] = momepy.perimeter(buildings)
-    Calculating perimeters...
-    Perimeters calculated.
+    >>> buildings['perimeter'] = momepy.Perimeter(buildings).perimeter
     >>> buildings.perimeter[0]
     137.18630991119903
     """
 
-    print("Calculating perimeters...")
-
-    series = gdf.geometry.length
-
-    print("Perimeters calculated.")
-    return series
+    def __init__(self, gdf):
+        self.gdf = gdf
+        self.perimeter = self.gdf.geometry.length
 
 
-def volume(gdf, heights, areas=None):
+class Volume:
     """
     Calculates volume of each object in given shapefile based on its height and area.
 
@@ -101,10 +98,19 @@ def volume(gdf, heights, areas=None):
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
-    Returns
+    Attributes
     -------
-    Series
-        Series containing resulting values.
+    volume : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
+
+    heights : Series
+        Series containing used heights values
+
+    areas : GeoDataFrame
+        Series containing used areas values
 
     Examples
     --------
@@ -114,37 +120,33 @@ def volume(gdf, heights, areas=None):
     >>> buildings.volume[0]
     7285.5749470443625
 
-    >>> buildings['volume'] = momepy.volume(buildings, heights='height_col', areas='area_col')
-    Calculating volumes...
-    Volumes calculated.
+    >>> buildings['volume'] = momepy.Volume(buildings, heights='height_col', areas='area_col').volume
     >>> buildings.volume[0]
     7285.5749470443625
     """
-    print("Calculating volumes...")
-    gdf = gdf.copy()
-    if not isinstance(heights, str):
-        gdf["mm_h"] = heights
-        heights = "mm_h"
 
-    if areas is not None:
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
+    def __init__(self, gdf, heights, areas=None):
+        self.gdf = gdf
+
+        gdf = gdf.copy()
+        _checkcol(gdf, heights, "mm_h")
+        self.heights = gdf[heights]
+
+        if areas is not None:
+            _checkcol(gdf, areas, "mm_a")
+            self.areas = gdf[areas]
+        else:
+            self.areas = gdf.geometry.area
         try:
-            series = gdf[areas] * gdf[heights]
+            self.volume = self.areas * self.heights
 
         except KeyError:
             raise KeyError(
                 "ERROR: Column not found. Define heights and areas or set areas to None."
             )
-    else:
-        series = gdf.geometry.area * gdf[heights]
-
-    print("Volumes calculated.")
-    return series
 
 
-def floor_area(gdf, heights, areas=None):
+class FloorArea:
     """
     Calculates floor area of each object based on height and area.
 
@@ -164,10 +166,19 @@ def floor_area(gdf, heights, areas=None):
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
-    Returns
+    Attributes
     -------
-    Series
-        Series containing resulting values.
+    fa : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
+
+    heights : Series
+        Series containing used heights values
+
+    areas : GeoDataFrame
+        Series containing used areas values
 
     Examples
     --------
@@ -183,28 +194,26 @@ def floor_area(gdf, heights, areas=None):
     >>> buildings.floor_area[0]
     2185.672484113309
     """
-    print("Calculating floor areas...")
-    gdf = gdf.copy()
-    if not isinstance(heights, str):
-        gdf["mm_h"] = heights
-        heights = "mm_h"
 
-    if areas is not None:
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
+    def __init__(self, gdf, heights, areas=None):
+        self.gdf = gdf
+
+        gdf = gdf.copy()
+        _checkcol(gdf, heights, "mm_h")
+        self.heights = gdf[heights]
+
+        if areas is not None:
+            _checkcol(gdf, areas, "mm_a")
+            self.areas = gdf[areas]
+        else:
+            self.areas = gdf.geometry.area
         try:
-            series = gdf[areas] * (gdf[heights] // 3)
+            self.fa = self.areas * (self.heights // 3)
 
         except KeyError:
             raise KeyError(
                 "ERROR: Column not found. Define heights and areas or set areas to None."
             )
-    else:
-        series = gdf.geometry.area * (gdf[heights] // 3)
-
-    print("Floor areas calculated.")
-    return series
 
 
 def courtyard_area(gdf, areas=None):

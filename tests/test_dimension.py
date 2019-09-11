@@ -19,42 +19,41 @@ class TestDimensions:
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
 
     def test_area(self):
-        self.df_buildings["area"] = mm.area(self.df_buildings)
+        self.df_buildings["area"] = mm.Area(self.df_buildings).area
         check = self.df_buildings.geometry[0].area
         assert self.df_buildings["area"][0] == check
 
     def test_perimeter(self):
-        self.df_buildings["perimeter"] = mm.perimeter(self.df_buildings)
+        self.df_buildings["perimeter"] = mm.Perimeter(self.df_buildings).perimeter
         check = self.df_buildings.geometry[0].length
         assert self.df_buildings["perimeter"][0] == check
 
     def test_volume(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
-        self.df_buildings["volume"] = mm.volume(self.df_buildings, "height", "area")
+        self.df_buildings["volume"] = mm.Volume(
+            self.df_buildings, "height", "area"
+        ).volume
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings["volume"][0] == check
 
-    def test_volume_aray(self):
         area = self.df_buildings.geometry.area
         height = np.linspace(10.0, 30.0, 144)
-        self.df_buildings["volume"] = mm.volume(self.df_buildings, height, area)
+        self.df_buildings["volume"] = mm.Volume(self.df_buildings, height, area).volume
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings["volume"][0] == check
 
-    def test_volume_no_area(self):
-        self.df_buildings["volume"] = mm.volume(self.df_buildings, "height")
+        self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height").volume
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings["volume"][0] == check
 
-    def test_volume_missing_col(self):
         with pytest.raises(KeyError):
-            self.df_buildings["volume"] = mm.volume(self.df_buildings, "height", "area")
+            self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height", "area")
 
     def test_floor_area(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
-        self.df_buildings["floor_area"] = mm.floor_area(
+        self.df_buildings["floor_area"] = mm.FloorArea(
             self.df_buildings, "height", "area"
-        )
+        ).fa
         check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
         assert self.df_buildings["floor_area"][0] == check
 
