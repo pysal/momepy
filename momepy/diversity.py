@@ -152,7 +152,10 @@ def theil(gdf, values, spatial_weights, unique_id, rng=None):
             from momepy import limit_range
 
             values_list = limit_range(values_list.tolist(), rng=rng)
-        results_list.append(Theil(values_list).T)
+        if set(values_list) == {0}:
+            results_list.append(0)
+        else:
+            results_list.append(Theil(values_list).T)
 
     series = pd.Series(results_list, index=gdf.index)
 

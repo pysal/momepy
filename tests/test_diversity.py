@@ -39,6 +39,8 @@ class TestDiversity:
             rng=(10, 90),
         )
         assert limit[0] == approx(0.1330295)
+        zeros = mm.theil(self.df_tessellation, np.zeros(len(self.df_tessellation)), self.sw, "uID")
+        assert zeros[0] == 0
 
     def test_simpson(self):
         ht_sw = mm.simpson(self.df_tessellation, "area", self.sw, "uID")
