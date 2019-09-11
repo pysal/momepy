@@ -19,7 +19,7 @@ class TestIntensity:
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
         self.df_tessellation["area"] = self.df_tessellation.geometry.area
         self.df_buildings["area"] = self.df_buildings.geometry.area
-        self.df_buildings["fl_area"] = mm.floor_area(self.df_buildings, "height")
+        self.df_buildings["fl_area"] = mm.FloorArea(self.df_buildings, "height").fa
         self.df_buildings["nID"] = mm.get_network_id(
             self.df_buildings, self.df_streets, "uID", "nID"
         )

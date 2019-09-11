@@ -14,7 +14,7 @@ class TestDistribution:
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
-        self.df_buildings["volume"] = mm.volume(self.df_buildings, "height")
+        self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height").volume
         self.df_streets["nID"] = mm.unique_id(self.df_streets)
         self.df_buildings["nID"] = mm.get_network_id(
             self.df_buildings, self.df_streets, "uID", "nID"

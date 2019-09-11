@@ -15,7 +15,7 @@ class TestShape:
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
-        self.df_buildings["volume"] = mm.volume(self.df_buildings, "height")
+        self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height").volume
 
     def test_form_factor(self):
         self.df_buildings["ff"] = mm.form_factor(self.df_buildings, "volume")
@@ -27,7 +27,7 @@ class TestShape:
     def test_form_factor_array(self):
         self.df_buildings["ff"] = mm.form_factor(
             self.df_buildings,
-            mm.volume(self.df_buildings, "height"),
+            mm.Volume(self.df_buildings, "height").volume,
             areas=self.df_buildings.geometry.area,
         )
         check = (self.df_buildings.geometry[0].area) / (
@@ -65,7 +65,7 @@ class TestShape:
 
     def test_volume_facade_ratio_array(self):
         peri = self.df_buildings.geometry.length
-        volume = mm.volume(self.df_buildings, "height")
+        volume = mm.Volume(self.df_buildings, "height").volume
         self.df_buildings["vfr"] = mm.volume_facade_ratio(
             self.df_buildings, "height", volume, peri
         )
@@ -150,7 +150,7 @@ class TestShape:
         assert self.df_buildings["conv"][0] == check
 
     def test_courtyard_index(self):
-        cas = self.df_buildings["cas"] = mm.courtyard_area(self.df_buildings)
+        cas = self.df_buildings["cas"] = mm.CourtyardArea(self.df_buildings).ca
         self.df_buildings["cix"] = mm.courtyard_index(self.df_buildings, "cas")
         self.df_buildings["cix_array"] = mm.courtyard_index(
             self.df_buildings, cas, self.df_buildings.geometry.area
@@ -172,7 +172,7 @@ class TestShape:
         assert self.df_buildings["rect_array"][0] == check
 
     def test_shape_index(self):
-        la = self.df_buildings["la"] = mm.longest_axis_length(self.df_buildings)
+        la = self.df_buildings["la"] = mm.LongestAxisLength(self.df_buildings).lal
         self.df_buildings["shape_index"] = mm.shape_index(self.df_buildings, "la")
         self.df_buildings["shape_index_array"] = mm.shape_index(
             self.df_buildings, la, self.df_buildings.geometry.area
@@ -232,7 +232,7 @@ class TestShape:
             self.df_buildings,
             areas=self.df_buildings.geometry.area,
             perimeters=self.df_buildings.geometry.length,
-            longest_axis=mm.longest_axis_length(self.df_buildings),
+            longest_axis=mm.LongestAxisLength(self.df_buildings).lal,
         )
         check = 26.32772969906327
         assert self.df_buildings["cwa"][0] == check

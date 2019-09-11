@@ -16,6 +16,7 @@ import os
 import sys
 import sphinx_bootstrap_theme
 
+sys.path.insert(0, os.path.abspath("../"))
 import momepy
 
 # sys.path.insert(0, os.path.abspath('../../'))
@@ -45,11 +46,14 @@ release = version
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
     "sphinx.ext.viewcode",
-    "sphinx.ext.napoleon",
+    "sphinxcontrib.bibtex",
     "sphinx.ext.mathjax",
+    "sphinx.ext.doctest",
+    "sphinx.ext.intersphinx",
+    "numpydoc",
+    "matplotlib.sphinxext.plot_directive",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -77,7 +81,7 @@ language = None
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+pygments_style = "sphinx"
 
 
 # -- Options for HTML output -------------------------------------------------

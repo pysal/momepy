@@ -11,7 +11,6 @@ import pandas as pd
 import math
 import numpy as np
 import scipy as sp
-from .utils import _checkcol
 
 
 class Area:
@@ -27,7 +26,7 @@ class Area:
         GeoDataFrame containing objects to analyse
 
     Attributes
-    -------
+    ----------
     area : Series
         Series containing resulting values
 
@@ -61,7 +60,7 @@ class Perimeter:
         GeoDataFrame containing objects to analyse
 
     Attributes
-    -------
+    ----------
     perimeter : Series
         Series containing resulting values
 
@@ -99,7 +98,7 @@ class Volume:
         during the process without saving them separately.
 
     Attributes
-    -------
+    ----------
     volume : Series
         Series containing resulting values
 
@@ -171,16 +170,13 @@ class FloorArea:
         during the process without saving them separately.
 
     Attributes
-    -------
+    ----------
     fa : Series
         Series containing resulting values
-
     gdf : GeoDataFrame
         original GeoDataFrame
-
     heights : Series
         Series containing used heights values
-
     areas : GeoDataFrame
         Series containing used areas values
 
@@ -239,7 +235,7 @@ class CourtyardArea:
         during the process without saving them separately.
 
     Attributes
-    -------
+    ----------
     ca : Series
         Series containing resulting values
 
@@ -275,13 +271,7 @@ class CourtyardArea:
         )
 
 
-# calculate the radius of circumcircle
-def _longest_axis(points):
-    circ = _make_circle(points)
-    return circ[2] * 2
-
-
-def longest_axis_length(gdf):
+class LongestAxisLength:
     """
     Calculates the length of the longest axis of object.
 
@@ -296,10 +286,13 @@ def longest_axis_length(gdf):
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    lal : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
 
     Examples
     --------
@@ -310,14 +303,17 @@ def longest_axis_length(gdf):
     40.2655616057102
     """
 
-    print("Calculating the longest axis...")
+    def __init__(self, gdf):
+        self.gdf = gdf
+        self.lal = gdf.apply(
+            lambda row: self._longest_axis(row.geometry.convex_hull.exterior.coords),
+            axis=1,
+        )
 
-    series = gdf.apply(
-        lambda row: _longest_axis(row["geometry"].convex_hull.exterior.coords), axis=1
-    )
-
-    print("The longest axis calculated.")
-    return series
+    # calculate the radius of circumcircle
+    def _longest_axis(self, points):
+        circ = _make_circle(points)
+        return circ[2] * 2
 
 
 def average_character(gdf, values, spatial_weights, unique_id, rng=None, mode="mean"):

@@ -16,7 +16,7 @@ class TestDiversity:
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
-        self.df_tessellation["area"] = mm.area(self.df_tessellation)
+        self.df_tessellation["area"] = mm.Area(self.df_tessellation).area
         self.sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
 
     def test_rng(self):
@@ -39,7 +39,9 @@ class TestDiversity:
             rng=(10, 90),
         )
         assert limit[0] == approx(0.1330295)
-        zeros = mm.theil(self.df_tessellation, np.zeros(len(self.df_tessellation)), self.sw, "uID")
+        zeros = mm.theil(
+            self.df_tessellation, np.zeros(len(self.df_tessellation)), self.sw, "uID"
+        )
         assert zeros[0] == 0
 
     def test_simpson(self):

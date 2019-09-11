@@ -18,17 +18,17 @@ class TestDimensions:
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
 
-    def test_area(self):
+    def test_Area(self):
         self.df_buildings["area"] = mm.Area(self.df_buildings).area
         check = self.df_buildings.geometry[0].area
         assert self.df_buildings["area"][0] == check
 
-    def test_perimeter(self):
+    def test_Perimeter(self):
         self.df_buildings["perimeter"] = mm.Perimeter(self.df_buildings).perimeter
         check = self.df_buildings.geometry[0].length
         assert self.df_buildings["perimeter"][0] == check
 
-    def test_volume(self):
+    def test_Volume(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
         self.df_buildings["volume"] = mm.Volume(
             self.df_buildings, "height", "area"
@@ -51,7 +51,7 @@ class TestDimensions:
                 self.df_buildings, "height", "nonexistent"
             )
 
-    def test_floor_area(self):
+    def test_FloorArea(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
         self.df_buildings["floor_area"] = mm.FloorArea(
             self.df_buildings, "height", "area"
@@ -74,7 +74,7 @@ class TestDimensions:
                 self.df_buildings, "height", "nonexistent"
             )
 
-    def test_courtyard_area(self):
+    def test_CourtyardArea(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
         self.df_buildings["courtyard_area"] = mm.CourtyardArea(
             self.df_buildings, "area"
@@ -99,8 +99,8 @@ class TestDimensions:
                 self.df_buildings, "nonexistent"
             )
 
-    def test_longest_axis_length(self):
-        self.df_buildings["long_axis"] = mm.longest_axis_length(self.df_buildings)
+    def test_LongestAxisLength(self):
+        self.df_buildings["long_axis"] = mm.LongestAxisLength(self.df_buildings).lal
         check = (
             _make_circle(self.df_buildings.geometry[0].convex_hull.exterior.coords)[2]
             * 2

@@ -31,7 +31,7 @@ dimension
    CourtyardArea
    covered_area
    FloorArea
-   longest_axis_length
+   LongestAxisLength
    Perimeter
    segments_length
    street_profile

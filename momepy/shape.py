@@ -1268,9 +1268,9 @@ def compactness_weighted_axis(gdf, areas=None, perimeters=None, longest_axis=Non
             perimeters = "mm_p"
 
     if longest_axis is None:
-        from .dimension import longest_axis_length
+        from .dimension import LongestAxisLength
 
-        gdf["mm_la"] = longest_axis_length(gdf)
+        gdf["mm_la"] = LongestAxisLength(gdf).lal
         longest_axis = "mm_la"
     else:
         if not isinstance(longest_axis, str):
