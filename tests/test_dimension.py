@@ -107,39 +107,39 @@ class TestDimensions:
         )
         assert self.df_buildings["long_axis"][0] == check
 
-    def test_average_character(self):
+    def test_AverageCharacter(self):
         spatial_weights = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         self.df_tessellation["area"] = area = self.df_tessellation.geometry.area
-        self.df_tessellation["mesh_ar"] = mm.average_character(
+        self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
             self.df_tessellation,
             values="area",
             spatial_weights=spatial_weights,
             unique_id="uID",
             mode="mode",
-        )
-        self.df_tessellation["mesh_array"] = mm.average_character(
+        ).ac
+        self.df_tessellation["mesh_array"] = mm.AverageCharacter(
             self.df_tessellation,
             values=area,
             spatial_weights=spatial_weights,
             unique_id="uID",
             mode="median",
-        )
-        self.df_tessellation["mesh_id"] = mm.average_character(
+        ).ac
+        self.df_tessellation["mesh_id"] = mm.AverageCharacter(
             self.df_tessellation,
             spatial_weights=spatial_weights,
             values="area",
             rng=(10, 90),
             unique_id="uID",
-        )
-        self.df_tessellation["mesh_iq"] = mm.average_character(
+        ).ac
+        self.df_tessellation["mesh_iq"] = mm.AverageCharacter(
             self.df_tessellation,
             spatial_weights=spatial_weights,
             values="area",
             rng=(25, 75),
             unique_id="uID",
-        )
+        ).ac
         with pytest.raises(ValueError):
-            self.df_tessellation["mesh_ar"] = mm.average_character(
+            self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
                 self.df_tessellation,
                 values="area",
                 spatial_weights=spatial_weights,
@@ -151,28 +151,25 @@ class TestDimensions:
         assert self.df_tessellation["mesh_id"][38] == approx(2250.224, rel=1e-3)
         assert self.df_tessellation["mesh_iq"][38] == approx(2118.609, rel=1e-3)
 
-    def test_street_profile(self):
-        results = mm.street_profile(
-            self.df_streets, self.df_buildings, heights="height"
-        )
-        assert results["widths"][0] == 46.7290758769204
-        assert results["width_deviations"][0] == 0.5690458650581023
-        assert results["heights"][0] == 19.454545454545457
-        assert results["profile"][0] == 0.4163263469148574
-        assert results["openness"][0] == 0.9107142857142857
-        assert results["heights_deviations"][0] == 7.720786443287433
+    def test_StreetProfile(self):
+        results = mm.StreetProfile(self.df_streets, self.df_buildings, heights="height")
+        assert results.w[0] == 46.7290758769204
+        assert results.wd[0] == 0.5690458650581023
+        assert results.h[0] == 19.454545454545457
+        assert results.p[0] == 0.4163263469148574
+        assert results.o[0] == 0.9107142857142857
+        assert results.hd[0] == 7.720786443287433
 
-    def test_street_profile_array(self):
         height = np.linspace(10.0, 30.0, 144)
-        results = mm.street_profile(
+        results2 = mm.StreetProfile(
             self.df_streets, self.df_buildings, heights=height, tick_length=100
         )
-        assert results["widths"][0] == 67.563796073073
-        assert results["width_deviations"][0] == 8.791875291865827
-        assert results["heights"][0] == 23.756643356643362
-        assert results["profile"][0] == 0.3516179483306353
-        assert results["openness"][0] == 0.5535714285714286
-        assert results["heights_deviations"][0] == 5.526848034418866
+        assert results2.w[0] == 67.563796073073
+        assert results2.wd[0] == 8.791875291865827
+        assert results2.h[0] == 23.756643356643362
+        assert results2.p[0] == 0.3516179483306353
+        assert results2.o[0] == 0.5535714285714286
+        assert results2.hd[0] == 5.526848034418866
 
     def test_weighted_character_sw(self):
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
