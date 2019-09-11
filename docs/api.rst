@@ -26,16 +26,16 @@ dimension
 .. autosummary::
    :toctree: generated/
 
-   area
+   Area
    average_character
-   courtyard_area
+   CourtyardArea
    covered_area
-   floor_area
+   FloorArea
    longest_axis_length
-   perimeter
+   Perimeter
    segments_length
    street_profile
-   volume
+   Volume
    wall
    weighted_character
 

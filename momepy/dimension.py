@@ -129,11 +129,15 @@ class Volume:
         self.gdf = gdf
 
         gdf = gdf.copy()
-        _checkcol(gdf, heights, "mm_h")
+        if not isinstance(heights, str):
+            gdf["mm_h"] = heights
+            heights = "mm_h"
         self.heights = gdf[heights]
 
         if areas is not None:
-            _checkcol(gdf, areas, "mm_a")
+            if not isinstance(areas, str):
+                gdf["mm_a"] = areas
+                areas = "mm_a"
             self.areas = gdf[areas]
         else:
             self.areas = gdf.geometry.area
@@ -199,11 +203,15 @@ class FloorArea:
         self.gdf = gdf
 
         gdf = gdf.copy()
-        _checkcol(gdf, heights, "mm_h")
+        if not isinstance(heights, str):
+            gdf["mm_h"] = heights
+            heights = "mm_h"
         self.heights = gdf[heights]
 
         if areas is not None:
-            _checkcol(gdf, areas, "mm_a")
+            if not isinstance(areas, str):
+                gdf["mm_a"] = areas
+                areas = "mm_a"
             self.areas = gdf[areas]
         else:
             self.areas = gdf.geometry.area
@@ -216,7 +224,7 @@ class FloorArea:
             )
 
 
-def courtyard_area(gdf, areas=None):
+class CourtyardArea:
     """
     Calculates area of holes within geometry - area of courtyards.
 
@@ -230,10 +238,16 @@ def courtyard_area(gdf, areas=None):
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
-    Returns
+    Attributes
     -------
-    Series
-        Series containing resulting values.
+    ca : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
+
+    areas : GeoDataFrame
+        Series containing used areas values
 
     Examples
     --------
@@ -244,24 +258,21 @@ def courtyard_area(gdf, areas=None):
     353.33274206543274
     """
 
-    print("Calculating courtyard areas...")
-    gdf = gdf.copy()
+    def __init__(self, gdf, areas=None):
+        self.gdf = gdf
 
-    if areas is not None:
+        gdf = gdf.copy()
+        if areas is None:
+            areas = gdf.geometry.area
+
         if not isinstance(areas, str):
             gdf["mm_a"] = areas
             areas = "mm_a"
-        series = gdf.apply(
+        self.areas = gdf[areas]
+
+        self.ca = gdf.apply(
             lambda row: Polygon(row.geometry.exterior).area - row[areas], axis=1
         )
-
-    else:
-        series = gdf.apply(
-            lambda row: Polygon(row.geometry.exterior).area - row.geometry.area, axis=1
-        )
-
-    print("Courtyard areas calculated.")
-    return series
 
 
 # calculate the radius of circumcircle

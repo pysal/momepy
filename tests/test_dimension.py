@@ -47,7 +47,9 @@ class TestDimensions:
         assert self.df_buildings["volume"][0] == check
 
         with pytest.raises(KeyError):
-            self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height", "area")
+            self.df_buildings["volume"] = mm.Volume(
+                self.df_buildings, "height", "nonexistent"
+            )
 
     def test_floor_area(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
@@ -57,56 +59,44 @@ class TestDimensions:
         check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
         assert self.df_buildings["floor_area"][0] == check
 
-    def test_floor_area_array(self):
         area = self.df_buildings.geometry.area
         height = np.linspace(10.0, 30.0, 144)
-        self.df_buildings["floor_area"] = mm.floor_area(self.df_buildings, height, area)
-        check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
+        self.df_buildings["floor_area"] = mm.FloorArea(
+            self.df_buildings, height, area
+        ).fa
         assert self.df_buildings["floor_area"][0] == check
 
-    def test_floor_area_no_area(self):
-        self.df_buildings["floor_area"] = mm.floor_area(self.df_buildings, "height")
-        check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
+        self.df_buildings["floor_area"] = mm.FloorArea(self.df_buildings, "height").fa
         assert self.df_buildings["floor_area"][0] == check
 
-    def test_floor_area_missing_col(self):
         with pytest.raises(KeyError):
-            self.df_buildings["floor_area"] = mm.floor_area(
-                self.df_buildings, "height", "area"
+            self.df_buildings["floor_area"] = mm.FloorArea(
+                self.df_buildings, "height", "nonexistent"
             )
 
     def test_courtyard_area(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
-        self.df_buildings["courtyard_area"] = mm.courtyard_area(
+        self.df_buildings["courtyard_area"] = mm.CourtyardArea(
             self.df_buildings, "area"
-        )
+        ).ca
         check = (
             Polygon(self.df_buildings.geometry[80].exterior).area
             - self.df_buildings.geometry[80].area
         )
         assert self.df_buildings["courtyard_area"][80] == check
 
-    def test_courtyard_area_array(self):
         area = self.df_buildings.geometry.area
-        self.df_buildings["courtyard_area"] = mm.courtyard_area(self.df_buildings, area)
-        check = (
-            Polygon(self.df_buildings.geometry[80].exterior).area
-            - self.df_buildings.geometry[80].area
-        )
+        self.df_buildings["courtyard_area"] = mm.CourtyardArea(
+            self.df_buildings, area
+        ).ca
         assert self.df_buildings["courtyard_area"][80] == check
 
-    def test_courtyard_no_area(self):
-        self.df_buildings["courtyard_area"] = mm.courtyard_area(self.df_buildings)
-        check = (
-            Polygon(self.df_buildings.geometry[80].exterior).area
-            - self.df_buildings.geometry[80].area
-        )
+        self.df_buildings["courtyard_area"] = mm.CourtyardArea(self.df_buildings).ca
         assert self.df_buildings["courtyard_area"][80] == check
 
-    def test_courtyard_missing_col(self):
         with pytest.raises(KeyError):
-            self.df_buildings["courtyard_area"] = mm.floor_area(
-                self.df_buildings, "area"
+            self.df_buildings["courtyard_area"] = mm.CourtyardArea(
+                self.df_buildings, "nonexistent"
             )
 
     def test_longest_axis_length(self):
