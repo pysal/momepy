@@ -118,10 +118,10 @@ diversity
 .. autosummary::
    :toctree: generated/
 
-   rng
-   simpson
-   theil
-   gini
+   Range
+   Simpson
+   Theil
+   Gini
 
 utilities
 ---------

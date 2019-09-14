@@ -343,10 +343,8 @@ def limit_range(vals, rng):
         rng = sorted(rng)
         lower = np.percentile(vals, rng[0], interpolation="nearest")
         higher = np.percentile(vals, rng[1], interpolation="nearest")
-        for x in vals:
-            if x >= lower and x <= higher:
-                limited.append(x)
-        return limited
+        limited = [x for x in vals if x >= lower and x <= higher]
+        return np.array(limited)
     return vals
 
 

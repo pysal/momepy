@@ -394,7 +394,10 @@ class AverageCharacter:
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
             neighbours = spatial_weights.neighbors[index].copy()
-            neighbours.append(index)
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = [index]
 
             values_list = data.loc[neighbours][values]
 
