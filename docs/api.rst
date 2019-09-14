@@ -45,22 +45,22 @@ shape
 .. autosummary::
   :toctree: generated/
 
-  centroid_corners
-  circular_compactness
-  compactness_weighted_axis
-  convexeity
-  corners
-  courtyard_index
-  elongation
-  equivalent_rectangular_index
-  form_factor
-  fractal_dimension
-  linearity
-  rectangularity
-  shape_index
-  square_compactness
-  squareness
-  volume_facade_ratio
+  CentroidCorners
+  CircularCompactness
+  CompactnessWeightedAxis
+  Convexeity
+  Corners
+  CourtyardIndex
+  Elongation
+  EquivalentRectangularIndex
+  FormFactor
+  FractalDimension
+  Linearity
+  Rectangularity
+  ShapeIndex
+  SquareCompactness
+  Squareness
+  VolumeFacadeRatio
 
 spatial distribution
 --------------------

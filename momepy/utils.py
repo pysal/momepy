@@ -11,7 +11,7 @@ import operator
 import shapely
 import math
 
-from .shape import circular_compactness
+from .shape import CircularCompactness
 
 
 def unique_id(objects):
@@ -397,7 +397,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
         blg["neighbors"] = sw.neighbors
         blg["neighbors"] = blg["neighbors"].map(sw.neighbors)
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
-        blg["circu"] = circular_compactness(blg)
+        blg["circu"] = CircularCompactness(blg).cc
 
         # idetify those smaller than x with only one neighbor and attaches it to it.
         join = {}
