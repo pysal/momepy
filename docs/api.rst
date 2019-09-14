@@ -67,29 +67,29 @@ spatial distribution
 .. autosummary::
   :toctree: generated/
 
-  alignment
-  building_adjacency
-  cell_alignment
-  mean_interbuilding_distance
-  neighbour_distance
-  neighbouring_street_orientation_deviation
-  neighbours
-  orientation
-  shared_walls_ratio
-  street_alignment
+  Alignment
+  BuildingAdjacency
+  CellAlignment
+  MeanInterbuildingDistance
+  NeighborDistance
+  NeighboringStreetOrientationDeviation
+  Neighbors
+  Orientation
+  SharedWallsRatio
+  StreetAlignment
 
 intensity
 ---------
 .. autosummary::
    :toctree: generated/
 
-   blocks_count
-   courtyards
-   density
-   elements_count
-   node_density
-   object_area_ratio
-   reached
+   AreaRatio
+   BlocksCount
+   Count
+   Courtyards
+   Density
+   NodeDensity
+   Reached
 
 graph
 ------------

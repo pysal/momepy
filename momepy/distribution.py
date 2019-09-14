@@ -451,7 +451,7 @@ class Alignment:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-    orientations : GeoDataFrame
+    orientations : Series
         Series containing used orientation values
     sw : libpysal.weights
         spatial weights matrix
@@ -705,7 +705,7 @@ class NeighboringStreetOrientationDeviation:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-    orientation : GeoDataFrame
+    orientation : Series
         Series containing used street orientation values
     sindex : rtree spatial index
         spatial index of gdf
@@ -909,14 +909,14 @@ class Neighbors:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-    values : GeoDataFrame
+    values : Series
         Series containing used values
     sw : libpysal.weights
         spatial weights matrix
     id : Series
         Series containing used unique ID
     weighted : bool
-        use weighted value
+        used weighted value
 
     References
     ---------

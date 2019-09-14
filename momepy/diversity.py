@@ -41,7 +41,7 @@ class Range:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-    values : GeoDataFrame
+    values : Series
         Series containing used values
     sw : libpysal.weights
         spatial weights matrix
@@ -127,7 +127,7 @@ class Theil:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-    values : GeoDataFrame
+    values : Series
         Series containing used values
     sw : libpysal.weights
         spatial weights matrix
@@ -226,7 +226,7 @@ class Simpson:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-    values : GeoDataFrame
+    values : Series
         Series containing used values
     sw : libpysal.weights
         spatial weights matrix
@@ -354,7 +354,7 @@ class Gini:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-    values : GeoDataFrame
+    values : Series
         Series containing used values
     sw : libpysal.weights
         spatial weights matrix
