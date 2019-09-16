@@ -62,11 +62,7 @@ class AreaRatio:
 
     Examples
     --------
-    >>> tessellation_df['CAR'] = mm.object_area_ratio(tessellation_df, buildings_df, 'area', 'area', 'uID')
-    Calculating object area ratio...
-    Merging DataFrames...
-    Calculating OAR...
-    Object area ratio calculated.
+    >>> tessellation_df['CAR'] = mm.AreaRatio(tessellation_df, buildings_df, 'area', 'area', 'uID').ar
     """
 
     def __init__(
@@ -167,7 +163,7 @@ class Count:
 
     Examples
     --------
-    >>> blocks_df['buildings_count'] = mm.elements_count(blocks_df, buildings_df, 'bID', 'bID', weighted=True)
+    >>> blocks_df['buildings_count'] = mm.Count(blocks_df, buildings_df, 'bID', 'bID', weighted=True).c
     """
 
     def __init__(self, left, right, left_id, right_id, weighted=False):
@@ -225,15 +221,8 @@ class Courtyards:
 
     Examples
     --------
-    >>> buildings_df['courtyards'] = mm.courtyards(buildings_df, 'bID')
-    Calculating courtyards...
+    >>> buildings_df['courtyards'] = mm.Courtyards(buildings_df, 'bID').c
     Calculating spatial weights...
-    Spatial weights ready...
-    Courtyards calculated.
-
-    Notes
-    -----
-    Script is not well optimised, so it is currently slow.
     """
 
     def __init__(self, gdf, block_id, spatial_weights=None):
@@ -327,9 +316,7 @@ class BlocksCount:
     Examples
     --------
     >>> sw4 = mm.sw_high(k=4, gdf='tessellation_df', ids='uID')
-    >>> tessellation_df['blocks_within_4'] = mm.blocks(tessellation_df, 'bID', sw4, 'uID')
-    Calculating blocks...
-    Blocks calculated.
+    >>> tessellation_df['blocks_within_4'] = mm.BlocksCount(tessellation_df, 'bID', sw4, 'uID').bc
     """
 
     def __init__(self, gdf, block_id, spatial_weights, unique_id, weighted=True):
@@ -422,9 +409,7 @@ class Reached:
 
     Examples
     --------
-    >>> streets_df['reached_buildings'] = mm.reached(streets_df, buildings_df, 'uID')
-    Calculating reached count...
-    Reached count calculated.
+    >>> streets_df['reached_buildings'] = mm.Reached(streets_df, buildings_df, 'uID').r
 
     """
 
@@ -557,9 +542,7 @@ class NodeDensity:
 
     Examples
     --------
-    >>> nodes['density'] = mm.node_density(nodes, edges, sw)
-    Calculating node density...
-    Node density calculated.
+    >>> nodes['density'] = mm.NodeDensity(nodes, edges, sw).nd
 
     """
 
@@ -651,9 +634,7 @@ class Density:
 
     Examples
     --------
-    >>> tessellation_df['floor_area_dens'] = mm.density(tessellation_df, 'floor_area', sw, 'uID')
-    Calculating gross density...
-    Gross density calculated.
+    >>> tessellation_df['floor_area_dens'] = mm.Density(tessellation_df, 'floor_area', sw, 'uID').d
     """
 
     def __init__(self, gdf, values, spatial_weights, unique_id, areas=None):

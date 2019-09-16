@@ -49,17 +49,11 @@ class FormFactor:
 
     Examples
     --------
-    >>> buildings_df['formfactor'] = momepy.form_factor(buildings_df, 'volume')
-    Calculating form factor...
-    Form factor calculated.
+    >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, 'volume').ff
     >>> buildings_df.formfactor[0]
     1.9385988170288635
 
-    >>> buildings_df['formfactor'] = momepy.form_factor(buildings_df, momepy.volume(buildings_df, 'height'))
-    Calculating volumes...
-    Volumes calculated.
-    Calculating form factor...
-    Form factor calculated.
+    >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, momepy.volume(buildings_df, 'height').volume).ff
     >>> buildings_df.formfactor[0]
     1.9385988170288635
 
@@ -124,10 +118,8 @@ class FractalDimension:
 
     Examples
     --------
-    >>> buildings_df['fractal'] = momepy.fractal_dimension(buildings_df, 'area', 'peri')
-    Calculating fractal dimension...
+    >>> buildings_df['fractal'] = momepy.FractalDimension(buildings_df, 'area', 'peri').fd
     100%|██████████| 144/144 [00:00<00:00, 3928.09it/s]
-    Fractal dimension calculated.
     >>> buildings_df.fractal[0]
     0.5363389283519454
     """
@@ -194,9 +186,7 @@ class VolumeFacadeRatio:
 
     Examples
     -----
-    >>> buildings_df['vfr'] = momepy.volume_facade_ratio(buildings_df, 'height')
-    Calculating volume/facade ratio...
-    Volume/facade ratio calculated.
+    >>> buildings_df['vfr'] = momepy.VolumeFacadeRatio(buildings_df, 'height').vfr
     >>> buildings_df.vfr[0]
     5.310715735236504
     """
@@ -426,10 +416,8 @@ class CircularCompactness:
 
     Examples
     --------
-    >>> buildings_df['circ_comp'] = momepy.circular_compactness(buildings_df, 'area')
-    Calculating compactness index...
+    >>> buildings_df['circ_comp'] = momepy.CircularCompactness(buildings_df, 'area').cc
     100%|██████████| 144/144 [00:00<00:00, 2498.75it/s]
-    Compactness index calculated.
     >>> buildings_df['circ_comp'][0]
     0.572145421828038
     """
@@ -490,9 +478,7 @@ class SquareCompactness:
 
     Examples
     --------
-    >>> buildings_df['squ_comp'] = momepy.square_compactness(buildings_df)
-    Calculating compactness index...
-    Compactness index calculated.
+    >>> buildings_df['squ_comp'] = momepy.SquareCompactness(buildings_df).sc
     >>> buildings_df['squ_comp'][0]
     0.6193872538650996
 
@@ -553,9 +539,7 @@ class Convexeity:
 
     Examples
     --------
-    >>> buildings_df['convexeity'] = momepy.convexeity(buildings_df)
-    Calculating convexeity...
-    Convexeity calculated.
+    >>> buildings_df['convexeity'] = momepy.Convexeity(buildings_df).c
     >>> buildings_df.convexeity[0]
     0.8151964258521672
     """
@@ -611,17 +595,11 @@ class CourtyardIndex:
 
     Examples
     --------
-    >>> buildings_df['courtyard_index'] = momepy.courtyard_index(buildings, 'courtyard_area', 'area')
-    Calculating courtyard index...
-    Courtyard index calculated.
+    >>> buildings_df['courtyard_index'] = momepy.CourtyardIndex(buildings, 'courtyard_area', 'area').ci
     >>> buildings_df.courtyard_index[80]
     0.16605915738643523
 
-    >>> buildings_df['courtyard_index2'] = momepy.courtyard_index(buildings_df, momepy.courtyard_area(buildings_df))
-    Calculating courtyard areas...
-    Courtyard areas calculated.
-    Calculating courtyard index...
-    Courtyard index calculated.
+    >>> buildings_df['courtyard_index2'] = momepy.CourtyardIndex(buildings_df, momepy.courtyard_area(buildings_df).ca).ci
     >>> buildings_df.courtyard_index2[80]
     0.16605915738643523
     """
@@ -674,10 +652,8 @@ class Rectangularity:
 
     Examples
     --------
-    >>> buildings_df['rectangularity'] = momepy.rectangularity(buildings_df, 'area')
-    Calculating rectangularity...
+    >>> buildings_df['rectangularity'] = momepy.Rectangularity(buildings_df, 'area').r
     100%|██████████| 144/144 [00:00<00:00, 866.62it/s]
-    Rectangularity calculated.
     >>> buildings_df.rectangularity[0]
     0.6942676157646379
     """
@@ -731,10 +707,8 @@ class ShapeIndex:
 
     Examples
     --------
-    >>> buildings_df['shape_index'] = momepy.shape_index(buildings_df, longest_axis='long_ax', areas='area')
-    Calculating shape index...
+    >>> buildings_df['shape_index'] = momepy.ShapeIndex(buildings_df, longest_axis='long_ax', areas='area').si
     100%|██████████| 144/144 [00:00<00:00, 5558.33it/s]
-    Shape index calculated.
     >>> buildings_df['shape_index'][0]
     0.7564029493781987
     """
@@ -783,10 +757,8 @@ class Corners:
 
     Examples
     --------
-    >>> buildings_df['corners'] = momepy.corners(buildings_df)
-    Calculating corners...
+    >>> buildings_df['corners'] = momepy.Corners(buildings_df).c
     100%|██████████| 144/144 [00:00<00:00, 1042.15it/s]
-    Corners calculated.
     >>> buildings_df.corners[0]
     24
 
@@ -876,10 +848,8 @@ class Squareness:
 
     Examples
     --------
-    >>> buildings_df['squareness'] = momepy.squareness(buildings_df)
-    Calculating squareness...
+    >>> buildings_df['squareness'] = momepy.Squareness(buildings_df).s
     100%|██████████| 144/144 [00:01<00:00, 129.49it/s]
-    Squareness calculated.
     >>> buildings_df.squareness[0]
     3.7075816043359864
     """
@@ -888,7 +858,6 @@ class Squareness:
         self.gdf = gdf
         # define empty list for results
         results_list = []
-        print("Calculating squareness...")
 
         def _angle(a, b, c):
             ba = a - b
@@ -982,10 +951,8 @@ class EquivalentRectangularIndex:
 
     Examples
     --------
-    >>> buildings_df['eri'] = momepy.equivalent_rectangular_index(buildings_df, 'area', 'peri')
-    Calculating equivalent rectangular index...
+    >>> buildings_df['eri'] = momepy.EquivalentRectangularIndex(buildings_df, 'area', 'peri').eri
     100%|██████████| 144/144 [00:00<00:00, 895.57it/s]
-    Equivalent rectangular index calculated.
     >>> buildings_df['eri'][0]
     0.7879229963118455
     """
@@ -994,7 +961,6 @@ class EquivalentRectangularIndex:
         self.gdf = gdf
         # define empty list for results
         results_list = []
-        print("Calculating equivalent rectangular index...")
         gdf = gdf.copy()
 
         if perimeters is None:
@@ -1050,10 +1016,8 @@ class Elongation:
 
     Examples
     --------
-    >>> buildings_df['elongation'] = momepy.elongation(buildings_df)
-    Calculating elongation...
+    >>> buildings_df['elongation'] = momepy.Elongation(buildings_df).e
     100%|██████████| 144/144 [00:00<00:00, 1032.62it/s]
-    Elongation calculated.
     >>> buildings_df['elongation'][0]
     0.9082437463675544
     """
@@ -1118,12 +1082,10 @@ class CentroidCorners:
 
     Examples
     --------
-    >>> means, deviations = momepy.centroid_corners(buildings_df)
-    Calculating distance centroid - corner...
+    >>> ccd = momepy.CentroidCorners(buildings_df)
     100%|██████████| 144/144 [00:00<00:00, 846.58it/s]
-    Distances centroid - corner calculated.
-    >>> buildings_df['ccd_means'] = means
-    >>> buildings_df['ccd_stdev'] = deviations
+    >>> buildings_df['ccd_means'] = ccd.means
+    >>> buildings_df['ccd_stdev'] = ccd.std
     >>> buildings_df['ccd_means'][0]
     15.961531913184833
     >>> buildings_df['ccd_stdev'][0]
@@ -1135,7 +1097,6 @@ class CentroidCorners:
         # define empty list for results
         results_list = []
         results_list_sd = []
-        print("Calculating distance centroid - corner...")
 
         # calculate angle between points, return true or false if real corner
         def true_angle(a, b, c):
@@ -1228,10 +1189,8 @@ class Linearity:
 
     Examples
     --------
-    >>> streets_df['linearity'] = momepy.linearity(streets_df)
-    Calculating linearity...
+    >>> streets_df['linearity'] = momepy.Linearity(streets_df).linearity
     100%|██████████| 33/33 [00:00<00:00, 1737.64it/s]
-    Linearity calculated.
     >>> streets_df['linearity'][0]
     1.0
     """
@@ -1290,9 +1249,7 @@ class CompactnessWeightedAxis:
 
     Examples
     --------
-    >>> blocks_df['cwa'] = mm.compactness_weighted_axis(blocks_df)
-    Calculating compactness-weighted axis...
-    Compactness-weighted axis calculated.
+    >>> blocks_df['cwa'] = mm.CompactnessWeightedAxis(blocks_df).cwa
     """
 
     def __init__(self, gdf, areas=None, perimeters=None, longest_axis=None):

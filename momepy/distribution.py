@@ -37,10 +37,8 @@ class Orientation:
 
     Examples
     --------
-    >>> buildings_df['orientation'] = momepy.orientation(buildings_df)
-    Calculating orientations...
+    >>> buildings_df['orientation'] = momepy.Orientation(buildings_df).o
     100%|██████████| 144/144 [00:00<00:00, 630.54it/s]
-    Orientations calculated.
     >>> buildings_df['orientation'][0]
     41.05146788287027
     """
@@ -49,8 +47,6 @@ class Orientation:
         self.gdf = gdf
         # define empty list for results
         results_list = []
-
-        print("Calculating orientations...")
 
         def _azimuth(point1, point2):
             """azimuth between 2 shapely points (interval 0 - 180)"""
@@ -147,11 +143,8 @@ class SharedWallsRatio:
 
     Examples
     --------
-    >>> buildings_df['swr'] = momepy.shared_walls_ratio(buildings_df, 'uID')
-    Generating spatial index...
-    Calculating shared walls ratio...
+    >>> buildings_df['swr'] = momepy.SharedWallsRatio(buildings_df, 'uID').swr
     100%|██████████| 144/144 [00:00<00:00, 648.72it/s]
-    Shared walls ratio calculated.
     >>> buildings_df['swr'][10]
     0.3424804411228673
     """
@@ -242,10 +235,8 @@ class StreetAlignment:
 
     Examples
     --------
-    >>> buildings_df['street_alignment'] = momepy.street_alignment(buildings_df, streets_df, 'orientation', 'nID', 'nID')
-    Calculating street alignments...
+    >>> buildings_df['street_alignment'] = momepy.StreetAlignment(buildings_df, streets_df, 'orientation', 'nID', 'nID').sa
     100%|██████████| 144/144 [00:00<00:00, 529.94it/s]
-    Street alignments calculated.
     >>> buildings_df['street_alignment'][0]
     0.29073888476702336
     """
@@ -266,7 +257,6 @@ class StreetAlignment:
         # define empty list for results
         results_list = []
 
-        print("Calculating street alignments...")
         left = left.copy()
         right = right.copy()
 
@@ -374,10 +364,8 @@ class CellAlignment:
 
     Examples
     --------
-    >>> buildings_df['cell_alignment'] = momepy.cell_alignment(buildings_df, tessellation_df, 'bl_orient', 'tes_orient', 'uID', 'uID')
-    Calculating cell alignments...
+    >>> buildings_df['cell_alignment'] = momepy.CellAlignment(buildings_df, tessellation_df, 'bl_orient', 'tes_orient', 'uID', 'uID').ca
     100%|██████████| 144/144 [00:00<00:00, 799.09it/s]
-    Cell alignments calculated.
     >>> buildings_df['cell_alignment'][0]
     0.8795123936951939
 
@@ -460,12 +448,8 @@ class Alignment:
 
     Examples
     --------
-    >>> buildings_df['alignment'] = momepy.alignment(buildings_df, sw, 'uID', bl_orient)
-    Calculating alignments...
-    Calculating spatial weights...
-    Spatial weights ready...
+    >>> buildings_df['alignment'] = momepy.Alignment(buildings_df, sw, 'uID', bl_orient).a
     100%|██████████| 144/144 [00:01<00:00, 140.84it/s]
-    Alignments calculated.
     >>> buildings_df['alignment'][0]
     18.299481296455237
     """
@@ -534,10 +518,8 @@ class NeighborDistance:
 
     Examples
     --------
-    >>> buildings_df['neighbour_distance'] = momepy.neighbour_distance(buildings_df, sw, 'uID')
-    Calculating distances...
+    >>> buildings_df['neighbour_distance'] = momepy.NeighborDistance(buildings_df, sw, 'uID').nd
     100%|██████████| 144/144 [00:00<00:00, 345.78it/s]
-    Distances calculated.
     >>> buildings_df['neighbour_distance'][0]
     29.18589019096464
     """
@@ -610,15 +592,13 @@ class MeanInterbuildingDistance:
 
     Examples
     --------
-    >>> buildings_df['mean_interbuilding_distance'] = momepy.mean_interbuilding_distance(buildings_df, sw, 'uID')
-    Calculating mean interbuilding distances...
+    >>> buildings_df['mean_interbuilding_distance'] = momepy.MeanInterbuildingDistance(buildings_df, sw, 'uID').mid
     Generating weights matrix (Queen) of 3 topological steps...
     Generating adjacency matrix based on weights matrix...
     Computing interbuilding distances...
     100%|██████████| 746/746 [00:03<00:00, 200.14it/s]
     Computing mean interbuilding distances...
     100%|██████████| 144/144 [00:00<00:00, 317.42it/s]
-    Mean interbuilding distances calculated.
     >>> buildings_df['mean_interbuilding_distance'][0]
     29.305457092042744
     """
@@ -712,12 +692,10 @@ class NeighboringStreetOrientationDeviation:
 
     Examples
     --------
-    >>> streets_df['orient_dev'] = momepy.neighbouring_street_orientation_deviation(streets_df)
-    Calculating street alignments...
+    >>> streets_df['orient_dev'] = momepy.NeighboringStreetOrientationDeviation(streets_df).nsod
     Preparing street orientations...
     Generating spatial index...
     100%|██████████| 33/33 [00:00<00:00, 249.02it/s]
-    Street alignments calculated.
     >>> streets_df['orient_dev'][6]
     7.043096518688273
     """
@@ -832,15 +810,13 @@ class BuildingAdjacency:
 
     Examples
     --------
-    >>> buildings_df['adjacency'] = momepy.building_adjacency(buildings_df, swh, unique_id='uID')
-    Calculating adjacency...
+    >>> buildings_df['adjacency'] = momepy.BuildingAdjacency(buildings_df, swh, unique_id='uID').ba
     Calculating spatial weights...
     Spatial weights ready...
     Generating weights matrix (Queen) of 3 topological steps...
     100%|██████████| 144/144 [00:00<00:00, 9301.73it/s]
     Calculating adjacency within k steps...
     100%|██████████| 144/144 [00:00<00:00, 335.55it/s]
-    Adjacency calculated.
     >>> buildings_df['adjacency'][10]
     0.23809523809523808
     """
@@ -850,8 +826,6 @@ class BuildingAdjacency:
         self.sw_higher = spatial_weights_higher
         self.id = gdf[unique_id]
         results_list = []
-
-        print("Calculating adjacency...")
 
         # if weights matrix is not passed, generate it from gdf
         if spatial_weights is None:
@@ -927,10 +901,8 @@ class Neighbors:
     Examples
     --------
     >>> sw = libpysal.weights.contiguity.Queen.from_dataframe(tessellation_df, ids='uID')
-    >>> tessellation_df['neighbours'] = momepy.neighbours(tessellation_df, sw, 'uID')
-    Calculating neighbours...
+    >>> tessellation_df['neighbours'] = momepy.Neighbors(tessellation_df, sw, 'uID').n
     100%|██████████| 144/144 [00:00<00:00, 6909.50it/s]
-    Neighbours calculated.
     >>> tessellation_df['neighbours'][0]
     4
     """
@@ -941,7 +913,6 @@ class Neighbors:
         self.id = gdf[unique_id]
         self.weighted = weighted
 
-        print("Calculating neighbours...")
         neighbours = []
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
             if weighted is True:

@@ -60,10 +60,8 @@ class Range:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_IQR_3steps'] = mm.rng(tessellation_df, 'area', sw, 'uID', rng=(25, 75))
-    Calculating range...
+    >>> tessellation_df['area_IQR_3steps'] = mm.Range(tessellation_df, 'area', sw, 'uID', rng=(25, 75)).r
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
-    Range calculated.
 
 
     """
@@ -139,10 +137,8 @@ class Theil:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Theil'] = mm.theil(tessellation_df, 'area', sw, 'uID')
-    Calculating Theil index...
+    >>> tessellation_df['area_Theil'] = mm.Theil(tessellation_df, 'area', sw, 'uID').t
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
-    Theil index calculated.
     """
 
     def __init__(self, gdf, values, spatial_weights, unique_id, rng=None):
@@ -245,10 +241,8 @@ class Simpson:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Simpson'] = mm.simpson(tessellation_df, 'area', sw, 'uID')
-    Calculating Simpson's diversity index...
+    >>> tessellation_df['area_Simpson'] = mm.Simpson(tessellation_df, 'area', sw, 'uID').s
     100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
-    Simpson's diversity index calculated.
     """
 
     def __init__(
@@ -366,10 +360,8 @@ class Gini:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Gini'] = mm.gini(tessellation_df, 'area', sw, 'uID')
-    Calculating Gini index...
+    >>> tessellation_df['area_Gini'] = mm.Gini(tessellation_df, 'area', sw, 'uID').g
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
-    Gini index calculated.
     """
 
     def __init__(self, gdf, values, spatial_weights, unique_id, rng=None):

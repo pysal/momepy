@@ -113,9 +113,7 @@ class Volume:
 
     Examples
     --------
-    >>> buildings['volume'] = momepy.volume(buildings, heights='height_col')
-    Calculating volumes...
-    Volumes calculated.
+    >>> buildings['volume'] = momepy.Volume(buildings, heights='height_col')
     >>> buildings.volume[0]
     7285.5749470443625
 
@@ -182,15 +180,13 @@ class FloorArea:
 
     Examples
     --------
-    >>> buildings['floor_area'] = momepy.floor_area(buildings, heights='height_col')
+    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col')
     Calculating floor areas...
     Floor areas calculated.
     >>> buildings.floor_area[0]
     2185.672484113309
 
-    >>> buildings['floor_area'] = momepy.floor_area(buildings, heights='height_col', areas='area_col')
-    Calculating floor areas...
-    Floor areas calculated.
+    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col', areas='area_col').fa
     >>> buildings.floor_area[0]
     2185.672484113309
     """
@@ -247,9 +243,7 @@ class CourtyardArea:
 
     Examples
     --------
-    >>> buildings['courtyard_area'] = momepy.courtyard_area(buildings)
-    Calculating courtyard areas...
-    Courtyard areas calculated.
+    >>> buildings['courtyard_area'] = momepy.CourtyardArea(buildings).ca
     >>> buildings.courtyard_area[80]
     353.33274206543274
     """
@@ -296,9 +290,7 @@ class LongestAxisLength:
 
     Examples
     --------
-    >>> buildings['lal'] = momepy.longest_axis_length(buildings)
-    Calculating the longest axis...
-    The longest axis calculated.
+    >>> buildings['lal'] = momepy.LongestAxisLength(buildings).lal
     >>> buildings.lal[0]
     40.2655616057102
     """
@@ -367,10 +359,8 @@ class AverageCharacter:
     Examples
     --------
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True, ids='uID')
-    >>> tessellation['mesh_100'] = momepy.average_character(tessellation, values='area', spatial_weights=sw, unique_id='uID')
-    Calculating average character value...
+    >>> tessellation['mesh_100'] = momepy.AverageCharacter(tessellation, values='area', spatial_weights=sw, unique_id='uID').ac
     100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
-    Average character value calculated.
     >>> tessellation.mesh_100[0]
     4823.1334436678835
     """
@@ -480,12 +470,10 @@ class StreetProfile:
 
     Examples
     --------
-    >>> street_profile = momepy.street_profile(streets_df, buildings_df, heights='height')
-    Calculating street profile...
+    >>> street_profile = momepy.StreetProfile(streets_df, buildings_df, heights='height')
     100%|██████████| 33/33 [00:02<00:00, 15.66it/s]
-    Street profile calculated.
-    >>> streets_df['width'] = street_profile['widths']
-    >>> streets_df['deviations'] = street_profile['width_deviations']
+    >>> streets_df['width'] = street_profile.w
+    >>> streets_df['deviations'] = street_profile.wd
     """
 
     def __init__(self, left, right, heights=None, distance=10, tick_length=50):
@@ -731,11 +719,9 @@ class WeightedCharacter:
     Examples
     --------
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation_df, threshold=100, silence_warnings=True)
-    >>> buildings_df['w_height_100'] = momepy.weighted_character(buildings_df, values='height', spatial_weights=sw,
-                                                                 unique_id='uID')
-    Calculating weighted height...
+    >>> buildings_df['w_height_100'] = momepy.WeightedCharacter(buildings_df, values='height', spatial_weights=sw,
+                                                                 unique_id='uID').wc
     100%|██████████| 144/144 [00:00<00:00, 361.60it/s]
-    Weighted height calculated.
     """
 
     def __init__(self, gdf, values, spatial_weights, unique_id, areas=None):
@@ -807,10 +793,8 @@ class CoveredArea:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['covered3steps'] = mm.covered_area(tessellation_df, sw, 'uID')
-    Calculating covered area...
+    >>> tessellation_df['covered3steps'] = mm.CoveredArea(tessellation_df, sw, 'uID').ca
     100%|██████████| 144/144 [00:00<00:00, 549.15it/s]
-    Covered area calculated.
 
     """
 
@@ -858,12 +842,10 @@ class PerimeterWall:
 
     Examples
     --------
-    >>> buildings_df['wall_length'] = mm.wall(buildings_df)
-    Calculating perimeter wall length...
+    >>> buildings_df['wall_length'] = mm.PerimeterWall(buildings_df).wall
     Calculating spatial weights...
     Spatial weights ready...
     100%|██████████| 144/144 [00:00<00:00, 4171.39it/s]
-    Perimeter wall length calculated.
 
     Notes
     -----
@@ -936,11 +918,9 @@ class SegmentsLength:
 
     Examples
     --------
-    >>> streets_df['length_neighbours'] = mm.segments_length(streets_df, mean=True)
-    Calculating segments length...
+    >>> streets_df['length_neighbours'] = mm.SegmentsLength(streets_df, mean=True).sl
     Calculating spatial weights...
     Spatial weights ready...
-    Segments length calculated.
     """
 
     def __init__(self, gdf, spatial_weights=None, mean=False):
