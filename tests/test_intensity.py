@@ -23,9 +23,12 @@ class TestIntensity:
         self.df_buildings["nID"] = mm.get_network_id(
             self.df_buildings, self.df_streets, "uID", "nID"
         )
-        self.blocks, self.df_buildings["bID"], self.df_tessellation["bID"] = mm.blocks(
+        blocks = mm.Blocks(
             self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
         )
+        self.blocks = blocks.blocks
+        self.df_buildings["bID"] = blocks.buildings_id
+        self.df_tessellation["bID"] = blocks.tessellation_id
 
     def test_AreaRatio(self):
         car = mm.AreaRatio(
