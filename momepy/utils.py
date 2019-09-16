@@ -11,7 +11,7 @@ import operator
 import shapely
 import math
 
-from .shape import circular_compactness
+from .shape import CircularCompactness
 
 
 def unique_id(objects):
@@ -343,10 +343,8 @@ def limit_range(vals, rng):
         rng = sorted(rng)
         lower = np.percentile(vals, rng[0], interpolation="nearest")
         higher = np.percentile(vals, rng[1], interpolation="nearest")
-        for x in vals:
-            if x >= lower and x <= higher:
-                limited.append(x)
-        return limited
+        limited = [x for x in vals if x >= lower and x <= higher]
+        return np.array(limited)
     return vals
 
 
@@ -399,7 +397,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
         blg["neighbors"] = sw.neighbors
         blg["neighbors"] = blg["neighbors"].map(sw.neighbors)
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
-        blg["circu"] = circular_compactness(blg)
+        blg["circu"] = CircularCompactness(blg).cc
 
         # idetify those smaller than x with only one neighbor and attaches it to it.
         join = {}

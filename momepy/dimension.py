@@ -13,80 +13,76 @@ import numpy as np
 import scipy as sp
 
 
-def area(gdf):
+class Area:
     """
-    Calculates area of each object in given shapefile. It can be used for any
+    Calculates area of each object in given GeoDataFrame. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
-    It is a simple wrapper for geopandas `gdf.geometry.area` for consistency of momepy.
+    It is a simple wrapper for geopandas `gdf.geometry.area` for the consistency of momepy.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    area : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
 
     Examples
     --------
     >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='buildings')
-    >>> buildings['area'] = momepy.area(buildings)
-    Calculating areas...
-    Areas calculated.
+    >>> buildings['area'] = momepy.Area(buildings).area
     >>> buildings.area[0]
     728.5574947044363
 
     """
 
-    print("Calculating areas...")
-
-    series = gdf.geometry.area
-
-    print("Areas calculated.")
-    return series
+    def __init__(self, gdf):
+        self.gdf = gdf
+        self.area = self.gdf.geometry.area
 
 
-def perimeter(gdf):
+class Perimeter:
     """
-    Calculates perimeter of each object in given shapefile. It can be used for any
+    Calculates perimeter of each object in given GeoDataFrame. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
-    It is a simple wrapper for geopandas `gdf.geometry.length` for consistency of momepy.
+    It is a simple wrapper for geopandas `gdf.geometry.length` for the consistency of momepy.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    perimeter : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
 
     Examples
     --------
     >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='buildings')
-    >>> buildings['perimeter'] = momepy.perimeter(buildings)
-    Calculating perimeters...
-    Perimeters calculated.
+    >>> buildings['perimeter'] = momepy.Perimeter(buildings).perimeter
     >>> buildings.perimeter[0]
     137.18630991119903
     """
 
-    print("Calculating perimeters...")
-
-    series = gdf.geometry.length
-
-    print("Perimeters calculated.")
-    return series
+    def __init__(self, gdf):
+        self.gdf = gdf
+        self.perimeter = self.gdf.geometry.length
 
 
-def volume(gdf, heights, areas=None):
+class Volume:
     """
-    Calculates volume of each object in given shapefile based on its height and area.
+    Calculates volume of each object in given GeoDataFrame based on its height and area.
 
     .. math::
         area * height
@@ -101,50 +97,57 @@ def volume(gdf, heights, areas=None):
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    volume : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
+
+    heights : Series
+        Series containing used heights values
+
+    areas : GeoDataFrame
+        Series containing used areas values
 
     Examples
     --------
-    >>> buildings['volume'] = momepy.volume(buildings, heights='height_col')
-    Calculating volumes...
-    Volumes calculated.
+    >>> buildings['volume'] = momepy.Volume(buildings, heights='height_col')
     >>> buildings.volume[0]
     7285.5749470443625
 
-    >>> buildings['volume'] = momepy.volume(buildings, heights='height_col', areas='area_col')
-    Calculating volumes...
-    Volumes calculated.
+    >>> buildings['volume'] = momepy.Volume(buildings, heights='height_col', areas='area_col').volume
     >>> buildings.volume[0]
     7285.5749470443625
     """
-    print("Calculating volumes...")
-    gdf = gdf.copy()
-    if not isinstance(heights, str):
-        gdf["mm_h"] = heights
-        heights = "mm_h"
 
-    if areas is not None:
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
+    def __init__(self, gdf, heights, areas=None):
+        self.gdf = gdf
+
+        gdf = gdf.copy()
+        if not isinstance(heights, str):
+            gdf["mm_h"] = heights
+            heights = "mm_h"
+        self.heights = gdf[heights]
+
+        if areas is not None:
+            if not isinstance(areas, str):
+                gdf["mm_a"] = areas
+                areas = "mm_a"
+            self.areas = gdf[areas]
+        else:
+            self.areas = gdf.geometry.area
         try:
-            series = gdf[areas] * gdf[heights]
+            self.volume = self.areas * self.heights
 
         except KeyError:
             raise KeyError(
                 "ERROR: Column not found. Define heights and areas or set areas to None."
             )
-    else:
-        series = gdf.geometry.area * gdf[heights]
-
-    print("Volumes calculated.")
-    return series
 
 
-def floor_area(gdf, heights, areas=None):
+class FloorArea:
     """
     Calculates floor area of each object based on height and area.
 
@@ -164,50 +167,56 @@ def floor_area(gdf, heights, areas=None):
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    fa : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    heights : Series
+        Series containing used heights values
+    areas : GeoDataFrame
+        Series containing used areas values
 
     Examples
     --------
-    >>> buildings['floor_area'] = momepy.floor_area(buildings, heights='height_col')
+    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col')
     Calculating floor areas...
     Floor areas calculated.
     >>> buildings.floor_area[0]
     2185.672484113309
 
-    >>> buildings['floor_area'] = momepy.floor_area(buildings, heights='height_col', areas='area_col')
-    Calculating floor areas...
-    Floor areas calculated.
+    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col', areas='area_col').fa
     >>> buildings.floor_area[0]
     2185.672484113309
     """
-    print("Calculating floor areas...")
-    gdf = gdf.copy()
-    if not isinstance(heights, str):
-        gdf["mm_h"] = heights
-        heights = "mm_h"
 
-    if areas is not None:
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
+    def __init__(self, gdf, heights, areas=None):
+        self.gdf = gdf
+
+        gdf = gdf.copy()
+        if not isinstance(heights, str):
+            gdf["mm_h"] = heights
+            heights = "mm_h"
+        self.heights = gdf[heights]
+
+        if areas is not None:
+            if not isinstance(areas, str):
+                gdf["mm_a"] = areas
+                areas = "mm_a"
+            self.areas = gdf[areas]
+        else:
+            self.areas = gdf.geometry.area
         try:
-            series = gdf[areas] * (gdf[heights] // 3)
+            self.fa = self.areas * (self.heights // 3)
 
         except KeyError:
             raise KeyError(
                 "ERROR: Column not found. Define heights and areas or set areas to None."
             )
-    else:
-        series = gdf.geometry.area * (gdf[heights] // 3)
-
-    print("Floor areas calculated.")
-    return series
 
 
-def courtyard_area(gdf, areas=None):
+class CourtyardArea:
     """
     Calculates area of holes within geometry - area of courtyards.
 
@@ -221,47 +230,42 @@ def courtyard_area(gdf, areas=None):
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    ca : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
+
+    areas : GeoDataFrame
+        Series containing used areas values
 
     Examples
     --------
-    >>> buildings['courtyard_area'] = momepy.courtyard_area(buildings)
-    Calculating courtyard areas...
-    Courtyard areas calculated.
+    >>> buildings['courtyard_area'] = momepy.CourtyardArea(buildings).ca
     >>> buildings.courtyard_area[80]
     353.33274206543274
     """
 
-    print("Calculating courtyard areas...")
-    gdf = gdf.copy()
+    def __init__(self, gdf, areas=None):
+        self.gdf = gdf
 
-    if areas is not None:
+        gdf = gdf.copy()
+        if areas is None:
+            areas = gdf.geometry.area
+
         if not isinstance(areas, str):
             gdf["mm_a"] = areas
             areas = "mm_a"
-        series = gdf.apply(
+        self.areas = gdf[areas]
+
+        self.ca = gdf.apply(
             lambda row: Polygon(row.geometry.exterior).area - row[areas], axis=1
         )
 
-    else:
-        series = gdf.apply(
-            lambda row: Polygon(row.geometry.exterior).area - row.geometry.area, axis=1
-        )
 
-    print("Courtyard areas calculated.")
-    return series
-
-
-# calculate the radius of circumcircle
-def _longest_axis(points):
-    circ = _make_circle(points)
-    return circ[2] * 2
-
-
-def longest_axis_length(gdf):
+class LongestAxisLength:
     """
     Calculates the length of the longest axis of object.
 
@@ -276,31 +280,35 @@ def longest_axis_length(gdf):
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    lal : Series
+        Series containing resulting values
+
+    gdf : GeoDataFrame
+        original GeoDataFrame
 
     Examples
     --------
-    >>> buildings['lal'] = momepy.longest_axis_length(buildings)
-    Calculating the longest axis...
-    The longest axis calculated.
+    >>> buildings['lal'] = momepy.LongestAxisLength(buildings).lal
     >>> buildings.lal[0]
     40.2655616057102
     """
 
-    print("Calculating the longest axis...")
+    def __init__(self, gdf):
+        self.gdf = gdf
+        self.lal = gdf.apply(
+            lambda row: self._longest_axis(row.geometry.convex_hull.exterior.coords),
+            axis=1,
+        )
 
-    series = gdf.apply(
-        lambda row: _longest_axis(row["geometry"].convex_hull.exterior.coords), axis=1
-    )
-
-    print("The longest axis calculated.")
-    return series
+    # calculate the radius of circumcircle
+    def _longest_axis(self, points):
+        circ = _make_circle(points)
+        return circ[2] * 2
 
 
-def average_character(gdf, values, spatial_weights, unique_id, rng=None, mode="mean"):
+class AverageCharacter:
     """
     Calculates the average of a character within k steps of morphological tessellation
 
@@ -326,10 +334,22 @@ def average_character(gdf, values, spatial_weights, unique_id, rng=None, mode="m
     mode : str (default 'mean')
         mode of average calculation. Can be set to `mean`, `median` or `mode`.
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    ac : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : GeoDataFrame
+        Series containing used values
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
+    rng : tuple
+        range
+    mode : str
+        mode
 
     References
     ----------
@@ -339,52 +359,55 @@ def average_character(gdf, values, spatial_weights, unique_id, rng=None, mode="m
     Examples
     --------
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True, ids='uID')
-    >>> tessellation['mesh_100'] = momepy.average_character(tessellation, values='area', spatial_weights=sw, unique_id='uID')
-    Calculating average character value...
+    >>> tessellation['mesh_100'] = momepy.AverageCharacter(tessellation, values='area', spatial_weights=sw, unique_id='uID').ac
     100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
-    Average character value calculated.
     >>> tessellation.mesh_100[0]
     4823.1334436678835
     """
-    # define empty list for results
-    results_list = []
 
-    print("Calculating average character value...")
-    data = gdf.copy()
+    def __init__(self, gdf, values, spatial_weights, unique_id, rng=None, mode="mean"):
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+        self.rng = rng
+        self.mode = mode
 
-    if values is not None:
-        if not isinstance(values, str):
-            data["mm_v"] = values
-            values = "mm_v"
+        data = gdf.copy()
+        if values is not None:
+            if not isinstance(values, str):
+                data["mm_v"] = values
+                values = "mm_v"
+        self.values = data[values]
 
-    data = data.set_index(unique_id)
+        data = data.set_index(unique_id)
 
-    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-        neighbours = spatial_weights.neighbors[index].copy()
-        neighbours.append(index)
+        results_list = []
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = [index]
 
-        values_list = data.loc[neighbours][values]
+            values_list = data.loc[neighbours][values]
 
-        if rng:
-            from momepy import limit_range
+            if rng:
+                from momepy import limit_range
 
-            values_list = limit_range(values_list.tolist(), rng=rng)
-        if mode == "mean":
-            results_list.append(np.mean(values_list))
-        elif mode == "median":
-            results_list.append(np.median(values_list))
-        elif mode == "mode":
-            results_list.append(sp.stats.mode(values_list)[0][0])
-        else:
-            raise ValueError("{} is not supported as mode.".format(mode))
+                values_list = limit_range(values_list.tolist(), rng=rng)
+            if mode == "mean":
+                results_list.append(np.mean(values_list))
+            elif mode == "median":
+                results_list.append(np.median(values_list))
+            elif mode == "mode":
+                results_list.append(sp.stats.mode(values_list)[0][0])
+            else:
+                raise ValueError("{} is not supported as mode.".format(mode))
 
-    series = pd.Series(results_list, index=gdf.index)
-
-    print("Average character value calculated.")
-    return series
+        self.ac = pd.Series(results_list, index=gdf.index)
 
 
-def street_profile(left, right, heights=None, distance=10, tick_length=50):
+class StreetProfile:
     """
     Calculates the street profile characters.
 
@@ -411,22 +434,30 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
     tick_length : int (default 50)
         lenght of ticks
 
-    Returns
-    -------
-    street_profile : dictionary
-
-    'widths' : Series
-        Series containing street profile width values.
-    'width_deviations' : Series
-        Series containing street profile standard deviation values.
-    'openness' : Series
-        Series containing street profile openness values.
-    'heights' : Series, optional
+    Attributes
+    ----------
+    w : Series
+        Series containing street profile width values
+    wd : Series
+        Series containing street profile standard deviation values
+    o : Series
+        Series containing street profile openness values
+    h : Series
         Series containing street profile heights values. Returned only when heights is set.
-    'heights_deviations' : Series, optional
+    hd : Series
         Series containing street profile heights standard deviation values. Returned only when heights is set.
-    'profile' : Series, optional
+    p : Series
         Series containing street profile height/width ratio values. Returned only when heights is set.
+    left : GeoDataFrame
+        original left GeoDataFrame
+    right : GeoDataFrame
+        original right GeoDataFrame
+    distance : int
+        distance between perpendicular ticks
+    tick_length : int
+        lenght of ticks
+    heights : GeoDataFrame
+        Series containing used height values
 
     References
     ----------
@@ -439,27 +470,194 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
 
     Examples
     --------
-    >>> street_profile = momepy.street_profile(streets_df, buildings_df, heights='height')
-    Calculating street profile...
+    >>> street_profile = momepy.StreetProfile(streets_df, buildings_df, heights='height')
     100%|██████████| 33/33 [00:02<00:00, 15.66it/s]
-    Street profile calculated.
-    >>> streets_df['width'] = street_profile['widths']
-    >>> streets_df['deviations'] = street_profile['width_deviations']
+    >>> streets_df['width'] = street_profile.w
+    >>> streets_df['deviations'] = street_profile.wd
     """
 
-    print("Calculating street profile...")
+    def __init__(self, left, right, heights=None, distance=10, tick_length=50):
+        self.left = left
+        self.right = right
+        self.distance = distance
+        self.tick_length = tick_length
+
+        if not isinstance(heights, str):
+            right = right.copy()
+            right["mm_h"] = heights
+            heights = "mm_h"
+
+        self.heights = right[heights]
+
+        sindex = right.sindex
+
+        results_list = []
+        deviations_list = []
+        heights_list = []
+        heights_deviations_list = []
+        openness_list = []
+
+        for idx, row in tqdm(left.iterrows(), total=left.shape[0]):
+            # if idx == 2:
+            #     ee
+            # list to hold all the point coords
+            list_points = []
+            # set the current distance to place the point
+            current_dist = distance
+            # make shapely MultiLineString object
+            shapely_line = row.geometry
+            # get the total length of the line
+            line_length = shapely_line.length
+            # append the starting coordinate to the list
+            list_points.append(Point(list(shapely_line.coords)[0]))
+            # https://nathanw.net/2012/08/05/generating-chainage-distance-nodes-in-qgis/
+            # while the current cumulative distance is less than the total length of the line
+            while current_dist < line_length:
+                # use interpolate and increase the current distance
+                list_points.append(shapely_line.interpolate(current_dist))
+                current_dist += distance
+            # append end coordinate to the list
+            list_points.append(Point(list(shapely_line.coords)[-1]))
+
+            ticks = []
+            for num, pt in enumerate(list_points, 1):
+                # start chainage 0
+                if num == 1:
+                    angle = self._getAngle(pt, list_points[num])
+                    line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
+                    angle = self._getAngle(line_end_1, pt)
+                    line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
+                    tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
+                    tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
+                    ticks.append([tick1, tick2])
+
+                # everything in between
+                if num < len(list_points) - 1:
+                    angle = self._getAngle(pt, list_points[num])
+                    line_end_1 = self._getPoint1(
+                        list_points[num], angle, tick_length / 2
+                    )
+                    angle = self._getAngle(line_end_1, list_points[num])
+                    line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
+                    tick1 = LineString(
+                        [
+                            (line_end_1.x, line_end_1.y),
+                            (list_points[num].x, list_points[num].y),
+                        ]
+                    )
+                    tick2 = LineString(
+                        [
+                            (line_end_2.x, line_end_2.y),
+                            (list_points[num].x, list_points[num].y),
+                        ]
+                    )
+                    ticks.append([tick1, tick2])
+
+                # end chainage
+                if num == len(list_points):
+                    angle = self._getAngle(list_points[num - 2], pt)
+                    line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
+                    angle = self._getAngle(line_end_1, pt)
+                    line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
+                    tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
+                    tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
+                    ticks.append([tick1, tick2])
+            # widths = []
+            m_heights = []
+            lefts = []
+            rights = []
+            for duo in ticks:
+
+                for ix, tick in enumerate(duo):
+                    possible_intersections_index = list(
+                        sindex.intersection(tick.bounds)
+                    )
+                    possible_intersections = right.iloc[possible_intersections_index]
+                    real_intersections = possible_intersections.intersects(tick)
+                    get_height = right.loc[list(real_intersections.index)]
+                    possible_int = get_height.exterior.intersection(tick)
+
+                    if not possible_int.is_empty.all():
+                        true_int = []
+                        for one in list(possible_int.index):
+                            if possible_int[one].type == "Point":
+                                true_int.append(possible_int[one])
+                            elif possible_int[one].type == "MultiPoint":
+                                for p in possible_int[one]:
+                                    true_int.append(p)
+
+                        if len(true_int) > 1:
+                            distances = []
+                            ix = 0
+                            for p in true_int:
+                                distance = p.distance(Point(tick.coords[-1]))
+                                distances.append(distance)
+                                ix = ix + 1
+                            minimal = min(distances)
+                            if ix == 0:
+                                lefts.append(minimal)
+                            else:
+                                rights.append(minimal)
+                        else:
+                            if ix == 0:
+                                lefts.append(
+                                    true_int[0].distance(Point(tick.coords[-1]))
+                                )
+                            else:
+                                rights.append(
+                                    true_int[0].distance(Point(tick.coords[-1]))
+                                )
+                        if heights is not None:
+                            indices = {}
+                            for idx, row in get_height.iterrows():
+                                dist = row.geometry.distance(Point(tick.coords[-1]))
+                                indices[idx] = dist
+                            minim = min(indices, key=indices.get)
+                            m_heights.append(right.loc[minim][heights])
+
+            openness = (len(lefts) + len(rights)) / len(ticks * 2)
+            openness_list.append(1 - openness)
+            if rights and lefts:
+                results_list.append(2 * np.mean(lefts + rights))
+                deviations_list.append(np.std(lefts + rights))
+            elif not lefts and rights:
+                results_list.append(2 * np.mean([np.mean(rights), tick_length / 2]))
+                deviations_list.append(np.std(rights))
+            elif not rights and lefts:
+                results_list.append(2 * np.mean([np.mean(lefts), tick_length / 2]))
+                deviations_list.append(np.std(lefts))
+            else:
+                results_list.append(tick_length)
+                deviations_list.append(0)
+
+            if heights is not None:
+                if m_heights:
+                    heights_list.append(np.mean(m_heights))
+                    heights_deviations_list.append(np.std(m_heights))
+                else:
+                    heights_list.append(0)
+                    heights_deviations_list.append(0)
+
+        self.w = pd.Series(results_list, index=left.index)
+        self.wd = pd.Series(deviations_list, index=left.index)
+        self.o = pd.Series(openness_list, index=left.index)
+
+        if heights is not None:
+            self.h = pd.Series(heights_list, index=left.index)
+            self.hd = pd.Series(heights_deviations_list, index=left.index)
+            self.p = self.h / self.w
 
     # http://wikicode.wikidot.com/get-angle-of-line-between-two-points
     # https://glenbambrick.com/tag/perpendicular/
     # angle between two points
-    def _getAngle(pt1, pt2):
+    def _getAngle(self, pt1, pt2):
         x_diff = pt2.x - pt1.x
         y_diff = pt2.y - pt1.y
         return math.degrees(math.atan2(y_diff, x_diff))
 
     # start and end points of chainage tick
     # get the first end point of a tick
-    def _getPoint1(pt, bearing, dist):
+    def _getPoint1(self, pt, bearing, dist):
         angle = bearing + 90
         bearing = math.radians(angle)
         x = pt.x + dist * math.cos(bearing)
@@ -467,176 +665,14 @@ def street_profile(left, right, heights=None, distance=10, tick_length=50):
         return Point(x, y)
 
     # get the second end point of a tick
-    def _getPoint2(pt, bearing, dist):
+    def _getPoint2(self, pt, bearing, dist):
         bearing = math.radians(bearing)
         x = pt.x + dist * math.cos(bearing)
         y = pt.y + dist * math.sin(bearing)
         return Point(x, y)
 
-    sindex = right.sindex
 
-    results_list = []
-    deviations_list = []
-    heights_list = []
-    heights_deviations_list = []
-    openness_list = []
-
-    if heights is not None:
-        if not isinstance(heights, str):
-            right = right.copy()
-            right["mm_h"] = heights
-            heights = "mm_h"
-
-    for idx, row in tqdm(left.iterrows(), total=left.shape[0]):
-        # if idx == 2:
-        #     ee
-        # list to hold all the point coords
-        list_points = []
-        # set the current distance to place the point
-        current_dist = distance
-        # make shapely MultiLineString object
-        shapely_line = row.geometry
-        # get the total length of the line
-        line_length = shapely_line.length
-        # append the starting coordinate to the list
-        list_points.append(Point(list(shapely_line.coords)[0]))
-        # https://nathanw.net/2012/08/05/generating-chainage-distance-nodes-in-qgis/
-        # while the current cumulative distance is less than the total length of the line
-        while current_dist < line_length:
-            # use interpolate and increase the current distance
-            list_points.append(shapely_line.interpolate(current_dist))
-            current_dist += distance
-        # append end coordinate to the list
-        list_points.append(Point(list(shapely_line.coords)[-1]))
-
-        ticks = []
-        for num, pt in enumerate(list_points, 1):
-            # start chainage 0
-            if num == 1:
-                angle = _getAngle(pt, list_points[num])
-                line_end_1 = _getPoint1(pt, angle, tick_length / 2)
-                angle = _getAngle(line_end_1, pt)
-                line_end_2 = _getPoint2(line_end_1, angle, tick_length)
-                tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
-                tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
-                ticks.append([tick1, tick2])
-
-            # everything in between
-            if num < len(list_points) - 1:
-                angle = _getAngle(pt, list_points[num])
-                line_end_1 = _getPoint1(list_points[num], angle, tick_length / 2)
-                angle = _getAngle(line_end_1, list_points[num])
-                line_end_2 = _getPoint2(line_end_1, angle, tick_length)
-                tick1 = LineString(
-                    [
-                        (line_end_1.x, line_end_1.y),
-                        (list_points[num].x, list_points[num].y),
-                    ]
-                )
-                tick2 = LineString(
-                    [
-                        (line_end_2.x, line_end_2.y),
-                        (list_points[num].x, list_points[num].y),
-                    ]
-                )
-                ticks.append([tick1, tick2])
-
-            # end chainage
-            if num == len(list_points):
-                angle = _getAngle(list_points[num - 2], pt)
-                line_end_1 = _getPoint1(pt, angle, tick_length / 2)
-                angle = _getAngle(line_end_1, pt)
-                line_end_2 = _getPoint2(line_end_1, angle, tick_length)
-                tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
-                tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
-                ticks.append([tick1, tick2])
-        # widths = []
-        m_heights = []
-        lefts = []
-        rights = []
-        for duo in ticks:
-
-            for ix, tick in enumerate(duo):
-                possible_intersections_index = list(sindex.intersection(tick.bounds))
-                possible_intersections = right.iloc[possible_intersections_index]
-                real_intersections = possible_intersections.intersects(tick)
-                get_height = right.loc[list(real_intersections.index)]
-                possible_int = get_height.exterior.intersection(tick)
-
-                if not possible_int.is_empty.all():
-                    true_int = []
-                    for one in list(possible_int.index):
-                        if possible_int[one].type == "Point":
-                            true_int.append(possible_int[one])
-                        elif possible_int[one].type == "MultiPoint":
-                            for p in possible_int[one]:
-                                true_int.append(p)
-
-                    if len(true_int) > 1:
-                        distances = []
-                        ix = 0
-                        for p in true_int:
-                            distance = p.distance(Point(tick.coords[-1]))
-                            distances.append(distance)
-                            ix = ix + 1
-                        minimal = min(distances)
-                        if ix == 0:
-                            lefts.append(minimal)
-                        else:
-                            rights.append(minimal)
-                    else:
-                        if ix == 0:
-                            lefts.append(true_int[0].distance(Point(tick.coords[-1])))
-                        else:
-                            rights.append(true_int[0].distance(Point(tick.coords[-1])))
-                    if heights is not None:
-                        indices = {}
-                        for idx, row in get_height.iterrows():
-                            dist = row.geometry.distance(Point(tick.coords[-1]))
-                            indices[idx] = dist
-                        minim = min(indices, key=indices.get)
-                        m_heights.append(right.loc[minim][heights])
-
-        openness = (len(lefts) + len(rights)) / len(ticks * 2)
-        openness_list.append(1 - openness)
-        if rights and lefts:
-            results_list.append(2 * np.mean(lefts + rights))
-            deviations_list.append(np.std(lefts + rights))
-        elif not lefts and rights:
-            results_list.append(2 * np.mean([np.mean(rights), tick_length / 2]))
-            deviations_list.append(np.std(rights))
-        elif not rights and lefts:
-            results_list.append(2 * np.mean([np.mean(lefts), tick_length / 2]))
-            deviations_list.append(np.std(lefts))
-        else:
-            results_list.append(tick_length)
-            deviations_list.append(0)
-
-        if heights is not None:
-            if m_heights:
-                heights_list.append(np.mean(m_heights))
-                heights_deviations_list.append(np.std(m_heights))
-            else:
-                heights_list.append(0)
-                heights_deviations_list.append(0)
-
-    street_profile = {}
-    street_profile["widths"] = pd.Series(results_list, index=left.index)
-    street_profile["width_deviations"] = pd.Series(deviations_list, index=left.index)
-    street_profile["openness"] = pd.Series(openness_list, index=left.index)
-
-    if heights is not None:
-        street_profile["heights"] = pd.Series(heights_list, index=left.index)
-        street_profile["heights_deviations"] = pd.Series(
-            heights_deviations_list, index=left.index
-        )
-        street_profile["profile"] = street_profile["heights"] / street_profile["widths"]
-
-    print("Street profile calculated.")
-    return street_profile
-
-
-def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
+class WeightedCharacter:
     """
     Calculates the weighted character
 
@@ -660,10 +696,20 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
         the name of the left dataframe column, np.array, or pd.Series where is stored area value
 
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    wc : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : GeoDataFrame
+        Series containing used values
+    areas : GeoDataFrame
+        Series containing used areas
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
 
     References
     ----------
@@ -673,61 +719,49 @@ def weighted_character(gdf, values, spatial_weights, unique_id, areas=None):
     Examples
     --------
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation_df, threshold=100, silence_warnings=True)
-    >>> buildings_df['w_height_100'] = momepy.weighted_character(buildings_df, values='height', spatial_weights=sw,
-                                                                 unique_id='uID')
-    Calculating weighted height...
+    >>> buildings_df['w_height_100'] = momepy.WeightedCharacter(buildings_df, values='height', spatial_weights=sw,
+                                                                 unique_id='uID').wc
     100%|██████████| 144/144 [00:00<00:00, 361.60it/s]
-    Weighted height calculated.
     """
-    # define empty list for results
-    results_list = []
 
-    print("Calculating weighted character...")
-    data = gdf.copy()
-    if areas is not None:
+    def __init__(self, gdf, values, spatial_weights, unique_id, areas=None):
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+
+        data = gdf.copy()
+        if areas is None:
+            areas = gdf.geometry.area
+
         if not isinstance(areas, str):
             data["mm_a"] = areas
             areas = "mm_a"
-    if not isinstance(values, str):
-        data["mm_vals"] = values
-        values = "mm_vals"
+        if not isinstance(values, str):
+            data["mm_vals"] = values
+            values = "mm_vals"
 
-    data = data.set_index(unique_id)
+        self.areas = data[areas]
+        self.values = data[values]
 
-    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-        neighbours = spatial_weights.neighbors[index]
+        data = data.set_index(unique_id)
 
-        if neighbours:
-            building_neighbours = data.loc[neighbours]
-
-            if areas is not None:
-                results_list.append(
-                    (
-                        sum(building_neighbours[values] * building_neighbours[areas])
-                        + (row[values] * row[areas])
-                    )
-                    / (sum(building_neighbours[areas]) + row[areas])
-                )
+        results_list = []
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
             else:
-                results_list.append(
-                    (
-                        sum(
-                            building_neighbours[values]
-                            * building_neighbours.geometry.area
-                        )
-                        + (row[values] * row.geometry.area)
-                    )
-                    / (sum(building_neighbours.geometry.area) + row.geometry.area)
-                )
-        else:
-            results_list.append(row[values])
-    series = pd.Series(results_list, index=gdf.index)
+                neighbours = [index]
 
-    print("Weighted character calculated.")
-    return series
+            subset = data.loc[neighbours]
+            results_list.append(
+                (sum(subset[values] * subset[areas])) / (sum(subset[areas]))
+            )
+
+        self.wc = pd.Series(results_list, index=gdf.index)
 
 
-def covered_area(gdf, spatial_weights, unique_id):
+class CoveredArea:
     """
     Calculates the area covered by k steps of morphological tessellation
 
@@ -745,42 +779,47 @@ def covered_area(gdf, spatial_weights, unique_id):
     unique_id : str
         name of the column with unique id used as spatial_weights index.
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    ca : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
 
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['covered3steps'] = mm.covered_area(tessellation_df, sw, 'uID')
-    Calculating covered area...
+    >>> tessellation_df['covered3steps'] = mm.CoveredArea(tessellation_df, sw, 'uID').ca
     100%|██████████| 144/144 [00:00<00:00, 549.15it/s]
-    Covered area calculated.
 
     """
-    # define empty list for results
-    results_list = []
 
-    print("Calculating covered area...")
-    data = gdf.set_index(unique_id)
+    def __init__(self, gdf, spatial_weights, unique_id):
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
 
-    for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-        neighbours = spatial_weights.neighbors[index].copy()
-        if neighbours:
-            neighbours.append(index)
-        else:
-            neighbours = [index]
-        areas = data.loc[neighbours].geometry.area
-        results_list.append(sum(areas))
+        data = gdf.set_index(unique_id)
 
-    series = pd.Series(results_list, index=gdf.index)
+        results_list = []
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = [index]
 
-    print("Covered area calculated.")
-    return series
+            areas = data.loc[neighbours].geometry.area
+            results_list.append(sum(areas))
+
+        self.ca = pd.Series(results_list, index=gdf.index)
 
 
-def wall(gdf, spatial_weights=None):
+class PerimeterWall:
     """
     Calculate the perimeter wall length the joined structure.
 
@@ -792,64 +831,63 @@ def wall(gdf, spatial_weights=None):
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on gdf. It is to denote adjacent buildings (note: based on index, not ID).
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    wall : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    sw : libpysal.weights
+        spatial weights matrix
 
     Examples
     --------
-    >>> buildings_df['wall_length'] = mm.wall(buildings_df)
-    Calculating perimeter wall length...
+    >>> buildings_df['wall_length'] = mm.PerimeterWall(buildings_df).wall
     Calculating spatial weights...
     Spatial weights ready...
     100%|██████████| 144/144 [00:00<00:00, 4171.39it/s]
-    Perimeter wall length calculated.
 
     Notes
     -----
     It might take a while to compute this character.
     """
-    # define empty list for results
-    results_list = []
 
-    print("Calculating perimeter wall length...")
+    def __init__(self, gdf, spatial_weights=None):
+        self.gdf = gdf
 
-    # if weights matrix is not passed, generate it from objects
-    if spatial_weights is None:
-        print("Calculating spatial weights...")
-        from libpysal.weights import Queen
+        if spatial_weights is None:
+            print("Calculating spatial weights...")
+            from libpysal.weights import Queen
 
-        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
-        print("Spatial weights ready...")
+            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            print("Spatial weights ready...")
+        self.sw = spatial_weights
 
-    # dict to store walls for each uID
-    walls = {}
-    components = pd.Series(spatial_weights.component_labels, index=gdf.index)
+        # dict to store walls for each uID
+        walls = {}
+        components = pd.Series(spatial_weights.component_labels, index=gdf.index)
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        # if the id is already present in walls, continue (avoid repetition)
-        if index in walls:
-            continue
-        else:
-            comp = spatial_weights.component_labels[index]
-            to_join = components[components == comp].index
-            joined = gdf.iloc[to_join]
-            dissolved = joined.geometry.buffer(
-                0.01
-            ).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
-            for b in to_join:
-                walls[b] = dissolved.exterior.length  # fill dict with values
-    # copy values from dict to gdf
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        results_list.append(walls[index])
+        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            # if the id is already present in walls, continue (avoid repetition)
+            if index in walls:
+                continue
+            else:
+                comp = spatial_weights.component_labels[index]
+                to_join = components[components == comp].index
+                joined = gdf.iloc[to_join]
+                dissolved = joined.geometry.buffer(
+                    0.01
+                ).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
+                for b in to_join:
+                    walls[b] = dissolved.exterior.length
 
-    series = pd.Series(results_list, index=gdf.index)
-    print("Perimeter wall length calculated.")
-    return series
+        results_list = []
+        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            results_list.append(walls[index])
+        self.wall = pd.Series(results_list, index=gdf.index)
 
 
-def segments_length(gdf, spatial_weights=None, mean=False):
+class SegmentsLength:
     """
     Calculate the cummulative or mean length of segments.
 
@@ -867,39 +905,48 @@ def segments_length(gdf, spatial_weights=None, mean=False):
     mean : boolean, optional
         If mean=False it will return total length, if mean=True it will return mean value
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    sl : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    sw : libpysal.weights
+        spatial weights matrix
+    mean : boolean
+        used mean boolean value
 
     Examples
     --------
-    >>> streets_df['length_neighbours'] = mm.segments_length(streets_df, mean=True)
-    Calculating segments length...
+    >>> streets_df['length_neighbours'] = mm.SegmentsLength(streets_df, mean=True).sl
     Calculating spatial weights...
     Spatial weights ready...
-    Segments length calculated.
     """
-    results_list = []
 
-    print("Calculating segments length...")
+    def __init__(self, gdf, spatial_weights=None, mean=False):
+        self.gdf = gdf
+        self.mean = mean
 
-    if spatial_weights is None:
-        print("Calculating spatial weights...")
-        from libpysal.weights import Queen
+        if spatial_weights is None:
+            print("Calculating spatial weights...")
+            from libpysal.weights import Queen
 
-        spatial_weights = Queen.from_dataframe(gdf)
-        print("Spatial weights ready...")
+            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            print("Spatial weights ready...")
+        self.sw = spatial_weights
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[index].copy()
-        neighbours.append(index)
-        dims = gdf.iloc[neighbours].geometry.length
-        if mean:
-            results_list.append(np.mean(dims))
-        else:
-            results_list.append(sum(dims))
+        results_list = []
+        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = [index]
 
-    series = pd.Series(results_list, index=gdf.index)
-    print("Segments length calculated.")
-    return series
+            dims = gdf.iloc[neighbours].geometry.length
+            if mean:
+                results_list.append(np.mean(dims))
+            else:
+                results_list.append(sum(dims))
+
+        self.sl = pd.Series(results_list, index=gdf.index)

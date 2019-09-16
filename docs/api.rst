@@ -26,18 +26,18 @@ dimension
 .. autosummary::
    :toctree: generated/
 
-   area
-   average_character
-   courtyard_area
-   covered_area
-   floor_area
-   longest_axis_length
-   perimeter
-   segments_length
-   street_profile
-   volume
-   wall
-   weighted_character
+   Area
+   AverageCharacter
+   CourtyardArea
+   CoveredArea
+   FloorArea
+   LongestAxisLength
+   Perimeter
+   PerimeterWall
+   SegmentsLength
+   StreetProfile
+   Volume
+   WeightedCharacter
 
 shape
 -----
@@ -45,51 +45,51 @@ shape
 .. autosummary::
   :toctree: generated/
 
-  centroid_corners
-  circular_compactness
-  compactness_weighted_axis
-  convexeity
-  corners
-  courtyard_index
-  elongation
-  equivalent_rectangular_index
-  form_factor
-  fractal_dimension
-  linearity
-  rectangularity
-  shape_index
-  square_compactness
-  squareness
-  volume_facade_ratio
+  CentroidCorners
+  CircularCompactness
+  CompactnessWeightedAxis
+  Convexeity
+  Corners
+  CourtyardIndex
+  Elongation
+  EquivalentRectangularIndex
+  FormFactor
+  FractalDimension
+  Linearity
+  Rectangularity
+  ShapeIndex
+  SquareCompactness
+  Squareness
+  VolumeFacadeRatio
 
 spatial distribution
 --------------------
 .. autosummary::
   :toctree: generated/
 
-  alignment
-  building_adjacency
-  cell_alignment
-  mean_interbuilding_distance
-  neighbour_distance
-  neighbouring_street_orientation_deviation
-  neighbours
-  orientation
-  shared_walls_ratio
-  street_alignment
+  Alignment
+  BuildingAdjacency
+  CellAlignment
+  MeanInterbuildingDistance
+  NeighborDistance
+  NeighboringStreetOrientationDeviation
+  Neighbors
+  Orientation
+  SharedWallsRatio
+  StreetAlignment
 
 intensity
 ---------
 .. autosummary::
    :toctree: generated/
 
-   blocks_count
-   courtyards
-   density
-   elements_count
-   node_density
-   object_area_ratio
-   reached
+   AreaRatio
+   BlocksCount
+   Count
+   Courtyards
+   Density
+   NodeDensity
+   Reached
 
 graph
 ------------
@@ -118,10 +118,10 @@ diversity
 .. autosummary::
    :toctree: generated/
 
-   rng
-   simpson
-   theil
-   gini
+   Range
+   Simpson
+   Theil
+   Gini
 
 utilities
 ---------

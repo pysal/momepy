@@ -15,3 +15,5 @@ dependencies:
     - osmnx
     - pip:
         - inequality
+        - sphinxcontrib.bibtex
+        - numpydoc
