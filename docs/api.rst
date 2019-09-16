@@ -14,11 +14,11 @@ elements
 .. autosummary::
    :toctree: generated/
 
-   blocks
+   Blocks
    buffered_limit
    get_network_id
    get_node_id
-   tessellation
+   Tessellation
 
 dimension
 ---------
