@@ -1,10 +1,10 @@
-import momepy as mm
-import geopandas as gpd
-from shapely.geometry import Point
-import numpy as np
 import math
 
+import geopandas as gpd
+import momepy as mm
+import numpy as np
 from momepy.shape import _circle_area
+from shapely.geometry import Point
 
 
 class TestShape:

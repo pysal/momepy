@@ -1,10 +1,8 @@
-import momepy as mm
 import geopandas as gpd
+import momepy as mm
 import numpy as np
-from libpysal.weights import Queen
-
 import pytest
-
+from libpysal.weights import Queen
 from pytest import approx
 
 

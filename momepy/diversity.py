@@ -4,10 +4,12 @@
 # diversity.py
 # definitons of diversity characters
 
-from tqdm import tqdm  # progress bar
+import numpy as np
 import pandas as pd
 import scipy as sp
-import numpy as np
+from tqdm import tqdm  # progress bar
+
+__all__ = ["Range", "Theil", "Simpson", "Gini"]
 
 
 class Range:
