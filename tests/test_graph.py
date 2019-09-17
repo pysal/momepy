@@ -1,5 +1,5 @@
-import momepy as mm
 import geopandas as gpd
+import momepy as mm
 import pytest
 
 

@@ -1,6 +1,6 @@
-import momepy as mm
 import geopandas as gpd
 import libpysal
+import momepy as mm
 
 
 class TestElements:

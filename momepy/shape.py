@@ -4,12 +4,32 @@
 # shape.py
 # definitons of shape characters
 
-import pandas as pd
-from tqdm import tqdm  # progress bar
 import math
 import random
+
 import numpy as np
+import pandas as pd
 from shapely.geometry import Point
+from tqdm import tqdm  # progress bar
+
+__all__ = [
+    "FormFactor",
+    "FractalDimension",
+    "VolumeFacadeRatio",
+    "CircularCompactness",
+    "SquareCompactness",
+    "Convexeity",
+    "CourtyardIndex",
+    "Rectangularity",
+    "ShapeIndex",
+    "Corners",
+    "Squareness",
+    "EquivalentRectangularIndex",
+    "Elongation",
+    "CentroidCorners",
+    "Linearity",
+    "CompactnessWeightedAxis",
+]
 
 
 class FormFactor:

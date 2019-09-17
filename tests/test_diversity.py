@@ -1,10 +1,8 @@
-import momepy as mm
 import geopandas as gpd
+import momepy as mm
 import numpy as np
-
-from momepy import sw_high
-
 import pytest
+from momepy import sw_high
 from pytest import approx
 
 
