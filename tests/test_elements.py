@@ -1,6 +1,6 @@
-import momepy as mm
 import geopandas as gpd
 import libpysal
+import momepy as mm
 
 
 class TestElements:
@@ -13,26 +13,25 @@ class TestElements:
         self.df_streets["nID"] = range(len(self.df_streets))
         self.limit = mm.buffered_limit(self.df_buildings, 50)
 
-    def test_tessellation(self):
-        tessellation = mm.tessellation(self.df_buildings, "uID", self.limit, segment=2)
+    def test_Tessellation(self):
+        tes = mm.Tessellation(self.df_buildings, "uID", self.limit, segment=2)
+        tessellation = tes.tessellation
         assert len(tessellation) == len(self.df_tessellation)
-        bands = mm.tessellation(
+        bands = mm.Tessellation(
             self.df_streets, "nID", mm.buffered_limit(self.df_streets, 50), segment=5
-        )
+        ).tessellation
         assert len(bands) == len(self.df_streets)
-        queen_corners = mm.tessellation(
-            self.df_buildings, "uID", self.limit, segment=2, queen_corners=True
-        )
+        queen_corners = tes.queen_corners(2)
         w = libpysal.weights.Queen.from_dataframe(queen_corners)
         assert w.neighbors[14] == [35, 36, 13, 15, 26, 27, 28, 30, 31]
 
-    def test_blocks(self):
-        blocks, buildingsID, cellsID = mm.blocks(
+    def test_Blocks(self):
+        blocks = mm.Blocks(
             self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
         )
-        assert not buildingsID.isna().any()
-        assert not cellsID.isna().any()
-        assert len(blocks) == 8
+        assert not blocks.tessellation_id.isna().any()
+        assert not blocks.buildings_id.isna().any()
+        assert len(blocks.blocks) == 8
 
     def test_get_network_id(self):
         buildings_id = mm.get_network_id(

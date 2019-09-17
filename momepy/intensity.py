@@ -4,21 +4,24 @@
 # intensity.py
 # definitons of intensity characters
 
-from tqdm import tqdm  # progress bar
-import pandas as pd
-import numpy as np
 import collections
 
+import numpy as np
+import pandas as pd
+from tqdm import tqdm  # progress bar
 
-def object_area_ratio(
-    left,
-    right,
-    left_areas,
-    right_areas,
-    unique_id=None,
-    left_unique_id=None,
-    right_unique_id=None,
-):
+__all__ = [
+    "AreaRatio",
+    "Count",
+    "Courtyards",
+    "BlocksCount",
+    "Reached",
+    "NodeDensity",
+    "Density",
+]
+
+
+class AreaRatio:
     """
     Calculate covered area ratio or floor area ratio of objects.
 
@@ -46,10 +49,22 @@ def object_area_ratio(
     right_unique_id : str, list, np.array, pd.Series (default None)
         the name of the left dataframe column, np.array, or pd.Series where is stored shared unique ID
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    ar : Series
+        Series containing resulting values
+    left : GeoDataFrame
+        original left GeoDataFrame
+    right : GeoDataFrame
+        original right GeoDataFrame
+    left_areas :  Series
+        Series containing used left areas
+    right_areas :  Series
+        Series containing used right areas
+    left_unique_id : Series
+        Series containing used left ID
+    right_unique_id : Series
+        Series containing used right ID
 
     References
     ---------
@@ -58,51 +73,60 @@ def object_area_ratio(
 
     Examples
     --------
-    >>> tessellation_df['CAR'] = mm.object_area_ratio(tessellation_df, buildings_df, 'area', 'area', 'uID')
-    Calculating object area ratio...
-    Merging DataFrames...
-    Calculating OAR...
-    Object area ratio calculated.
+    >>> tessellation_df['CAR'] = mm.AreaRatio(tessellation_df, buildings_df, 'area', 'area', 'uID').ar
     """
-    left = left.copy()
-    right = right.copy()
 
-    if unique_id:
-        left_unique_id = unique_id
-        right_unique_id = unique_id
-    else:
-        if left_unique_id is None or right_unique_id is None:
-            raise ValueError(
-                "Unique ID not correctly set. Use either network_id or both"
-                "left_unique_id and right_unique_id."
-            )
+    def __init__(
+        self,
+        left,
+        right,
+        left_areas,
+        right_areas,
+        unique_id=None,
+        left_unique_id=None,
+        right_unique_id=None,
+    ):
+        self.left = left
+        self.right = right
 
-    print("Calculating object area ratio...")
-    if not isinstance(left_areas, str):
-        left["mm_a"] = left_areas
-        left_areas = "mm_a"
-    if not isinstance(right_areas, str):
-        right["mm_a"] = right_areas
-        right_areas = "mm_a"
+        left = left.copy()
+        right = right.copy()
 
-    print("Merging DataFrames...")
-    look_for = right[[right_unique_id, right_areas]]  # keeping only necessary columns
-    look_for.rename(index=str, columns={right_areas: "lf_area"}, inplace=True)
-    objects_merged = left[[left_unique_id, left_areas]].merge(
-        look_for, left_on=left_unique_id, right_on=right_unique_id
-    )
+        if unique_id:
+            left_unique_id = unique_id
+            right_unique_id = unique_id
+        else:
+            if left_unique_id is None or right_unique_id is None:
+                raise ValueError(
+                    "Unique ID not correctly set. Use either network_id or both"
+                    "left_unique_id and right_unique_id."
+                )
+        self.left_unique_id = left_unique_id
+        self.right_unique_id = right_unique_id
 
-    print("Calculating OAR...")
+        if not isinstance(left_areas, str):
+            left["mm_a"] = left_areas
+            left_areas = "mm_a"
+        self.left_areas = left[left_areas]
+        if not isinstance(right_areas, str):
+            right["mm_a"] = right_areas
+            right_areas = "mm_a"
+        self.right_areas = right[right_areas]
 
-    series = objects_merged["lf_area"] / objects_merged[left_areas]
+        look_for = right[
+            [right_unique_id, right_areas]
+        ]  # keeping only necessary columns
+        look_for.rename(index=str, columns={right_areas: "lf_area"}, inplace=True)
+        objects_merged = left[[left_unique_id, left_areas]].merge(
+            look_for, left_on=left_unique_id, right_on=right_unique_id
+        )
 
-    print("Object area ratio calculated.")
-    return series
+        self.ar = objects_merged["lf_area"] / objects_merged[left_areas]
 
 
-def elements_count(left, right, left_id, right_id, weighted=False):
+class Count:
     """
-    Calculate the number of elements within aggregated structure.
+    Calculate the number of elements within an aggregated structure.
 
     Aggregated structure can be typically block, street segment or street node (their snapepd objects). Right gdf has to have
     unique id of aggregated structure assigned before hand (e.g. using :py:func:`momepy.get_network_id`).
@@ -125,10 +149,20 @@ def elements_count(left, right, left_id, right_id, weighted=False):
     weighted : bool (default False)
         if weighted=True, count will be divided by the area or length
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    c : Series
+        Series containing resulting values
+    left : GeoDataFrame
+        original left GeoDataFrame
+    right : GeoDataFrame
+        original right GeoDataFrame
+    left_id : Series
+        Series containing used left ID
+    right_id : Series
+        Series containing used right ID
+    weighted : bool
+        used weighted value
 
     References
     ----------
@@ -140,25 +174,33 @@ def elements_count(left, right, left_id, right_id, weighted=False):
 
     Examples
     --------
-    >>> blocks_df['buildings_count'] = mm.elements_count(blocks_df, buildings_df, 'bID', 'bID', weighted=True)
+    >>> blocks_df['buildings_count'] = mm.Count(blocks_df, buildings_df, 'bID', 'bID', weighted=True).c
     """
-    count = collections.Counter(right[right_id])
-    df = pd.DataFrame.from_dict(count, orient="index", columns=["mm_count"])
-    joined = left[[left_id, "geometry"]].join(df["mm_count"], on=left_id)
-    joined.loc[joined["mm_count"].isna(), "mm_count"] = 0
 
-    if weighted:
-        if left.geometry[0].type in ["Polygon", "MultiPolygon"]:
-            joined["mm_count"] = joined["mm_count"] / left.geometry.area
-        elif left.geometry[0].type in ["LineString", "MultiLineString"]:
-            joined["mm_count"] = joined["mm_count"] / left.geometry.length
-        else:
-            raise TypeError("Geometry type does not support weighting.")
+    def __init__(self, left, right, left_id, right_id, weighted=False):
+        self.left = left
+        self.right = right
+        self.left_id = left[left_id]
+        self.right_id = right[right_id]
+        self.weighted = weighted
 
-    return joined["mm_count"]
+        count = collections.Counter(right[right_id])
+        df = pd.DataFrame.from_dict(count, orient="index", columns=["mm_count"])
+        joined = left[[left_id, "geometry"]].join(df["mm_count"], on=left_id)
+        joined.loc[joined["mm_count"].isna(), "mm_count"] = 0
+
+        if weighted:
+            if left.geometry[0].type in ["Polygon", "MultiPolygon"]:
+                joined["mm_count"] = joined["mm_count"] / left.geometry.area
+            elif left.geometry[0].type in ["LineString", "MultiLineString"]:
+                joined["mm_count"] = joined["mm_count"] / left.geometry.length
+            else:
+                raise TypeError("Geometry type does not support weighting.")
+
+        self.c = joined["mm_count"]
 
 
-def courtyards(gdf, block_id, spatial_weights=None):
+class Courtyards:
     """
     Calculate the number of courtyards within the joined structure.
 
@@ -172,10 +214,16 @@ def courtyards(gdf, block_id, spatial_weights=None):
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on objects. It is to denote adjacent buildings (note: based on index).
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    c : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    block_id : Series
+        Series containing used block ID
+    sw : libpysal.weights
+        spatial weights matrix
 
     References
     ---------
@@ -184,62 +232,57 @@ def courtyards(gdf, block_id, spatial_weights=None):
 
     Examples
     --------
-    >>> buildings_df['courtyards'] = mm.courtyards(buildings_df, 'bID')
-    Calculating courtyards...
+    >>> buildings_df['courtyards'] = mm.Courtyards(buildings_df, 'bID').c
     Calculating spatial weights...
-    Spatial weights ready...
-    Courtyards calculated.
-
-    Notes
-    -----
-    Script is not well optimised, so it is currently slow.
     """
-    # define empty list for results
-    results_list = []
 
-    print("Calculating courtyards...")
-    if not isinstance(block_id, str):
-        gdf["mm_bid"] = block_id
-        block_id = "mm_bid"
+    def __init__(self, gdf, block_id, spatial_weights=None):
+        self.gdf = gdf
 
-    # if weights matrix is not passed, generate it from objects
-    if spatial_weights is None:
-        print("Calculating spatial weights...")
-        from libpysal.weights import Queen
+        results_list = []
+        gdf = gdf.copy()
 
-        spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
-        print("Spatial weights ready...")
+        if not isinstance(block_id, str):
+            gdf["mm_bid"] = block_id
+            block_id = "mm_bid"
 
-    # dict to store nr of courtyards for each uID
-    courtyards = {}
-    components = pd.Series(spatial_weights.component_labels, index=gdf.index)
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        # if the id is already present in courtyards, continue (avoid repetition)
-        if index in courtyards:
-            continue
-        else:
-            comp = spatial_weights.component_labels[index]
-            to_join = components[components == comp].index
-            joined = gdf.loc[to_join]
-            dissolved = joined.geometry.buffer(
-                0.01
-            ).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
-            try:
-                interiors = len(list(dissolved.interiors))
-            except (ValueError):
-                print("Something unexpected happened.")
-            for b in to_join:
-                courtyards[b] = interiors  # fill dict with values
-    # copy values from dict to gdf
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        results_list.append(courtyards[index])
+        self.block_id = gdf[block_id]
+        # if weights matrix is not passed, generate it from objects
+        if spatial_weights is None:
+            print("Calculating spatial weights...")
+            from libpysal.weights import Queen
 
-    series = pd.Series(results_list, index=gdf.index)
-    print("Courtyards calculated.")
-    return series
+            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+
+        self.sw = spatial_weights
+        # dict to store nr of courtyards for each uID
+        courtyards = {}
+        components = pd.Series(spatial_weights.component_labels, index=gdf.index)
+        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            # if the id is already present in courtyards, continue (avoid repetition)
+            if index in courtyards:
+                continue
+            else:
+                comp = spatial_weights.component_labels[index]
+                to_join = components[components == comp].index
+                joined = gdf.loc[to_join]
+                dissolved = joined.geometry.buffer(
+                    0.01
+                ).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
+                try:
+                    interiors = len(list(dissolved.interiors))
+                except (ValueError):
+                    print("Something unexpected happened.")
+                for b in to_join:
+                    courtyards[b] = interiors  # fill dict with values
+        # copy values from dict to gdf
+        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            results_list.append(courtyards[index])
+
+        self.c = pd.Series(results_list, index=gdf.index)
 
 
-def blocks_count(gdf, block_id, spatial_weights, unique_id, weighted=True):
+class BlocksCount:
     """
     Calculates the weighted number of blocks
 
@@ -261,10 +304,20 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id, weighted=True):
     weigted : bool, default True
         return value weighted by the analysed area (True) or pure count (False)
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    bc : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    block_id : Series
+        Series containing used block ID
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
+    weighted : bool
+        used weighted value
 
     References
     ----------
@@ -274,45 +327,46 @@ def blocks_count(gdf, block_id, spatial_weights, unique_id, weighted=True):
     Examples
     --------
     >>> sw4 = mm.sw_high(k=4, gdf='tessellation_df', ids='uID')
-    >>> tessellation_df['blocks_within_4'] = mm.blocks(tessellation_df, 'bID', sw4, 'uID')
-    Calculating blocks...
-    Blocks calculated.
+    >>> tessellation_df['blocks_within_4'] = mm.BlocksCount(tessellation_df, 'bID', sw4, 'uID').bc
     """
-    # define empty list for results
-    results_list = []
-    gdf = gdf.copy()
-    if not isinstance(block_id, str):
-        gdf["mm_bid"] = block_id
-        block_id = "mm_bid"
 
-    print("Calculating blocks...")
+    def __init__(self, gdf, block_id, spatial_weights, unique_id, weighted=True):
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
-        if neighbours:
-            neighbours.append(row[unique_id])
-        else:
-            neighbours = row[unique_id]
-        vicinity = gdf.loc[gdf[unique_id].isin(neighbours)]
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+        self.weighted = weighted
 
-        if weighted is True:
-            results_list.append(
-                len(set(list(vicinity[block_id]))) / sum(vicinity.geometry.area)
-            )
-        elif weighted is False:
-            results_list.append(len(set(list(vicinity[block_id]))))
-        else:
-            raise ValueError("Attribute 'weighted' needs to be True or False.")
+        # define empty list for results
+        results_list = []
+        data = gdf.copy()
+        if not isinstance(block_id, str):
+            data["mm_bid"] = block_id
+            block_id = "mm_bid"
+        self.block_id = data[block_id]
+        data = data.set_index(unique_id)
 
-    series = pd.Series(results_list, index=gdf.index)
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = row[unique_id]
+            vicinity = data.loc[neighbours]
 
-    print("Blocks calculated.")
-    return series
+            if weighted is True:
+                results_list.append(
+                    len(set(list(vicinity[block_id]))) / sum(vicinity.geometry.area)
+                )
+            elif weighted is False:
+                results_list.append(len(set(list(vicinity[block_id]))))
+            else:
+                raise ValueError("Attribute 'weighted' needs to be True or False.")
+
+        self.bc = pd.Series(results_list, index=gdf.index)
 
 
-def reached(
-    left, right, left_id, right_id, spatial_weights=None, mode="count", values=None
-):
+class Reached:
     """
     Calculates the number of objects reached within topological steps on street network
 
@@ -347,90 +401,105 @@ def reached(
     values : str (default None)
         the name of the objects dataframe column with values used for calculations
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    r : Series
+        Series containing resulting values
+    left : GeoDataFrame
+        original left GeoDataFrame
+    right : GeoDataFrame
+        original right GeoDataFrame
+    left_id : Series
+        Series containing used left ID
+    right_id : Series
+        Series containing used right ID
+    mode : str
+        mode of calculation
+    sw : libpysal.weights
+        spatial weights matrix (if set)
 
     Examples
     --------
-    >>> streets_df['reached_buildings'] = mm.reached(streets_df, buildings_df, 'uID')
-    Calculating reached count...
-    Reached count calculated.
+    >>> streets_df['reached_buildings'] = mm.Reached(streets_df, buildings_df, 'uID').r
 
     """
-    # define empty list for results
-    results_list = []
 
-    print("Calculating reached {}...".format(mode))
+    def __init__(
+        self,
+        left,
+        right,
+        left_id,
+        right_id,
+        spatial_weights=None,
+        mode="count",
+        values=None,
+    ):
+        self.left = left
+        self.right = right
+        self.sw = spatial_weights
+        self.mode = mode
 
-    if not isinstance(right_id, str):
-        right = right.copy()
-        right["mm_id"] = right_id
-        right_id = "mm_id"
+        # define empty list for results
+        results_list = []
 
-    if not isinstance(left_id, str):
-        left = left.copy()
-        left["mm_lid"] = left_id
-        left_id = "mm_lid"
-
-    if mode == "count":
-        count = collections.Counter(right[right_id])
-
-    # iterating over rows one by one
-    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
-        if spatial_weights is None:
-            ids = [row[left_id]]
-        else:
-            neighbours = list(spatial_weights.neighbors[index])
-            neighbours.append(index)
-            ids = left.iloc[neighbours][left_id]
+        if not isinstance(right_id, str):
+            right = right.copy()
+            right["mm_id"] = right_id
+            right_id = "mm_id"
+        self.right_id = right[right_id]
+        if not isinstance(left_id, str):
+            left = left.copy()
+            left["mm_lid"] = left_id
+            left_id = "mm_lid"
+        self.left_id = left[left_id]
         if mode == "count":
-            counts = []
-            for nid in ids:
-                counts.append(count[nid])
-            results_list.append(sum(counts))
-        elif mode == "sum":
-            if values:
-                results_list.append(sum(right.loc[right[right_id].isin(ids)][values]))
+            count = collections.Counter(right[right_id])
+
+        # iterating over rows one by one
+        for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+            if spatial_weights is None:
+                ids = [row[left_id]]
             else:
-                results_list.append(
-                    sum(right.loc[right[right_id].isin(ids)].geometry.area)
-                )
-        elif mode == "mean":
-            if values:
-                results_list.append(
-                    np.nanmean(right.loc[right[right_id].isin(ids)][values])
-                )
-            else:
-                results_list.append(
-                    np.nanmean(right.loc[right[right_id].isin(ids)].geometry.area)
-                )
-        elif mode == "std":
-            if values:
-                results_list.append(
-                    np.nanstd(right.loc[right[right_id].isin(ids)][values])
-                )
-            else:
-                results_list.append(
-                    np.nanstd(right.loc[right[right_id].isin(ids)].geometry.area)
-                )
+                neighbours = list(spatial_weights.neighbors[index])
+                neighbours.append(index)
+                ids = left.iloc[neighbours][left_id]
+            if mode == "count":
+                counts = []
+                for nid in ids:
+                    counts.append(count[nid])
+                results_list.append(sum(counts))
+            elif mode == "sum":
+                if values:
+                    results_list.append(
+                        sum(right.loc[right[right_id].isin(ids)][values])
+                    )
+                else:
+                    results_list.append(
+                        sum(right.loc[right[right_id].isin(ids)].geometry.area)
+                    )
+            elif mode == "mean":
+                if values:
+                    results_list.append(
+                        np.nanmean(right.loc[right[right_id].isin(ids)][values])
+                    )
+                else:
+                    results_list.append(
+                        np.nanmean(right.loc[right[right_id].isin(ids)].geometry.area)
+                    )
+            elif mode == "std":
+                if values:
+                    results_list.append(
+                        np.nanstd(right.loc[right[right_id].isin(ids)][values])
+                    )
+                else:
+                    results_list.append(
+                        np.nanstd(right.loc[right[right_id].isin(ids)].geometry.area)
+                    )
 
-    series = pd.Series(results_list, index=left.index)
-
-    print("Reached {} calculated.".format(mode))
-    return series
+        self.r = pd.Series(results_list, index=left.index)
 
 
-def node_density(
-    left,
-    right,
-    spatial_weights,
-    weighted=False,
-    node_degree=None,
-    node_start="node_start",
-    node_end="node_end",
-):
+class NodeDensity:
     """
     Calculate the density of nodes within topological steps on street network defined in spatial_weights.
 
@@ -446,21 +515,36 @@ def node_density(
         GeoDataFrame containing nodes of street network
     right : GeoDataFrame
         GeoDataFrame containing edges of street network
-    spatial_weights : libpysal.weights, optional
+    spatial_weights : libpysal.weights
         spatial weights matrix capturing relationship between nodes within set topological distance
-    weighted : bool
+    weighted : bool (default False)
         if True density will take into account node degree as k-1
-    node_degree : str
-        name of the column of left gdf containing node degree
+    node_degree : str (optional)
+        name of the column of left gdf containing node degree. Used if weighted=True
     node_start : str (default 'node_start')
         name of the column of right gdf containing id of starting node
     node_end : str (default 'node_end')
         name of the column of right gdf containing id of ending node
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    nd : Series
+        Series containing resulting values
+    left : GeoDataFrame
+        original left GeoDataFrame
+    right : GeoDataFrame
+        original right GeoDataFrame
+    node_start : Series
+        Series containing used ids of starting node
+    node_end : Series
+        Series containing used ids of ending node
+    sw : libpysal.weights
+        spatial weights matrix
+    weighted : bool
+        used weighted value
+    node_degree : Series
+        Series containing used node degree values
+
 
     References
     ---------
@@ -469,43 +553,56 @@ def node_density(
 
     Examples
     --------
-    >>> nodes['density'] = mm.node_density(nodes, edges, sw)
-    Calculating node density...
-    Node density calculated.
+    >>> nodes['density'] = mm.NodeDensity(nodes, edges, sw).nd
 
     """
-    # define empty list for results
-    results_list = []
 
-    print("Calculating node density...")
-
-    # iterating over rows one by one
-    for index, row in tqdm(left.iterrows(), total=left.shape[0]):
-
-        neighbours = list(spatial_weights.neighbors[index])
-        neighbours.append(index)
+    def __init__(
+        self,
+        left,
+        right,
+        spatial_weights,
+        weighted=False,
+        node_degree=None,
+        node_start="node_start",
+        node_end="node_end",
+    ):
+        self.left = left
+        self.right = right
+        self.sw = spatial_weights
+        self.weighted = weighted
         if weighted:
-            neighbour_nodes = left.iloc[neighbours]
-            number_nodes = sum(neighbour_nodes[node_degree] - 1)
-        else:
-            number_nodes = len(neighbours)
+            self.node_degree = left[node_degree]
+        self.node_start = right[node_start]
+        self.node_end = right[node_end]
+        # define empty list for results
+        results_list = []
 
-        edg = right.loc[right["node_start"].isin(neighbours)].loc[
-            right["node_end"].isin(neighbours)
-        ]
-        length = sum(edg.geometry.length)
+        # iterating over rows one by one
+        for index, row in tqdm(left.iterrows(), total=left.shape[0]):
 
-        if length > 0:
-            results_list.append(number_nodes / length)
-        else:
-            results_list.append(0)
+            neighbours = list(spatial_weights.neighbors[index])
+            neighbours.append(index)
+            if weighted:
+                neighbour_nodes = left.iloc[neighbours]
+                number_nodes = sum(neighbour_nodes[node_degree] - 1)
+            else:
+                number_nodes = len(neighbours)
 
-    series = pd.Series(results_list, index=left.index)
-    print("Node density calculated.")
-    return series
+            edg = right.loc[right["node_start"].isin(neighbours)].loc[
+                right["node_end"].isin(neighbours)
+            ]
+            length = sum(edg.geometry.length)
+
+            if length > 0:
+                results_list.append(number_nodes / length)
+            else:
+                results_list.append(0)
+
+        self.nd = pd.Series(results_list, index=left.index)
 
 
-def density(gdf, values, spatial_weights, unique_id, areas=None):
+class Density:
     """
     Calculate the gross density
 
@@ -522,14 +619,24 @@ def density(gdf, values, spatial_weights, unique_id, areas=None):
         spatial weights matrix
     unique_id : str
         name of the column with unique id used as spatial_weights index
-    areas :  str, list, np.array, pd.Series
+    areas :  str, list, np.array, pd.Series (optional)
         the name of the dataframe column, np.array, or pd.Series where is stored area value. If None,
         gdf.geometry.area will be used.
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    d : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : Series
+        Series containing used values
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
+    areas : Series
+        Series containing used area values
 
     References
     ---------
@@ -538,39 +645,44 @@ def density(gdf, values, spatial_weights, unique_id, areas=None):
 
     Examples
     --------
-    >>> tessellation_df['floor_area_dens'] = mm.density(tessellation_df, 'floor_area', sw, 'uID')
-    Calculating gross density...
-    Gross density calculated.
+    >>> tessellation_df['floor_area_dens'] = mm.Density(tessellation_df, 'floor_area', sw, 'uID').d
     """
-    # define empty list for results
-    results_list = []
-    gdf = gdf.copy()
 
-    print("Calculating gross density...")
-    if values is not None:
-        if not isinstance(values, str):
-            gdf["mm_v"] = values
-            values = "mm_v"
-    if areas is not None:
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
-    # iterating over rows one by one
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
-        if neighbours:
-            neighbours.append(row[unique_id])
-        else:
-            neighbours = row[unique_id]
-        subset = gdf.loc[gdf[unique_id].isin(neighbours)]
-        values_list = subset[values]
+    def __init__(self, gdf, values, spatial_weights, unique_id, areas=None):
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+
+        # define empty list for results
+        results_list = []
+        data = gdf.copy()
+
+        if values is not None:
+            if not isinstance(values, str):
+                data["mm_v"] = values
+                values = "mm_v"
+        self.values = data[values]
         if areas is not None:
-            areas_list = subset[areas]
+            if not isinstance(areas, str):
+                data["mm_a"] = areas
+                areas = "mm_a"
         else:
-            areas_list = subset.geometry.area
+            data["mm_a"] = data.geometry.area
+            areas = "mm_a"
+        self.areas = data[areas]
 
-        results_list.append(sum(values_list) / sum(areas_list))
+        data = data.set_index(unique_id)
+        # iterating over rows one by one
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = index
+            subset = data.loc[neighbours]
+            values_list = subset[values]
+            areas_list = subset[areas]
 
-    series = pd.Series(results_list, index=gdf.index)
-    print("Gross density calculated.")
-    return series
+            results_list.append(sum(values_list) / sum(areas_list))
+
+        self.d = pd.Series(results_list, index=gdf.index)

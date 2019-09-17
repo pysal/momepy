@@ -4,13 +4,15 @@
 # diversity.py
 # definitons of diversity characters
 
-from tqdm import tqdm  # progress bar
+import numpy as np
 import pandas as pd
 import scipy as sp
-import numpy as np
+from tqdm import tqdm  # progress bar
+
+__all__ = ["Range", "Theil", "Simpson", "Gini"]
 
 
-def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
+class Range:
     """
     Calculates the range of values within neighbours defined in `spatial_weights`.
 
@@ -35,10 +37,22 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
     **kwargs : keyword arguments
         optional arguments for `scipy.stats.iqr`
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    r : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : Series
+        Series containing used values
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
+    rng : tuple
+        range
+    kwargs : dict
+        kwargs
 
     References
     ----------
@@ -48,40 +62,43 @@ def rng(gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_IQR_3steps'] = mm.rng(tessellation_df, 'area', sw, 'uID', rng=(25, 75))
-    Calculating range...
+    >>> tessellation_df['area_IQR_3steps'] = mm.Range(tessellation_df, 'area', sw, 'uID', rng=(25, 75)).r
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
-    Range calculated.
 
 
     """
-    # define empty list for results
-    results_list = []
-    gdf = gdf.copy()
-    print("Calculating range...")
 
-    if values is not None:
-        if not isinstance(values, str):
-            gdf["mm_v"] = values
-            values = "mm_v"
+    def __init__(self, gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+        self.rng = rng
+        self.kwargs = kwargs
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
-        if neighbours:
-            neighbours.append(row[unique_id])
-        else:
-            neighbours = [row[unique_id]]
-        values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
+        data = gdf.copy()
+        if values is not None:
+            if not isinstance(values, str):
+                data["mm_v"] = values
+                values = "mm_v"
+        self.values = data[values]
 
-        results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
+        data = data.set_index(unique_id)
 
-    series = pd.Series(results_list, index=gdf.index)
+        results_list = []
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = [index]
 
-    print("Range calculated.")
-    return series
+            values_list = data.loc[neighbours][values]
+            results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
+
+        self.r = pd.Series(results_list, index=gdf.index)
 
 
-def theil(gdf, values, spatial_weights, unique_id, rng=None):
+class Theil:
     """
     Calculates the Theil measure of inequality of values within neighbours defined in `spatial_weights`.
 
@@ -104,66 +121,71 @@ def theil(gdf, values, spatial_weights, unique_id, rng=None):
         Percentiles over which to compute the range. Each must be
         between 0 and 100, inclusive. The order of the elements is not important.
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    t : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : Series
+        Series containing used values
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
+    rng : tuple
+        range
 
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Theil'] = mm.theil(tessellation_df, 'area', sw, 'uID')
-    Calculating Theil index...
+    >>> tessellation_df['area_Theil'] = mm.Theil(tessellation_df, 'area', sw, 'uID').t
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
-    Theil index calculated.
     """
-    try:
-        from inequality.theil import Theil
-    except ImportError:
+
+    def __init__(self, gdf, values, spatial_weights, unique_id, rng=None):
         try:
-            from pysal.explore.inequality.theil import Theil
+            from inequality.theil import Theil
         except ImportError:
-            raise ImportError("The 'inequality' or 'pysal' package is required.")
+            try:
+                from pysal.explore.inequality.theil import Theil
+            except ImportError:
+                raise ImportError("The 'inequality' or 'pysal' package is required.")
 
-    # define empty list for results
-    results_list = []
-    gdf = gdf.copy()
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+        self.rng = rng
 
-    print("Calculating Theil index...")
+        data = gdf.copy()
+        if values is not None:
+            if not isinstance(values, str):
+                data["mm_v"] = values
+                values = "mm_v"
+        self.values = data[values]
 
-    if values is not None:
-        if not isinstance(values, str):
-            gdf["mm_v"] = values
-            values = "mm_v"
+        data = data.set_index(unique_id)
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
-        if neighbours:
-            neighbours.append(row[unique_id])
-        else:
-            neighbours = [row[unique_id]]
-        values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
+        results_list = []
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = [index]
 
-        if rng:
-            from momepy import limit_range
+            values_list = data.loc[neighbours][values]
 
-            values_list = limit_range(values_list.tolist(), rng=rng)
-        results_list.append(Theil(values_list).T)
+            if rng:
+                from momepy import limit_range
 
-    series = pd.Series(results_list, index=gdf.index)
+                values_list = limit_range(values_list, rng=rng)
+            results_list.append(Theil(values_list).T)
 
-    print("Theil index calculated.")
-    return series
+        self.t = pd.Series(results_list, index=gdf.index)
 
 
-def simpson(
-    gdf,
-    values,
-    spatial_weights,
-    unique_id,
-    binning="HeadTailBreaks",
-    **classification_kwds
-):
+class Simpson:
     """
     Calculates the Simpson\'s diversity index of values within neighbours defined in `spatial_weights`.
 
@@ -196,10 +218,22 @@ def simpson(
         For details see mapclassify documentation:
         https://pysal.org/mapclassify
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    s : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : Series
+        Series containing used values
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
+    binning : str
+        binning
+    classification_kwds : dict
+        classification_kwds
 
     References
     ----------
@@ -209,13 +243,67 @@ def simpson(
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Simpson'] = mm.simpson(tessellation_df, 'area', sw, 'uID')
-    Calculating Simpson's diversity index...
+    >>> tessellation_df['area_Simpson'] = mm.Simpson(tessellation_df, 'area', sw, 'uID').s
     100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
-    Simpson's diversity index calculated.
     """
 
-    def _simpson_di(data):
+    def __init__(
+        self,
+        gdf,
+        values,
+        spatial_weights,
+        unique_id,
+        binning="HeadTailBreaks",
+        **classification_kwds
+    ):
+        try:
+            import mapclassify.classifiers as classifiers
+        except ImportError:
+            try:
+                import pysal.viz.mapclassify.classifiers as classifiers
+            except ImportError:
+                raise ImportError("The 'mapclassify' or 'pysal' package is required")
+
+        schemes = {}
+        for classifier in classifiers.CLASSIFIERS:
+            schemes[classifier.lower()] = getattr(classifiers, classifier)
+        binning = binning.lower()
+        if binning not in schemes:
+            raise ValueError(
+                "Invalid binning. Binning must be in the" " set: %r" % schemes.keys()
+            )
+
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+        self.binning = binning
+        self.classification_kwds = classification_kwds
+
+        data = gdf.copy()
+        if values is not None:
+            if not isinstance(values, str):
+                data["mm_v"] = values
+                values = "mm_v"
+        self.values = data[values]
+
+        bins = schemes[binning](data[values], **classification_kwds).bins
+        data = data.set_index(unique_id)
+        results_list = []
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+            else:
+                neighbours = [index]
+            values_list = data.loc[neighbours][values]
+
+            sample_bins = classifiers.UserDefined(values_list, bins)
+            counts = dict(zip(bins, sample_bins.counts))
+            results_list.append(self._simpson_di(counts))
+
+        self.s = pd.Series(results_list, index=gdf.index)
+
+    def _simpson_di(self, data):
 
         """ Given a hash { 'species': count } , returns the Simpson Diversity Index
 
@@ -235,54 +323,8 @@ def simpson(
 
         return sum(p(n, N) ** 2 for n in data.values() if n != 0)
 
-    try:
-        import mapclassify.classifiers as classifiers
-    except ImportError:
-        try:
-            import pysal.viz.mapclassify.classifiers as classifiers
-        except ImportError:
-            raise ImportError("The 'mapclassify' or 'pysal' package is required")
 
-    schemes = {}
-    for classifier in classifiers.CLASSIFIERS:
-        schemes[classifier.lower()] = getattr(classifiers, classifier)
-    binning = binning.lower()
-    if binning not in schemes:
-        raise ValueError(
-            "Invalid binning. Binning must be in the" " set: %r" % schemes.keys()
-        )
-
-    # define empty list for results
-    results_list = []
-    gdf = gdf.copy()
-    print("Calculating Simpson's diversity index...")
-
-    if values is not None:
-        if not isinstance(values, str):
-            gdf["mm_v"] = values
-            values = "mm_v"
-
-    bins = schemes[binning](gdf[values], **classification_kwds).bins
-
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
-        if neighbours:
-            neighbours.append(row[unique_id])
-        else:
-            neighbours = [row[unique_id]]
-        values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values]
-
-        sample_bins = classifiers.UserDefined(values_list, bins)
-        counts = dict(zip(bins, sample_bins.counts))
-        results_list.append(_simpson_di(counts))
-
-    series = pd.Series(results_list, index=gdf.index)
-
-    print("Simpson's diversity index calculated.")
-    return series
-
-
-def gini(gdf, values, spatial_weights, unique_id, rng=None):
+class Gini:
     """
     Calculates the Gini index of values within neighbours defined in `spatial_weights`.
 
@@ -302,51 +344,71 @@ def gini(gdf, values, spatial_weights, unique_id, rng=None):
         Percentiles over which to compute the range. Each must be
         between 0 and 100, inclusive. The order of the elements is not important.
 
-    Returns
-    -------
-    Series
-        Series containing resulting values.
+    Attributes
+    ----------
+    g : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : Series
+        Series containing used values
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
+    rng : tuple
+        range
 
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Gini'] = mm.gini(tessellation_df, 'area', sw, 'uID')
-    Calculating Gini index...
+    >>> tessellation_df['area_Gini'] = mm.Gini(tessellation_df, 'area', sw, 'uID').g
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
-    Gini index calculated.
     """
-    try:
-        from inequality.gini import Gini
-    except ImportError:
+
+    def __init__(self, gdf, values, spatial_weights, unique_id, rng=None):
         try:
-            from pysal.explore.inequality.gini import Gini
+            from inequality.gini import Gini
         except ImportError:
-            raise ImportError("The 'inequality' or 'pysal' package is required.")
-    # define empty list for results
-    results_list = []
-    gdf = gdf.copy()
-    if gdf[values].min() < 0:
-        raise ValueError(
-            "Values contain negative numbers. Normalise data before"
-            "using momepy.gini."
-        )
-    print("Calculating Gini index...")
+            try:
+                from pysal.explore.inequality.gini import Gini
+            except ImportError:
+                raise ImportError("The 'inequality' or 'pysal' package is required.")
 
-    for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-        neighbours = spatial_weights.neighbors[row[unique_id]].copy()
-        if neighbours:
-            neighbours.append(row[unique_id])
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+        self.rng = rng
 
-            values_list = gdf.loc[gdf[unique_id].isin(neighbours)][values].values
+        data = gdf.copy()
+        if values is not None:
+            if not isinstance(values, str):
+                data["mm_v"] = values
+                values = "mm_v"
+        self.values = data[values]
 
-            if rng:
-                from momepy import limit_range
+        if self.values.min() < 0:
+            raise ValueError(
+                "Values contain negative numbers. Normalise data before"
+                "using momepy.Gini."
+            )
 
-                values_list = np.array(limit_range(values_list, rng=rng))
-            results_list.append(Gini(values_list).g)
-        else:
-            results_list.append(0)
-    series = pd.Series(results_list, index=gdf.index)
+        data = data.set_index(unique_id)
 
-    print("Gini index calculated.")
-    return series
+        results_list = []
+        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            neighbours = spatial_weights.neighbors[index].copy()
+            if neighbours:
+                neighbours.append(index)
+
+                values_list = data.loc[neighbours][values].values
+
+                if rng:
+                    from momepy import limit_range
+
+                    values_list = np.array(limit_range(values_list, rng=rng))
+                results_list.append(Gini(values_list).g)
+            else:
+                results_list.append(0)
+
+        self.g = pd.Series(results_list, index=gdf.index)

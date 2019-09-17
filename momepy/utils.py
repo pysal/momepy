@@ -1,17 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import math
+import operator
+
 import geopandas as gpd
 import libpysal
-from shapely.geometry import Point, LineString
 import networkx as nx
 import numpy as np
-from tqdm import tqdm
-import operator
 import shapely
-import math
+from shapely.geometry import LineString, Point
+from tqdm import tqdm
 
-from .shape import circular_compactness
+from .shape import CircularCompactness
+
+__all__ = [
+    "unique_id",
+    "sw_high",
+    "gdf_to_nx",
+    "nx_to_gdf",
+    "limit_range",
+    "preprocess",
+    "network_false_nodes",
+    "snap_street_network_edge",
+]
 
 
 def unique_id(objects):
@@ -343,10 +355,8 @@ def limit_range(vals, rng):
         rng = sorted(rng)
         lower = np.percentile(vals, rng[0], interpolation="nearest")
         higher = np.percentile(vals, rng[1], interpolation="nearest")
-        for x in vals:
-            if x >= lower and x <= higher:
-                limited.append(x)
-        return limited
+        limited = [x for x in vals if x >= lower and x <= higher]
+        return np.array(limited)
     return vals
 
 
@@ -399,7 +409,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
         blg["neighbors"] = sw.neighbors
         blg["neighbors"] = blg["neighbors"].map(sw.neighbors)
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
-        blg["circu"] = circular_compactness(blg)
+        blg["circu"] = CircularCompactness(blg).cc
 
         # idetify those smaller than x with only one neighbor and attaches it to it.
         join = {}
@@ -569,7 +579,7 @@ def network_false_nodes(gdf):
 
     geoms_gdf = gpd.GeoDataFrame(geometry=geoms)
     geoms_gdf.crs = streets.crs
-    streets = geoms_gdf
+    streets = geoms_gdf.explode().reset_index(drop=True)
     return streets
 
 

@@ -1,9 +1,8 @@
-import momepy as mm
 import geopandas as gpd
-import numpy as np
 import libpysal
+import momepy as mm
 import networkx
-
+import numpy as np
 import pytest
 
 
@@ -73,9 +72,9 @@ class TestUtils:
             mm.nx_to_gdf(G)
 
     def test_limit_range(self):
-        assert mm.limit_range(range(10), rng=(25, 75)) == [2, 3, 4, 5, 6, 7]
-        assert mm.limit_range(range(10), rng=(10, 90)) == [1, 2, 3, 4, 5, 6, 7, 8]
-        assert mm.limit_range([0, 1], rng=(25, 75)) == [0, 1]
+        assert list(mm.limit_range(range(10), rng=(25, 75))) == [2, 3, 4, 5, 6, 7]
+        assert list(mm.limit_range(range(10), rng=(10, 90))) == [1, 2, 3, 4, 5, 6, 7, 8]
+        assert list(mm.limit_range([0, 1], rng=(25, 75))) == [0, 1]
 
     def test_preprocess(self):
         test_file_path2 = mm.datasets.get_path("tests")
