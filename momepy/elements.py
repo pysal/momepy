@@ -9,7 +9,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import shapely
-from libpysal.weights import Queen
+import libpysal
 from scipy.spatial import Voronoi
 from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.wkt import loads
@@ -502,8 +502,7 @@ class Blocks:
         self.id_name = id_name
         self.unique_id = unique_id
 
-        cells_copy = tessellation.copy()
-        cells_copy = cells_copy[[unique_id, "geometry"]]
+        cells_copy = tessellation[[unique_id, "geometry"]].copy()
 
         print("Buffering streets...")
         street_buff = edges.copy()
@@ -513,26 +512,22 @@ class Blocks:
         streets_index = street_buff.sindex
 
         print("Difference...")
-        cells_geom = cells_copy.geometry
         new_geom = []
 
-        for ix, cell in tqdm(cells_geom.iteritems(), total=cells_geom.shape[0]):
-            # find approximate matches with r-tree, then precise matches from those approximate ones
+        for ix, cell in tqdm(
+            cells_copy.geometry.iteritems(), total=cells_copy.shape[0]
+        ):
             possible_matches_index = list(streets_index.intersection(cell.bounds))
             possible_matches = street_buff.iloc[possible_matches_index]
             new_geom.append(cell.difference(possible_matches.geometry.unary_union))
 
-        single_geom = []
         print("Defining adjacency...")
-        for p in new_geom:
-            if p.type == "MultiPolygon":
-                for polygon in p:
-                    single_geom.append(polygon)
-            else:
-                single_geom.append(p)
+        blocks_gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(new_geom))
+        blocks_gdf = blocks_gdf.explode().reset_index(drop=True)
 
-        blocks_gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(single_geom))
-        spatial_weights = Queen.from_dataframe(blocks_gdf, silence_warnings=True)
+        spatial_weights = libpysal.weights.Queen.from_dataframe(
+            blocks_gdf, silence_warnings=True
+        )
 
         patches = {}
         jID = 1
@@ -599,8 +594,7 @@ class Blocks:
         blocks["geometry"] = blocks.exterior
         blocks[id_name] = range(len(blocks))
 
-        for idx, row in tqdm(blocks.iterrows(), total=blocks.shape[0]):
-            blocks.loc[idx, "geometry"] = Polygon(row["geometry"])
+        blocks["geometry"] = blocks.apply(lambda row: Polygon(row.geometry), axis=1)
 
         # if polygon is within another one, delete it
         sindex = blocks.sindex
