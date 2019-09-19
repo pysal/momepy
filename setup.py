@@ -21,7 +21,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="momepy",
-    version="0.1rc2",
+    version="0.1rc3",
     description="Urban Morphology Measuring Toolkit",
     long_description=long_description,
     long_description_content_type="text/markdown",
