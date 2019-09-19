@@ -133,7 +133,7 @@ class Theil:
         spatial weights matrix
     id : Series
         Series containing used unique ID
-    rng : tuple
+    rng : tuple, optional
         range
 
     Examples
