@@ -193,6 +193,8 @@ def gdf_to_nx(gdf_network, approach="primal", length="mm_len"):
 
     """
     gdf_network = gdf_network.copy()
+    if "key" in gdf_network.columns:
+        gdf_network.rename(columns={"key": "__key"}, inplace=True)
     # generate graph from GeoDataFrame of LineStrings
     net = nx.MultiGraph()
     net.graph["crs"] = gdf_network.crs
