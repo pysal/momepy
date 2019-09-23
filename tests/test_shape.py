@@ -4,7 +4,7 @@ import geopandas as gpd
 import momepy as mm
 import numpy as np
 from momepy.shape import _circle_area
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
 
 
 class TestShape:
@@ -211,3 +211,8 @@ class TestShape:
         check = 26.32772969906327
         assert self.df_buildings["cwa"][0] == check
         assert self.df_buildings["cwa_array"][0] == check
+
+    def test__circle_area(self):
+        poly = Polygon([(0, 1, 0), (1, 1, 0), (2, 4, 0)])
+        check = _circle_area(poly.exterior.coords)
+        assert check == 10.210176124166827

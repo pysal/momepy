@@ -401,6 +401,8 @@ def _cross_product(x0, y0, x1, y1, x2, y2):
 
 # calculate the area of circumcircle
 def _circle_area(points):
+    if len(points[0]) == 3:
+        points = [x[:2] for x in points]
     circ = _make_circle(points)
     return math.pi * circ[2] ** 2
 
