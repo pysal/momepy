@@ -259,6 +259,7 @@ def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
 
         if spatial_weights is True:
             W = libpysal.weights.W.from_networkx(net)
+            W.transform = "b"
 
     if lines is True:
         gdf_edges = _lines_to_gdf(net, lines, points, nodeID)
