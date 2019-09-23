@@ -167,7 +167,7 @@ def _generate_dual(G, gdf_network, fields):
                 p3 = gdf_network.iloc[n]["geometry"].coords[-1]
                 points = [p0, p1, p2, p3]
                 shared = [x for x in points if points.count(x) > 1]
-                if shared:  # fix for non-planar graph
+                if len(shared) == 1:  # fix for non-planar graph
                     remaining = [e for e in points if e not in [shared[0]]]
                     angle = _angle(remaining[0], shared[0], remaining[1])
                     G.add_edge(start, end, angle=angle)
