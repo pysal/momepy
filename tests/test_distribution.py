@@ -16,7 +16,7 @@ class TestDistribution:
         self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height").volume
         self.df_streets["nID"] = mm.unique_id(self.df_streets)
         self.df_buildings["nID"] = mm.get_network_id(
-            self.df_buildings, self.df_streets, "uID", "nID"
+            self.df_buildings, self.df_streets, "nID"
         )
 
     def test_Orientation(self):
