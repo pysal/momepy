@@ -411,7 +411,7 @@ class AverageCharacter:
             if rng:
                 from momepy import limit_range
 
-                values_list = limit_range(values_list.tolist(), rng=rng)
+                values_list = limit_range(values_list, rng=rng)
             if mode == "mean":
                 results_list.append(np.mean(values_list))
             elif mode == "median":

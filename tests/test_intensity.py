@@ -19,7 +19,7 @@ class TestIntensity:
         self.df_buildings["area"] = self.df_buildings.geometry.area
         self.df_buildings["fl_area"] = mm.FloorArea(self.df_buildings, "height").fa
         self.df_buildings["nID"] = mm.get_network_id(
-            self.df_buildings, self.df_streets, "uID", "nID"
+            self.df_buildings, self.df_streets, "nID"
         )
         blocks = mm.Blocks(
             self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
