@@ -98,12 +98,14 @@ graph
 
    betweenness_centrality
    cds_length
+   closeness_centrality
    clustering
    cyclomatic
    edge_node_ratio
    gamma
-   global_closeness_centrality
+   local_betweenness_centrality
    local_closeness_centrality
+   local_straightness_centrality
    mean_node_degree
    mean_node_dist
    mean_nodes
