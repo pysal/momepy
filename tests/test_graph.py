@@ -80,8 +80,8 @@ class TestGraph:
         check2 = 0.0015544070362478774
         assert net2.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check2
 
-    def test_global_closeness_centrality(self):
-        net = mm.global_closeness_centrality(self.network, weight="mm_len")
+    def test_closeness_centrality(self):
+        net = mm.closeness_centrality(self.network, weight="mm_len")
         check = 0.0016066095164175716
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
 
@@ -108,6 +108,18 @@ class TestGraph:
             == ang_b
         )
 
+    def test_local_betweenness_centrality(self):
+        net = mm.local_betweenness_centrality(self.network)
+        check = 53.74999999999999
+        assert net.nodes[(1603650.450422848, 6464368.600601688)]["betweenness"] == check
+        net2 = mm.local_betweenness_centrality(
+            self.network, weight="mm_len", normalized=True
+        )
+        check2 = 0.1693121693121693
+        assert (
+            net2.nodes[(1603650.450422848, 6464368.600601688)]["betweenness"] == check2
+        )
+
     def test_straightness_centrality(self):
         net = mm.straightness_centrality(self.network)
         net2 = mm.straightness_centrality(
@@ -119,6 +131,13 @@ class TestGraph:
             net.nodes[(1603650.450422848, 6464368.600601688)]["straightness"] == check
         )
         assert net2.nodes[(1603650.450422848, 6464368.600601688)]["nonnorm"] == nonnorm
+
+    def test_local_straightness_centrality(self):
+        net = mm.local_straightness_centrality(self.network)
+        check = 0.8614261420539604
+        assert (
+            net.nodes[(1603650.450422848, 6464368.600601688)]["straightness"] == check
+        )
 
     def test_mean_nodes(self):
         net = mm.straightness_centrality(self.network)
