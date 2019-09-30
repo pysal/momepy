@@ -808,11 +808,11 @@ def betweenness_centrality(
 
     where `V` is the set of nodes, :math:`\\sigma(s, t)` is the number of
     shortest :math:`(s, t)`-paths,  and :math:`\\sigma(s, t|v)` is the number of
-    those paths  passing through some  node $v$ other than `s, t`.
+    those paths  passing through some  node `v` other than `s, t`.
     If `s = t`, :math:`\\sigma(s, t) = 1`, and if `v` in `{s, t}``,
     :math:`\\sigma(s, t|v) = 0`.
 
-    Betweenness centrality of an edge $e$ is the sum of the
+    Betweenness centrality of an edge `e` is the sum of the
     fraction of all-pairs shortest paths that pass through `e`
 
     .. math::
@@ -913,7 +913,7 @@ def local_betweenness_centrality(
 
     where `V` is the set of nodes, :math:`\\sigma(s, t)` is the number of
     shortest :math:`(s, t)`-paths,  and :math:`\\sigma(s, t|v)` is the number of
-    those paths  passing through some  node $v$ other than `s, t`.
+    those paths  passing through some  node `v` other than `s, t`.
     If `s = t`, :math:`\\sigma(s, t) = 1`, and if `v` in `{s, t}``,
     :math:`\\sigma(s, t|v) = 0`.
 
