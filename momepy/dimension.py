@@ -330,7 +330,7 @@ class AverageCharacter:
     Calculates the average of a character within k steps of morphological tessellation
 
     Average value of the character within k topological steps defined in spatial_weights.
-    Can be set to `mean`, `median` or `mode`.
+    Can be set to `mean`, `median` or `mode`. `mean` is defined as:
 
     .. math::
         \\frac{1}{n}\\left(\\sum_{i=1}^{n} value_{i}\\right)
@@ -780,9 +780,9 @@ class WeightedCharacter:
 
 class CoveredArea:
     """
-    Calculates the area covered by k steps of morphological tessellation
+    Calculates the area covered by neighbours
 
-    Total area covered within k topological steps defined in spatial_weights.
+    Total area covered by neighbours defined in spatial_weights and element itself.
 
     .. math::
 
@@ -790,7 +790,7 @@ class CoveredArea:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing morphological tessellation
+        GeoDataFrame containing Polygon geometry
     spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str

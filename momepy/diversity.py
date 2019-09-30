@@ -102,7 +102,7 @@ class Theil:
     """
     Calculates the Theil measure of inequality of values within neighbours defined in `spatial_weights`.
 
-    Uses `pysal.explore.inequality.theil.Theil` under the hood. Requires 'inequality' or 'pysal' package.
+    Uses `inequality.theil.Theil` under the hood. Requires 'inequality' or 'pysal' package.
 
     .. math::
 

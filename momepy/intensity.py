@@ -286,7 +286,7 @@ class BlocksCount:
     """
     Calculates the weighted number of blocks
 
-    Number of blocks within `k` topological steps defined in spatial_weights.
+    Number of blocks within neighbours defined in spatial_weights.
 
     .. math::
 
@@ -368,9 +368,9 @@ class BlocksCount:
 
 class Reached:
     """
-    Calculates the number of objects reached within topological steps on street network
+    Calculates the number of objects reached within neighbours on street network
 
-    Number of elements within topological steps defined in spatial_weights. If
+    Number of elements within neighbourhood defined in spatial_weights. If
     spatial_weights are None, it will assume topological distance 0 (element itself).
     If mode='area', returns sum of areas of reached elements. Requires unique_id
     of network assigned beforehand (e.g. using :py:func:`momepy.get_network_id`).
@@ -501,9 +501,9 @@ class Reached:
 
 class NodeDensity:
     """
-    Calculate the density of nodes within topological steps on street network defined in spatial_weights.
+    Calculate the density of nodes neighbours on street network defined in spatial_weights.
 
-    Calculated as number of nodes within k steps / cummulative length of street network within k steps.
+    Calculated as number of neighbouring nodes / cummulative length of street network withinn eighbours.
     node_start and node_end is standard output of :py:func:`momepy.nx_to_gdf` and is compulsory.
 
     .. math::
@@ -607,7 +607,7 @@ class Density:
     Calculate the gross density
 
     .. math::
-
+        \\frac{\\sum \\text {values}}{\\sum \\text {areas}}
 
     Parameters
     ----------
