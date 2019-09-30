@@ -13,6 +13,7 @@ dependencies:
     - matplotlib
     - rtree
     - osmnx
+    - pip
     - pip:
         - inequality
         - sphinxcontrib.bibtex

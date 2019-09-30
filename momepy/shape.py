@@ -849,7 +849,9 @@ class Squareness:
     Uses only external shape (shapely.geometry.exterior), courtyards are not included.
 
     .. math::
-        \\textit{mean deviation of all corners from 90 degrees}
+        \\mu=\\frac{\\sum_{i=1}^{N} d_{i}}{N}
+
+    where `d` is the deviation of angle of corner `i` from 90 degrees.
 
     Parameters
     ----------
@@ -1017,6 +1019,8 @@ class Elongation:
 
     .. math::
         {{p - \\sqrt{p^2 - 16a}} \\over {4}} \\over {{{p} \\over {2}} - {{p - \\sqrt{p^2 - 16a}} \\over {4}}}
+
+    where `a` is the area of the object and `p` its perimeter.
 
     Parameters
     ----------
@@ -1190,6 +1194,8 @@ class Linearity:
 
     .. math::
         \\frac{l_{euclidean}}{l_{segment}}
+
+    where `l` is the length of the LineString.
 
     Parameters
     ----------

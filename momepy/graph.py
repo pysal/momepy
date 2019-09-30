@@ -35,10 +35,7 @@ def node_degree(graph, name="degree"):
     """
     Calculates node degree for each node.
 
-    Wrapper around `networkx.degree()`
-
-    .. math::
-
+    Wrapper around `networkx.degree()`.
 
     Parameters
     ----------
@@ -83,6 +80,9 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
     attribute.
 
     .. math::
+        \\alpha=\\frac{e-v+1}{2 v-5}
+
+    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
 
 
     Parameters
@@ -130,8 +130,7 @@ def mean_node_dist(graph, name="meanlen", length="mm_len"):
     """
     Calculates mean distance to neighbouring nodes.
 
-    .. math::
-
+    Mean of values in `length` attribute.
 
     Parameters
     ----------
@@ -195,8 +194,6 @@ def cds_length(
     Subgraph is generated around each node within set radius. If distance=None,
     radius will define topological distance, otherwise it uses values in distance
     attribute.
-
-    .. math::
 
 
     Parameters
@@ -264,8 +261,6 @@ def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=
     radius will define topological distance, otherwise it uses values in distance
     attribute.
 
-    .. math::
-
 
     Parameters
     ----------
@@ -323,9 +318,6 @@ def proportion(
     Subgraph is generated around each node within set radius. If distance=None,
     radius will define topological distance, otherwise it uses values in distance
     attribute.
-
-    .. math::
-
 
     Parameters
     ----------
@@ -394,7 +386,9 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
     attribute.
 
     .. math::
+        \\alpha=e-v+1
 
+    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
 
     Parameters
     ----------
@@ -455,6 +449,9 @@ def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
     attribute.
 
     .. math::
+        \\alpha=e/v
+
+    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
 
 
     Parameters
@@ -518,6 +515,9 @@ def gamma(graph, radius=5, name="gamma", distance=None):
     attribute.
 
     .. math::
+        \\alpha=\\frac{e}{3(v-2)}
+
+    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
 
 
     Parameters
@@ -565,8 +565,6 @@ def clustering(graph, name="cluster"):
     Calculates the squares clustering coefficient for nodes.
 
     Wrapper around ``networkx.square_clustering``.
-
-    .. math::
 
 
     Parameters
@@ -689,9 +687,17 @@ def local_closeness_centrality(
 
     Subgraph is generated around each node within set radius. If distance=None,
     radius will define topological distance, otherwise it uses values in distance
-    attribute.
+    attribute. Based on networkx.closeness_centrality.
+
+    Local closeness centrality of a node `u` is the reciprocal of the
+    average shortest path distance to `u` over all `n-1` nodes within subgraph.
 
     .. math::
+
+        C(u) = \frac{n - 1}{\sum_{v=1}^{n-1} d(v, u)},
+
+    where `d(v, u)` is the shortest-path distance between `v` and `u`,
+    and `n` is the number of nodes that can reach `u`.
 
 
     Parameters
@@ -745,7 +751,15 @@ def closeness_centrality(graph, name="closeness", weight="mm_len", **kwargs):
 
     Wrapper around ``networkx.closeness_centrality``.
 
+    Closeness centrality of a node `u` is the reciprocal of the
+    average shortest path distance to `u` over all `n-1` nodes within reachable nodes.
+
     .. math::
+
+        C(u) = \\frac{n - 1}{\\sum_{v=1}^{n-1} d(v, u)},
+
+    where `d(v, u)` is the shortest-path distance between `v` and `u`,
+    and `n` is the number of nodes that can reach `u`.
 
 
     Parameters
@@ -783,7 +797,31 @@ def betweenness_centrality(
     """
     Calculates the shortest-path betweenness centrality for nodes.
 
+    Wrapper around ``networkx.betweenness_centrality`` or ``networkx.edge_betweenness_centrality``.
+
+    Betweenness centrality of a node $v$ is the sum of the
+    fraction of all-pairs shortest paths that pass through $v$
+
     .. math::
+
+       c_B(v) =\\sum_{s,t \\in V} \\frac{\\sigma(s, t|v)}{\\sigma(s, t)}
+
+    where $V$ is the set of nodes, $\\sigma(s, t)$ is the number of
+    shortest $(s, t)$-paths,  and $\\sigma(s, t|v)$ is the number of
+    those paths  passing through some  node $v$ other than $s, t$.
+    If $s = t$, $\\sigma(s, t) = 1$, and if $v \\in {s, t}$,
+    $\\sigma(s, t|v) = 0$.
+
+    Betweenness centrality of an edge $e$ is the sum of the
+    fraction of all-pairs shortest paths that pass through $e$
+
+    .. math::
+
+       c_B(e) =\\sum_{s,t \\in V} \\frac{\\sigma(s, t|e)}{\\sigma(s, t)}
+
+    where $V$ is the set of nodes, $\\sigma(s, t)$ is the number of
+    shortest $(s, t)$-paths, and $\\sigma(s, t|e)$ is the number of
+    those paths passing through edge $e$.
 
 
     Parameters
@@ -864,9 +902,20 @@ def local_betweenness_centrality(
 
     Subgraph is generated around each node within set radius. If distance=None,
     radius will define topological distance, otherwise it uses values in distance
-    attribute.
+    attribute. Based on ``networkx.betweenness_centrality``.
+
+    Betweenness centrality of a node $v$ is the sum of the
+    fraction of all-pairs shortest paths that pass through $v$
 
     .. math::
+
+       c_B(v) =\\sum_{s,t \\in V} \\frac{\\sigma(s, t|v)}{\\sigma(s, t)}
+
+    where $V$ is the set of nodes, $\\sigma(s, t)$ is the number of
+    shortest $(s, t)$-paths,  and $\\sigma(s, t|v)$ is the number of
+    those paths  passing through some  node $v$ other than $s, t$.
+    If $s = t$, $\\sigma(s, t) = 1$, and if $v \\in {s, t}$,
+    $\\sigma(s, t|v) = 0$.
 
 
     Parameters
@@ -958,7 +1007,10 @@ def straightness_centrality(
     Calculates the straightness centrality for nodes.
 
     .. math::
+        C_{S}(i)=\\frac{1}{n-1} \\sum_{j \\in V, j \\neq i} \\frac{d_{i j}^{E u}}{d_{i j}}
 
+    where math:`\\mathrm{d}^{\\mathrm{E} \\mathrm{u}}_{\\mathrm{ij}}` is the Euclidean distance
+    between nodes `i` and `j` along a straight line.
 
     Parameters
     ----------
@@ -1005,6 +1057,10 @@ def local_straightness_centrality(
     attribute.
 
     .. math::
+        C_{S}(i)=\\frac{1}{n-1} \\sum_{j \\in V, j \\neq i} \\frac{d_{i j}^{E u}}{d_{i j}}
+
+    where math:`\\mathrm{d}^{\\mathrm{E} \\mathrm{u}}_{\\mathrm{ij}}` is the Euclidean distance
+    between nodes `i` and `j` along a straight line.
 
 
     Parameters

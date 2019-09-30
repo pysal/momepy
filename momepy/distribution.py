@@ -121,7 +121,7 @@ class Orientation:
 
 class SharedWallsRatio:
     """
-    Calculate shared walls ratio
+    Calculate shared walls ratio of adjacent elements (typically buildings)
 
     .. math::
         \\textit{length of shared walls} \\over perimeter
@@ -563,7 +563,7 @@ class NeighborDistance:
 
 class MeanInterbuildingDistance:
     """
-    Calculate the mean interbuilding distance within x topological steps
+    Calculate the mean interbuilding distance
 
     Interbuilding distances are calculated between buildings on adjacent cells based on `spatial_weights`,
     while the extent is defined in `spatial_weights_higher`.
@@ -872,10 +872,10 @@ class BuildingAdjacency:
 
 class Neighbors:
     """
-    Calculate the number of topological neighbours of each object.
+    Calculate the number of neighbours captured by spatial_weights
 
-    Topological neighbours are defined by queen adjacency. If weighted=True, number of neighbours
-    will be divided by the perimeter of object, to return relative value.
+    If weighted=True, number of neighbours will be divided by the perimeter of object
+    to return relative value.
 
     .. math::
 

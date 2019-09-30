@@ -434,7 +434,7 @@ class Blocks:
     """
     Generate blocks based on buildings, tesselation and street network
 
-    Adds bID to buildings and tesselation.
+    Captures bID to buildings and tesselation as attributes.
 
     Parameters
     ----------
