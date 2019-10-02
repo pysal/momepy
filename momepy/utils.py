@@ -176,7 +176,7 @@ def _generate_dual(G, gdf_network, fields):
 
 def gdf_to_nx(gdf_network, approach="primal", length="mm_len"):
     """
-    Convert LineString GeoDataFrame to networkx.Graph
+    Convert LineString GeoDataFrame to networkx.MultiGraph
 
     Parameters
     ----------
