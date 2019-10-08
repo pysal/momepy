@@ -21,6 +21,11 @@ If you do not have `conda-forge`_ in your conda channels, you can add it using::
 
     conda config --add channels conda-forge
 
+To ensure that all dependencies will be installed from `conda-forge`_, we recommend
+using strict channel priority::
+
+    conda config --env --set channel_priority strict
+
 .. note::
 
     We strongly recommend to install everything from the *conda-forge* channel.
@@ -34,7 +39,11 @@ If you want to make sure, that everything will work as it should, you can create
 a new conda environment for momepy. Assuming we want to create a new environment
 called ``momepy_env``::
 
-    conda create -n momepy_env -c conda-forge -c defaults --override-channels python=3 momepy
+    conda create -n momepy_env
+    conda activate momepy_env
+    conda config --env --add channels conda-forge
+    conda config --env --set channel_priority strict
+    conda install momepy
 
 
 Install via pip
