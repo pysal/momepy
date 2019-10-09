@@ -1,6 +1,5 @@
 ---
-title: ‘momepy: Urban Morphology Measuring Toolkit’
-'Ryacas: A computer algebra system in R'
+title: 'momepy: Urban Morphology Measuring Toolkit'
 tags:
   - Python
   - urban morphology
@@ -10,7 +9,7 @@ tags:
 authors:
   - name: Martin Fleischmann
     orcid: 0000-0003-3319-3366
-    affiliation: "1"
+    affiliation: 1
 affiliations:
  - name: Department of Architecture, University of Strathclyde
    index: 1
