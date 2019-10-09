@@ -1,5 +1,6 @@
 ---
-title: 'momepy: Urban Morphology Measuring Toolkit'
+title: ‘momepy: Urban Morphology Measuring Toolkit’
+'Ryacas: A computer algebra system in R'
 tags:
   - Python
   - urban morphology
@@ -9,7 +10,7 @@ tags:
 authors:
   - name: Martin Fleischmann
     orcid: 0000-0003-3319-3366
-    affiliation: 1
+    affiliation: "1"
 affiliations:
  - name: Department of Architecture, University of Strathclyde
    index: 1
@@ -25,7 +26,7 @@ The morphometric characters implemented in momepy allow to conduct a cross-scale
 
 The six core modules of ``momepy``, represent six categories of urban morphometric characters: ``dimension``, ``shape``, spatial ``distribution``, ``intensity``, connectivity (``graph`` module), and ``diversity`` identified in the literature and ongoing research. These six modules together provide a wide range of algorithms measuring different aspects of urban form and are able to describe its complexity with a significant degree of precision.
 
-Moreover, the ‘elements module’ allows for generating morphological elements and provides a way of linking all relevant elements together using unique IDs based on their spatial proximity. This module provides a function to generate morphological tessellation of the built-up area (figure 1) based on the spatial configuration of building footprints using the Voronoi tessellation as implemented in SciPy [@SciPy:suv-1Mya], used within UMM as a proxy of a plot. This module also allows for generating tessellation-based urban blocks as a higher scale aggregation.
+Moreover, the ``elements`` module allows for generating morphological elements and provides a way of linking all relevant elements together using unique IDs based on their spatial proximity. This module provides a function to generate morphological tessellation of the built-up area (figure 1) based on the spatial configuration of building footprints using the Voronoi tessellation as implemented in SciPy [@SciPy:suv-1Mya], used within UMM as a proxy of a plot. This module also allows for generating tessellation-based urban blocks as a higher scale aggregation.
 
 The application of morphological tessellation and PySAL’s [@pysal2007] spatial weights as used within momepy enables the relational definition of location-based aggregation, allowing the consistent morphology-led definition of the vicinity of each element of the urban form [@Fleischmann:2019vq].  
 
@@ -33,7 +34,7 @@ The application of morphological tessellation and PySAL’s [@pysal2007] spatial
 
 Additionally, the ``utils`` module helps, among other others, to pre-process data, by cleaning either the topology of street networks or of ancillary structures from the building footprint data, both needed to eliminate possible error later in the analysis.
 
-Internally, ``momepy`` is built on the GeoPandas Python package [@kelsey_jordahl_2019_3463125], using its GeoSeries and GeoDataFrame objects to store and handle large amounts of geospatial information. Under the hood uses PySAL, mostly taking care of spatial weights matrices capturing the adjacency of elements of urban form. The graph module uses the capabilities of networkX [SciPyProceedings_11] for the analysis of urban street networks. Basic Python knowledge is required to use ``momepy``, but exemplar Jupyter notebooks should provide enough information to allow using momepy with a standard GIS knowledge only.
+Internally, ``momepy`` is built on the GeoPandas Python package [@kelsey_jordahl_2019_3463125], using its GeoSeries and GeoDataFrame objects to store and handle large amounts of geospatial information. Under the hood uses PySAL, mostly taking care of spatial weights matrices capturing the adjacency of elements of urban form. The graph module uses the capabilities of networkX [@SciPyProceedings_11] for the analysis of urban street networks. Basic Python knowledge is required to use ``momepy``, but exemplar Jupyter notebooks should provide enough information to allow using momepy with a standard GIS knowledge only.
 As momepy is part of Python geospatial stack of libraries, the recommended installation uses the community-led conda-forge channel of conda: ``conda install -c conda-forge momepy``. Eventually, ``pip install momepy`` is possible considering all dependency requirements are met.
 ``momepy``  is currently being used to measure the specific aspects of urban form that contribute to its resilience [@Feliciotti:2016vu], as part of *The Urban Form Resilience Project*, and to describe urban form using extensive number of morphometric characters (300+) aimed at recognition of homogenous areas as part of the doctoral research *The Urban Atlas: Developing tools and frameworks for quantitative analysis of urban form through Geographical Information Systems and big data*, both based at the University of Strathclyde, Glasgow. At the same time, ``momepy`` is being used as a tool for climate-induced risk assessment of Portuguese seashore streets, through a cooperation between the Universidade de Lisboa and the University of Strathclyde.
 
