@@ -117,7 +117,7 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
 
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
-            netx, n, radius=radius, undirected=True, distance=distance
+            netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _meshedness(
             sub
@@ -237,7 +237,7 @@ def cds_length(
 
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
-            netx, n, radius=radius, undirected=True, distance=distance
+            netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _cds_length(
             sub, mode=mode, length=length
@@ -291,7 +291,7 @@ def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=
 
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
-            netx, n, radius=radius, undirected=True, distance=distance
+            netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _mean_node_degree(sub, degree=degree)
 
@@ -356,7 +356,7 @@ def proportion(
 
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
-            netx, n, radius=radius, undirected=True, distance=distance
+            netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
         counts = _proportion(sub, degree=degree)
         if three:
@@ -422,7 +422,7 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
 
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
-            netx, n, radius=radius, undirected=True, distance=distance
+            netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _cyclomatic(
             sub
@@ -486,7 +486,7 @@ def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
 
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
-            netx, n, radius=radius, undirected=True, distance=distance
+            netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _edge_node_ratio(
             sub
@@ -553,7 +553,7 @@ def gamma(graph, radius=5, name="gamma", distance=None):
 
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
-            netx, n, radius=radius, undirected=True, distance=distance
+            netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _gamma(sub)
 
@@ -736,7 +736,7 @@ def local_closeness_centrality(
     lengraph = len(netx)
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
-            netx, n, radius=radius, undirected=True, distance=distance
+            netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _closeness_centrality(
             sub, n, length=weight, len_graph=lengraph
@@ -960,7 +960,7 @@ def local_betweenness_centrality(
 
     for n in tqdm(G, total=len(G)):
         sub = nx.ego_graph(
-            G, n, radius=radius, undirected=True, distance=distance
+            G, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = nx.betweenness_centrality_subset(
             G, sub.nodes(), sub.nodes(), weight=weight, normalized=normalized, **kwargs
@@ -1094,7 +1094,7 @@ def local_straightness_centrality(
     netx = graph.copy()
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
-            netx, n, radius=radius, undirected=True, distance=distance
+            netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _straightness_centrality(
             sub, weight=weight, normalized=False
@@ -1180,7 +1180,7 @@ def subgraph(
 
     for n in tqdm(netx, total=len(netx)):
         sub = nx.ego_graph(
-            netx, n, radius=radius, undirected=True, distance=distance
+            netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
 
         if meshedness:
