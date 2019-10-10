@@ -993,8 +993,11 @@ def _straightness_centrality(G, weight, normalized=True):
             straightness_centrality[n] = straightness * (1.0 / (len(G) - 1.0))
             # normalize to number of nodes-1 in connected part
             if normalized:
-                s = (len(G) - 1.0) / (len(sp) - 1.0)
-                straightness_centrality[n] *= s
+                if len(sp) > 1:
+                    s = (len(G) - 1.0) / (len(sp) - 1.0)
+                    straightness_centrality[n] *= s
+                else:
+                    straightness_centrality[n] = 0
         else:
             straightness_centrality[n] = 0.0
     return straightness_centrality
