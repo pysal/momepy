@@ -2,16 +2,6 @@ language: python
 
 sudo: false
 
-os:
-  - linux
-  - osx
-  - include:
-        - os: linux
-          python: 3.2
-          env: TOXENV=py32
-        - os: linux
-          python: 3.3
-
 matrix:
   include:
     - os: linux
