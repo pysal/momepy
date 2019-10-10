@@ -125,12 +125,18 @@ class TestGraph:
         net2 = mm.straightness_centrality(
             self.network, normalized=False, name="nonnorm"
         )
+        G = self.network.copy()
+        G.add_node(1)
+        net3 = mm.straightness_centrality(G)
         check = 0.8574045143712158
         nonnorm = 0.8574045143712158
         assert (
             net.nodes[(1603650.450422848, 6464368.600601688)]["straightness"] == check
         )
         assert net2.nodes[(1603650.450422848, 6464368.600601688)]["nonnorm"] == nonnorm
+        assert (
+            net3.nodes[(1603650.450422848, 6464368.600601688)]["straightness"] == check
+        )
 
     def test_local_straightness_centrality(self):
         net = mm.local_straightness_centrality(self.network)
