@@ -170,6 +170,11 @@ class TestDimensions:
         assert results2.o[0] == 0.5535714285714286
         assert results2.hd[0] == 5.526848034418866
 
+        results3 = mm.StreetProfile(self.df_streets, self.df_buildings)
+        assert results3.w[0] == 46.7290758769204
+        assert results3.wd[0] == 0.5690458650581023
+        assert results3.o[0] == 0.9107142857142857
+
     def test_WeightedCharacter(self):
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         weighted = mm.WeightedCharacter(self.df_buildings, "height", sw, "uID").wc

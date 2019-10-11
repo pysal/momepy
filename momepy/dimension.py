@@ -499,12 +499,13 @@ class StreetProfile:
         self.distance = distance
         self.tick_length = tick_length
 
-        if not isinstance(heights, str):
-            right = right.copy()
-            right["mm_h"] = heights
-            heights = "mm_h"
+        if heights is not None:
+            if not isinstance(heights, str):
+                right = right.copy()
+                right["mm_h"] = heights
+                heights = "mm_h"
 
-        self.heights = right[heights]
+            self.heights = right[heights]
 
         sindex = right.sindex
 
