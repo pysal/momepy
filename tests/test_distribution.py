@@ -32,10 +32,13 @@ class TestDistribution:
         self.df_buildings["swr_array"] = mm.SharedWallsRatio(
             self.df_buildings, "uID", self.df_buildings.geometry.length
         ).swr
+        nonconsecutive = self.df_buildings.drop(2)
+        result = mm.SharedWallsRatio(nonconsecutive, "uID").swr
         check = 0.3424804411228673
         assert self.df_buildings["swr"][10] == check
         assert self.df_buildings["swr_uid"][10] == check
         assert self.df_buildings["swr_array"][10] == check
+        assert result[10] == check
 
     def test_StreetAlignment(self):
         self.df_buildings["orient"] = orient = mm.Orientation(self.df_buildings).o
