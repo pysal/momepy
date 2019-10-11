@@ -75,7 +75,7 @@ Documentation contents
    :maxdepth: 1
 
    install
-   tutorial
+   User Guide <http://guide.momepy.org>
    api
    contributing
    references
