@@ -186,9 +186,9 @@ class SharedWallsRatio:
             unique_id = "mm_uid"
         self.id = gdf[unique_id]
 
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        for i, (index, row) in tqdm(enumerate(gdf.iterrows()), total=gdf.shape[0]):
             neighbors = list(self.sindex.intersection(row.geometry.bounds))
-            neighbors.remove(index)
+            neighbors.remove(i)
 
             # if no neighbour exists
             length = 0
