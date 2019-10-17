@@ -239,9 +239,9 @@ def _lines_to_gdf(net, lines, points, nodeID):
         node_start = []
         node_end = []
         for s in starts:
-            node_start.append(net.node[s][nodeID])
+            node_start.append(net.nodes[s][nodeID])
         for e in ends:
-            node_end.append(net.node[e][nodeID])
+            node_end.append(net.nodes[e][nodeID])
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
     if points is True:
         gdf_edges["node_start"] = node_start
