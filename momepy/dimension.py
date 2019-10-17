@@ -608,8 +608,8 @@ class StreetProfile:
                             distances = []
                             ix = 0
                             for p in true_int:
-                                distance = p.distance(Point(tick.coords[-1]))
-                                distances.append(distance)
+                                dist = p.distance(Point(tick.coords[-1]))
+                                distances.append(dist)
                                 ix = ix + 1
                             minimal = min(distances)
                             if ix == 0:
