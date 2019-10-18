@@ -962,8 +962,8 @@ def local_betweenness_centrality(
         sub = nx.ego_graph(
             G, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
-        netx.nodes[n][name] = nx.betweenness_centrality_subset(
-            G, sub.nodes(), sub.nodes(), weight=weight, normalized=normalized, **kwargs
+        netx.nodes[n][name] = nx.betweenness_centrality(
+            sub, weight=weight, normalized=normalized, **kwargs
         )[n]
 
     return netx
