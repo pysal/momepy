@@ -16,7 +16,7 @@ for item in os.listdir("momepy/datasets"):
         elif item.endswith(".gpkg"):
             data_files.append(os.path.join("datasets", item))
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding="utf8") as fh:
     long_description = fh.read()
 
 setup(
