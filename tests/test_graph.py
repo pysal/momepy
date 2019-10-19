@@ -115,7 +115,7 @@ class TestGraph:
         net2 = mm.local_betweenness_centrality(
             self.network, weight="mm_len", normalized=True
         )
-        check2 = 0.1693121693121693
+        check2 = 0.21333333333333335
         assert (
             net2.nodes[(1603650.450422848, 6464368.600601688)]["betweenness"] == check2
         )
