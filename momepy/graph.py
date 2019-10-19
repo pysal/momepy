@@ -934,6 +934,9 @@ def local_betweenness_centrality(
     weight : str, optional
         Use the specified edge attribute as the edge distance in shortest
         path calculations in closeness centrality algorithm
+    normalized : bool, optional
+        If True the betweenness values are normalized by `2/((n-1)(n-2))`,
+        where n is the number of nodes in subgraph.
     **kwargs
         kwargs for ``networkx.betweenness_centrality_subset``
 
@@ -962,8 +965,8 @@ def local_betweenness_centrality(
         sub = nx.ego_graph(
             G, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius
-        netx.nodes[n][name] = nx.betweenness_centrality_subset(
-            G, sub.nodes(), sub.nodes(), weight=weight, normalized=normalized, **kwargs
+        netx.nodes[n][name] = nx.betweenness_centrality(
+            sub, weight=weight, normalized=normalized, **kwargs
         )[n]
 
     return netx
