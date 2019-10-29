@@ -151,16 +151,16 @@ def _generate_dual(G, gdf_network, fields):
     sw = libpysal.weights.Queen.from_dataframe(gdf_network)
     gdf_network["mm_cent"] = gdf_network.geometry.centroid
 
-    for index, row in gdf_network.iterrows():
+    for i, (index, row) in enumerate(gdf_network.iterrows()):
         centroid = (row.mm_cent.x, row.mm_cent.y)
         data = [row[f] for f in fields]
         attributes = dict(zip(fields, data))
         G.add_node(centroid, **attributes)
 
-        if sw.cardinalities[index] > 0:
-            for n in sw.neighbors[index]:
+        if sw.cardinalities[i] > 0:
+            for n in sw.neighbors[i]:
                 start = centroid
-                end = list(gdf_network.loc[n, "mm_cent"].coords)[0]
+                end = list(gdf_network.iloc[n]["mm_cent"].coords)[0]
                 p0 = row.geometry.coords[0]
                 p1 = row.geometry.coords[-1]
                 p2 = gdf_network.iloc[n]["geometry"].coords[0]
