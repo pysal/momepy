@@ -883,14 +883,14 @@ class PerimeterWall:
 
         # dict to store walls for each uID
         walls = {}
-        components = pd.Series(spatial_weights.component_labels, index=gdf.index)
+        components = pd.Series(spatial_weights.component_labels, index=range(len(gdf)))
 
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        for i, (index, row) in tqdm(enumerate(gdf.iterrows()), total=gdf.shape[0]):
             # if the id is already present in walls, continue (avoid repetition)
-            if index in walls:
+            if i in walls:
                 continue
             else:
-                comp = spatial_weights.component_labels[index]
+                comp = spatial_weights.component_labels[i]
                 to_join = components[components == comp].index
                 joined = gdf.iloc[to_join]
                 dissolved = joined.geometry.buffer(
@@ -900,8 +900,8 @@ class PerimeterWall:
                     walls[b] = dissolved.exterior.length
 
         results_list = []
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-            results_list.append(walls[index])
+        for i, (index, row) in tqdm(enumerate(gdf.iterrows()), total=gdf.shape[0]):
+            results_list.append(walls[i])
         self.wall = pd.Series(results_list, index=gdf.index)
 
 
