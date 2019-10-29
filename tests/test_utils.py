@@ -41,12 +41,12 @@ class TestUtils:
         assert nx.number_of_edges() == 35
         dual = mm.gdf_to_nx(self.df_streets, approach="dual")
         assert dual.number_of_nodes() == 35
-        assert dual.number_of_edges() == 148
+        assert dual.number_of_edges() == 74
         self.df_streets["ix"] = np.arange(0, len(self.df_streets) * 2, 2)
         self.df_streets.set_index("ix", inplace=True)
         dual2 = mm.gdf_to_nx(self.df_streets, approach="dual")
         assert dual2.number_of_nodes() == 35
-        assert dual2.number_of_edges() == 148
+        assert dual2.number_of_edges() == 74
         with pytest.raises(ValueError):
             mm.gdf_to_nx(self.df_streets, approach="nonexistent")
 

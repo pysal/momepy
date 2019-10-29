@@ -171,7 +171,7 @@ def _generate_dual(G, gdf_network, fields):
                     remaining = [e for e in points if e not in [shared[0]]]
                     if len(remaining) == 2:
                         angle = _angle(remaining[0], shared[0], remaining[1])
-                        G.add_edge(start, end, angle=angle)
+                        G.add_edge(start, end, key=0, angle=angle)
 
 
 def gdf_to_nx(gdf_network, approach="primal", length="mm_len"):
