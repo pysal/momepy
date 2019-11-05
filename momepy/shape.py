@@ -162,7 +162,8 @@ class FractalDimension:
             areas = "mm_a"
 
         self.fd = gdf.apply(
-            lambda row: (2 * math.log(row[perimeters] / 4)) / math.log(row[areas]), axis=1
+            lambda row: (2 * math.log(row[perimeters] / 4)) / math.log(row[areas]),
+            axis=1,
         )
 
 
