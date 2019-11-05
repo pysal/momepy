@@ -44,16 +44,15 @@ class Area:
 
     Attributes
     ----------
-    area : Series
+    series : Series
         Series containing resulting values
-
     gdf : GeoDataFrame
         original GeoDataFrame
 
     Examples
     --------
     >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='buildings')
-    >>> buildings['area'] = momepy.Area(buildings).area
+    >>> buildings['area'] = momepy.Area(buildings).series
     >>> buildings.area[0]
     728.5574947044363
 
@@ -61,7 +60,7 @@ class Area:
 
     def __init__(self, gdf):
         self.gdf = gdf
-        self.area = self.gdf.geometry.area
+        self.series = self.gdf.geometry.area
 
 
 class Perimeter:
@@ -78,7 +77,7 @@ class Perimeter:
 
     Attributes
     ----------
-    perimeter : Series
+    series : Series
         Series containing resulting values
 
     gdf : GeoDataFrame
@@ -87,14 +86,14 @@ class Perimeter:
     Examples
     --------
     >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='buildings')
-    >>> buildings['perimeter'] = momepy.Perimeter(buildings).perimeter
+    >>> buildings['perimeter'] = momepy.Perimeter(buildings).series
     >>> buildings.perimeter[0]
     137.18630991119903
     """
 
     def __init__(self, gdf):
         self.gdf = gdf
-        self.perimeter = self.gdf.geometry.length
+        self.series = self.gdf.geometry.length
 
 
 class Volume:
@@ -116,7 +115,7 @@ class Volume:
 
     Attributes
     ----------
-    volume : Series
+    series : Series
         Series containing resulting values
 
     gdf : GeoDataFrame
@@ -130,11 +129,11 @@ class Volume:
 
     Examples
     --------
-    >>> buildings['volume'] = momepy.Volume(buildings, heights='height_col')
+    >>> buildings['volume'] = momepy.Volume(buildings, heights='height_col').series
     >>> buildings.volume[0]
     7285.5749470443625
 
-    >>> buildings['volume'] = momepy.Volume(buildings, heights='height_col', areas='area_col').volume
+    >>> buildings['volume'] = momepy.Volume(buildings, heights='height_col', areas='area_col').series
     >>> buildings.volume[0]
     7285.5749470443625
     """
@@ -156,7 +155,7 @@ class Volume:
         else:
             self.areas = gdf.geometry.area
         try:
-            self.volume = self.areas * self.heights
+            self.series = self.areas * self.heights
 
         except KeyError:
             raise KeyError(
@@ -186,7 +185,7 @@ class FloorArea:
 
     Attributes
     ----------
-    fa : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -197,13 +196,13 @@ class FloorArea:
 
     Examples
     --------
-    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col')
+    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col').series
     Calculating floor areas...
     Floor areas calculated.
     >>> buildings.floor_area[0]
     2185.672484113309
 
-    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col', areas='area_col').fa
+    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col', areas='area_col').series
     >>> buildings.floor_area[0]
     2185.672484113309
     """
@@ -225,7 +224,7 @@ class FloorArea:
         else:
             self.areas = gdf.geometry.area
         try:
-            self.fa = self.areas * (self.heights // 3)
+            self.series = self.areas * (self.heights // 3)
 
         except KeyError:
             raise KeyError(
@@ -249,7 +248,7 @@ class CourtyardArea:
 
     Attributes
     ----------
-    ca : Series
+    series : Series
         Series containing resulting values
 
     gdf : GeoDataFrame
@@ -260,7 +259,7 @@ class CourtyardArea:
 
     Examples
     --------
-    >>> buildings['courtyard_area'] = momepy.CourtyardArea(buildings).ca
+    >>> buildings['courtyard_area'] = momepy.CourtyardArea(buildings).series
     >>> buildings.courtyard_area[80]
     353.33274206543274
     """
@@ -277,7 +276,7 @@ class CourtyardArea:
             areas = "mm_a"
         self.areas = gdf[areas]
 
-        self.ca = gdf.apply(
+        self.series = gdf.apply(
             lambda row: Polygon(row.geometry.exterior).area - row[areas], axis=1
         )
 
@@ -299,7 +298,7 @@ class LongestAxisLength:
 
     Attributes
     ----------
-    lal : Series
+    series : Series
         Series containing resulting values
 
     gdf : GeoDataFrame
@@ -307,14 +306,14 @@ class LongestAxisLength:
 
     Examples
     --------
-    >>> buildings['lal'] = momepy.LongestAxisLength(buildings).lal
+    >>> buildings['lal'] = momepy.LongestAxisLength(buildings).series
     >>> buildings.lal[0]
     40.2655616057102
     """
 
     def __init__(self, gdf):
         self.gdf = gdf
-        self.lal = gdf.apply(
+        self.series = gdf.apply(
             lambda row: self._longest_axis(row.geometry.convex_hull.exterior.coords),
             axis=1,
         )
@@ -353,7 +352,7 @@ class AverageCharacter:
 
     Attributes
     ----------
-    ac : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -376,7 +375,7 @@ class AverageCharacter:
     Examples
     --------
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True, ids='uID')
-    >>> tessellation['mesh_100'] = momepy.AverageCharacter(tessellation, values='area', spatial_weights=sw, unique_id='uID').ac
+    >>> tessellation['mesh_100'] = momepy.AverageCharacter(tessellation, values='area', spatial_weights=sw, unique_id='uID').series
     100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
     >>> tessellation.mesh_100[0]
     4823.1334436678835
@@ -421,7 +420,7 @@ class AverageCharacter:
             else:
                 raise ValueError("{} is not supported as mode.".format(mode))
 
-        self.ac = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class StreetProfile:
@@ -716,7 +715,7 @@ class WeightedCharacter:
 
     Attributes
     ----------
-    wc : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -738,7 +737,7 @@ class WeightedCharacter:
     --------
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation_df, threshold=100, silence_warnings=True)
     >>> buildings_df['w_height_100'] = momepy.WeightedCharacter(buildings_df, values='height', spatial_weights=sw,
-                                                                 unique_id='uID').wc
+                                                                 unique_id='uID').series
     100%|██████████| 144/144 [00:00<00:00, 361.60it/s]
     """
 
@@ -776,7 +775,7 @@ class WeightedCharacter:
                 (sum(subset[values] * subset[areas])) / (sum(subset[areas]))
             )
 
-        self.wc = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class CoveredArea:
@@ -799,7 +798,7 @@ class CoveredArea:
 
     Attributes
     ----------
-    ca : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -811,7 +810,7 @@ class CoveredArea:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['covered3steps'] = mm.CoveredArea(tessellation_df, sw, 'uID').ca
+    >>> tessellation_df['covered3steps'] = mm.CoveredArea(tessellation_df, sw, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 549.15it/s]
 
     """
@@ -834,7 +833,7 @@ class CoveredArea:
             areas = data.loc[neighbours].geometry.area
             results_list.append(sum(areas))
 
-        self.ca = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class PerimeterWall:
@@ -851,7 +850,7 @@ class PerimeterWall:
 
     Attributes
     ----------
-    wall : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -860,7 +859,7 @@ class PerimeterWall:
 
     Examples
     --------
-    >>> buildings_df['wall_length'] = mm.PerimeterWall(buildings_df).wall
+    >>> buildings_df['wall_length'] = mm.PerimeterWall(buildings_df).series
     Calculating spatial weights...
     Spatial weights ready...
     100%|██████████| 144/144 [00:00<00:00, 4171.39it/s]
@@ -902,7 +901,7 @@ class PerimeterWall:
         results_list = []
         for i, (index, row) in tqdm(enumerate(gdf.iterrows()), total=gdf.shape[0]):
             results_list.append(walls[i])
-        self.wall = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class SegmentsLength:
@@ -925,7 +924,7 @@ class SegmentsLength:
 
     Attributes
     ----------
-    sl : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -936,7 +935,7 @@ class SegmentsLength:
 
     Examples
     --------
-    >>> streets_df['length_neighbours'] = mm.SegmentsLength(streets_df, mean=True).sl
+    >>> streets_df['length_neighbours'] = mm.SegmentsLength(streets_df, mean=True).series
     Calculating spatial weights...
     Spatial weights ready...
     """
@@ -967,4 +966,4 @@ class SegmentsLength:
             else:
                 results_list.append(sum(dims))
 
-        self.sl = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)

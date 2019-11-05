@@ -18,12 +18,12 @@ class TestDimensions:
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
 
     def test_Area(self):
-        self.df_buildings["area"] = mm.Area(self.df_buildings).area
+        self.df_buildings["area"] = mm.Area(self.df_buildings).series
         check = self.df_buildings.geometry[0].area
         assert self.df_buildings["area"][0] == check
 
     def test_Perimeter(self):
-        self.df_buildings["perimeter"] = mm.Perimeter(self.df_buildings).perimeter
+        self.df_buildings["perimeter"] = mm.Perimeter(self.df_buildings).series
         check = self.df_buildings.geometry[0].length
         assert self.df_buildings["perimeter"][0] == check
 
@@ -31,17 +31,17 @@ class TestDimensions:
         self.df_buildings["area"] = self.df_buildings.geometry.area
         self.df_buildings["volume"] = mm.Volume(
             self.df_buildings, "height", "area"
-        ).volume
+        ).series
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings["volume"][0] == check
 
         area = self.df_buildings.geometry.area
         height = np.linspace(10.0, 30.0, 144)
-        self.df_buildings["volume"] = mm.Volume(self.df_buildings, height, area).volume
+        self.df_buildings["volume"] = mm.Volume(self.df_buildings, height, area).series
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings["volume"][0] == check
 
-        self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height").volume
+        self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height").series
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings["volume"][0] == check
 
@@ -54,7 +54,7 @@ class TestDimensions:
         self.df_buildings["area"] = self.df_buildings.geometry.area
         self.df_buildings["floor_area"] = mm.FloorArea(
             self.df_buildings, "height", "area"
-        ).fa
+        ).series
         check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
         assert self.df_buildings["floor_area"][0] == check
 
@@ -62,10 +62,12 @@ class TestDimensions:
         height = np.linspace(10.0, 30.0, 144)
         self.df_buildings["floor_area"] = mm.FloorArea(
             self.df_buildings, height, area
-        ).fa
+        ).series
         assert self.df_buildings["floor_area"][0] == check
 
-        self.df_buildings["floor_area"] = mm.FloorArea(self.df_buildings, "height").fa
+        self.df_buildings["floor_area"] = mm.FloorArea(
+            self.df_buildings, "height"
+        ).series
         assert self.df_buildings["floor_area"][0] == check
 
         with pytest.raises(KeyError):
@@ -77,7 +79,7 @@ class TestDimensions:
         self.df_buildings["area"] = self.df_buildings.geometry.area
         self.df_buildings["courtyard_area"] = mm.CourtyardArea(
             self.df_buildings, "area"
-        ).ca
+        ).series
         check = (
             Polygon(self.df_buildings.geometry[80].exterior).area
             - self.df_buildings.geometry[80].area
@@ -87,10 +89,10 @@ class TestDimensions:
         area = self.df_buildings.geometry.area
         self.df_buildings["courtyard_area"] = mm.CourtyardArea(
             self.df_buildings, area
-        ).ca
+        ).series
         assert self.df_buildings["courtyard_area"][80] == check
 
-        self.df_buildings["courtyard_area"] = mm.CourtyardArea(self.df_buildings).ca
+        self.df_buildings["courtyard_area"] = mm.CourtyardArea(self.df_buildings).series
         assert self.df_buildings["courtyard_area"][80] == check
 
         with pytest.raises(KeyError):
@@ -99,7 +101,7 @@ class TestDimensions:
             )
 
     def test_LongestAxisLength(self):
-        self.df_buildings["long_axis"] = mm.LongestAxisLength(self.df_buildings).lal
+        self.df_buildings["long_axis"] = mm.LongestAxisLength(self.df_buildings).series
         check = (
             _make_circle(self.df_buildings.geometry[0].convex_hull.exterior.coords)[2]
             * 2
@@ -115,28 +117,28 @@ class TestDimensions:
             spatial_weights=spatial_weights,
             unique_id="uID",
             mode="mode",
-        ).ac
+        ).series
         self.df_tessellation["mesh_array"] = mm.AverageCharacter(
             self.df_tessellation,
             values=area,
             spatial_weights=spatial_weights,
             unique_id="uID",
             mode="median",
-        ).ac
+        ).series
         self.df_tessellation["mesh_id"] = mm.AverageCharacter(
             self.df_tessellation,
             spatial_weights=spatial_weights,
             values="area",
             rng=(10, 90),
             unique_id="uID",
-        ).ac
+        ).series
         self.df_tessellation["mesh_iq"] = mm.AverageCharacter(
             self.df_tessellation,
             spatial_weights=spatial_weights,
             values="area",
             rng=(25, 75),
             unique_id="uID",
-        ).ac
+        ).series
         with pytest.raises(ValueError):
             self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
                 self.df_tessellation,
@@ -177,37 +179,37 @@ class TestDimensions:
 
     def test_WeightedCharacter(self):
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
-        weighted = mm.WeightedCharacter(self.df_buildings, "height", sw, "uID").wc
+        weighted = mm.WeightedCharacter(self.df_buildings, "height", sw, "uID").series
         assert weighted[38] == approx(18.301, rel=1e-3)
 
         self.df_buildings["area"] = self.df_buildings.geometry.area
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         weighted = mm.WeightedCharacter(
             self.df_buildings, "height", sw, "uID", "area"
-        ).wc
+        ).series
         assert weighted[38] == approx(18.301, rel=1e-3)
 
         area = self.df_buildings.geometry.area
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         weighted = mm.WeightedCharacter(
             self.df_buildings, self.df_buildings.height, sw, "uID", area
-        ).wc
+        ).series
         assert weighted[38] == approx(18.301, rel=1e-3)
 
     def test_CoveredArea(self):
         sw = sw_high(gdf=self.df_tessellation, k=1, ids="uID")
-        covered_sw = mm.CoveredArea(self.df_tessellation, sw, "uID").ca
+        covered_sw = mm.CoveredArea(self.df_tessellation, sw, "uID").series
         assert covered_sw[0] == approx(24115.667, rel=1e-3)
 
     def test_PerimeterWall(self):
         sw = sw_high(gdf=self.df_buildings, k=1)
-        wall = mm.PerimeterWall(self.df_buildings).wall
-        wall_sw = mm.PerimeterWall(self.df_buildings, sw).wall
+        wall = mm.PerimeterWall(self.df_buildings).series
+        wall_sw = mm.PerimeterWall(self.df_buildings, sw).series
         assert wall[0] == wall_sw[0]
         assert wall[0] == 137.2106961418436
 
     def test_SegmentsLength(self):
-        absol = mm.SegmentsLength(self.df_streets).sl
-        mean = mm.SegmentsLength(self.df_streets, mean=True).sl
+        absol = mm.SegmentsLength(self.df_streets).series
+        mean = mm.SegmentsLength(self.df_streets, mean=True).series
         assert max(absol) == 1907.502238338006
         assert max(mean) == 249.5698434867373

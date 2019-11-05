@@ -52,7 +52,7 @@ class FormFactor:
 
     Attributes
     ----------
-    ff : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -62,18 +62,18 @@ class FormFactor:
         Series containing used area values
 
     References
-    ---------
+    ----------
     Bourdic, L., Salat, S. and Nowacki, C. (2012) ‘Assessing cities: a new system
     of cross-scale spatial indicators’, Building Research & Information, 40(5),
     pp. 592–605. doi: 10.1080/09613218.2012.703488self.
 
     Examples
     --------
-    >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, 'volume').ff
+    >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, 'volume').series
     >>> buildings_df.formfactor[0]
     1.9385988170288635
 
-    >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, momepy.volume(buildings_df, 'height').volume).ff
+    >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, momepy.volume(buildings_df, 'height').volume).series
     >>> buildings_df.formfactor[0]
     1.9385988170288635
 
@@ -93,7 +93,7 @@ class FormFactor:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.ff = gdf.apply(
+        self.series = gdf.apply(
             lambda row: row[areas] / (row[volumes] ** (2 / 3))
             if row[volumes] != 0
             else 0,
@@ -121,7 +121,7 @@ class FractalDimension:
 
     Attributes
     ----------
-    fd : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -136,7 +136,7 @@ class FractalDimension:
 
     Examples
     --------
-    >>> buildings_df['fractal'] = momepy.FractalDimension(buildings_df, 'area', 'peri').fd
+    >>> buildings_df['fractal'] = momepy.FractalDimension(buildings_df, 'area', 'peri').series
     100%|██████████| 144/144 [00:00<00:00, 3928.09it/s]
     >>> buildings_df.fractal[0]
     1.0726778567038908
@@ -161,7 +161,7 @@ class FractalDimension:
             gdf["mm_a"] = areas
             areas = "mm_a"
 
-        self.fd = gdf.apply(
+        self.series = gdf.apply(
             lambda row: (2 * math.log(row[perimeters] / 4)) / math.log(row[areas]),
             axis=1,
         )
@@ -188,7 +188,7 @@ class VolumeFacadeRatio:
 
     Attributes
     ----------
-    vfr : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -205,7 +205,7 @@ class VolumeFacadeRatio:
 
     Examples
     -----
-    >>> buildings_df['vfr'] = momepy.VolumeFacadeRatio(buildings_df, 'height').vfr
+    >>> buildings_df['vfr'] = momepy.VolumeFacadeRatio(buildings_df, 'height').series
     >>> buildings_df.vfr[0]
     5.310715735236504
     """
@@ -232,7 +232,7 @@ class VolumeFacadeRatio:
                 volumes = "mm_v"
         self.volumes = gdf[volumes]
 
-        self.vfr = gdf[volumes] / (gdf[perimeters] * gdf[heights])
+        self.series = gdf[volumes] / (gdf[perimeters] * gdf[heights])
 
 
 # Smallest enclosing circle - Library (Python)
@@ -423,7 +423,7 @@ class CircularCompactness:
 
     Attributes
     ----------
-    cc : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -437,7 +437,7 @@ class CircularCompactness:
 
     Examples
     --------
-    >>> buildings_df['circ_comp'] = momepy.CircularCompactness(buildings_df, 'area').cc
+    >>> buildings_df['circ_comp'] = momepy.CircularCompactness(buildings_df, 'area').series
     100%|██████████| 144/144 [00:00<00:00, 2498.75it/s]
     >>> buildings_df['circ_comp'][0]
     0.572145421828038
@@ -454,7 +454,7 @@ class CircularCompactness:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.cc = gdf.apply(
+        self.series = gdf.apply(
             lambda row: (row[areas])
             / (_circle_area(list(row["geometry"].convex_hull.exterior.coords))),
             axis=1,
@@ -483,7 +483,7 @@ class SquareCompactness:
 
     Attributes
     ----------
-    sc : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -499,7 +499,7 @@ class SquareCompactness:
 
     Examples
     --------
-    >>> buildings_df['squ_comp'] = momepy.SquareCompactness(buildings_df).sc
+    >>> buildings_df['squ_comp'] = momepy.SquareCompactness(buildings_df).series
     >>> buildings_df['squ_comp'][0]
     0.6193872538650996
 
@@ -524,7 +524,7 @@ class SquareCompactness:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.sc = gdf.apply(
+        self.series = gdf.apply(
             lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1
         )
 
@@ -546,7 +546,7 @@ class Convexeity:
 
     Attributes
     ----------
-    c : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -554,13 +554,13 @@ class Convexeity:
         Series containing used area values
 
     References
-    ---------
+    ----------
     Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
     Form. University of Strathclyde.
 
     Examples
     --------
-    >>> buildings_df['convexeity'] = momepy.Convexeity(buildings_df).c
+    >>> buildings_df['convexeity'] = momepy.Convexeity(buildings_df).series
     >>> buildings_df.convexeity[0]
     0.8151964258521672
     """
@@ -576,7 +576,7 @@ class Convexeity:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.c = gdf[areas] / gdf.geometry.convex_hull.area
+        self.series = gdf[areas] / gdf.geometry.convex_hull.area
 
 
 class CourtyardIndex:
@@ -599,7 +599,7 @@ class CourtyardIndex:
 
     Attributes
     ----------
-    ci : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -609,18 +609,18 @@ class CourtyardIndex:
         Series containing used area values
 
     References
-    ---------
+    ----------
     Schirmer, P. M. and Axhausen, K. W. (2015) ‘A multiscale classification of
     urban morphology’, Journal of Transport and Land Use, 9(1), pp. 101–130.
     doi: 10.5198/jtlu.2015.667.
 
     Examples
     --------
-    >>> buildings_df['courtyard_index'] = momepy.CourtyardIndex(buildings, 'courtyard_area', 'area').ci
+    >>> buildings_df['courtyard_index'] = momepy.CourtyardIndex(buildings, 'courtyard_area', 'area').series
     >>> buildings_df.courtyard_index[80]
     0.16605915738643523
 
-    >>> buildings_df['courtyard_index2'] = momepy.CourtyardIndex(buildings_df, momepy.courtyard_area(buildings_df).ca).ci
+    >>> buildings_df['courtyard_index2'] = momepy.CourtyardIndex(buildings_df, momepy.courtyard_area(buildings_df).ca).series
     >>> buildings_df.courtyard_index2[80]
     0.16605915738643523
     """
@@ -639,7 +639,7 @@ class CourtyardIndex:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.ci = gdf[courtyard_areas] / gdf[areas]
+        self.series = gdf[courtyard_areas] / gdf[areas]
 
 
 class Rectangularity:
@@ -659,7 +659,7 @@ class Rectangularity:
 
     Attributes
     ----------
-    r : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -673,7 +673,7 @@ class Rectangularity:
 
     Examples
     --------
-    >>> buildings_df['rectangularity'] = momepy.Rectangularity(buildings_df, 'area').r
+    >>> buildings_df['rectangularity'] = momepy.Rectangularity(buildings_df, 'area').series
     100%|██████████| 144/144 [00:00<00:00, 866.62it/s]
     >>> buildings_df.rectangularity[0]
     0.6942676157646379
@@ -688,7 +688,7 @@ class Rectangularity:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.r = gdf.apply(
+        self.series = gdf.apply(
             lambda row: row[areas] / (row.geometry.minimum_rotated_rectangle.area),
             axis=1,
         )
@@ -713,7 +713,7 @@ class ShapeIndex:
 
     Attributes
     ----------
-    si : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -722,13 +722,9 @@ class ShapeIndex:
     areas : Series
         Series containing used area values
 
-    References
-    ---------
-    Ale?
-
     Examples
     --------
-    >>> buildings_df['shape_index'] = momepy.ShapeIndex(buildings_df, longest_axis='long_ax', areas='area').si
+    >>> buildings_df['shape_index'] = momepy.ShapeIndex(buildings_df, longest_axis='long_ax', areas='area').series
     100%|██████████| 144/144 [00:00<00:00, 5558.33it/s]
     >>> buildings_df['shape_index'][0]
     0.7564029493781987
@@ -748,7 +744,7 @@ class ShapeIndex:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.si = gdf.apply(
+        self.series = gdf.apply(
             lambda row: math.sqrt(row[areas] / math.pi) / (0.5 * row[longest_axis]),
             axis=1,
         )
@@ -770,7 +766,7 @@ class Corners:
 
     Attributes
     ----------
-    c : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -778,7 +774,7 @@ class Corners:
 
     Examples
     --------
-    >>> buildings_df['corners'] = momepy.Corners(buildings_df).c
+    >>> buildings_df['corners'] = momepy.Corners(buildings_df).series
     100%|██████████| 144/144 [00:00<00:00, 1042.15it/s]
     >>> buildings_df.corners[0]
     24
@@ -838,7 +834,7 @@ class Corners:
 
             results_list.append(corners)
 
-        self.c = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class Squareness:
@@ -859,7 +855,7 @@ class Squareness:
 
     Attributes
     ----------
-    s : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -871,7 +867,7 @@ class Squareness:
 
     Examples
     --------
-    >>> buildings_df['squareness'] = momepy.Squareness(buildings_df).s
+    >>> buildings_df['squareness'] = momepy.Squareness(buildings_df).series
     100%|██████████| 144/144 [00:01<00:00, 129.49it/s]
     >>> buildings_df.squareness[0]
     3.7075816043359864
@@ -932,7 +928,7 @@ class Squareness:
                 deviations.append(dev)
             results_list.append(np.mean(deviations))
 
-        self.s = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class EquivalentRectangularIndex:
@@ -955,7 +951,7 @@ class EquivalentRectangularIndex:
 
     Attributes
     ----------
-    eri : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -965,7 +961,7 @@ class EquivalentRectangularIndex:
         Series containing used perimeter values
 
     References
-    ---------
+    ----------
     Basaraner M and Cetinkaya S (2017) Performance of shape indices and classification
     schemes for characterising perceptual shape complexity of building footprints in GIS.
     2nd ed. International Journal of Geographical Information Science, Taylor & Francis
@@ -974,7 +970,7 @@ class EquivalentRectangularIndex:
 
     Examples
     --------
-    >>> buildings_df['eri'] = momepy.EquivalentRectangularIndex(buildings_df, 'area', 'peri').eri
+    >>> buildings_df['eri'] = momepy.EquivalentRectangularIndex(buildings_df, 'area', 'peri').series
     100%|██████████| 144/144 [00:00<00:00, 895.57it/s]
     >>> buildings_df['eri'][0]
     0.7879229963118455
@@ -1009,7 +1005,7 @@ class EquivalentRectangularIndex:
                 math.sqrt(row[areas] / bbox.area) * (bbox.length / row[perimeters])
             )
 
-        self.eri = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class Elongation:
@@ -1034,7 +1030,7 @@ class Elongation:
         original GeoDataFrame
 
     References
-    ---------
+    ----------
     Gil J, Montenegro N, Beirão JN, et al. (2012) On the Discovery of
     Urban Typologies: Data Mining the Multi-dimensional Character of
     Neighbourhoods. Urban Morphology 16(1): 27–40.
@@ -1075,7 +1071,7 @@ class Elongation:
 
             results_list.append(elo)
 
-        self.e = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class CentroidCorners:
@@ -1203,20 +1199,20 @@ class Linearity:
 
     Attributes
     ----------
-    linearity : Series
+    series : Series
         Series containing mean distance values.
     gdf : GeoDataFrame
         original GeoDataFrame
 
     References
-    ---------
+    ----------
     Araldi A and Fusco G (2017) Decomposing and Recomposing Urban Fabric:
     The City from the Pedestrian Point of View. In:, pp. 365–376. Available
     from: http://link.springer.com/10.1007/978-3-319-62407-5.
 
     Examples
     --------
-    >>> streets_df['linearity'] = momepy.Linearity(streets_df).linearity
+    >>> streets_df['linearity'] = momepy.Linearity(streets_df).series
     100%|██████████| 33/33 [00:00<00:00, 1737.64it/s]
     >>> streets_df['linearity'][0]
     1.0
@@ -1234,7 +1230,7 @@ class Linearity:
             )
             results_list.append(euclidean / row["geometry"].length)
 
-        self.linearity = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class CompactnessWeightedAxis:
@@ -1262,7 +1258,7 @@ class CompactnessWeightedAxis:
 
     Attributes
     ----------
-    cwa : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -1276,7 +1272,7 @@ class CompactnessWeightedAxis:
 
     Examples
     --------
-    >>> blocks_df['cwa'] = mm.CompactnessWeightedAxis(blocks_df).cwa
+    >>> blocks_df['cwa'] = mm.CompactnessWeightedAxis(blocks_df).series
     """
 
     def __init__(self, gdf, areas=None, perimeters=None, longest_axis=None):
@@ -1294,7 +1290,7 @@ class CompactnessWeightedAxis:
         if longest_axis is None:
             from .dimension import LongestAxisLength
 
-            gdf["mm_la"] = LongestAxisLength(gdf).lal
+            gdf["mm_la"] = LongestAxisLength(gdf).series
             longest_axis = "mm_la"
         else:
             if not isinstance(longest_axis, str):
@@ -1307,7 +1303,7 @@ class CompactnessWeightedAxis:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.cwa = gdf.apply(
+        self.series = gdf.apply(
             lambda row: row[longest_axis]
             * ((4 / math.pi) - (16 * row[areas]) / ((row[perimeters]) ** 2)),
             axis=1,

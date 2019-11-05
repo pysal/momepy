@@ -51,7 +51,7 @@ class AreaRatio:
 
     Attributes
     ----------
-    ar : Series
+    series : Series
         Series containing resulting values
     left : GeoDataFrame
         original left GeoDataFrame
@@ -73,7 +73,7 @@ class AreaRatio:
 
     Examples
     --------
-    >>> tessellation_df['CAR'] = mm.AreaRatio(tessellation_df, buildings_df, 'area', 'area', 'uID').ar
+    >>> tessellation_df['CAR'] = mm.AreaRatio(tessellation_df, buildings_df, 'area', 'area', 'uID').series
     """
 
     def __init__(
@@ -121,7 +121,7 @@ class AreaRatio:
             look_for, left_on=left_unique_id, right_on=right_unique_id
         )
 
-        self.ar = objects_merged["lf_area"] / objects_merged[left_areas]
+        self.series = objects_merged["lf_area"] / objects_merged[left_areas]
 
 
 class Count:
@@ -151,7 +151,7 @@ class Count:
 
     Attributes
     ----------
-    c : Series
+    series : Series
         Series containing resulting values
     left : GeoDataFrame
         original left GeoDataFrame
@@ -174,7 +174,7 @@ class Count:
 
     Examples
     --------
-    >>> blocks_df['buildings_count'] = mm.Count(blocks_df, buildings_df, 'bID', 'bID', weighted=True).c
+    >>> blocks_df['buildings_count'] = mm.Count(blocks_df, buildings_df, 'bID', 'bID', weighted=True).series
     """
 
     def __init__(self, left, right, left_id, right_id, weighted=False):
@@ -197,7 +197,7 @@ class Count:
             else:
                 raise TypeError("Geometry type does not support weighting.")
 
-        self.c = joined["mm_count"]
+        self.series = joined["mm_count"]
 
 
 class Courtyards:
@@ -216,7 +216,7 @@ class Courtyards:
 
     Attributes
     ----------
-    c : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -232,7 +232,7 @@ class Courtyards:
 
     Examples
     --------
-    >>> buildings_df['courtyards'] = mm.Courtyards(buildings_df, 'bID').c
+    >>> buildings_df['courtyards'] = mm.Courtyards(buildings_df, 'bID').series
     Calculating spatial weights...
     """
 
@@ -279,7 +279,7 @@ class Courtyards:
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
             results_list.append(courtyards[index])
 
-        self.c = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class BlocksCount:
@@ -306,7 +306,7 @@ class BlocksCount:
 
     Attributes
     ----------
-    bc : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -327,7 +327,7 @@ class BlocksCount:
     Examples
     --------
     >>> sw4 = mm.sw_high(k=4, gdf='tessellation_df', ids='uID')
-    >>> tessellation_df['blocks_within_4'] = mm.BlocksCount(tessellation_df, 'bID', sw4, 'uID').bc
+    >>> tessellation_df['blocks_within_4'] = mm.BlocksCount(tessellation_df, 'bID', sw4, 'uID').series
     """
 
     def __init__(self, gdf, block_id, spatial_weights, unique_id, weighted=True):
@@ -363,7 +363,7 @@ class BlocksCount:
             else:
                 raise ValueError("Attribute 'weighted' needs to be True or False.")
 
-        self.bc = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class Reached:
@@ -403,7 +403,7 @@ class Reached:
 
     Attributes
     ----------
-    r : Series
+    series : Series
         Series containing resulting values
     left : GeoDataFrame
         original left GeoDataFrame
@@ -420,7 +420,7 @@ class Reached:
 
     Examples
     --------
-    >>> streets_df['reached_buildings'] = mm.Reached(streets_df, buildings_df, 'uID').r
+    >>> streets_df['reached_buildings'] = mm.Reached(streets_df, buildings_df, 'uID').series
 
     """
 
@@ -496,7 +496,7 @@ class Reached:
                         np.nanstd(right.loc[right[right_id].isin(ids)].geometry.area)
                     )
 
-        self.r = pd.Series(results_list, index=left.index)
+        self.series = pd.Series(results_list, index=left.index)
 
 
 class NodeDensity:
@@ -528,7 +528,7 @@ class NodeDensity:
 
     Attributes
     ----------
-    nd : Series
+    series : Series
         Series containing resulting values
     left : GeoDataFrame
         original left GeoDataFrame
@@ -553,7 +553,7 @@ class NodeDensity:
 
     Examples
     --------
-    >>> nodes['density'] = mm.NodeDensity(nodes, edges, sw).nd
+    >>> nodes['density'] = mm.NodeDensity(nodes, edges, sw).series
 
     """
 
@@ -599,7 +599,7 @@ class NodeDensity:
             else:
                 results_list.append(0)
 
-        self.nd = pd.Series(results_list, index=left.index)
+        self.series = pd.Series(results_list, index=left.index)
 
 
 class Density:
@@ -625,7 +625,7 @@ class Density:
 
     Attributes
     ----------
-    d : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -645,7 +645,7 @@ class Density:
 
     Examples
     --------
-    >>> tessellation_df['floor_area_dens'] = mm.Density(tessellation_df, 'floor_area', sw, 'uID').d
+    >>> tessellation_df['floor_area_dens'] = mm.Density(tessellation_df, 'floor_area', sw, 'uID').series
     """
 
     def __init__(self, gdf, values, spatial_weights, unique_id, areas=None):
@@ -685,4 +685,4 @@ class Density:
 
             results_list.append(sum(values_list) / sum(areas_list))
 
-        self.d = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
