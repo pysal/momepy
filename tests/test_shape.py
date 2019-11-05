@@ -36,7 +36,7 @@ class TestShape:
 
     def test_FractalDimension(self):
         self.df_buildings["fd"] = mm.FractalDimension(self.df_buildings).fd
-        check = math.log(self.df_buildings.geometry[0].length / 4) / math.log(
+        check = 2 * math.log(self.df_buildings.geometry[0].length / 4) / math.log(
             self.df_buildings.geometry[0].area
         )
         assert self.df_buildings["fd"][0] == check

@@ -106,7 +106,7 @@ class FractalDimension:
     Calculates fractal dimension of each object in given geoDataFrame.
 
     .. math::
-        {log({{perimeter} \\over {4}})} \\over log(area)
+        {2log({{perimeter} \\over {4}})} \\over log(area)
 
     Parameters
     ----------
@@ -131,17 +131,15 @@ class FractalDimension:
         Series containing used area values
 
     References
-    ---------
-    Hermosilla, T. et al. (2014) ‘Using street based metrics to characterize urban
-    typologies’, Computers, Environment and Urban Systems, 44, pp. 68–79.
-    doi: 10.1016/j.compenvurbsys.2013.12.002.
+    ----------
+    McGarigal, K., & Marks, B. (1995). FRAGSTATS: spatial pattern analysis program for quantifying landscape structure.
 
     Examples
     --------
     >>> buildings_df['fractal'] = momepy.FractalDimension(buildings_df, 'area', 'peri').fd
     100%|██████████| 144/144 [00:00<00:00, 3928.09it/s]
     >>> buildings_df.fractal[0]
-    0.5363389283519454
+    1.0726778567038908
     """
 
     def __init__(self, gdf, areas=None, perimeters=None):
@@ -164,7 +162,7 @@ class FractalDimension:
             areas = "mm_a"
 
         self.fd = gdf.apply(
-            lambda row: math.log(row[perimeters] / 4) / math.log(row[areas]), axis=1
+            lambda row: (2 * math.log(row[perimeters] / 4)) / math.log(row[areas]), axis=1
         )
 
 
