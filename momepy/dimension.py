@@ -320,7 +320,7 @@ class LongestAxisLength:
     def __init__(self, gdf):
         self.gdf = gdf
         self.series = gdf.apply(
-            lambda row: self._longest_axis(row.geometry.convex_hull.exterior.coords),
+            lambda row: _longest_axis(row.geometry.convex_hull.exterior.coords),
             axis=1,
         )
 
