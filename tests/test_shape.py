@@ -188,6 +188,7 @@ class TestShape:
         assert self.df_buildings["elo"][0] == check
 
     def test_CentroidCorners(self):
+        self.df_buildings.loc[144] = [145, Point(0, 0).buffer(10), 0, 0]
         cc = mm.CentroidCorners(self.df_buildings)
         self.df_buildings["ccd"] = cc.mean
         self.df_buildings["ccddev"] = cc.std

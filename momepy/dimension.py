@@ -281,6 +281,12 @@ class CourtyardArea:
         )
 
 
+# calculate the radius of circumcircle
+def _longest_axis(points):
+    circ = _make_circle(points)
+    return circ[2] * 2
+
+
 class LongestAxisLength:
     """
     Calculates the length of the longest axis of object.
@@ -317,11 +323,6 @@ class LongestAxisLength:
             lambda row: self._longest_axis(row.geometry.convex_hull.exterior.coords),
             axis=1,
         )
-
-    # calculate the radius of circumcircle
-    def _longest_axis(self, points):
-        circ = _make_circle(points)
-        return circ[2] * 2
 
 
 class AverageCharacter:

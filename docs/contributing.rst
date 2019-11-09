@@ -74,7 +74,7 @@ An easy way to create a momepy development environment is as follows:
 Tell conda to create a new environment, named ``momepy_dev``, or any other name you would like
 for this environment, by running::
 
-      conda create -n momepy_dev python=3
+      conda create -n momepy_dev
 
 This will create the new environment, and not touch any of your existing environments,
 nor any existing python installation.
@@ -106,9 +106,12 @@ At this point you can easily do a *development* install, as detailed in the next
 
 To run *momepy* in an development environment, you must first install
 *momepy*'s dependencies. We suggest doing so using the following commands
-(executed after your development environment has been activated)::
+(executed after your development environment has been activated)
+to ensure compatibility of all dependencies::
 
-    conda install -c conda-forge geopandas networkx libpysal tqdm pysal mapclassify
+    conda config --env --add channels conda-forge
+    conda config --env --set channel_priority strict
+    conda install geopandas networkx libpysal tqdm pysal mapclassify pytest
 
 This should install all necessary dependencies including optional.
 
@@ -189,7 +192,9 @@ and run::
 
     jupyter-book build momepy/
 
-Then you can push your fork to GitHub.
+Then you can push your fork to GitHub. If you don't have jupyter-book, you can install it using pip::
+
+    pip install jupyter-book
 
 7. Formatting the code
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -207,6 +212,9 @@ auto-format your code::
     black momepy
 
 Additionally, many editors have plugins that will apply ``black`` as you edit files.
+If you don't have black, you can install it using pip::
+
+    pip install black
 
 8. Submitting a Pull Request
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
