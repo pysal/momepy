@@ -1,6 +1,7 @@
 import geopandas as gpd
 import libpysal
 import momepy as mm
+import pytest
 
 
 class TestElements:
@@ -32,6 +33,11 @@ class TestElements:
         assert not blocks.tessellation_id.isna().any()
         assert not blocks.buildings_id.isna().any()
         assert len(blocks.blocks) == 8
+
+        with pytest.raises(ValueError):
+            mm.Blocks(
+                self.df_tessellation, self.df_streets, self.df_buildings, "uID", "uID"
+            )
 
     def test_get_network_id(self):
         buildings_id = mm.get_network_id(
