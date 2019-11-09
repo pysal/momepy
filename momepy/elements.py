@@ -502,6 +502,11 @@ class Blocks:
         self.id_name = id_name
         self.unique_id = unique_id
 
+        if id_name in buildings.columns:
+            raise ValueError(
+                "'{}' column cannot be in the buildings GeoDataFrame".format(id_name)
+            )
+
         cells_copy = tessellation[[unique_id, "geometry"]].copy()
 
         print("Buffering streets...")
