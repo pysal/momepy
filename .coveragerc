@@ -10,3 +10,5 @@ exclude_lines =
 ignore_errors = True
 omit =
     tests/*
+    momepy/_version.py
+    versioneer.py
