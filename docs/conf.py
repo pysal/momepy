@@ -37,6 +37,8 @@ autodoc_mock_imports = [
     "mapclassify",
     "osmnx",
     "inequality",
+    "gdal",
+    "ogr"
     "osgeo",
 ]
 
