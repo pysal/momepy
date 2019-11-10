@@ -5,7 +5,7 @@ sudo: false
 matrix:
   include:
     - env: ENV_FILE="ci/travis/37-pysal.yaml"
-    - env: ENV_FILE="ci/travis/37-mc.yaml"
+    - env: ENV_FILE="ci/travis/37-mc.yaml" STYLE=true
     - env: ENV_FILE="ci/travis/dev.yaml" DEV=true
 
 install:
@@ -34,7 +34,7 @@ install:
 
 script:
   - pytest -v --cov-config .coveragerc --cov=momepy tests
+  - if [ "$STYLE" ]; then black --check .; fi
 
 after_success:
   - codecov
-  - black --check .
