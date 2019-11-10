@@ -16,9 +16,9 @@ import os
 import sys
 import sphinx_bootstrap_theme
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../..'))
 
-import versioneer  # noqa
+import momepy  # noqa
 
 autodoc_mock_imports = [
   'geopandas',
@@ -46,7 +46,7 @@ author = "Martin Fleischmann"
 
 # The short X.Y version
 
-version = versioneer.get_version()
+version = momepy.__version__
 # The full version, including alpha/beta/rc tags
 release = version
 
