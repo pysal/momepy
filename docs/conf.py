@@ -16,10 +16,27 @@ import os
 import sys
 import sphinx_bootstrap_theme
 
-import momepy
+sys.path.insert(0, os.path.abspath('..'))
 
-# sys.path.insert(0, os.path.abspath('../../'))
+import versioneer  # noqa
 
+autodoc_mock_imports = [
+  'geopandas',
+  'matplotlib',
+  'networkx',
+  'numpy',
+  'pandas',
+  'rtree',
+  'scipy',
+  'shapely',
+  'shapely.geometry',
+  'shapely.ops',
+  'libpysal',
+  'tqdm',
+  'mapclassify',
+  'osmnx',
+  'inequality'
+]
 
 # -- Project information -----------------------------------------------------
 
@@ -29,7 +46,7 @@ author = "Martin Fleischmann"
 
 # The short X.Y version
 
-version = momepy.__version__
+version = versioneer.get_version()
 # The full version, including alpha/beta/rc tags
 release = version
 
