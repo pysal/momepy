@@ -14,7 +14,12 @@ from scipy.spatial import Voronoi
 from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.wkt import loads
 from tqdm import tqdm
-from osgeo import ogr
+
+# nothing - temporary solution for readthedocs fail. - cannot mock osgeo
+try:
+    from osgeo import ogr
+except ModuleNotFoundError:
+    print("rtd")
 
 __all__ = ["buffered_limit", "Tessellation", "Blocks", "get_network_id", "get_node_id"]
 
