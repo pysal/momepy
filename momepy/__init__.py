@@ -10,4 +10,7 @@ import momepy.datasets
 
 __author__ = "Martin Fleischmann"
 __author_email__ = "martin@martinfleischmann.net"
-__version__ = "0.1rc4"
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

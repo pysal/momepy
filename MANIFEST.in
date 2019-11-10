@@ -1,0 +1,2 @@
+include versioneer.py
+include momepy/_version.py

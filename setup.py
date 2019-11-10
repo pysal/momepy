@@ -1,5 +1,6 @@
 #!/usr/bin/env/python
 import os
+import versioneer
 
 try:
     from setuptools import setup
@@ -21,7 +22,7 @@ with open("README.md", "r", encoding="utf8") as fh:
 
 setup(
     name="momepy",
-    version="0.1rc4",
+    version=versioneer.get_version(),
     description="Urban Morphology Measuring Toolkit",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -45,4 +46,5 @@ setup(
         "libpysal>=4.1.0",
         "tqdm>=4.25.0",
     ],
+    cmdclass=versioneer.get_cmdclass(),
 )
