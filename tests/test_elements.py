@@ -40,16 +40,12 @@ class TestElements:
             )
 
     def test_get_network_id(self):
-        buildings_id = mm.get_network_id(
-            self.df_buildings, self.df_streets, "nID"
-        )
+        buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, "nID")
         assert not buildings_id.isna().any()
 
     def test_get_network_id_duplicate(self):
         self.df_buildings["nID"] = range(len(self.df_buildings))
-        buildings_id = mm.get_network_id(
-            self.df_buildings, self.df_streets, "nID"
-        )
+        buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, "nID")
         assert not buildings_id.isna().any()
 
     def test_get_node_id(self):

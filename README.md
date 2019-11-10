@@ -1,5 +1,6 @@
 # momepy
-[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Build Status](https://travis-ci.org/martinfleis/momepy.svg?branch=master)](https://travis-ci.org/martinfleis/momepy) [![codecov](https://codecov.io/gh/martinfleis/momepy/branch/master/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy)
+[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Build Status](https://travis-ci.org/martinfleis/momepy.svg?branch=master)](https://travis-ci.org/martinfleis/momepy) [![Build status](https://ci.appveyor.com/api/projects/status/9shp9tcx4qn4528h?svg=true)](https://ci.appveyor.com/project/martinfleis/momepy)
+[![codecov](https://codecov.io/gh/martinfleis/momepy/branch/master/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy)
 
 ![momepy: urban morphology measuring toolkit](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/logo.png)
 
