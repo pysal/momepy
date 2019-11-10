@@ -19,7 +19,7 @@ try:
     from osgeo import ogr
 except ModuleNotFoundError:
     # nothing - temporary solution for readthedocs fail.
-    print('')
+    print("rtd")
 
 __all__ = ["buffered_limit", "Tessellation", "Blocks", "get_network_id", "get_node_id"]
 
