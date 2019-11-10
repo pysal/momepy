@@ -5,6 +5,7 @@ dependencies:
     - sphinx_bootstrap_theme=0.6.4
     - python=3.7
     - pip
+    - matplotlib
     - pip:
         - sphinxcontrib.bibtex
         - numpydoc

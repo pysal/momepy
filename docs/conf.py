@@ -22,7 +22,6 @@ import momepy  # noqa
 
 autodoc_mock_imports = [
     "geopandas",
-    "matplotlib",
     "networkx",
     "numpy",
     "pandas",
