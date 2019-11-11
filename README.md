@@ -36,7 +36,8 @@ Contributions of any kind to momepy are more than welcome. That does not mean ne
 
 All contributions should go through our GitHub repository. Bug reports, ideas or even questions should be raised by opening an issue on the GitHub tracker. Suggestions for changes in code or documentation should be submitted as a pull request. However, if you are not sure what to do, feel free to open an issue. All discussion will then take place on GitHub to keep the development of momepy transparent.
 
-If you decide to contribute to the codebase, ensure that you are using an up-to-date `master` branch. The latest development version will always be there, including a significant part of the documentation (powered by `sphinx`). The user guide is located in the `gh-pages` branch and is powered by `Jupyter book`.
+If you decide to contribute to the codebase, ensure that you are using an up-to-date `master` branch. The latest development version will always be there, including a significant part of the documentation (powered by `sphinx`). The user guide is located in the separate GitHub repository [martinfleis/momepy-guide](http://github.com/martinfleis/momepy-guide) and is
+powered by ``Jupyter book``.
 
 Details are available in the [documentation](https://docs.momepy.org/).
 
