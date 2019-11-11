@@ -4,17 +4,8 @@ channels:
 dependencies:
     - sphinx_bootstrap_theme=0.6.4
     - python=3.7
-    - geopandas
-    - libpysal
-    - networkx
-    - tqdm
-    - mapclassify
-    - momepy
-    - matplotlib
-    - rtree
-    - osmnx
     - pip
+    - matplotlib
     - pip:
-        - inequality
         - sphinxcontrib.bibtex
         - numpydoc

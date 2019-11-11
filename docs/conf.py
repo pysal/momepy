@@ -16,10 +16,27 @@ import os
 import sys
 import sphinx_bootstrap_theme
 
-import momepy
+sys.path.insert(0, os.path.abspath("../.."))
 
-# sys.path.insert(0, os.path.abspath('../../'))
+import momepy  # noqa
 
+autodoc_mock_imports = [
+    "geopandas",
+    "networkx",
+    "numpy",
+    "pandas",
+    "rtree",
+    "scipy",
+    "scipy.spatial" "shapely",
+    "shapely.geometry",
+    "shapely.wkt",
+    "shapely.ops",
+    "libpysal",
+    "tqdm",
+    "mapclassify",
+    "osmnx",
+    "inequality",
+]
 
 # -- Project information -----------------------------------------------------
 

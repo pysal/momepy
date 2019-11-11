@@ -827,9 +827,8 @@ class BuildingAdjacency:
     >>> buildings_df['adjacency'] = momepy.BuildingAdjacency(buildings_df, swh, unique_id='uID').series
     Calculating spatial weights...
     Spatial weights ready...
-    Generating weights matrix (Queen) of 3 topological steps...
     100%|██████████| 144/144 [00:00<00:00, 9301.73it/s]
-    Calculating adjacency within k steps...
+    Calculating adjacency...
     100%|██████████| 144/144 [00:00<00:00, 335.55it/s]
     >>> buildings_df['adjacency'][10]
     0.23809523809523808
@@ -854,7 +853,7 @@ class BuildingAdjacency:
         self.sw = spatial_weights
         patches = dict(zip(gdf[unique_id], spatial_weights.component_labels))
 
-        print("Calculating adjacency within k steps...")
+        print("Calculating adjacency...")
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
             neighbours = spatial_weights_higher.neighbors[row[unique_id]].copy()
             if neighbours:

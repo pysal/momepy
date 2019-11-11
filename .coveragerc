@@ -7,6 +7,10 @@ exclude_lines =
     pragma: no cover
     raise NotImplementedError
     if __name__ == .__main__.:
+    except ModuleNotFoundError:
+    print("rtd")
 ignore_errors = True
 omit =
     tests/*
+    momepy/_version.py
+    versioneer.py
