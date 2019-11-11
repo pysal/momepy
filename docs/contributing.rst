@@ -182,13 +182,12 @@ Updating User Guide
 ~~~~~~~~~~~~~~~~~~~
 
 Updating user guide might be slightly more complicated as it is powered by `Jupyter book`_
-and consists of collection of markdown files and Jupyter notebooks. Moreover, it sits in
-its own separate branch `gh-pages`. To make changes, you need to fork this branch first,
-not master.
+and consists of collection of markdown files and Jupyter notebooks. Moreover, it sits in the separate GitHub repository
+`martinfleis/momepy-guide <http://github.com/martinfleis/momepy-guide>`__.
 Changes in markdown are straightforward, changes in notebooks should be done using Jupyter.
 
 Once you are done with changes, you should navigate to parental folder of momepy git folder
-and run::
+and run (not necessary, updating .md or .ipynb is a good start)::
 
     jupyter-book build momepy/
 

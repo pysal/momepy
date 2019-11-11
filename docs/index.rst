@@ -59,7 +59,9 @@ transparent.
 If you decide to contribute to the codebase, ensure that you are using an
 up-to-date ``master`` branch. The latest development version will always be there,
 including a significant part of the documentation (powered by ``sphinx``). The
-user guide is located in the ``gh-pages`` branch and is powered by ``Jupyter book``.
+user guide is located in the separate GitHub repository
+`martinfleis/momepy-guide <http://github.com/martinfleis/momepy-guide>`__ and is
+powered by ``Jupyter book``.
 
 Details are available in the :doc:`contributing guide <contributing>`.
 
