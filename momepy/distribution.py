@@ -39,19 +39,19 @@ class Orientation:
 
     Attributes
     ----------
-    o : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
 
     References
-    ---------
+    ----------
     Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
     Journal of Transport and Land Use 9(1): 101–130. (adapted)
 
     Examples
     --------
-    >>> buildings_df['orientation'] = momepy.Orientation(buildings_df).o
+    >>> buildings_df['orientation'] = momepy.Orientation(buildings_df).series
     100%|██████████| 144/144 [00:00<00:00, 630.54it/s]
     >>> buildings_df['orientation'][0]
     41.05146788287027
@@ -116,7 +116,7 @@ class Orientation:
                     az = az - 2 * diff
                 results_list.append(az)
 
-        self.o = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class SharedWallsRatio:
@@ -137,7 +137,7 @@ class SharedWallsRatio:
 
     Attributes
     ----------
-    swr : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -149,7 +149,7 @@ class SharedWallsRatio:
         spatial index of gdf
 
     References
-    ---------
+    ----------
     Hamaina R, Leduc T and Moreau G (2012) Towards Urban Fabrics Characterization
     Based on Buildings Footprints. In: Lecture Notes in Geoinformation and Cartography,
     Berlin, Heidelberg: Springer Berlin Heidelberg, pp. 327–346. Available from:
@@ -157,7 +157,7 @@ class SharedWallsRatio:
 
     Examples
     --------
-    >>> buildings_df['swr'] = momepy.SharedWallsRatio(buildings_df, 'uID').swr
+    >>> buildings_df['swr'] = momepy.SharedWallsRatio(buildings_df, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 648.72it/s]
     >>> buildings_df['swr'][10]
     0.3424804411228673
@@ -200,7 +200,7 @@ class SharedWallsRatio:
                     length = length + row.geometry.intersection(subset).length
                 results_list.append(length / row[perimeters])
 
-        self.swr = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class StreetAlignment:
@@ -234,7 +234,7 @@ class StreetAlignment:
 
     Attributes
     ----------
-    sa : Series
+    series : Series
         Series containing resulting values
     left : GeoDataFrame
         original left GeoDataFrame
@@ -249,7 +249,7 @@ class StreetAlignment:
 
     Examples
     --------
-    >>> buildings_df['street_alignment'] = momepy.StreetAlignment(buildings_df, streets_df, 'orientation', 'nID', 'nID').sa
+    >>> buildings_df['street_alignment'] = momepy.StreetAlignment(buildings_df, streets_df, 'orientation', 'nID', 'nID').series
     100%|██████████| 144/144 [00:00<00:00, 529.94it/s]
     >>> buildings_df['street_alignment'][0]
     0.29073888476702336
@@ -332,7 +332,7 @@ class StreetAlignment:
                     diff = az - 45
                     az = az - 2 * diff
                 results_list.append(abs(row[orientations] - az))
-        self.sa = pd.Series(results_list, index=left.index)
+        self.series = pd.Series(results_list, index=left.index)
 
 
 class CellAlignment:
@@ -361,7 +361,7 @@ class CellAlignment:
 
     Attributes
     ----------
-    ca : Series
+    series : Series
         Series containing resulting values
     left : GeoDataFrame
         original left GeoDataFrame
@@ -378,7 +378,7 @@ class CellAlignment:
 
     Examples
     --------
-    >>> buildings_df['cell_alignment'] = momepy.CellAlignment(buildings_df, tessellation_df, 'bl_orient', 'tes_orient', 'uID', 'uID').ca
+    >>> buildings_df['cell_alignment'] = momepy.CellAlignment(buildings_df, tessellation_df, 'bl_orient', 'tes_orient', 'uID', 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 799.09it/s]
     >>> buildings_df['cell_alignment'][0]
     0.8795123936951939
@@ -424,7 +424,7 @@ class CellAlignment:
                 )
             )
 
-        self.ca = pd.Series(results_list, index=left.index)
+        self.series = pd.Series(results_list, index=left.index)
 
 
 class Alignment:
@@ -449,7 +449,7 @@ class Alignment:
 
     Attributes
     ----------
-    a : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -462,7 +462,7 @@ class Alignment:
 
     Examples
     --------
-    >>> buildings_df['alignment'] = momepy.Alignment(buildings_df, sw, 'uID', bl_orient).a
+    >>> buildings_df['alignment'] = momepy.Alignment(buildings_df, sw, 'uID', bl_orient).series
     100%|██████████| 144/144 [00:01<00:00, 140.84it/s]
     >>> buildings_df['alignment'][0]
     18.299481296455237
@@ -495,7 +495,7 @@ class Alignment:
             else:
                 results_list.append(0)
 
-        self.a = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class NeighborDistance:
@@ -516,7 +516,7 @@ class NeighborDistance:
 
     Attributes
     ----------
-    nd : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -526,13 +526,13 @@ class NeighborDistance:
         Series containing used unique ID
 
     References
-    ---------
+    ----------
     Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
     Journal of Transport and Land Use 9(1): 101–130. (adapted)
 
     Examples
     --------
-    >>> buildings_df['neighbour_distance'] = momepy.NeighborDistance(buildings_df, sw, 'uID').nd
+    >>> buildings_df['neighbour_distance'] = momepy.NeighborDistance(buildings_df, sw, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 345.78it/s]
     >>> buildings_df['neighbour_distance'][0]
     29.18589019096464
@@ -558,7 +558,7 @@ class NeighborDistance:
             else:
                 results_list.append(0)
 
-        self.nd = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class MeanInterbuildingDistance:
@@ -587,7 +587,7 @@ class MeanInterbuildingDistance:
 
     Attributes
     ----------
-    mid : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -606,7 +606,7 @@ class MeanInterbuildingDistance:
 
     Examples
     --------
-    >>> buildings_df['mean_interbuilding_distance'] = momepy.MeanInterbuildingDistance(buildings_df, sw, 'uID').mid
+    >>> buildings_df['mean_interbuilding_distance'] = momepy.MeanInterbuildingDistance(buildings_df, sw, 'uID').series
     Generating weights matrix (Queen) of 3 topological steps...
     Generating adjacency matrix based on weights matrix...
     Computing interbuilding distances...
@@ -675,7 +675,7 @@ class MeanInterbuildingDistance:
                 ]
                 results_list.append(np.nanmean(selection.distance))
 
-        self.mid = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class NeighboringStreetOrientationDeviation:
@@ -695,7 +695,7 @@ class NeighboringStreetOrientationDeviation:
 
     Attributes
     ----------
-    nsod : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -706,7 +706,7 @@ class NeighboringStreetOrientationDeviation:
 
     Examples
     --------
-    >>> streets_df['orient_dev'] = momepy.NeighboringStreetOrientationDeviation(streets_df).nsod
+    >>> streets_df['orient_dev'] = momepy.NeighboringStreetOrientationDeviation(streets_df).series
     Preparing street orientations...
     Generating spatial index...
     100%|██████████| 33/33 [00:00<00:00, 249.02it/s]
@@ -778,7 +778,7 @@ class NeighboringStreetOrientationDeviation:
             else:
                 results_list.append(0)
 
-        self.nsod = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class BuildingAdjacency:
@@ -806,7 +806,7 @@ class BuildingAdjacency:
 
     Attributes
     ----------
-    ba : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -818,13 +818,13 @@ class BuildingAdjacency:
         spatial weights matrix
 
     References
-    ---------
+    ----------
     Vanderhaegen S and Canters F (2017) Mapping urban form and function at city
     block level using spatial metrics. Landscape and Urban Planning 167: 399–409.
 
     Examples
     --------
-    >>> buildings_df['adjacency'] = momepy.BuildingAdjacency(buildings_df, swh, unique_id='uID').ba
+    >>> buildings_df['adjacency'] = momepy.BuildingAdjacency(buildings_df, swh, unique_id='uID').series
     Calculating spatial weights...
     Spatial weights ready...
     100%|██████████| 144/144 [00:00<00:00, 9301.73it/s]
@@ -866,7 +866,7 @@ class BuildingAdjacency:
             else:
                 results_list.append(0)
 
-        self.ba = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class Neighbors:
@@ -892,7 +892,7 @@ class Neighbors:
 
     Attributes
     ----------
-    n : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -906,7 +906,7 @@ class Neighbors:
         used weighted value
 
     References
-    ---------
+    ----------
     Hermosilla T, Ruiz LA, Recio JA, et al. (2012) Assessing contextual descriptive features
     for plot-based classification of urban areas. Landscape and Urban Planning, Elsevier B.V.
     106(1): 124–137.
@@ -914,7 +914,7 @@ class Neighbors:
     Examples
     --------
     >>> sw = libpysal.weights.contiguity.Queen.from_dataframe(tessellation_df, ids='uID')
-    >>> tessellation_df['neighbours'] = momepy.Neighbors(tessellation_df, sw, 'uID').n
+    >>> tessellation_df['neighbours'] = momepy.Neighbors(tessellation_df, sw, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 6909.50it/s]
     >>> tessellation_df['neighbours'][0]
     4
@@ -935,4 +935,4 @@ class Neighbors:
             else:
                 neighbours.append(spatial_weights.cardinalities[row[unique_id]])
 
-        self.n = pd.Series(neighbours, index=gdf.index)
+        self.series = pd.Series(neighbours, index=gdf.index)

@@ -17,7 +17,7 @@ class TestIntensity:
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
         self.df_tessellation["area"] = self.df_tessellation.geometry.area
         self.df_buildings["area"] = self.df_buildings.geometry.area
-        self.df_buildings["fl_area"] = mm.FloorArea(self.df_buildings, "height").fa
+        self.df_buildings["fl_area"] = mm.FloorArea(self.df_buildings, "height").series
         self.df_buildings["nID"] = mm.get_network_id(
             self.df_buildings, self.df_streets, "nID"
         )
@@ -31,7 +31,7 @@ class TestIntensity:
     def test_AreaRatio(self):
         car = mm.AreaRatio(
             self.df_tessellation, self.df_buildings, "area", "area", "uID"
-        ).ar
+        ).series
         carlr = mm.AreaRatio(
             self.df_tessellation,
             self.df_buildings,
@@ -39,7 +39,7 @@ class TestIntensity:
             "area",
             left_unique_id="uID",
             right_unique_id="uID",
-        ).ar
+        ).series
         check = 0.3206556897709747
         assert car.mean() == check
         assert carlr.mean() == check
@@ -49,7 +49,7 @@ class TestIntensity:
             self.df_tessellation.area,
             self.df_buildings.fl_area,
             "uID",
-        ).ar
+        ).series
         check = 1.910949846262234
         assert far.mean() == check
         with pytest.raises(ValueError):
@@ -72,11 +72,13 @@ class TestIntensity:
             )
 
     def test_Count(self):
-        eib = mm.Count(self.blocks, self.df_buildings, "bID", "bID").c
-        weib = mm.Count(self.blocks, self.df_buildings, "bID", "bID", weighted=True).c
+        eib = mm.Count(self.blocks, self.df_buildings, "bID", "bID").series
+        weib = mm.Count(
+            self.blocks, self.df_buildings, "bID", "bID", weighted=True
+        ).series
         weis = mm.Count(
             self.df_streets, self.df_buildings, "nID", "nID", weighted=True
-        ).c
+        ).series
         check_eib = [13, 14, 8, 26, 24, 17, 23, 19]
         check_weib = 0.00040170607189453996
         assert eib.tolist() == check_eib
@@ -84,22 +86,24 @@ class TestIntensity:
         assert weis.mean() == 0.020524232642849215
 
     def test_Courtyards(self):
-        courtyards = mm.Courtyards(self.df_buildings, "bID").c
+        courtyards = mm.Courtyards(self.df_buildings, "bID").series
         sw = Queen.from_dataframe(self.df_buildings)
-        courtyards_wm = mm.Courtyards(self.df_buildings, self.df_buildings.bID, sw).c
+        courtyards_wm = mm.Courtyards(
+            self.df_buildings, self.df_buildings.bID, sw
+        ).series
         check = 0.6805555555555556
         assert courtyards.mean() == check
         assert courtyards_wm.mean() == check
 
     def test_BlocksCount(self):
         sw = mm.sw_high(k=5, gdf=self.df_tessellation, ids="uID")
-        count = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").bc
+        count = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").series
         count2 = mm.BlocksCount(
             self.df_tessellation, self.df_tessellation.bID, sw, "uID"
-        ).bc
+        ).series
         unweigthed = mm.BlocksCount(
             self.df_tessellation, "bID", sw, "uID", weighted=False
-        ).bc
+        ).series
         check = 3.142437439120778e-05
         check2 = 5.222222222222222
         assert count.mean() == check
@@ -111,18 +115,20 @@ class TestIntensity:
             )
 
     def test_Reached(self):
-        count = mm.Reached(self.df_streets, self.df_buildings, "nID", "nID").r
+        count = mm.Reached(self.df_streets, self.df_buildings, "nID", "nID").series
         area = mm.Reached(
             self.df_streets,
             self.df_buildings,
             self.df_streets.nID,
             self.df_buildings.nID,
             mode="sum",
-        ).r
+        ).series
         mean = mm.Reached(
             self.df_streets, self.df_buildings, "nID", "nID", mode="mean"
-        ).r
-        std = mm.Reached(self.df_streets, self.df_buildings, "nID", "nID", mode="std").r
+        ).series
+        std = mm.Reached(
+            self.df_streets, self.df_buildings, "nID", "nID", mode="std"
+        ).series
         area_v = mm.Reached(
             self.df_streets,
             self.df_buildings,
@@ -130,7 +136,7 @@ class TestIntensity:
             "nID",
             mode="sum",
             values="fl_area",
-        ).r
+        ).series
         mean_v = mm.Reached(
             self.df_streets,
             self.df_buildings,
@@ -138,7 +144,7 @@ class TestIntensity:
             "nID",
             mode="mean",
             values="fl_area",
-        ).r
+        ).series
         std_v = mm.Reached(
             self.df_streets,
             self.df_buildings,
@@ -146,9 +152,11 @@ class TestIntensity:
             "nID",
             mode="std",
             values="fl_area",
-        ).r
+        ).series
         sw = mm.sw_high(k=2, gdf=self.df_streets)
-        count_sw = mm.Reached(self.df_streets, self.df_buildings, "nID", "nID", sw).r
+        count_sw = mm.Reached(
+            self.df_streets, self.df_buildings, "nID", "nID", sw
+        ).series
         assert max(count) == 18
         assert max(area) == 18085.45897711331
         assert max(count_sw) == 138
@@ -163,11 +171,11 @@ class TestIntensity:
         nx = mm.node_degree(nx)
         nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)
         sw = mm.sw_high(k=3, weights=W)
-        density = mm.NodeDensity(nodes, edges, sw).nd
+        density = mm.NodeDensity(nodes, edges, sw).series
         weighted = mm.NodeDensity(
             nodes, edges, sw, weighted=True, node_degree="degree"
-        ).nd
-        array = mm.NodeDensity(nodes, edges, W).nd
+        ).series
+        array = mm.NodeDensity(nodes, edges, W).series
         assert density.mean() == 0.012690163074599968
         assert weighted.mean() == 0.023207675994368446
         assert array.mean() == 0.008554067995928158
@@ -180,10 +188,10 @@ class TestIntensity:
             sw,
             "uID",
             self.df_tessellation.area,
-        ).d
+        ).series
         dens2 = mm.Density(
             self.df_tessellation, self.df_buildings["fl_area"], sw, "uID"
-        ).d
+        ).series
         check = 1.661587
         assert dens.mean() == approx(check)
         assert dens2.mean() == approx(check)

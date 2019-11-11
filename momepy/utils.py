@@ -413,7 +413,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
         blg["neighbors"] = sw.neighbors
         blg["neighbors"] = blg["neighbors"].map(sw.neighbors)
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
-        blg["circu"] = CircularCompactness(blg).cc
+        blg["circu"] = CircularCompactness(blg).series
 
         # idetify those smaller than x with only one neighbor and attaches it to it.
         join = {}

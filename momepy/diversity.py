@@ -39,7 +39,7 @@ class Range:
 
     Attributes
     ----------
-    r : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -62,7 +62,7 @@ class Range:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_IQR_3steps'] = mm.Range(tessellation_df, 'area', sw, 'uID', rng=(25, 75)).r
+    >>> tessellation_df['area_IQR_3steps'] = mm.Range(tessellation_df, 'area', sw, 'uID', rng=(25, 75)).series
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
 
 
@@ -95,7 +95,7 @@ class Range:
             values_list = data.loc[neighbours][values]
             results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
 
-        self.r = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class Theil:
@@ -123,7 +123,7 @@ class Theil:
 
     Attributes
     ----------
-    t : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -139,7 +139,7 @@ class Theil:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Theil'] = mm.Theil(tessellation_df, 'area', sw, 'uID').t
+    >>> tessellation_df['area_Theil'] = mm.Theil(tessellation_df, 'area', sw, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
     """
 
@@ -182,7 +182,7 @@ class Theil:
                 values_list = limit_range(values_list, rng=rng)
             results_list.append(Theil(values_list).T)
 
-        self.t = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class Simpson:
@@ -220,7 +220,7 @@ class Simpson:
 
     Attributes
     ----------
-    s : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -231,7 +231,9 @@ class Simpson:
     id : Series
         Series containing used unique ID
     binning : str
-        binning
+        binning method
+    bins : mapclassify.classifiers.Classifier
+        generated bins
     classification_kwds : dict
         classification_kwds
 
@@ -243,7 +245,7 @@ class Simpson:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Simpson'] = mm.Simpson(tessellation_df, 'area', sw, 'uID').s
+    >>> tessellation_df['area_Simpson'] = mm.Simpson(tessellation_df, 'area', sw, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
     """
 
@@ -286,7 +288,7 @@ class Simpson:
                 values = "mm_v"
         self.values = data[values]
 
-        bins = schemes[binning](data[values], **classification_kwds).bins
+        self.bins = schemes[binning](data[values], **classification_kwds).bins
         data = data.set_index(unique_id)
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
@@ -297,11 +299,11 @@ class Simpson:
                 neighbours = [index]
             values_list = data.loc[neighbours][values]
 
-            sample_bins = classifiers.UserDefined(values_list, bins)
-            counts = dict(zip(bins, sample_bins.counts))
+            sample_bins = classifiers.UserDefined(values_list, self.bins)
+            counts = dict(zip(self.bins, sample_bins.counts))
             results_list.append(self._simpson_di(counts))
 
-        self.s = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
 
     def _simpson_di(self, data):
 
@@ -346,7 +348,7 @@ class Gini:
 
     Attributes
     ----------
-    g : Series
+    series : Series
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
@@ -362,7 +364,7 @@ class Gini:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Gini'] = mm.Gini(tessellation_df, 'area', sw, 'uID').g
+    >>> tessellation_df['area_Gini'] = mm.Gini(tessellation_df, 'area', sw, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
     """
 
@@ -411,4 +413,4 @@ class Gini:
             else:
                 results_list.append(0)
 
-        self.g = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(results_list, index=gdf.index)
