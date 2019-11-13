@@ -9,7 +9,6 @@ from shapely.geometry import Point, Polygon
 from momepy.shape import _circle_area
 
 
-
 class TestShape:
     def setup_method(self):
 
