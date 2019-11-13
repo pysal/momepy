@@ -6,6 +6,7 @@ matrix:
   include:
     - env: ENV_FILE="ci/travis/37-pysal.yaml"
     - env: ENV_FILE="ci/travis/37-mc.yaml" STYLE=true
+  allow_failures:
     - env: ENV_FILE="ci/travis/dev.yaml" DEV=true
 
 install:
