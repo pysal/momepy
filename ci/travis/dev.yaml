@@ -14,4 +14,4 @@ dependencies:
   - pip:
     - black
     - nose
-    - mapclassify
+    - mapclassify==2.0.1
