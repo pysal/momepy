@@ -11,6 +11,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: [3.7]
+        envs: [ci/travis/37-mc.yaml, ci/travis/37-pysal.yaml, ci/travis/dev.yaml]
 
     steps:
     - uses: actions/checkout@v1
@@ -35,7 +36,7 @@ jobs:
         conda config --add channels conda-forge
         conda config --set channel_priority strict
         popd
-        conda env create --file="ci/travis/37-mc.yaml"
+        conda env create --file="${{ matrix.envs }}"
         conda activate test
         python setup.py install
         conda list
@@ -44,5 +45,6 @@ jobs:
         eval "$($HOME/miniconda/bin/conda shell.bash hook)" && conda activate test
         black --check .
     - name: Run tests
+      run: |
         eval "$($HOME/miniconda/bin/conda shell.bash hook)" && conda activate test
         pytest -v tests
