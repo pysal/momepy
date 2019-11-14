@@ -11,7 +11,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: [3.7]
-        envs: [.github/workflows/37-mc.yaml, .github/workflows/37-pysal.yaml]
+        envs: [ci/37-mc.yaml, ci/37-pysal.yaml, ci/dev.yaml]
 
     steps:
     - uses: actions/checkout@v1
