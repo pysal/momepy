@@ -2,4 +2,5 @@ name: test
 channels:
   - conda-forge
 dependencies:
-  - mapclassify=2.1.1
+  - python=3.7
+  - scikit-learn
