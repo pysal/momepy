@@ -10,9 +10,9 @@ dependencies:
   - pytest
   - pytest-cov
   - codecov
+  - mapclassify
   - pip
   - pip:
     - black
     - nose
-    - mapclassify
     - inequality
