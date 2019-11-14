@@ -10,11 +10,11 @@ from distutils.version import LooseVersion
 try:
     import mapclassify
 
-    MC_21 = str(mapclassify.__version__) <= LooseVersion("2.1.0")
+    MC_21 = str(mapclassify.__version__) < LooseVersion("2.1.0")
 except ImportError:
     import pysal
 
-    MC_21 = str(pysal.__version__) <= LooseVersion("2.1.0")
+    MC_21 = str(pysal.__version__) < LooseVersion("2.1.0")
 
 
 class TestDiversity:
