@@ -2,9 +2,9 @@ name: test
 channels:
   - conda-forge
 dependencies:
-  - python=3.7
+  - python
   - geopandas
-  # libpysal
+  - libpysal
   - networkx
   - tqdm
   - pytest
