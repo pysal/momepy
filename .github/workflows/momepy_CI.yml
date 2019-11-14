@@ -18,7 +18,7 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: Run tests
       run: |
         pushd .
         cd $HOME
@@ -39,9 +39,5 @@ jobs:
         conda activate test
         python setup.py install
         conda list
-    - name: Lint with black
-      run: |
         black --check .
-    - name: Test with pytest
-      run: |
-        pytest -v --cov-config .coveragerc --cov=momepy tests
+        pytest -v tests
