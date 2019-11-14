@@ -12,6 +12,7 @@ dependencies:
   - codecov
   - mapclassify
   - pip
+  - zstd
   - pip:
     - inequality
     - black
