@@ -4,8 +4,8 @@ sudo: false
 
 matrix:
   include:
-    - env: ENV_FILE="ci/travis/37-pysal.yaml"
-    - env: ENV_FILE="ci/travis/37-mc.yaml" STYLE=true
+    - env: ENV_FILE="ci/travis/latest-pysal.yaml"
+    - env: ENV_FILE="ci/travis/latest-mc.yaml" STYLE=true
     - env: ENV_FILE="ci/travis/dev.yaml" DEV=true
   allow_failures:
     - env: ENV_FILE="ci/travis/dev.yaml" DEV=true

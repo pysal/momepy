@@ -2,7 +2,7 @@ name: test
 channels:
   - conda-forge
 dependencies:
-  - python=3.7
+  - python
   - geopandas
   - libpysal
   - networkx
@@ -10,8 +10,7 @@ dependencies:
   - pytest
   - pytest-cov
   - codecov
-  - mapclassify
+  - pysal
   - pip
   - pip:
-    - inequality
     - black

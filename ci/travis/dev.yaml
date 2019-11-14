@@ -14,5 +14,5 @@ dependencies:
   - pip:
     - black
     - nose
-    - mapclassify==2.0.1
+    - mapclassify
     - inequality
