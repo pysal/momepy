@@ -1,4 +1,4 @@
-name: macOS CI
+name: Windows CI
 
 on: [push]
 
@@ -9,7 +9,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        os: [macOS-latest]
+        os: [windows-latest]
         envs: [ci/37-mc.yaml]
 
     steps:
