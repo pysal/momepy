@@ -27,6 +27,9 @@ jobs:
         conda config --add channels conda-forge
         conda config --set channel_priority strict
         conda env create --file="ci/travis/37-mc.yaml"
+        conda activate test
+        python setup.py install
+        conda list
     - name: Lint with black
       run: |
         black --check .
