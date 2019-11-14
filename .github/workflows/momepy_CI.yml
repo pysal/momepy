@@ -22,7 +22,7 @@ jobs:
       run: |
         export PATH="$HOME/miniconda/bin:$PATH"
         hash -r
-        onda config --set always_yes yes --set changeps1 no
+        conda config --set always_yes yes --set changeps1 no
         conda update -q conda
         conda config --add channels conda-forge
         conda config --set channel_priority strict
