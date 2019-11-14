@@ -16,29 +16,23 @@ jobs:
     - uses: actions/checkout@v1
     - name: Build environment
       run: |
-        pushd .
         cd $HOME
-        MINICONDA=Miniconda3-latest-MacOSX-x86_64.sh
-        MINICONDA_HOME=$HOME/miniconda
-        MINICONDA_MD5=$(curl -s https://repo.continuum.io/miniconda/ | grep -A3 $MINICONDA | sed -n '4p' | sed -n 's/ *<td>\(.*\)<\/td> */\1/p')
-        wget -q https://repo.continuum.io/miniconda/$MINICONDA
-        bash $MINICONDA -b -p $MINICONDA_HOME
-        eval "$($MINICONDA_HOME/bin/conda shell.bash hook)"
+        eval "$($CONDA\bin\conda shell.bash hook)"
         conda activate
 
         conda config --set always_yes yes --set changeps1 no
         conda update -q conda
         conda config --add channels conda-forge
         conda config --set channel_priority strict
-        popd
+
         conda env create --file="${{ matrix.envs }}"
         conda activate test
         python setup.py install
     - name: Conda list
       run: |
-        eval "$($HOME/miniconda/bin/conda shell.bash hook)" && conda activate test
+        eval "$($CONDA\bin\conda shell.bash hook)" && conda activate test
         conda list
     - name: Run tests
       run: |
-        eval "$($HOME/miniconda/bin/conda shell.bash hook)" && conda activate test
+        eval "$($CONDA\bin\conda shell.bash hook)" && conda activate test
         pytest -v tests
