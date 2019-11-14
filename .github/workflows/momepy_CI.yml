@@ -18,7 +18,7 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Run tests
+    - name: Build environment
       run: |
         pushd .
         cd $HOME
@@ -39,5 +39,10 @@ jobs:
         conda activate test
         python setup.py install
         conda list
+    - name: Black
+      run: |
+        eval "$($HOME/miniconda/bin/conda shell.bash hook)" && conda activate test
         black --check .
+    - name: Run tests
+        eval "$($HOME/miniconda/bin/conda shell.bash hook)" && conda activate test
         pytest -v tests
