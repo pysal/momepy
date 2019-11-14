@@ -3,8 +3,10 @@ import math
 import geopandas as gpd
 import momepy as mm
 import numpy as np
-from momepy.shape import _circle_area
+from pytest import approx
 from shapely.geometry import Point, Polygon
+
+from momepy.shape import _circle_area
 
 
 class TestShape:
@@ -213,11 +215,11 @@ class TestShape:
             perimeters=self.df_buildings.geometry.length,
             longest_axis=mm.LongestAxisLength(self.df_buildings).series,
         ).series
-        check = 26.32772969906327
+        check = approx(26.327, rel=1e-3)
         assert self.df_buildings["cwa"][0] == check
         assert self.df_buildings["cwa_array"][0] == check
 
     def test__circle_area(self):
         poly = Polygon([(0, 1, 0), (1, 1, 0), (2, 4, 0)])
         check = _circle_area(poly.exterior.coords)
-        assert check == 10.210176124166827
+        assert check == approx(10.210, rel=1e-3)

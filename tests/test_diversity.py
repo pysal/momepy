@@ -5,6 +5,17 @@ import pytest
 from momepy import sw_high
 from pytest import approx
 
+from distutils.version import LooseVersion
+
+try:
+    import mapclassify
+
+    MC_21 = str(mapclassify.__version__) < LooseVersion("2.1.0")
+except ImportError:
+    import pysal
+
+    MC_21 = str(pysal.__version__) < LooseVersion("2.1.0")
+
 
 class TestDiversity:
     def setup_method(self):
@@ -44,6 +55,7 @@ class TestDiversity:
         ).series
         assert zeros[0] == 0
 
+    @pytest.mark.skipif(MC_21, reason="requires mapclassify < 2.1")
     def test_Simpson(self):
         ht_sw = mm.Simpson(self.df_tessellation, "area", self.sw, "uID").series
         assert ht_sw[0] == 0.385
