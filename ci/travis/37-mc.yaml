@@ -4,7 +4,7 @@ channels:
 dependencies:
   - python=3.7
   - geopandas
-  - libpysal
+  # libpysal
   - networkx
   - tqdm
   - pytest
@@ -12,7 +12,6 @@ dependencies:
   - codecov
   - mapclassify
   - pip
-  - zstd
   - pip:
     - inequality
     - black
