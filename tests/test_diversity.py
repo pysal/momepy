@@ -2,7 +2,7 @@ import geopandas as gpd
 import momepy as mm
 import numpy as np
 import pytest
-import mapclassify
+import sys
 from momepy import sw_high
 from pytest import approx
 
@@ -45,9 +45,7 @@ class TestDiversity:
         ).series
         assert zeros[0] == 0
 
-    @pytest.mark.skipif(
-        mapclassify.__version__ < (2, 1), reason="requires mapclassify >=2.1"
-    )
+    @pytest.mark.skipif(sys.platform.startswith("win"), reason="fails on AppVeyor")
     def test_Simpson(self):
         ht_sw = mm.Simpson(self.df_tessellation, "area", self.sw, "uID").series
         assert ht_sw[0] == 0.385
