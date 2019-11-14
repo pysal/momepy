@@ -2,4 +2,4 @@ name: test
 channels:
   - conda-forge
 dependencies:
-  - mapclassify
+  - mapclassify=2.1.1
