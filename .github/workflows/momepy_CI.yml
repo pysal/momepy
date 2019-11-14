@@ -20,7 +20,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        onda update -q conda
+        conda update -q conda
         conda config --add channels conda-forge
         conda config --set channel_priority strict
         conda env create --file="ci/travis/37-mc.yaml"
