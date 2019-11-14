@@ -1,0 +1,17 @@
+name: test
+channels:
+  - conda-forge
+dependencies:
+  - python=3.7
+  - geopandas
+  - libpysal
+  - networkx
+  - tqdm
+  - pytest
+  - pytest-cov
+  - codecov
+  - mapclassify
+  - pip
+  - pip:
+    - inequality
+    - black
