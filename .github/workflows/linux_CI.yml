@@ -1,0 +1,53 @@
+name: Linux
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 3
+      matrix:
+        os: [ubuntu-latest]
+        envs: [ci/37-mc.yaml, ci/37-pysal.yaml, ci/dev.yaml]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build environment
+      run: |
+        pushd .
+        cd $HOME
+        MINICONDA=Miniconda3-latest-Linux-x86_64.sh
+        MINICONDA_HOME=$HOME/miniconda
+        MINICONDA_MD5=$(curl -s https://repo.continuum.io/miniconda/ | grep -A3 $MINICONDA | sed -n '4p' | sed -n 's/ *<td>\(.*\)<\/td> */\1/p')
+        wget -q https://repo.continuum.io/miniconda/$MINICONDA
+        bash $MINICONDA -b -p $MINICONDA_HOME
+        eval "$($MINICONDA_HOME/bin/conda shell.bash hook)"
+        conda activate
+
+        conda config --set always_yes yes --set changeps1 no
+        conda update -q conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
+        popd
+        conda env create --file="${{ matrix.envs }}"
+        conda activate test
+        python setup.py install
+    - name: Conda list
+      run: |
+        eval "$($HOME/miniconda/bin/conda shell.bash hook)" && conda activate test
+        conda list
+    - name: Black
+      run: |
+        eval "$($HOME/miniconda/bin/conda shell.bash hook)" && conda activate test
+        black --check .
+    - name: Run tests
+      run: |
+        eval "$($HOME/miniconda/bin/conda shell.bash hook)" && conda activate test
+        pytest --cov=./ --cov-report=xml -v tests
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1.0.3
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
+        file: ./coverage.xml
