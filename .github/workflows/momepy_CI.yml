@@ -9,7 +9,7 @@ jobs:
     strategy:
       max-parallel: 9
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest]
         python-version: [3.7]
 
     steps:
@@ -18,7 +18,30 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Build environment
-      run:  bash ./.github/workflows/build_env.sh
+    - name: Install dependencies
+      run: |
+        pushd .
+        cd $HOME
+        MINICONDA=Miniconda3-latest-Linux-x86_64.sh
+        MINICONDA_HOME=$HOME/miniconda
+        MINICONDA_MD5=$(curl -s https://repo.continuum.io/miniconda/ | grep -A3 $MINICONDA | sed -n '4p' | sed -n 's/ *<td>\(.*\)<\/td> */\1/p')
+        wget -q https://repo.continuum.io/miniconda/$MINICONDA
+        bash $MINICONDA -b -p $MINICONDA_HOME
+        eval "$($MINICONDA_HOME/bin/conda shell.bash hook)"
+        conda activate
+
+        conda config --set always_yes yes --set changeps1 no
+        conda update -q conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
+        popd
+        conda env create --file="ci/travis/37-mc.yaml"
+        conda activate test
+        python setup.py install
+        conda list
+    - name: Lint with black
+      run: |
+        black --check .
     - name: Test with pytest
-      run: bash ./.github/workflows/run_test.sh
+      run: |
+        pytest -v --cov-config .coveragerc --cov=momepy tests
