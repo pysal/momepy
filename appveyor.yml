@@ -4,7 +4,7 @@ environment:
   matrix:
     - PYTHON_VERSION: "3.7"
       MINICONDA: C:\Miniconda37-x64
-      ENV_FILE: "ci/travis/37-mc.yaml"
+      ENV_FILE: "ci/travis/37-pysal.yaml"
 
 # all our python builds have to happen in tests_script...
 build: false
