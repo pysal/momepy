@@ -1,6 +1,7 @@
 # momepy
 [![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Build Status](https://travis-ci.org/martinfleis/momepy.svg?branch=master)](https://travis-ci.org/martinfleis/momepy) [![Build status](https://ci.appveyor.com/api/projects/status/9shp9tcx4qn4528h?svg=true)](https://ci.appveyor.com/project/martinfleis/momepy)
-[![codecov](https://codecov.io/gh/martinfleis/momepy/branch/master/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy)
+[![codecov](https://codecov.io/gh/martinfleis/momepy/branch/master/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
+
 
 ![momepy: urban morphology measuring toolkit](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/logo.png)
 
@@ -18,6 +19,24 @@ Documentation of `momepy` is available at [docs.momepy.org](https://docs.momepy.
 
 ## User Guide
 User guide with examples of `momepy` usage is available at [guide.momepy.org](https://guide.momepy.org/).
+
+## How to cite
+To cite `momepy` please use following [software paper](https://doi.org/10.21105/joss.01807) published in the JOSS.
+
+Fleischmann, M. (2019) ‘momepy: Urban Morphology Measuring Toolkit’, Journal of Open Source Software, 4(43), p. 1807. doi: 10.21105/joss.01807.
+
+BibTeX:
+
+    @article{fleischmann_2019,
+        author={Fleischmann, Martin},
+        title={momepy: Urban Morphology Measuring Toolkit},
+        journal={Journal of Open Source Software},
+        year={2019},
+        volume={4},
+        number={43},
+        pages={1807},
+        DOI={10.21105/joss.01807}
+    }
 
 ## Install
 You can install `momepy` using Conda from `conda-forge` (recommended):
