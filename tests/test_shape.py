@@ -168,8 +168,8 @@ class TestShape:
 
     def test_Squareness(self):
         self.df_buildings["squ"] = mm.Squareness(self.df_buildings).series
-        check = round(3.7075816043359855, 4)
-        assert round(self.df_buildings["squ"][0], 4) == check
+        check = approx(3.707, rel=1e-3)
+        assert self.df_buildings["squ"][0] == check
 
     def test_EquivalentRectangularIndex(self):
         self.df_buildings["eri"] = mm.EquivalentRectangularIndex(
@@ -180,13 +180,13 @@ class TestShape:
             areas=self.df_buildings.geometry.area,
             perimeters=self.df_buildings.geometry.length,
         ).series
-        check = 0.7879229963118455
+        check = approx(0.7879, rel=1e-3)
         assert self.df_buildings["eri"][0] == check
         assert self.df_buildings["eri_array"][0] == check
 
     def test_Elongation(self):
         self.df_buildings["elo"] = mm.Elongation(self.df_buildings).series
-        check = 0.9082437463675544
+        check = approx(0.908, rel=1e-3)
         assert self.df_buildings["elo"][0] == check
 
     def test_CentroidCorners(self):
@@ -194,8 +194,8 @@ class TestShape:
         cc = mm.CentroidCorners(self.df_buildings)
         self.df_buildings["ccd"] = cc.mean
         self.df_buildings["ccddev"] = cc.std
-        check = 15.961531913184833
-        check_devs = 3.0810634305400177
+        check = approx(15.961, rel=1e-3)
+        check_devs = approx(3.081, rel=1e-3)
         assert self.df_buildings["ccd"][0] == check
         assert self.df_buildings["ccddev"][0] == check_devs
 
