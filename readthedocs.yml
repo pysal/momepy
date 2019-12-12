@@ -1,9 +1,12 @@
 version: 2
 formats: []
-conda:
-    environment: docs/environment.yml
+
+sphinx:
+  configuration: docs/conf.py
+
 python:
     version: 3
     install:
+        - requirements: docs/requirements.txt
         - method: pip
           path: .
