@@ -70,6 +70,10 @@ class TestIntensity:
                 "area",
                 right_unique_id="uID",
             )
+        car_sel = mm.AreaRatio(
+            self.df_tessellation.iloc[10:20], self.df_buildings, "area", "area", "uID"
+        ).series
+        assert (car_sel.index == self.df_tessellation.iloc[10:20].index).all()
 
     def test_Count(self):
         eib = mm.Count(self.blocks, self.df_buildings, "bID", "bID").series
