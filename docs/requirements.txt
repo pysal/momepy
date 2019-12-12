@@ -1,4 +1,4 @@
-sphinx_bootstrap_theme=0.6.4
+sphinx_bootstrap_theme==0.6.4
 matplotlib
 sphinxcontrib.bibtex
 numpydoc
