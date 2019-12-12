@@ -92,6 +92,12 @@ class TestUtils:
         self.false_network = gpd.read_file(test_file_path2, layer="network")
         fixed = mm.network_false_nodes(self.false_network)
         assert len(fixed) == 55
+        assert isinstance(fixed, gpd.GeoDataFrame)
+        fixed_series = mm.network_false_nodes(self.false_network.geometry)
+        assert len(fixed_series) == 55
+        assert isinstance(fixed_series, gpd.GeoSeries)
+        with pytest.raises(TypeError):
+            mm.network_false_nodes(list())
 
     def test_snap_street_network_edge(self):
         snapped = mm.snap_street_network_edge(
