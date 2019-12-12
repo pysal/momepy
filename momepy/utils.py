@@ -508,26 +508,34 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
 def network_false_nodes(gdf):
     """
     Check topology of street network and eliminate nodes of degree 2 by joining
-    affected edges.
+    affected edges. Attributes are not preserved.
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        GeoDataFrame containg edge representation of street network.
+    gdf : GeoDataFrame, GeoSeries
+        GeoDataFrame  or GeoSeries containg edge representation of street network.
     Returns
     -------
-    gdf : GeoDataFrame
+    gdf : GeoDataFrame, GeoSeries
     """
+    if not isinstance(gdf, (gpd.GeoSeries, gpd.GeoDataFrame)):
+        raise TypeError(
+            "'gdf' should be GeoDataFrame or GeoSeries, got {}".format(type(gdf))
+        )
     streets = gdf.copy().explode()
-    streets.reset_index(inplace=True)
+    if isinstance(streets, gpd.GeoDataFrame):
+        series = False
+        streets = streets.reset_index(drop=True).geometry
+    elif isinstance(streets, gpd.GeoSeries):
+        streets = streets.reset_index(drop=True)
+        series = True
+
     sindex = streets.sindex
 
     false_points = []
     print("Identifying false points...")
-    for idx, row in tqdm(streets.iterrows(), total=streets.shape[0]):
-        line = row["geometry"]
+    for idx, line in tqdm(streets.iteritems(), total=streets.shape[0]):
         l_coords = list(line.coords)
-        # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont intersect itself
         start = Point(l_coords[0])
         end = Point(l_coords[-1])
 
@@ -561,7 +569,7 @@ def network_false_nodes(gdf):
     for p in false_xy_unique:
         false_unique.append(Point(p[0], p[1]))
 
-    geoms = streets.geometry
+    geoms = streets
 
     print("Merging segments...")
     for point in tqdm(false_unique):
@@ -576,15 +584,18 @@ def network_false_nodes(gdf):
             import warnings
 
             warnings.warn(
-                "An exception during merging occured. Lines at point [{x}, {y}] were not merged.".format(
+                "An exception during merging occured."
+                "Lines at point [{x}, {y}] were not merged.".format(
                     x=point.x, y=point.y
                 )
             )
 
-    geoms_gdf = gpd.GeoDataFrame(geometry=geoms)
-    geoms_gdf.crs = streets.crs
-    streets = geoms_gdf.explode().reset_index(drop=True)
-    return streets
+    geoms.crs = streets.crs
+    streets = geoms.explode().reset_index(drop=True)
+    if series:
+        return streets
+    geoms_gdf = gpd.GeoDataFrame(geometry=streets, crs=streets.crs)
+    return geoms_gdf
 
 
 def snap_street_network_edge(
@@ -598,7 +609,8 @@ def snap_street_network_edge(
     """
     Fix street network before performing blocks()
 
-    Extends unjoined ends of street segments to join with other segmets or tessellation boundary.
+    Extends unjoined ends of street segments to join with other segmets or
+    tessellation boundary.
 
     Parameters
     ----------
@@ -607,13 +619,17 @@ def snap_street_network_edge(
     buildings : GeoDataFrame
         GeoDataFrame containing building footprints
     tolerance_street : float
-        tolerance in snapping to street network (by how much could be street segment extended).
+        tolerance in snapping to street network (by how much could be street segment
+        extended).
     tessellation : GeoDataFrame (default None)
-        GeoDataFrame containing morphological tessellation. If edge is not passed it will be used as edge.
+        GeoDataFrame containing morphological tessellation. If edge is not passed it
+        will be used as edge.
     tolerance_edge : float (default None)
-        tolerance in snapping to edge of tessellated area (by how much could be street segment extended).
+        tolerance in snapping to edge of tessellated area (by how much could be street
+        segment extended).
     edge : Polygon
-        edge of area covered by morphological tessellation (same as `limit` in :py:func:`momepy.tessellation`)
+        edge of area covered by morphological tessellation (same as `limit` in
+        :py:func:`momepy.tessellation`)
 
     Returns
     -------
@@ -621,7 +637,7 @@ def snap_street_network_edge(
         GeoDataFrame of extended street network.
 
     """
-    # extrapolating function - makes line as a extrapolation of existing with set length (tolerance)
+    # makes line as a extrapolation of existing with set length (tolerance)
     def getExtrapoledLine(p1, p2, tolerance):
         """
         Creates a line extrapoled in p1->p2 direction.
