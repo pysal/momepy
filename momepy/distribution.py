@@ -502,6 +502,8 @@ class NeighborDistance:
     """
     Calculate the mean distance to adjacent buildings (based on spatial_weights)
 
+    If no neighbours are found, return np.nan.
+
     .. math::
         \\frac{1}{n}\\sum_{i=1}^n dist_i=\\frac{dist_1+dist_2+\\cdots+dist_n}{n}
 
@@ -510,7 +512,7 @@ class NeighborDistance:
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     spatial_weights : libpysal.weights
-        spatial weights matrix
+        spatial weights matrix based on unique_id
     unique_id : str
         name of the column with unique id used as spatial_weights index.
 
@@ -549,14 +551,17 @@ class NeighborDistance:
 
         # iterating over rows one by one
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-            neighbours = spatial_weights.neighbors[index]
-            building_neighbours = data.loc[neighbours]
-            if len(building_neighbours) > 0:
-                results_list.append(
-                    np.mean(building_neighbours.geometry.distance(row["geometry"]))
-                )
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index]
+                building_neighbours = data.loc[neighbours]
+                if len(building_neighbours) > 0:
+                    results_list.append(
+                        np.mean(building_neighbours.geometry.distance(row["geometry"]))
+                    )
+                else:
+                    results_list.append(np.nan)
             else:
-                results_list.append(0)
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
