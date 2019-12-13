@@ -103,6 +103,12 @@ class TestDistribution:
             self.df_buildings, sw, "uID", self.df_buildings["orient"]
         ).series
         assert self.df_buildings["align_sw"][0] == 18.299481296455237
+        sw_drop = Queen.from_dataframe(self.df_tessellation[2:], ids="uID")
+        assert (
+            mm.Alignment(self.df_buildings, sw_drop, "uID", self.df_buildings["orient"])
+            .series.isna()
+            .any()
+        )
 
     def test_NeighborDistance(self):
         sw = Queen.from_dataframe(self.df_tessellation, ids="uID")
@@ -132,6 +138,12 @@ class TestDistribution:
         check = 29.305457092042744
         assert self.df_buildings["m_dist_sw"][0] == check
         assert self.df_buildings["m_dist"][0] == check
+        sw_drop = Queen.from_dataframe(self.df_tessellation[2:], ids="uID")
+        assert (
+            mm.MeanInterbuildingDistance(self.df_buildings, sw_drop, "uID")
+            .series.isna()
+            .any()
+        )
 
     def test_NeighboringStreetOrientationDeviation(self):
         self.df_streets["dev"] = mm.NeighboringStreetOrientationDeviation(
@@ -155,9 +167,18 @@ class TestDistribution:
         check = 0.2613824113909074
         assert self.df_buildings["adj_sw"].mean() == check
         assert self.df_buildings["adj_sw_none"].mean() == check
+        swh_drop = mm.sw_high(k=3, gdf=self.df_tessellation[2:], ids="uID")
+        assert (
+            mm.BuildingAdjacency(
+                self.df_buildings, unique_id="uID", spatial_weights_higher=swh_drop
+            )
+            .series.isna()
+            .any()
+        )
 
     def test_Neighbors(self):
         sw = Queen.from_dataframe(self.df_tessellation, ids="uID")
+        sw_drop = Queen.from_dataframe(self.df_tessellation[2:], ids="uID")
         self.df_tessellation["nei_sw"] = mm.Neighbors(
             self.df_tessellation, sw, "uID"
         ).series
@@ -168,3 +189,4 @@ class TestDistribution:
         check_w = 0.029066398893536072
         assert self.df_tessellation["nei_sw"].mean() == check
         assert self.df_tessellation["nei_wei"].mean() == check_w
+        assert mm.Neighbors(self.df_tessellation, sw_drop, "uID").series.isna().any()

@@ -464,12 +464,9 @@ class Reached:
             if spatial_weights is None:
                 ids = [row[left_id]]
             else:
-                if index in spatial_weights.neighbors.keys():
-                    neighbours = list(spatial_weights.neighbors[index])
-                    neighbours.append(index)
-                    ids = left.iloc[neighbours][left_id]
-                else:
-                    ids = []
+                neighbours = list(spatial_weights.neighbors[index])
+                neighbours.append(index)
+                ids = left.iloc[neighbours][left_id]
             if mode == "count":
                 counts = []
                 for nid in ids:

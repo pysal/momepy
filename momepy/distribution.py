@@ -950,6 +950,6 @@ class Neighbors:
                 else:
                     neighbours.append(spatial_weights.cardinalities[row[unique_id]])
             else:
-                neighbours.append(0)
+                neighbours.append(np.nan)
 
         self.series = pd.Series(neighbours, index=gdf.index)

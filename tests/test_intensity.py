@@ -117,6 +117,12 @@ class TestIntensity:
             count = mm.BlocksCount(
                 self.df_tessellation, "bID", sw, "uID", weighted="yes"
             )
+        sw_drop = mm.sw_high(k=5, gdf=self.df_tessellation[2:], ids="uID")
+        assert (
+            mm.BlocksCount(self.df_tessellation, "bID", sw_drop, "uID")
+            .series.isna()
+            .any()
+        )
 
     def test_Reached(self):
         count = mm.Reached(self.df_streets, self.df_buildings, "nID", "nID").series
@@ -199,3 +205,11 @@ class TestIntensity:
         check = 1.661587
         assert dens.mean() == approx(check)
         assert dens2.mean() == approx(check)
+        sw_drop = mm.sw_high(k=3, gdf=self.df_tessellation[2:], ids="uID")
+        assert (
+            mm.Density(
+                self.df_tessellation, self.df_buildings["fl_area"], sw_drop, "uID"
+            )
+            .series.isna()
+            .any()
+        )
