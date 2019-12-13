@@ -485,15 +485,17 @@ class Alignment:
 
         # iterating over rows one by one
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    orientation = data.loc[neighbours][orientations]
+                    deviations = abs(orientation - row[orientations])
 
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                orientation = data.loc[neighbours][orientations]
-                deviations = abs(orientation - row[orientations])
-
-                results_list.append(statistics.mean(deviations))
+                    results_list.append(statistics.mean(deviations))
+                else:
+                    results_list.append(np.nan)
             else:
-                results_list.append(0)
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -672,13 +674,16 @@ class MeanInterbuildingDistance:
             # id to match spatial weights
             uid = row[unique_id]
             # define neighbours based on weights matrix defining analysis area
-            neighbours = spatial_weights_higher.neighbors[uid].copy()
-            neighbours.append(uid)
-            if neighbours:
-                selection = adj_list[adj_list.focal.isin(neighbours)][
-                    adj_list.neighbor.isin(neighbours)
-                ]
-                results_list.append(np.nanmean(selection.distance))
+            if uid in spatial_weights_higher.neighbors.keys():
+                neighbours = spatial_weights_higher.neighbors[uid].copy()
+                neighbours.append(uid)
+                if neighbours:
+                    selection = adj_list[adj_list.focal.isin(neighbours)][
+                        adj_list.neighbor.isin(neighbours)
+                    ]
+                    results_list.append(np.nanmean(selection.distance))
+            else:
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -860,16 +865,19 @@ class BuildingAdjacency:
 
         print("Calculating adjacency...")
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-            neighbours = spatial_weights_higher.neighbors[row[unique_id]].copy()
-            if neighbours:
-                neighbours.append(row[unique_id])
+            if row[unique_id] in spatial_weights_higher.neighbors.keys():
+                neighbours = spatial_weights_higher.neighbors[row[unique_id]].copy()
+                if neighbours:
+                    neighbours.append(row[unique_id])
 
-                patches_sub = [patches[x] for x in neighbours]
-                patches_nr = len(set(patches_sub))
+                    patches_sub = [patches[x] for x in neighbours]
+                    patches_nr = len(set(patches_sub))
 
-                results_list.append(patches_nr / len(neighbours))
+                    results_list.append(patches_nr / len(neighbours))
+                else:
+                    results_list.append(np.nan)
             else:
-                results_list.append(0)
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -933,11 +941,15 @@ class Neighbors:
 
         neighbours = []
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-            if weighted is True:
-                neighbours.append(
-                    spatial_weights.cardinalities[row[unique_id]] / row.geometry.length
-                )
+            if row[unique_id] in spatial_weights.neighbors.keys():
+                if weighted is True:
+                    neighbours.append(
+                        spatial_weights.cardinalities[row[unique_id]]
+                        / row.geometry.length
+                    )
+                else:
+                    neighbours.append(spatial_weights.cardinalities[row[unique_id]])
             else:
-                neighbours.append(spatial_weights.cardinalities[row[unique_id]])
+                neighbours.append(0)
 
         self.series = pd.Series(neighbours, index=gdf.index)
