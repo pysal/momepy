@@ -86,14 +86,17 @@ class Range:
 
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                neighbours.append(index)
-            else:
-                neighbours = [index]
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
+                else:
+                    neighbours = [index]
 
-            values_list = data.loc[neighbours][values]
-            results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
+                values_list = data.loc[neighbours][values]
+                results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
+            else:
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -168,19 +171,22 @@ class Theil:
 
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                neighbours.append(index)
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
+                else:
+                    neighbours = [index]
+
+                values_list = data.loc[neighbours][values]
+
+                if rng:
+                    from momepy import limit_range
+
+                    values_list = limit_range(values_list, rng=rng)
+                results_list.append(Theil(values_list).T)
             else:
-                neighbours = [index]
-
-            values_list = data.loc[neighbours][values]
-
-            if rng:
-                from momepy import limit_range
-
-                values_list = limit_range(values_list, rng=rng)
-            results_list.append(Theil(values_list).T)
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -292,16 +298,19 @@ class Simpson:
         data = data.set_index(unique_id)
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                neighbours.append(index)
-            else:
-                neighbours = [index]
-            values_list = data.loc[neighbours][values]
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
+                else:
+                    neighbours = [index]
+                values_list = data.loc[neighbours][values]
 
-            sample_bins = classifiers.UserDefined(values_list, self.bins)
-            counts = dict(zip(self.bins, sample_bins.counts))
-            results_list.append(self._simpson_di(counts))
+                sample_bins = classifiers.UserDefined(values_list, self.bins)
+                counts = dict(zip(self.bins, sample_bins.counts))
+                results_list.append(self._simpson_di(counts))
+            else:
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -399,18 +408,21 @@ class Gini:
 
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                neighbours.append(index)
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
 
-                values_list = data.loc[neighbours][values].values
+                    values_list = data.loc[neighbours][values].values
 
-                if rng:
-                    from momepy import limit_range
+                    if rng:
+                        from momepy import limit_range
 
-                    values_list = np.array(limit_range(values_list, rng=rng))
-                results_list.append(Gini(values_list).g)
+                        values_list = np.array(limit_range(values_list, rng=rng))
+                    results_list.append(Gini(values_list).g)
+                else:
+                    results_list.append(0)
             else:
-                results_list.append(0)
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)

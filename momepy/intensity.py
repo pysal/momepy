@@ -348,21 +348,24 @@ class BlocksCount:
         data = data.set_index(unique_id)
 
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                neighbours.append(index)
-            else:
-                neighbours = row[unique_id]
-            vicinity = data.loc[neighbours]
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
+                else:
+                    neighbours = row[unique_id]
+                vicinity = data.loc[neighbours]
 
-            if weighted is True:
-                results_list.append(
-                    len(set(list(vicinity[block_id]))) / sum(vicinity.geometry.area)
-                )
-            elif weighted is False:
-                results_list.append(len(set(list(vicinity[block_id]))))
+                if weighted is True:
+                    results_list.append(
+                        len(set(list(vicinity[block_id]))) / sum(vicinity.geometry.area)
+                    )
+                elif weighted is False:
+                    results_list.append(len(set(list(vicinity[block_id]))))
+                else:
+                    raise ValueError("Attribute 'weighted' needs to be True or False.")
             else:
-                raise ValueError("Attribute 'weighted' needs to be True or False.")
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -461,9 +464,12 @@ class Reached:
             if spatial_weights is None:
                 ids = [row[left_id]]
             else:
-                neighbours = list(spatial_weights.neighbors[index])
-                neighbours.append(index)
-                ids = left.iloc[neighbours][left_id]
+                if index in spatial_weights.neighbors.keys():
+                    neighbours = list(spatial_weights.neighbors[index])
+                    neighbours.append(index)
+                    ids = left.iloc[neighbours][left_id]
+                else:
+                    ids = []
             if mode == "count":
                 counts = []
                 for nid in ids:
@@ -675,15 +681,18 @@ class Density:
         data = data.set_index(unique_id)
         # iterating over rows one by one
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                neighbours.append(index)
-            else:
-                neighbours = index
-            subset = data.loc[neighbours]
-            values_list = subset[values]
-            areas_list = subset[areas]
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
+                else:
+                    neighbours = index
+                subset = data.loc[neighbours]
+                values_list = subset[values]
+                areas_list = subset[areas]
 
-            results_list.append(sum(values_list) / sum(areas_list))
+                results_list.append(sum(values_list) / sum(areas_list))
+            else:
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
