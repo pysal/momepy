@@ -399,26 +399,29 @@ class AverageCharacter:
 
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                neighbours.append(index)
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
+                else:
+                    neighbours = [index]
+
+                values_list = data.loc[neighbours][values]
+
+                if rng:
+                    from momepy import limit_range
+
+                    values_list = limit_range(values_list, rng=rng)
+                if mode == "mean":
+                    results_list.append(np.mean(values_list))
+                elif mode == "median":
+                    results_list.append(np.median(values_list))
+                elif mode == "mode":
+                    results_list.append(sp.stats.mode(values_list)[0][0])
+                else:
+                    raise ValueError("{} is not supported as mode.".format(mode))
             else:
-                neighbours = [index]
-
-            values_list = data.loc[neighbours][values]
-
-            if rng:
-                from momepy import limit_range
-
-                values_list = limit_range(values_list, rng=rng)
-            if mode == "mean":
-                results_list.append(np.mean(values_list))
-            elif mode == "median":
-                results_list.append(np.median(values_list))
-            elif mode == "mode":
-                results_list.append(sp.stats.mode(values_list)[0][0])
-            else:
-                raise ValueError("{} is not supported as mode.".format(mode))
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -764,16 +767,19 @@ class WeightedCharacter:
 
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                neighbours.append(index)
-            else:
-                neighbours = [index]
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
+                else:
+                    neighbours = [index]
 
-            subset = data.loc[neighbours]
-            results_list.append(
-                (sum(subset[values] * subset[areas])) / (sum(subset[areas]))
-            )
+                subset = data.loc[neighbours]
+                results_list.append(
+                    (sum(subset[values] * subset[areas])) / (sum(subset[areas]))
+                )
+            else:
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -824,14 +830,17 @@ class CoveredArea:
 
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                neighbours.append(index)
-            else:
-                neighbours = [index]
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
+                else:
+                    neighbours = [index]
 
-            areas = data.loc[neighbours].geometry.area
-            results_list.append(sum(areas))
+                areas = data.loc[neighbours].geometry.area
+                results_list.append(sum(areas))
+            else:
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 

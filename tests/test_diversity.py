@@ -27,6 +27,7 @@ class TestDiversity:
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
         self.df_tessellation["area"] = mm.Area(self.df_tessellation).series
         self.sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
+        self.sw_drop = sw_high(k=3, gdf=self.df_tessellation[2:], ids="uID")
 
     def test_Range(self):
         full_sw = mm.Range(self.df_tessellation, "area", self.sw, "uID").series
@@ -38,6 +39,11 @@ class TestDiversity:
             self.df_tessellation, "area", self.sw, "uID", rng=(10, 90)
         ).series
         assert limit[0] == approx(4122.139, rel=1e-3)
+        assert (
+            mm.Range(self.df_tessellation, "area", self.sw_drop, "uID")
+            .series.isna()
+            .any()
+        )
 
     def test_Theil(self):
         full_sw = mm.Theil(self.df_tessellation, "area", self.sw, "uID").series
@@ -54,6 +60,11 @@ class TestDiversity:
             self.df_tessellation, np.zeros(len(self.df_tessellation)), self.sw, "uID"
         ).series
         assert zeros[0] == 0
+        assert (
+            mm.Theil(self.df_tessellation, "area", self.sw_drop, "uID")
+            .series.isna()
+            .any()
+        )
 
     @pytest.mark.skipif(MC_21, reason="requires mapclassify < 2.1")
     def test_Simpson(self):
@@ -72,6 +83,11 @@ class TestDiversity:
             ht_sw = mm.Simpson(
                 self.df_tessellation, "area", self.sw, "uID", binning="nonexistent"
             )
+        assert (
+            mm.Simpson(self.df_tessellation, "area", self.sw_drop, "uID")
+            .series.isna()
+            .any()
+        )
 
     def test_Gini(self):
         full_sw = mm.Gini(self.df_tessellation, "area", self.sw, "uID").series
@@ -85,3 +101,8 @@ class TestDiversity:
         )
         with pytest.raises(ValueError):
             mm.Gini(self.df_tessellation, "negative", self.sw, "uID").series
+        assert (
+            mm.Gini(self.df_tessellation, "area", self.sw_drop, "uID")
+            .series.isna()
+            .any()
+        )

@@ -151,6 +151,17 @@ class TestDimensions:
         assert self.df_tessellation["mesh_array"][0] == approx(2623.996, rel=1e-3)
         assert self.df_tessellation["mesh_id"][38] == approx(2250.224, rel=1e-3)
         assert self.df_tessellation["mesh_iq"][38] == approx(2118.609, rel=1e-3)
+        sw_drop = sw_high(k=3, gdf=self.df_tessellation[2:], ids="uID")
+        assert (
+            mm.AverageCharacter(
+                self.df_tessellation,
+                values="area",
+                spatial_weights=sw_drop,
+                unique_id="uID",
+            )
+            .series.isna()
+            .any()
+        )
 
     def test_StreetProfile(self):
         results = mm.StreetProfile(self.df_streets, self.df_buildings, heights="height")
@@ -196,10 +207,19 @@ class TestDimensions:
         ).series
         assert weighted[38] == approx(18.301, rel=1e-3)
 
+        sw_drop = sw_high(k=3, gdf=self.df_tessellation[2:], ids="uID")
+        assert (
+            mm.WeightedCharacter(self.df_buildings, "height", sw_drop, "uID")
+            .series.isna()
+            .any()
+        )
+
     def test_CoveredArea(self):
         sw = sw_high(gdf=self.df_tessellation, k=1, ids="uID")
         covered_sw = mm.CoveredArea(self.df_tessellation, sw, "uID").series
         assert covered_sw[0] == approx(24115.667, rel=1e-3)
+        sw_drop = sw_high(k=3, gdf=self.df_tessellation[2:], ids="uID")
+        assert mm.CoveredArea(self.df_tessellation, sw_drop, "uID").series.isna().any()
 
     def test_PerimeterWall(self):
         sw = sw_high(gdf=self.df_buildings, k=1)

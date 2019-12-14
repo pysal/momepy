@@ -584,7 +584,7 @@ def network_false_nodes(gdf):
             import warnings
 
             warnings.warn(
-                "An exception during merging occured."
+                "An exception during merging occured. "
                 "Lines at point [{x}, {y}] were not merged.".format(
                     x=point.x, y=point.y
                 )
