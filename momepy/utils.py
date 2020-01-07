@@ -505,7 +505,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     return blg[buildings.columns]
 
 
-def network_false_nodes(gdf):
+def network_false_nodes(gdf, tolerance=0.1, precision=3):
     """
     Check topology of street network and eliminate nodes of degree 2 by joining
     affected edges. Attributes are not preserved.
@@ -514,6 +514,12 @@ def network_false_nodes(gdf):
     ----------
     gdf : GeoDataFrame, GeoSeries
         GeoDataFrame  or GeoSeries containg edge representation of street network.
+    tolerance : float
+        nodes wihtin tolearance are seen as identical (floating point precision fix)
+    precision : int
+        rounding parameter in estimating uniqueness of two points based on their
+        coordinates
+
     Returns
     -------
     gdf : GeoDataFrame, GeoSeries
@@ -522,7 +528,7 @@ def network_false_nodes(gdf):
         raise TypeError(
             "'gdf' should be GeoDataFrame or GeoSeries, got {}".format(type(gdf))
         )
-    streets = gdf.copy().explode()
+    streets = gdf.explode()
     if isinstance(streets, gpd.GeoDataFrame):
         series = False
         streets = streets.reset_index(drop=True).geometry
@@ -532,12 +538,12 @@ def network_false_nodes(gdf):
 
     sindex = streets.sindex
 
-    false_points = []
+    false_xy = []
     print("Identifying false points...")
     for idx, line in tqdm(streets.iteritems(), total=streets.shape[0]):
         l_coords = list(line.coords)
-        start = Point(l_coords[0])
-        end = Point(l_coords[-1])
+        start = Point(l_coords[0]).buffer(tolerance)
+        end = Point(l_coords[-1]).buffer(tolerance)
 
         # find out whether ends of the line are connected or not
         possible_first_index = list(sindex.intersection(start.bounds))
@@ -555,32 +561,29 @@ def network_false_nodes(gdf):
         ]
 
         if len(real_first_matches) == 1:
-            false_points.append(start)
+            false_xy.append(
+                (round(l_coords[0][0], precision), round(l_coords[0][1], precision))
+            )
         if len(real_second_matches) == 1:
-            false_points.append(end)
+            false_xy.append(
+                (round(l_coords[-1][0], precision), round(l_coords[-1][1], precision))
+            )
 
-    false_xy = []
-    for p in false_points:
-        false_xy.append([p.x, p.y])
-
-    false_xy_unique = [list(x) for x in set(tuple(x) for x in false_xy)]
-
-    false_unique = []
-    for p in false_xy_unique:
-        false_unique.append(Point(p[0], p[1]))
+    false_unique = [Point(x) for x in set(false_xy)]
 
     geoms = streets
 
     print("Merging segments...")
     for point in tqdm(false_unique):
-        matches = list(geoms[geoms.intersects(point)].index)
+        matches = list(geoms[geoms.intersects(point.buffer(tolerance))].index)
         idx = max(geoms.index) + 1
         try:
-            multiline = geoms[matches[0]].union(geoms[matches[1]])
+            snap = shapely.ops.snap(geoms[matches[0]], geoms[matches[1]], tolerance)
+            multiline = snap.union(geoms[matches[1]])
             linestring = shapely.ops.linemerge(multiline)
             geoms = geoms.append(gpd.GeoSeries(linestring, index=[idx]))
             geoms = geoms.drop(matches)
-        except IndexError:
+        except (IndexError, ValueError):
             import warnings
 
             warnings.warn(
