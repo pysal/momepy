@@ -117,6 +117,7 @@ class AreaRatio:
             [right_unique_id, right_areas]
         ].copy()  # keeping only necessary columns
         look_for.rename(index=str, columns={right_areas: "lf_area"}, inplace=True)
+        look_for = look_for.groupby(right_unique_id).sum().reset_index()
         objects_merged = left[[left_unique_id, left_areas]].merge(
             look_for, left_on=left_unique_id, right_on=right_unique_id, how="left"
         )
