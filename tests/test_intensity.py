@@ -74,10 +74,8 @@ class TestIntensity:
             self.df_tessellation.iloc[10:20], self.df_buildings, "area", "area", "uID"
         ).series
         assert (car_sel.index == self.df_tessellation.iloc[10:20].index).all()
-        self.blocks['area'] = self.blocks.geometry.area
-        car_block = mm.AreaRatio(
-            self.blocks, self.df_buildings, 'area', 'area', 'bID'
-        )
+        self.blocks["area"] = self.blocks.geometry.area
+        car_block = mm.AreaRatio(self.blocks, self.df_buildings, "area", "area", "bID")
         assert car_block.series.mean() == 0.2761974319698012
 
     def test_Count(self):
