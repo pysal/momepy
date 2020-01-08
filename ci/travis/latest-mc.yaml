@@ -4,7 +4,7 @@ channels:
 dependencies:
   - python
   - geopandas
-  - libpysal
+  - libpysal=4.1.1
   - networkx
   - tqdm
   - pytest
