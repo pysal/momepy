@@ -528,7 +528,7 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
         raise TypeError(
             "'gdf' should be GeoDataFrame or GeoSeries, got {}".format(type(gdf))
         )
-    streets = gdf.explode()
+    streets = gdf.reset_index(drop=True).explode()
     if isinstance(streets, gpd.GeoDataFrame):
         series = False
         streets = streets.reset_index(drop=True).geometry

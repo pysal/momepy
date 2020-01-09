@@ -98,6 +98,10 @@ class TestUtils:
         assert isinstance(fixed_series, gpd.GeoSeries)
         with pytest.raises(TypeError):
             mm.network_false_nodes(list())
+        multiindex = self.false_network.explode()
+        fixed_multiindex = mm.network_false_nodes(multiindex)
+        assert len(fixed_multiindex) == 55
+        assert isinstance(fixed, gpd.GeoDataFrame)
 
     def test_snap_street_network_edge(self):
         snapped = mm.snap_street_network_edge(
