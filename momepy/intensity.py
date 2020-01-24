@@ -354,7 +354,7 @@ class BlocksCount:
                 if neighbours:
                     neighbours.append(index)
                 else:
-                    neighbours = row[unique_id]
+                    neighbours = index
                 vicinity = data.loc[neighbours]
 
                 if weighted is True:
