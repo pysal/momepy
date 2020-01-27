@@ -351,18 +351,17 @@ class BlocksCount:
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
-                if neighbours:
-                    neighbours.append(index)
-                else:
-                    neighbours = index
+                neighbours.append(index)
+
                 vicinity = data.loc[neighbours]
 
                 if weighted is True:
                     results_list.append(
-                        len(set(list(vicinity[block_id]))) / sum(vicinity.geometry.area)
+                        vicinity[block_id].unique().shape[0]
+                        / sum(vicinity.geometry.area)
                     )
                 elif weighted is False:
-                    results_list.append(len(set(list(vicinity[block_id]))))
+                    results_list.append(vicinity[block_id].unique().shape[0])
                 else:
                     raise ValueError("Attribute 'weighted' needs to be True or False.")
             else:
