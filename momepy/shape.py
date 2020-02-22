@@ -454,10 +454,9 @@ class CircularCompactness:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
+        gdf["hull"] = gdf.convex_hull.exterior
         self.series = gdf.apply(
-            lambda row: (row[areas])
-            / (_circle_area(list(row["geometry"].convex_hull.exterior.coords))),
-            axis=1,
+            lambda row: (row[areas]) / (_circle_area(list(row.hull.coords))), axis=1
         )
 
 
