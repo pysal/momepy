@@ -431,6 +431,8 @@ class Reached:
 
     """
 
+    # TODO: allow all modes
+
     def __init__(
         self,
         left,
@@ -585,6 +587,8 @@ class NodeDensity:
         # define empty list for results
         results_list = []
 
+        lengths = right.geometry.length
+
         # iterating over rows one by one
         for index, row in tqdm(left.iterrows(), total=left.shape[0]):
 
@@ -596,10 +600,10 @@ class NodeDensity:
             else:
                 number_nodes = len(neighbours)
 
-            edg = right.loc[right["node_start"].isin(neighbours)].loc[
-                right["node_end"].isin(neighbours)
-            ]
-            length = sum(edg.geometry.length)
+            length = lengths.loc[
+                right["node_start"].isin(neighbours)
+                & right["node_end"].isin(neighbours)
+            ].sum()
 
             if length > 0:
                 results_list.append(number_nodes / length)
