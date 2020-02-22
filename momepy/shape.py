@@ -679,6 +679,7 @@ class Rectangularity:
     """
 
     def __init__(self, gdf, areas=None):
+        # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
         self.gdf = gdf
         gdf = gdf.copy()
         if areas is None:
@@ -999,6 +1000,7 @@ class EquivalentRectangularIndex:
         self.areas = gdf[areas]
         # fill new column with the value of area, iterating over rows one by one
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
             bbox = row["geometry"].minimum_rotated_rectangle
             results_list.append(
                 math.sqrt(row[areas] / bbox.area) * (bbox.length / row[perimeters])
@@ -1049,6 +1051,7 @@ class Elongation:
 
         # fill new column with the value of area, iterating over rows one by one
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
             bbox = row["geometry"].minimum_rotated_rectangle
             a = bbox.area
             p = bbox.length
@@ -1222,12 +1225,13 @@ class Linearity:
         # define empty list for results
         results_list = []
 
+        lenghts = gdf.geometry.length
         # fill new column with the value of area, iterating over rows one by one
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
             euclidean = Point(row["geometry"].coords[0]).distance(
                 Point(row["geometry"].coords[-1])
             )
-            results_list.append(euclidean / row["geometry"].length)
+            results_list.append(euclidean / lenghts.loc[index])
 
         self.series = pd.Series(results_list, index=gdf.index)
 
