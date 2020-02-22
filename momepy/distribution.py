@@ -126,6 +126,9 @@ class SharedWallsRatio:
     .. math::
         \\textit{length of shared walls} \\over perimeter
 
+    Note that data needs to be topologically correct. Overlapping polygons will lead to
+    incorrect results.
+
     Parameters
     ----------
     gdf : GeoDataFrame
@@ -195,9 +198,7 @@ class SharedWallsRatio:
             if not neighbors:
                 results_list.append(0)
             else:
-                for i in neighbors:
-                    subset = gdf.iloc[i]["geometry"]
-                    length = length + row.geometry.intersection(subset).length
+                length = gdf.iloc[neighbors].intersection(row.geometry).length.sum()
                 results_list.append(length / row[perimeters])
 
         self.series = pd.Series(results_list, index=gdf.index)
