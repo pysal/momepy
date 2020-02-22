@@ -69,6 +69,7 @@ class Orientation:
 
         # iterating over rows one by one
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+            # TODO: vectorize once minimum_rotated_rectangle is in geopandas from pygeos
             bbox = list(row["geometry"].minimum_rotated_rectangle.exterior.coords)
             centroid_ab = LineString([bbox[0], bbox[1]]).centroid
             centroid_cd = LineString([bbox[2], bbox[3]]).centroid
@@ -558,7 +559,7 @@ class NeighborDistance:
                 building_neighbours = data.loc[neighbours]
                 if len(building_neighbours) > 0:
                     results_list.append(
-                        np.mean(building_neighbours.geometry.distance(row["geometry"]))
+                        building_neighbours.geometry.distance(row["geometry"]).mean()
                     )
                 else:
                     results_list.append(np.nan)
