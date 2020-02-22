@@ -347,13 +347,20 @@ class AverageCharacter:
     rng : Two-element sequence containing floats in range of [0,100], optional
         Percentiles over which to compute the range. Each must be
         between 0 and 100, inclusive. The order of the elements is not important.
-    mode : str (default 'mean')
-        mode of average calculation. Can be set to `mean`, `median` or `mode`.
+    mode : str (default 'all')
+        mode of average calculation. Can be set to `all`, `mean`, `median` or `mode` or
+        list of any of the options.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        Series containing resulting mean values
+    mean : Series
+        Series containing resulting mean values
+    median : Series
+        Series containing resulting median values
+    mode : Series
+        Series containing resulting mode values
     gdf : GeoDataFrame
         original GeoDataFrame
     values : GeoDataFrame
@@ -370,23 +377,29 @@ class AverageCharacter:
     References
     ----------
     Hausleitner B and Berghauser Pont M (2017) Development of a configurational
-    typology for micro-businesses integrating geometric and configurational variables. [adapted]
+    typology for micro-businesses integrating geometric and configurational variables.
+    [adapted]
 
     Examples
     --------
     >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True, ids='uID')
-    >>> tessellation['mesh_100'] = momepy.AverageCharacter(tessellation, values='area', spatial_weights=sw, unique_id='uID').series
+    >>> tessellation['mean_area'] = momepy.AverageCharacter(tessellation, values='area', spatial_weights=sw, unique_id='uID').mean
     100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
-    >>> tessellation.mesh_100[0]
+    >>> tessellation.mean_area[0]
     4823.1334436678835
     """
 
-    def __init__(self, gdf, values, spatial_weights, unique_id, rng=None, mode="mean"):
+    def __init__(self, gdf, values, spatial_weights, unique_id, rng=None, mode="all"):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
         self.rng = rng
         self.mode = mode
+
+        if rng:
+            from momepy import limit_range
+
+        # ADD MODE DEPRECATION WARNING
 
         data = gdf.copy()
         if values is not None:
@@ -397,7 +410,23 @@ class AverageCharacter:
 
         data = data.set_index(unique_id)
 
-        results_list = []
+        means = []
+        medians = []
+        modes = []
+
+        allowed = ["mean", "median", "mode"]
+
+        if mode == "all":
+            mode = allowed
+        elif isinstance(mode, list):
+            for m in mode:
+                if m not in allowed:
+                    raise ValueError("{} is not supported as mode.".format(mode))
+        elif isinstance(mode, str):
+            if mode not in allowed:
+                raise ValueError("{} is not supported as mode.".format(mode))
+            mode = [mode]
+
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
@@ -409,21 +438,28 @@ class AverageCharacter:
                 values_list = data.loc[neighbours][values]
 
                 if rng:
-                    from momepy import limit_range
-
                     values_list = limit_range(values_list, rng=rng)
-                if mode == "mean":
-                    results_list.append(np.mean(values_list))
-                elif mode == "median":
-                    results_list.append(np.median(values_list))
-                elif mode == "mode":
-                    results_list.append(sp.stats.mode(values_list)[0][0])
-                else:
-                    raise ValueError("{} is not supported as mode.".format(mode))
-            else:
-                results_list.append(np.nan)
+                if "mean" in mode:
+                    means.append(np.mean(values_list))
+                if "median" in mode:
+                    medians.append(np.median(values_list))
+                if "mode" in mode:
+                    modes.append(sp.stats.mode(values_list)[0][0])
 
-        self.series = pd.Series(results_list, index=gdf.index)
+            else:
+                if "mean" in mode:
+                    means.append(np.nan)
+                if "median" in mode:
+                    medians.append(np.nan)
+                if "mode" in mode:
+                    modes.append(np.nan)
+
+        if "mean" in mode:
+            self.series = self.mean = pd.Series(means, index=gdf.index)
+        if "median" in mode:
+            self.median = pd.Series(medians, index=gdf.index)
+        if "mode" in mode:
+            self.mode = pd.Series(modes, index=gdf.index)
 
 
 class StreetProfile:
