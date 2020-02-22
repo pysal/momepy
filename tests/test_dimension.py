@@ -229,7 +229,7 @@ class TestDimensions:
         assert wall[0] == 137.2106961418436
 
     def test_SegmentsLength(self):
-        absol = mm.SegmentsLength(self.df_streets).series
-        mean = mm.SegmentsLength(self.df_streets, mean=True).series
+        absol = mm.SegmentsLength(self.df_streets).sum
+        mean = mm.SegmentsLength(self.df_streets, mean=True).mean
         assert max(absol) == 1907.502238338006
         assert max(mean) == 249.5698434867373
