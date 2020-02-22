@@ -827,6 +827,7 @@ class CoveredArea:
         self.id = gdf[unique_id]
 
         data = gdf.set_index(unique_id)
+        area = data.geometry.area
 
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
@@ -837,7 +838,7 @@ class CoveredArea:
                 else:
                     neighbours = [index]
 
-                areas = data.loc[neighbours].geometry.area
+                areas = area.loc[neighbours]
                 results_list.append(sum(areas))
             else:
                 results_list.append(np.nan)
