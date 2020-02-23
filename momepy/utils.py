@@ -222,12 +222,13 @@ def _points_to_gdf(net, spatial_weights):
     Helper for nx_to_gdf.
     """
     node_xy, node_data = zip(*net.nodes(data=True))
-    if len(node_xy[0]) == 2:
-        geometry = [Point(i, j) for i, j in node_xy]
-    elif len(node_xy[0]) == 3:
-        geometry = [Point(i, j, k) for i, j, k in node_xy]
+    if isinstance(node_xy[0], int) and "x" in node_data[0].keys():
+        geometry = [Point(data["x"], data["y"]) for data in node_data]  # osmnx graph
+    else:
+        geometry = [Point(*p) for p in node_xy]
     gdf_nodes = gpd.GeoDataFrame(list(node_data), geometry=geometry)
-    gdf_nodes.crs = net.graph["crs"]
+    if "crs" in net.graph.keys():
+        gdf_nodes.crs = net.graph["crs"]
     return gdf_nodes
 
 
@@ -248,7 +249,8 @@ def _lines_to_gdf(net, lines, points, nodeID):
     if points is True:
         gdf_edges["node_start"] = node_start
         gdf_edges["node_end"] = node_end
-    gdf_edges.crs = net.graph["crs"]
+    if "crs" in net.graph.keys():
+        gdf_edges.crs = net.graph["crs"]
     return gdf_edges
 
 
@@ -313,7 +315,7 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
 
     """
     # generate nodes and edges geodataframes from graph
-    try:
+    if "approach" in net.graph.keys():
         if net.graph["approach"] == "primal":
             nid = 1
             for n in net:
@@ -333,11 +335,18 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
                 net.graph["approach"]
             )
         )
-    except KeyError:
-        raise KeyError(
-            "Approach is not set. Graph needs an attribute 'approach' to be set"
-            "either to 'primal' or to 'dual'.".format(net.graph["approach"])
-        )
+
+    import warnings
+
+    warnings.warn("Approach is not set. Defaulting to 'primal'.")
+
+    nid = 1
+    for n in net:
+        net.nodes[n][nodeID] = nid
+        nid += 1
+    return _primal_to_gdf(
+        net, points=points, lines=lines, spatial_weights=spatial_weights, nodeID=nodeID
+    )
 
 
 def limit_range(vals, rng):
