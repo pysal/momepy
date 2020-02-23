@@ -160,6 +160,14 @@ class TestDimensions:
                 unique_id="uID",
                 mode="nonexistent",
             )
+        with pytest.raises(ValueError):
+            self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
+                self.df_tessellation,
+                values="area",
+                spatial_weights=spatial_weights,
+                unique_id="uID",
+                mode=["nonexistent", "mean"],
+            )
         assert self.df_tessellation["mesh_ar"][0] == approx(249.503, rel=1e-3)
         assert self.df_tessellation["mesh_array"][0] == approx(2623.996, rel=1e-3)
         assert self.df_tessellation["mesh_id"][38] == approx(2250.224, rel=1e-3)
