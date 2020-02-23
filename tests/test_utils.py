@@ -74,9 +74,29 @@ class TestUtils:
         dual.graph["approach"] = "nonexistent"
         with pytest.raises(ValueError):
             mm.nx_to_gdf(dual)
-        G = networkx.Graph()
-        with pytest.raises(KeyError):
-            mm.nx_to_gdf(G)
+
+        # check graph without attributes
+        G = networkx.MultiGraph()
+        key = 0
+        for index, row in self.df_streets.iterrows():
+            first = row.geometry.coords[0]
+            last = row.geometry.coords[-1]
+
+            data = [row[f] for f in list(self.df_streets.columns)]
+            attributes = dict(zip(list(self.df_streets.columns), data))
+            G.add_edge(first, last, key=key, **attributes)
+            key += 1
+        nodes, edges = mm.nx_to_gdf(G)
+        assert len(nodes) == 29
+        assert len(edges) == 35
+
+        # osmnx compatibility
+        import osmnx as ox
+
+        G = ox.graph_from_place("Preborov, Czechia", network_type="drive")
+        pts, lines = mm.nx_to_gdf(G)
+        assert len(pts) == 7
+        assert len(lines) == 16
 
         # LineString Z
         line1 = LineString([(0, 0, 0), (1, 1, 1)])

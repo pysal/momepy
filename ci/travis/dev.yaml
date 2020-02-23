@@ -12,6 +12,7 @@ dependencies:
   - codecov
   - mapclassify
   - pip
+  - osmnx
   - pip:
     - black
     - nose

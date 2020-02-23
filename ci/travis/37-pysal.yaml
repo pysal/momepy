@@ -12,5 +12,6 @@ dependencies:
   - codecov
   - pysal
   - pip
+  - osmnx
   - pip:
     - black
