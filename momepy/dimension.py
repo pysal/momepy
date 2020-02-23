@@ -371,7 +371,7 @@ class AverageCharacter:
         Series containing used unique ID
     rng : tuple
         range
-    mode : str
+    modes : str
         mode
 
     References
@@ -394,12 +394,10 @@ class AverageCharacter:
         self.sw = spatial_weights
         self.id = gdf[unique_id]
         self.rng = rng
-        self.mode = mode
+        self.modes = mode
 
         if rng:
             from momepy import limit_range
-
-        # ADD MODE DEPRECATION WARNING
 
         data = gdf.copy()
         if values is not None:
