@@ -15,11 +15,6 @@ from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.wkt import loads
 from tqdm import tqdm
 
-# nothing - temporary solution for readthedocs fail. - cannot mock osgeo
-try:
-    from osgeo import ogr
-except ModuleNotFoundError:
-    print("rtd")
 
 __all__ = ["buffered_limit", "Tessellation", "Blocks", "get_network_id", "get_node_id"]
 
@@ -283,6 +278,14 @@ class Tessellation:
         """
         Returns densified geoemtry with segments no longer than `segment`.
         """
+        # temporary solution for readthedocs fail. - cannot mock osgeo
+        try:
+            from osgeo import ogr
+        except ModuleNotFoundError:
+            import warnings
+
+            warnings.warn("OGR (GDAL) is required.")
+
         poly = geom
         wkt = geom.wkt  # shapely Polygon to wkt
         geom = ogr.CreateGeometryFromWkt(wkt)  # create ogr geometry
