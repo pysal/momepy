@@ -117,21 +117,21 @@ class TestDimensions:
             spatial_weights=spatial_weights,
             unique_id="uID",
             mode="mode",
-        ).series
+        ).mode
         self.df_tessellation["mesh_array"] = mm.AverageCharacter(
             self.df_tessellation,
             values=area,
             spatial_weights=spatial_weights,
             unique_id="uID",
             mode="median",
-        ).series
+        ).median
         self.df_tessellation["mesh_id"] = mm.AverageCharacter(
             self.df_tessellation,
             spatial_weights=spatial_weights,
             values="area",
             rng=(10, 90),
             unique_id="uID",
-        ).series
+        ).mean
         self.df_tessellation["mesh_iq"] = mm.AverageCharacter(
             self.df_tessellation,
             spatial_weights=spatial_weights,
@@ -139,6 +139,19 @@ class TestDimensions:
             rng=(25, 75),
             unique_id="uID",
         ).series
+        all_m = mm.AverageCharacter(
+            self.df_tessellation,
+            spatial_weights=spatial_weights,
+            values="area",
+            unique_id="uID",
+        )
+        two = mm.AverageCharacter(
+            self.df_tessellation,
+            spatial_weights=spatial_weights,
+            values="area",
+            unique_id="uID",
+            mode=["mean", "median"],
+        )
         with pytest.raises(ValueError):
             self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
                 self.df_tessellation,
@@ -147,10 +160,24 @@ class TestDimensions:
                 unique_id="uID",
                 mode="nonexistent",
             )
+        with pytest.raises(ValueError):
+            self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
+                self.df_tessellation,
+                values="area",
+                spatial_weights=spatial_weights,
+                unique_id="uID",
+                mode=["nonexistent", "mean"],
+            )
         assert self.df_tessellation["mesh_ar"][0] == approx(249.503, rel=1e-3)
         assert self.df_tessellation["mesh_array"][0] == approx(2623.996, rel=1e-3)
         assert self.df_tessellation["mesh_id"][38] == approx(2250.224, rel=1e-3)
         assert self.df_tessellation["mesh_iq"][38] == approx(2118.609, rel=1e-3)
+        assert all_m.mean[0] == approx(2922.957, rel=1e-3)
+        assert all_m.median[0] == approx(2623.996, rel=1e-3)
+        assert all_m.mode[0] == approx(249.503, rel=1e-3)
+        assert all_m.series[0] == approx(2922.957, rel=1e-3)
+        assert two.mean[0] == approx(2922.957, rel=1e-3)
+        assert two.median[0] == approx(2623.996, rel=1e-3)
         sw_drop = sw_high(k=3, gdf=self.df_tessellation[2:], ids="uID")
         assert (
             mm.AverageCharacter(
