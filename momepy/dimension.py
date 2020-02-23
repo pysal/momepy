@@ -916,11 +916,11 @@ class PerimeterWall:
 
 class SegmentsLength:
     """
-    Calculate the cummulative or mean length of segments.
+    Calculate the cummulative and/or mean length of segments.
 
     Length of segments within set topological distance from each of them.
-    Reached topological distance should be captured by spatial_weights. If mean=False
-    it will return total length, if mean=True it will return mean value.
+    Reached topological distance should be captured by spatial_weights. If mean=False it
+    will compute sum of length, if mean=True it will compute sum and mean.
 
     Parameters
     ----------
@@ -930,29 +930,31 @@ class SegmentsLength:
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on streets (note: spatial_weights shoud be based on index, not unique ID).
     mean : boolean, optional
-        If mean=False it will return total length, if mean=True it will return mean value
+        If mean=False it will compute sum of length, if mean=True it will compute
+        sum and mean
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        Series containing resulting total lengths
+    mean : Series
+        Series containing resulting total lengths
+    sum : Series
+        Series containing resulting total lengths
     gdf : GeoDataFrame
         original GeoDataFrame
     sw : libpysal.weights
         spatial weights matrix
-    mean : boolean
-        used mean boolean value
 
     Examples
     --------
-    >>> streets_df['length_neighbours'] = mm.SegmentsLength(streets_df, mean=True).series
+    >>> streets_df['length_neighbours'] = mm.SegmentsLength(streets_df, mean=True).mean
     Calculating spatial weights...
     Spatial weights ready...
     """
 
     def __init__(self, gdf, spatial_weights=None, mean=False):
         self.gdf = gdf
-        self.mean = mean
 
         if spatial_weights is None:
             print("Calculating spatial weights...")
@@ -962,7 +964,10 @@ class SegmentsLength:
             print("Spatial weights ready...")
         self.sw = spatial_weights
 
-        results_list = []
+        lenghts = gdf.geometry.length
+
+        sums = []
+        means = []
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
             neighbours = spatial_weights.neighbors[index].copy()
             if neighbours:
@@ -970,10 +975,11 @@ class SegmentsLength:
             else:
                 neighbours = [index]
 
-            dims = gdf.iloc[neighbours].geometry.length
+            dims = lenghts.iloc[neighbours]
             if mean:
-                results_list.append(np.mean(dims))
-            else:
-                results_list.append(sum(dims))
+                means.append(np.mean(dims))
+            sums.append(sum(dims))
 
-        self.series = pd.Series(results_list, index=gdf.index)
+        self.series = self.sum = pd.Series(sums, index=gdf.index)
+        if mean:
+            self.mean = pd.Series(means, index=gdf.index)
