@@ -335,22 +335,18 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
                 net.graph["approach"]
             )
         )
-    else:
-        import warnings
 
-        warnings.warn("Approach is not set. Defaulting to 'primal'.")
+    import warnings
 
-        nid = 1
-        for n in net:
-            net.nodes[n][nodeID] = nid
-            nid += 1
-        return _primal_to_gdf(
-            net,
-            points=points,
-            lines=lines,
-            spatial_weights=spatial_weights,
-            nodeID=nodeID,
-        )
+    warnings.warn("Approach is not set. Defaulting to 'primal'.")
+
+    nid = 1
+    for n in net:
+        net.nodes[n][nodeID] = nid
+        nid += 1
+    return _primal_to_gdf(
+        net, points=points, lines=lines, spatial_weights=spatial_weights, nodeID=nodeID
+    )
 
 
 def limit_range(vals, rng):
