@@ -105,7 +105,7 @@ class Theil:
     """
     Calculates the Theil measure of inequality of values within neighbours defined in `spatial_weights`.
 
-    Uses `inequality.theil.Theil` under the hood. Requires 'inequality' or 'pysal' package.
+    Uses `inequality.theil.Theil` under the hood. Requires 'inequality' package.
 
     .. math::
 
@@ -150,10 +150,7 @@ class Theil:
         try:
             from inequality.theil import Theil
         except ImportError:
-            try:
-                from pysal.explore.inequality.theil import Theil
-            except ImportError:
-                raise ImportError("The 'inequality' or 'pysal' package is required.")
+            raise ImportError("The 'inequality' package is required.")
 
         self.gdf = gdf
         self.sw = spatial_weights
@@ -169,6 +166,9 @@ class Theil:
 
         data = data.set_index(unique_id)
 
+        if rng:
+            from momepy import limit_range
+
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
@@ -181,8 +181,6 @@ class Theil:
                 values_list = data.loc[neighbours][values]
 
                 if rng:
-                    from momepy import limit_range
-
                     values_list = limit_range(values_list, rng=rng)
                 results_list.append(Theil(values_list).T)
             else:
@@ -195,8 +193,7 @@ class Simpson:
     """
     Calculates the Simpson\'s diversity index of values within neighbours defined in `spatial_weights`.
 
-    Uses `mapclassify.classifiers` under the hood for binning. Requires `mapclassify>=.2.1.0` dependency
-    or `pysal`.
+    Uses `mapclassify.classifiers` under the hood for binning. Requires `mapclassify>=.2.1.0` dependency.
 
     .. math::
 
@@ -267,10 +264,7 @@ class Simpson:
         try:
             import mapclassify.classifiers as classifiers
         except ImportError:
-            try:
-                import pysal.viz.mapclassify.classifiers as classifiers
-            except ImportError:
-                raise ImportError("The 'mapclassify' or 'pysal' package is required")
+            raise ImportError("The 'mapclassify' package is required")
 
         schemes = {}
         for classifier in classifiers.CLASSIFIERS:
@@ -339,7 +333,7 @@ class Gini:
     """
     Calculates the Gini index of values within neighbours defined in `spatial_weights`.
 
-    Uses `inequality.gini.Gini` under the hood. Requires 'inequality' or 'pysal' package.
+    Uses `inequality.gini.Gini` under the hood. Requires 'inequality' package.
 
     Parameters
     ----------
@@ -381,10 +375,7 @@ class Gini:
         try:
             from inequality.gini import Gini
         except ImportError:
-            try:
-                from pysal.explore.inequality.gini import Gini
-            except ImportError:
-                raise ImportError("The 'inequality' or 'pysal' package is required.")
+            raise ImportError("The 'inequality' package is required.")
 
         self.gdf = gdf
         self.sw = spatial_weights
@@ -406,6 +397,9 @@ class Gini:
 
         data = data.set_index(unique_id)
 
+        if rng:
+            from momepy import limit_range
+
         results_list = []
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
@@ -416,8 +410,6 @@ class Gini:
                     values_list = data.loc[neighbours][values].values
 
                     if rng:
-                        from momepy import limit_range
-
                         values_list = np.array(limit_range(values_list, rng=rng))
                     results_list.append(Gini(values_list).g)
                 else:

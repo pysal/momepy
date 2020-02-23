@@ -348,6 +348,9 @@ class BlocksCount:
         self.block_id = data[block_id]
         data = data.set_index(unique_id)
 
+        if weighted is True:
+            areas = data.geometry.area
+
         for index, row in tqdm(data.iterrows(), total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
@@ -358,7 +361,7 @@ class BlocksCount:
                 if weighted is True:
                     results_list.append(
                         vicinity[block_id].unique().shape[0]
-                        / sum(vicinity.geometry.area)
+                        / sum(areas.loc[neighbours])
                     )
                 elif weighted is False:
                     results_list.append(vicinity[block_id].unique().shape[0])
@@ -427,6 +430,8 @@ class Reached:
     >>> streets_df['reached_buildings'] = mm.Reached(streets_df, buildings_df, 'uID').series
 
     """
+
+    # TODO: allow all modes
 
     def __init__(
         self,
@@ -582,6 +587,8 @@ class NodeDensity:
         # define empty list for results
         results_list = []
 
+        lengths = right.geometry.length
+
         # iterating over rows one by one
         for index, row in tqdm(left.iterrows(), total=left.shape[0]):
 
@@ -593,10 +600,10 @@ class NodeDensity:
             else:
                 number_nodes = len(neighbours)
 
-            edg = right.loc[right["node_start"].isin(neighbours)].loc[
-                right["node_end"].isin(neighbours)
-            ]
-            length = sum(edg.geometry.length)
+            length = lengths.loc[
+                right["node_start"].isin(neighbours)
+                & right["node_end"].isin(neighbours)
+            ].sum()
 
             if length > 0:
                 results_list.append(number_nodes / length)
