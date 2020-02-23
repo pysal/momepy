@@ -222,9 +222,11 @@ def _points_to_gdf(net, spatial_weights):
     Helper for nx_to_gdf.
     """
     node_xy, node_data = zip(*net.nodes(data=True))
-    gdf_nodes = gpd.GeoDataFrame(
-        list(node_data), geometry=[Point(i, j) for i, j in node_xy]
-    )
+    if len(node_xy[0]) == 2:
+        geometry = [Point(i, j) for i, j in node_xy]
+    elif len(node_xy[0]) == 3:
+        geometry = [Point(i, j, k) for i, j, k in node_xy]
+    gdf_nodes = gpd.GeoDataFrame(list(node_data), geometry=geometry)
     gdf_nodes.crs = net.graph["crs"]
     return gdf_nodes
 

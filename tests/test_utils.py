@@ -5,6 +5,8 @@ import networkx
 import numpy as np
 import pytest
 
+from shapely.geometry import LineString
+
 
 class TestUtils:
     def setup_method(self):
@@ -75,6 +77,15 @@ class TestUtils:
         G = networkx.Graph()
         with pytest.raises(KeyError):
             mm.nx_to_gdf(G)
+
+        # LineString Z
+        line1 = LineString([(0, 0, 0), (1, 1, 1)])
+        line2 = LineString([(0, 0, 0), (-1, -1, -1)])
+        gdf = gpd.GeoDataFrame(geometry=[line1, line2])
+        G = mm.gdf_to_nx(gdf)
+        pts, lines = mm.nx_to_gdf(G)
+        assert pts.iloc[0].geometry.wkt == "POINT Z (0 0 0)"
+        assert lines.iloc[0].geometry.wkt == "LINESTRING Z (0 0 0, 1 1 1)"
 
     def test_limit_range(self):
         assert list(mm.limit_range(range(10), rng=(25, 75))) == [2, 3, 4, 5, 6, 7]
