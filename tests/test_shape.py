@@ -193,7 +193,7 @@ class TestShape:
         self.df_buildings.loc[144] = [145, Point(0, 0).buffer(10), 0, 0]
         self.df_buildings.loc[145] = [
             145,
-            Polygon([(0, 0, 0), (0, 1, 0), (1, 1, 0)]),
+            Polygon([s + (0,) for s in Point(0, 0).buffer(10).exterior.coords]),
             0,
             0,
         ]
