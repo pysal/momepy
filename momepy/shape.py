@@ -1174,9 +1174,12 @@ class CentroidCorners:
             if not distances:  # circular buildings
                 from momepy.dimension import _longest_axis
 
-                results_list.append(
-                    _longest_axis(row["geometry"].convex_hull.exterior.coords) / 2
-                )
+                geom = row["geometry"]
+                if geom.has_z:
+                    coords = [(c[0], c[1]) for c in geom.convex_hull.exterior.coords]
+                else:
+                    coords = geom.convex_hull.exterior.coords
+                results_list.append(_longest_axis(coords) / 2)
                 results_list_sd.append(0)
             else:
                 results_list.append(np.mean(distances))  # calculate mean
