@@ -1176,7 +1176,9 @@ class CentroidCorners:
 
                 geom = row["geometry"]
                 if geom.has_z:
-                    coords = [(c[0], c[1]) for c in geom.convex_hull.exterior.coords]
+                    coords = [
+                        (coo[0], coo[1]) for coo in geom.convex_hull.exterior.coords
+                    ]
                 else:
                     coords = geom.convex_hull.exterior.coords
                 results_list.append(_longest_axis(coords) / 2)
