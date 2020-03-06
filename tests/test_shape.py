@@ -191,6 +191,12 @@ class TestShape:
 
     def test_CentroidCorners(self):
         self.df_buildings.loc[144] = [145, Point(0, 0).buffer(10), 0, 0]
+        self.df_buildings.loc[145] = [
+            145,
+            Polygon([s + (0,) for s in Point(0, 0).buffer(10).exterior.coords]),
+            0,
+            0,
+        ]
         cc = mm.CentroidCorners(self.df_buildings)
         self.df_buildings["ccd"] = cc.mean
         self.df_buildings["ccddev"] = cc.std
