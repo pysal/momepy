@@ -276,9 +276,9 @@ class CourtyardArea:
             areas = "mm_a"
         self.areas = gdf[areas]
 
-        self.series = gdf.apply(
-            lambda row: Polygon(row.geometry.exterior).area - row[areas], axis=1
-        )
+        exts = gdf.geometry.apply(lambda g: Polygon(g.exterior))
+
+        self.series = pd.Series(exts.area - gdf[areas], index=gdf.index)
 
 
 # calculate the radius of circumcircle
@@ -319,9 +319,8 @@ class LongestAxisLength:
 
     def __init__(self, gdf):
         self.gdf = gdf
-        self.series = gdf.apply(
-            lambda row: _longest_axis(row.geometry.convex_hull.exterior.coords), axis=1
-        )
+        hulls = gdf.geometry.convex_hull
+        self.series = hulls.apply(lambda hull: _longest_axis(hull.exterior.coords))
 
 
 class AverageCharacter:

@@ -93,12 +93,11 @@ class FormFactor:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.series = gdf.apply(
-            lambda row: row[areas] / (row[volumes] ** (2 / 3))
-            if row[volumes] != 0
-            else 0,
-            axis=1,
-        )
+        zeros = gdf[volumes] == 0
+        res = np.empty(len(gdf))
+        res[zeros] = 0
+        res[~zeros] = gdf[areas][~zeros] / (gdf[volumes][~zeros] ** (2 / 3))
+        self.series = pd.Series(res, index=gdf.index)
 
 
 class FractalDimension:
@@ -161,9 +160,8 @@ class FractalDimension:
             gdf["mm_a"] = areas
             areas = "mm_a"
 
-        self.series = gdf.apply(
-            lambda row: (2 * math.log(row[perimeters] / 4)) / math.log(row[areas]),
-            axis=1,
+        self.series = pd.Series(
+            (2 * np.log(gdf[perimeters] / 4)) / np.log(gdf[areas]), index=gdf.index
         )
 
 
@@ -523,9 +521,7 @@ class SquareCompactness:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.series = gdf.apply(
-            lambda row: ((4 * math.sqrt(row[areas])) / (row[perimeters])) ** 2, axis=1
-        )
+        self.series = ((np.sqrt(gdf[areas]) * 4) / gdf[perimeters]) ** 2
 
 
 class Convexeity:
@@ -744,9 +740,8 @@ class ShapeIndex:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.series = gdf.apply(
-            lambda row: math.sqrt(row[areas] / math.pi) / (0.5 * row[longest_axis]),
-            axis=1,
+        self.series = pd.Series(
+            np.sqrt(gdf[areas] / np.pi) / (0.5 * gdf[longest_axis]), index=gdf.index
         )
 
 
@@ -979,7 +974,6 @@ class EquivalentRectangularIndex:
     def __init__(self, gdf, areas=None, perimeters=None):
         self.gdf = gdf
         # define empty list for results
-        results_list = []
         gdf = gdf.copy()
 
         if perimeters is None:
@@ -998,15 +992,11 @@ class EquivalentRectangularIndex:
                 gdf["mm_a"] = areas
                 areas = "mm_a"
         self.areas = gdf[areas]
-        # fill new column with the value of area, iterating over rows one by one
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-            # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
-            bbox = row["geometry"].minimum_rotated_rectangle
-            results_list.append(
-                math.sqrt(row[areas] / bbox.area) * (bbox.length / row[perimeters])
-            )
+        # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
+        bbox = gdf.geometry.apply(lambda g: g.minimum_rotated_rectangle)
+        res = np.sqrt(gdf[areas] / bbox.area) * (bbox.length / gdf[perimeters])
 
-        self.series = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(res, index=gdf.index)
 
 
 class Elongation:
@@ -1038,42 +1028,35 @@ class Elongation:
 
     Examples
     --------
-    >>> buildings_df['elongation'] = momepy.Elongation(buildings_df).e
-    100%|██████████| 144/144 [00:00<00:00, 1032.62it/s]
+    >>> buildings_df['elongation'] = momepy.Elongation(buildings_df).series
     >>> buildings_df['elongation'][0]
     0.9082437463675544
     """
 
     def __init__(self, gdf):
         self.gdf = gdf
-        # define empty list for results
-        results_list = []
 
-        # fill new column with the value of area, iterating over rows one by one
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-            # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
-            bbox = row["geometry"].minimum_rotated_rectangle
-            a = bbox.area
-            p = bbox.length
-            cond1 = p ** 2
-            cond2 = 16 * a
-            if cond1 >= cond2:
-                sqrt = cond1 - cond2
-            else:
-                sqrt = 0
+        # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
+        bbox = gdf.geometry.apply(lambda g: g.minimum_rotated_rectangle)
+        a = bbox.area
+        p = bbox.length
+        cond1 = p ** 2
+        cond2 = 16 * a
+        bigger = cond1 >= cond2
+        sqrt = np.empty(len(a))
+        sqrt[bigger] = cond1[bigger] - cond2[bigger]
+        sqrt[~bigger] = 0
 
-            # calculate both width/length and length/width
-            elo1 = ((p - math.sqrt(sqrt)) / 4) / ((p / 2) - ((p - math.sqrt(sqrt)) / 4))
-            elo2 = ((p + math.sqrt(sqrt)) / 4) / ((p / 2) - ((p + math.sqrt(sqrt)) / 4))
-            # use the smaller one (e.g. shorter/longer)
-            if elo1 <= elo2:
-                elo = elo1
-            else:
-                elo = elo2
+        # calculate both width/length and length/width
+        elo1 = ((p - np.sqrt(sqrt)) / 4) / ((p / 2) - ((p - np.sqrt(sqrt)) / 4))
+        elo2 = ((p + np.sqrt(sqrt)) / 4) / ((p / 2) - ((p + np.sqrt(sqrt)) / 4))
 
-            results_list.append(elo)
+        # use the smaller one (e.g. shorter/longer)
+        res = np.empty(len(a))
+        res[elo1 <= elo2] = elo1[elo1 <= elo2]
+        res[~(elo1 <= elo2)] = elo2[~(elo1 <= elo2)]
 
-        self.series = pd.Series(results_list, index=gdf.index)
+        self.series = pd.Series(res, index=gdf.index)
 
 
 class CentroidCorners:
@@ -1232,6 +1215,7 @@ class Linearity:
 
         lenghts = gdf.geometry.length
         # fill new column with the value of area, iterating over rows one by one
+        # TODO use math instead of shapely points
         for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
             euclidean = Point(row["geometry"].coords[0]).distance(
                 Point(row["geometry"].coords[-1])
@@ -1311,8 +1295,8 @@ class CompactnessWeightedAxis:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.series = gdf.apply(
-            lambda row: row[longest_axis]
-            * ((4 / math.pi) - (16 * row[areas]) / ((row[perimeters]) ** 2)),
-            axis=1,
+        self.series = pd.Series(
+            gdf[longest_axis]
+            * ((4 / np.pi) - (16 * gdf[areas]) / ((gdf[perimeters]) ** 2)),
+            index=gdf.index,
         )
