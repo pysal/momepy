@@ -412,21 +412,17 @@ class CellAlignment:
         self.left_unique_id = left[left_unique_id]
         self.right_unique_id = right[right_unique_id]
 
-        # define empty list for results
-        results_list = []
-
-        for index, row in tqdm(left.iterrows(), total=left.shape[0]):
-
-            results_list.append(
-                abs(
-                    row[left_orientations]
-                    - right[right[right_unique_id] == row[left_unique_id]][
-                        right_orientations
-                    ].iloc[0]
-                )
-            )
-
-        self.series = pd.Series(results_list, index=left.index)
+        comp = left[[left_unique_id, left_orientations]].merge(
+            right[[right_unique_id, right_orientations]],
+            left_on=left_unique_id,
+            right_on=right_unique_id,
+            how="left",
+        )
+        if left_orientations == right_orientations:
+            left_orientations = left_orientations + "_x"
+            right_orientations = right_orientations + "_y"
+        self.series = np.absolute(comp[left_orientations] - comp[right_orientations])
+        self.series.index = left.index
 
 
 class Alignment:
