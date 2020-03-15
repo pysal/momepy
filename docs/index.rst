@@ -69,9 +69,9 @@ Examples
    tessellation['CAR'] = coverage.series
 
 .. figure:: https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/example1.png
-   :alt: example 1
+   :alt: Coverage Area Ratio
 
-   example 1
+   Coverage Area Ratio
 
 .. code:: py
 
@@ -81,18 +81,18 @@ Examples
    tessellation['area_simpson'] = area_simpson.series
 
 .. figure:: https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/diversity_22_0.png
-   :alt: example 2
+   :alt: Local Simpson's diversity of area
 
-   example 2
+   Local Simpson's diversity of area
 
 .. code:: py
 
    G = momepy.straightness_centrality(G)
 
 .. figure:: https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/centrality_27_0.png
-   :alt: example 3
+   :alt: Straightness centrality
 
-   example 3
+   Straightness centrality
 
 Citing
 ------

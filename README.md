@@ -44,7 +44,7 @@ coverage = momepy.AreaRatio(tessellation, buildings, left_areas=tessellation.are
 tessellation['CAR'] = coverage.series
 ```
 
-![example 1](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/example1.png)
+![Coverage Area Ratio](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/example1.png)
 
 ```py
 area_simpson = momepy.Simpson(tessellation, values='area',
@@ -53,13 +53,13 @@ area_simpson = momepy.Simpson(tessellation, values='area',
 tessellation['area_simpson'] = area_simpson.series
 ```
 
-![example 2](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/diversity_22_0.png)
+![Local Simpson's diversity of area](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/diversity_22_0.png)
 
 ```py
 G = momepy.straightness_centrality(G)
 ```
 
-![example 3](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/centrality_27_0.png)
+![Straightness centrality](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/centrality_27_0.png)
 
 
 ## How to cite
