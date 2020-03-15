@@ -6,19 +6,61 @@
 ![momepy: urban morphology measuring toolkit](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/logo.png)
 
 ## Introduction
-Momepy is a project allowing advanced quantitative analysis of urban morphology. Embracing principles of *Urban Morphometrics* (Dibble, 2017), this toolkit aims to provide tools for the development of complex frameworks for a description of urban structures.
+Momepy is a library for quantitative analysis of urban form - urban morphometrics. It is built on top of [GeoPandas](http://geopandas.org), [PySAL](http://pysal.org) and [networkX](http://networkx.github.io).
 
 > *momepy* stands for Morphological Measuring in Python
+
+Some of the functionality that momepy offers:
+
+- Measuring [dimensions](https://docs.momepy.org/en/latest/api.html#dimension) of morphological elements, their parts, and aggregated structures.
+- Quantifying [shapes](https://docs.momepy.org/en/latest/api.html#shape) of geometries representing a wide range of morphological features.
+- Capturing [spatial distribution](https://docs.momepy.org/en/latest/api.html#spatial-distribution) of elements of one kind as well as relationships between different kinds.
+- Computing density and other types of [intensity](https://docs.momepy.org/en/latest/api.html#intensity) characters.
+- Calculating [diversity](https://docs.momepy.org/en/latest/api.html#diversity) of various aspects of urban form.
+- Capturing [connectivity](https://docs.momepy.org/en/latest/api.html#graph) of urban street networks
+- Generating relational [elements](https://docs.momepy.org/en/latest/api.html#elements) of urban form (e.g. morphological tessellation)
+
+Momepy aims to provide a wide range of tools for a systematic and exhaustive analysis of urban form. It can work with a wide range of elements, while focused on building footprints and street networks.
 
 Momepy is a result of ongoing research of [Urban Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with University of Strathclyde in Glasgow, UK.
 
 Comments, suggestions, feedback, and contributions, as well as bug reports, are very welcome.
+
+## Getting Started
+Quick and easy [getting started guide](https://guide.momepy.org/getting_started.html) is part of the [User Guide](https://guide.momepy.org/getting_started.html).
+
 
 ## Documentation
 Documentation of `momepy` is available at [docs.momepy.org](https://docs.momepy.org/).
 
 ## User Guide
 User guide with examples of `momepy` usage is available at [guide.momepy.org](https://guide.momepy.org/).
+
+## Examples
+
+```py
+coverage = momepy.AreaRatio(tessellation, buildings, left_areas=tessellation.area,
+                            right_areas='area', unique_id='uID')
+tessellation['CAR'] = coverage.series
+```
+
+![example 1](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/example1.png)
+
+```py
+area_simpson = momepy.Simpson(tessellation, values='area',
+                              spatial_weights=sw3,
+                              unique_id='uID')
+tessellation['area_simpson'] = area_simpson.series
+```
+
+![example 2](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/diversity_22_0.png)
+
+```py
+G = momepy.straightness_centrality(G)
+```
+
+![example 3](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/centrality_27_0.png)
+
 
 ## How to cite
 To cite `momepy` please use following [software paper](https://doi.org/10.21105/joss.01807) published in the JOSS.
