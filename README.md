@@ -10,6 +10,8 @@ Momepy is a library for quantitative analysis of urban form - urban morphometric
 
 > *momepy* stands for Morphological Measuring in Python
 
+Some of the functionality that momepy offers:
+
 - Measuring [dimensions](https://docs.momepy.org/en/latest/api.html#dimension) of morphological elements, their parts, and aggregated structures.
 - Quantifying [shapes](https://docs.momepy.org/en/latest/api.html#shape) of geometries representing a wide range of morphological features.
 - Capturing [spatial distribution](https://docs.momepy.org/en/latest/api.html#spatial-distribution) of elements of one kind as well as relationships between different kinds.
@@ -41,6 +43,7 @@ coverage = momepy.AreaRatio(tessellation, buildings, left_areas=tessellation.are
                             right_areas='area', unique_id='uID')
 tessellation['CAR'] = coverage.series
 ```
+
 ![example 1](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/example1.png)
 
 ```py
@@ -49,12 +52,14 @@ area_simpson = momepy.Simpson(tessellation, values='area',
                               unique_id='uID')
 tessellation['area_simpson'] = area_simpson.series
 ```
-![example 1](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/diversity_22_0.png)
+
+![example 2](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/diversity_22_0.png)
 
 ```py
 G = momepy.straightness_centrality(G)
 ```
-![example 1](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/centrality_27_0.png)
+
+![example 3](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/centrality_27_0.png)
 
 
 ## How to cite

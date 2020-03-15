@@ -8,12 +8,30 @@ momepy documentation
 Introduction
 ------------
 
-Momepy is a project allowing advanced quantitative analysis of urban
-morphology. Embracing principles of *Urban Morphometrics* (Dibble,
-2017), this toolkit aims to provide tools for the development of complex
-frameworks for a description of urban structures.
+Moomepy is a library for quantitative analysis of urban form - urban
+morphometrics. It is built on top of `GeoPandas`_, `PySAL`_ and
+`networkX`_.
 
     *momepy* stands for Morphological Measuring in Python
+
+Some of the functionality that momepy offers:
+
+-  Measuring **dimensions** of morphological elements, their parts, and
+   aggregated structures.
+-  Quantifying **shapes** of geometries representing a wide range of
+   morphological features.
+-  Capturing **spatial distribution** of elements of one kind as well as
+   relationships between different kinds.
+-  Computing density and other types of **intensity** characters.
+-  Calculating **diversity** of various aspects of urban form.
+-  Capturing **connectivity** of urban street networks
+-  Generating relational **elements** of urban form (e.g. morphological
+   tessellation)
+
+Momepy aims to provide a wide range of tools for a systematic and
+exhaustive analysis of urban form. It can work with a wide range of
+elements, while focused on building footprints and street networks.
+
 
 Momepy is a result of ongoing research of `Urban
 Design Studies Unit (UDSU) <http://udsu-strath.com>`__ supported by the
@@ -40,6 +58,41 @@ or from PyPI using pip::
 See the :doc:`installation docs <install>` for detailed instructions.
 Momepy depends on python geospatial stack, which might cause some dependency
 issues.
+
+Examples
+--------
+
+.. code:: py
+
+   coverage = momepy.AreaRatio(tessellation, buildings, left_areas=tessellation.area,
+                               right_areas='area', unique_id='uID')
+   tessellation['CAR'] = coverage.series
+
+.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/example1.png
+   :alt: example 1
+
+   example 1
+
+.. code:: py
+
+   area_simpson = momepy.Simpson(tessellation, values='area',
+                                 spatial_weights=sw3,
+                                 unique_id='uID')
+   tessellation['area_simpson'] = area_simpson.series
+
+.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/diversity_22_0.png
+   :alt: example 2
+
+   example 2
+
+.. code:: py
+
+   G = momepy.straightness_centrality(G)
+
+.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/centrality_27_0.png
+   :alt: example 3
+
+   example 3
 
 Citing
 ------
@@ -111,3 +164,7 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _GeoPandas: http://geopandas.org
+.. _PySAL: http://pysal.org
+.. _networkX: http://networkx.github.io
