@@ -41,7 +41,7 @@ autodoc_mock_imports = [
 # -- Project information -----------------------------------------------------
 
 project = "momepy"
-copyright = "2018-2019, Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit"
+copyright = "2018-2020, Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit"
 author = "Martin Fleischmann"
 
 # The short X.Y version
@@ -63,7 +63,7 @@ release = version
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
-    "sphinx.ext.viewcode",
+    "sphinx.ext.linkcode",
     "sphinxcontrib.bibtex",
     "sphinx.ext.mathjax",
     "sphinx.ext.doctest",
@@ -267,3 +267,28 @@ numpydoc_show_class_members = True
 class_members_toctree = True
 numpydoc_show_inherited_class_members = True
 numpydoc_use_plots = True
+
+
+def linkcode_resolve(domain, info):
+    def find_source():
+        # try to find the file and line number, based on code from numpy:
+        # https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
+        obj = sys.modules[info["module"]]
+        for part in info["fullname"].split("."):
+            obj = getattr(obj, part)
+        import inspect
+        import os
+
+        fn = inspect.getsourcefile(obj)
+        fn = os.path.relpath(fn, start=os.path.dirname(momepy.__file__))
+        source, lineno = inspect.getsourcelines(obj)
+        return fn, lineno, lineno + len(source) - 1
+
+    if domain != "py" or not info["module"]:
+        return None
+    try:
+        filename = "momepy/%s#L%d-L%d" % find_source()
+    except Exception:
+        filename = info["module"].replace(".", "/") + ".py"
+    tag = "master" if "+" in release else ("v" + release)
+    return "https://github.com/martinfleis/momepy/blob/%s/%s" % (tag, filename)
