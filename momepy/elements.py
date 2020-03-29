@@ -389,11 +389,11 @@ class Tessellation:
         subselection = list(to_cut.index)
 
         print("Cutting...")
-        for idx, row in tqdm(
-            tessellation.loc[subselection].iterrows(),
+        for idx, rgeom in tqdm(
+            tessellation.loc[subselection].geometry.iteritems(),
             total=tessellation.loc[subselection].shape[0],
         ):
-            intersection = row.geometry.intersection(limit)
+            intersection = rgeom.intersection(limit)
             if intersection.type == "MultiPolygon":
                 areas = {}
                 for p, i in enumerate(intersection):
@@ -544,7 +544,7 @@ class Blocks:
 
         patches = {}
         jID = 1
-        for idx, row in tqdm(blocks_gdf.iterrows(), total=blocks_gdf.shape[0]):
+        for idx in tqdm(blocks_gdf.index, total=blocks_gdf.shape[0]):
 
             # if the id is already present in courtyards, continue (avoid repetition)
             if idx in patches:
@@ -611,13 +611,13 @@ class Blocks:
 
         # if polygon is within another one, delete it
         sindex = blocks.sindex
-        for idx, row in tqdm(blocks.iterrows(), total=blocks.shape[0]):
-            possible_matches = list(sindex.intersection(row.geometry.bounds))
+        for idx, geom in tqdm(blocks.geometry.iteritems(), total=blocks.shape[0]):
+            possible_matches = list(sindex.intersection(geom.bounds))
             possible_matches.remove(idx)
             possible = blocks.iloc[possible_matches]
 
-            for idx2, row2 in possible.iterrows():
-                if row["geometry"].within(row2["geometry"]):
+            for geom2 in possible.geometry:
+                if geom.within(geom2):
                     blocks.loc[idx, "delete"] = 1
 
         if "delete" in blocks.columns:
@@ -699,10 +699,7 @@ def get_network_id(left, right, network_id, min_size=100):
     idx = right.sindex
 
     result = []
-    for ix, r in tqdm(
-        buildings_c.iterrows(), total=buildings_c.shape[0], desc="Snapping"
-    ):
-        p = r.geometry
+    for p in tqdm(buildings_c.geometry, total=buildings_c.shape[0], desc="Snapping"):
         pbox = (p.x - MIN_SIZE, p.y - MIN_SIZE, p.x + MIN_SIZE, p.y + MIN_SIZE)
         hits = list(idx.intersection(pbox))
         d = INFTY
@@ -761,13 +758,16 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
         node_id = "mm_noid"
 
     results_list = []
-    for index, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-        if np.isnan(row[edge_id]):
+    for row in tqdm(
+        objects[[edge_id, objects._geometry_column_name]].itertuples(),
+        total=objects.shape[0],
+    ):
+        if np.isnan(row[1]):
 
             results_list.append(np.nan)
         else:
-            centroid = row.geometry.centroid
-            edge = edges.loc[edges[edge_id] == row[edge_id]].iloc[0]
+            centroid = row[2].centroid
+            edge = edges.loc[edges[edge_id] == row[1]].iloc[0]
             startID = edge.node_start
             start = nodes.loc[nodes[node_id] == startID].iloc[0].geometry
             sd = centroid.distance(start)
