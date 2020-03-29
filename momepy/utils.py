@@ -366,7 +366,6 @@ def limit_range(vals, rng):
         limited array
     """
     if len(vals) > 2:
-        limited = []
         rng = sorted(rng)
         lower = np.percentile(vals, rng[0], interpolation="nearest")
         higher = np.percentile(vals, rng[1], interpolation="nearest")
@@ -430,8 +429,8 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
         join = {}
         delete = []
 
-        for idx, row in tqdm(
-            blg.iterrows(), total=blg.shape[0], desc="Identifying changes"
+        for row in tqdm(
+            blg.itertuples(), total=blg.shape[0], desc="Identifying changes"
         ):
             if size:
                 if row.geometry.area < size:
@@ -459,7 +458,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
                         else:
                             join[uid] = [row.mm_uid]
                     else:
-                        delete.append(idx)
+                        delete.append(row.Index)
             if compactness:
                 if row.circu < 0.2:
                     if row.n_count == 1:
@@ -882,9 +881,8 @@ def snap_street_network_edge(
 
     print("Snapping...")
     # iterating over each street segment
-    for idx, row in tqdm(network.iterrows(), total=network.shape[0]):
+    for idx, line in tqdm(network.geometry.iteritems(), total=network.shape[0]):
 
-        line = row["geometry"]
         l_coords = list(line.coords)
         # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont intersect itself
         start = Point(l_coords[0])
