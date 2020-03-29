@@ -82,10 +82,10 @@ class Range:
                 values = "mm_v"
         self.values = data[values]
 
-        data = data.set_index(unique_id)
+        data = data.set_index(unique_id)[values]
 
         results_list = []
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -93,7 +93,7 @@ class Range:
                 else:
                     neighbours = [index]
 
-                values_list = data.loc[neighbours][values]
+                values_list = data.loc[neighbours]
                 results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
             else:
                 results_list.append(np.nan)
@@ -164,13 +164,13 @@ class Theil:
                 values = "mm_v"
         self.values = data[values]
 
-        data = data.set_index(unique_id)
+        data = data.set_index(unique_id)[values]
 
         if rng:
             from momepy import limit_range
 
         results_list = []
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -178,7 +178,7 @@ class Theil:
                 else:
                     neighbours = [index]
 
-                values_list = data.loc[neighbours][values]
+                values_list = data.loc[neighbours]
 
                 if rng:
                     values_list = limit_range(values_list, rng=rng)
@@ -289,16 +289,16 @@ class Simpson:
         self.values = data[values]
 
         self.bins = schemes[binning](data[values], **classification_kwds).bins
-        data = data.set_index(unique_id)
+        data = data.set_index(unique_id)[values]
         results_list = []
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
                     neighbours.append(index)
                 else:
                     neighbours = [index]
-                values_list = data.loc[neighbours][values]
+                values_list = data.loc[neighbours]
 
                 sample_bins = classifiers.UserDefined(values_list, self.bins)
                 counts = dict(zip(self.bins, sample_bins.counts))
@@ -395,22 +395,22 @@ class Gini:
                 "using momepy.Gini."
             )
 
-        data = data.set_index(unique_id)
+        data = data.set_index(unique_id)[values]
 
         if rng:
             from momepy import limit_range
 
         results_list = []
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
                     neighbours.append(index)
 
-                    values_list = data.loc[neighbours][values].values
+                    values_list = data.loc[neighbours].values
 
                     if rng:
-                        values_list = np.array(limit_range(values_list, rng=rng))
+                        values_list = limit_range(values_list, rng=rng)
                     results_list.append(Gini(values_list).g)
                 else:
                     results_list.append(0)

@@ -325,9 +325,9 @@ class LongestAxisLength:
 
 class AverageCharacter:
     """
-    Calculates the average of a character within k steps of morphological tessellation
+    Calculates the average of a character within a set neighbourhood defined in spatial_weights
 
-    Average value of the character within k topological steps defined in spatial_weights.
+    Average value of the character within a set neighbourhood defined in spatial_weights.
     Can be set to `mean`, `median` or `mode`. `mean` is defined as:
 
     .. math::
@@ -405,7 +405,7 @@ class AverageCharacter:
                 values = "mm_v"
         self.values = data[values]
 
-        data = data.set_index(unique_id)
+        data = data.set_index(unique_id)[values]
 
         means = []
         medians = []
@@ -424,7 +424,7 @@ class AverageCharacter:
                 raise ValueError("{} is not supported as mode.".format(mode))
             mode = [mode]
 
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -432,7 +432,7 @@ class AverageCharacter:
                 else:
                     neighbours = [index]
 
-                values_list = data.loc[neighbours][values]
+                values_list = data.loc[neighbours]
 
                 if rng:
                     values_list = limit_range(values_list, rng=rng)
@@ -551,8 +551,6 @@ class StreetProfile:
         openness_list = []
 
         for idx, row in tqdm(left.iterrows(), total=left.shape[0]):
-            # if idx == 2:
-            #     ee
             # list to hold all the point coords
             list_points = []
             # set the current distance to place the point
@@ -796,10 +794,10 @@ class WeightedCharacter:
         self.areas = data[areas]
         self.values = data[values]
 
-        data = data.set_index(unique_id)
+        data = data.set_index(unique_id)[[values, areas]]
 
         results_list = []
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -859,11 +857,11 @@ class CoveredArea:
         self.sw = spatial_weights
         self.id = gdf[unique_id]
 
-        data = gdf.set_index(unique_id)
-        area = data.geometry.area
+        data = gdf
+        area = data.set_index(unique_id).geometry.area
 
         results_list = []
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index in tqdm(area.index, total=area.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -926,23 +924,24 @@ class PerimeterWall:
         # dict to store walls for each uID
         walls = {}
         components = pd.Series(spatial_weights.component_labels, index=range(len(gdf)))
+        geom = gdf.geometry
 
-        for i, (index, row) in tqdm(enumerate(gdf.iterrows()), total=gdf.shape[0]):
+        for i in tqdm(range(gdf.shape[0]), total=gdf.shape[0]):
             # if the id is already present in walls, continue (avoid repetition)
             if i in walls:
                 continue
             else:
                 comp = spatial_weights.component_labels[i]
                 to_join = components[components == comp].index
-                joined = gdf.iloc[to_join]
-                dissolved = joined.geometry.buffer(
+                joined = geom.iloc[to_join]
+                dissolved = joined.buffer(
                     0.01
                 ).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
                 for b in to_join:
                     walls[b] = dissolved.exterior.length
 
         results_list = []
-        for i, (index, row) in tqdm(enumerate(gdf.iterrows()), total=gdf.shape[0]):
+        for i in tqdm(range(gdf.shape[0]), total=gdf.shape[0]):
             results_list.append(walls[i])
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -1001,7 +1000,7 @@ class SegmentsLength:
 
         sums = []
         means = []
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        for index in tqdm(gdf.index, total=gdf.shape[0]):
             neighbours = spatial_weights.neighbors[index].copy()
             if neighbours:
                 neighbours.append(index)

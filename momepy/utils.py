@@ -928,3 +928,9 @@ def snap_street_network_edge(
             print("Something went wrong.")
 
     return network
+
+
+def _azimuth(point1, point2):
+    """azimuth between 2 shapely points (interval 0 - 180)"""
+    angle = np.arctan2(point2[0] - point1[0], point2[1] - point1[1])
+    return np.degrees(angle) if angle > 0 else np.degrees(angle) + 180

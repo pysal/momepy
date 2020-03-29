@@ -4,12 +4,16 @@
 # distribution.py
 # definitons of spatial distribution characters
 
+import math
 import statistics
 
 import numpy as np
 import pandas as pd
-from shapely.geometry import LineString, Point
+from shapely.geometry import Point
 from tqdm import tqdm  # progress bar
+
+from .utils import _azimuth
+
 
 __all__ = [
     "Orientation",
@@ -62,25 +66,17 @@ class Orientation:
         # define empty list for results
         results_list = []
 
-        def _azimuth(point1, point2):
-            """azimuth between 2 shapely points (interval 0 - 180)"""
-            angle = np.arctan2(point2.x - point1.x, point2.y - point1.y)
-            return np.degrees(angle) if angle > 0 else np.degrees(angle) + 180
+        def _dist(a, b):
+            return math.hypot(b[0] - a[0], b[1] - a[1])
 
-        # iterating over rows one by one
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
             # TODO: vectorize once minimum_rotated_rectangle is in geopandas from pygeos
-            bbox = list(row["geometry"].minimum_rotated_rectangle.exterior.coords)
-            centroid_ab = LineString([bbox[0], bbox[1]]).centroid
-            centroid_cd = LineString([bbox[2], bbox[3]]).centroid
-            axis1 = centroid_ab.distance(centroid_cd)
-
-            centroid_bc = LineString([bbox[1], bbox[2]]).centroid
-            centroid_da = LineString([bbox[3], bbox[0]]).centroid
-            axis2 = centroid_bc.distance(centroid_da)
+            bbox = list(geom.minimum_rotated_rectangle.exterior.coords)
+            axis1 = _dist(bbox[0], bbox[3])
+            axis2 = _dist(bbox[0], bbox[1])
 
             if axis1 <= axis2:
-                az = _azimuth(centroid_bc, centroid_da)
+                az = _azimuth(bbox[0], bbox[1])
                 if 90 > az >= 45:
                     diff = az - 45
                     az = az - 2 * diff
@@ -99,7 +95,7 @@ class Orientation:
                 results_list.append(az)
             else:
                 az = 170
-                az = _azimuth(centroid_ab, centroid_cd)
+                az = _azimuth(bbox[0], bbox[3])
                 if 90 > az >= 45:
                     diff = az - 45
                     az = az - 2 * diff
@@ -190,8 +186,14 @@ class SharedWallsRatio:
             unique_id = "mm_uid"
         self.id = gdf[unique_id]
 
-        for i, (index, row) in tqdm(enumerate(gdf.iterrows()), total=gdf.shape[0]):
-            neighbors = list(self.sindex.intersection(row.geometry.bounds))
+        gdf["_bounds"] = gdf.geometry.bounds.apply(list, axis=1)
+        for i, row in tqdm(
+            enumerate(
+                gdf[[perimeters, "_bounds", gdf._geometry_column_name]].itertuples()
+            ),
+            total=gdf.shape[0],
+        ):
+            neighbors = list(self.sindex.intersection(row[2]))
             neighbors.remove(i)
 
             # if no neighbour exists
@@ -199,8 +201,8 @@ class SharedWallsRatio:
             if not neighbors:
                 results_list.append(0)
             else:
-                length = gdf.iloc[neighbors].intersection(row.geometry).length.sum()
-                results_list.append(length / row[perimeters])
+                length = gdf.iloc[neighbors].intersection(row[3]).length.sum()
+                results_list.append(length / row[1])
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -303,20 +305,22 @@ class StreetAlignment:
             right_network_id = "mm_nis"
         self.right_network_id = right[right_network_id]
 
-        def _azimuth(point1, point2):
-            """azimuth between 2 shapely points (interval 0 - 180)"""
-            angle = np.arctan2(point2.x - point1.x, point2.y - point1.y)
-            return np.degrees(angle) if angle > 0 else np.degrees(angle) + 180
+        index_keep = left.index
+        right = right.set_index(right_network_id)
+        left = left.set_index(left_network_id)
+
+        geomcol = right._geometry_column_name
 
         # iterating over rows one by one
-        for index, row in tqdm(left.iterrows(), total=left.shape[0]):
-            if pd.isnull(row[left_network_id]):
+        for network_id, orientation in tqdm(
+            left[orientations].iteritems(), total=left.shape[0]
+        ):
+            if pd.isnull(network_id):
                 results_list.append(0)
             else:
-                network_id = row[left_network_id]
-                streetssub = right.loc[right[right_network_id] == network_id]
-                start = Point(streetssub.iloc[0]["geometry"].coords[0])
-                end = Point(streetssub.iloc[0]["geometry"].coords[-1])
+                streetssub = right.at[network_id, geomcol].coords
+                start = streetssub[0]
+                end = streetssub[-1]
                 az = _azimuth(start, end)
                 if 90 > az >= 45:
                     diff = az - 45
@@ -333,8 +337,8 @@ class StreetAlignment:
                     az = az - 2 * diff
                     diff = az - 45
                     az = az - 2 * diff
-                results_list.append(abs(row[orientations] - az))
-        self.series = pd.Series(results_list, index=left.index)
+                results_list.append(abs(orientation - az))
+        self.series = pd.Series(results_list, index=index_keep)
 
 
 class CellAlignment:
@@ -479,15 +483,15 @@ class Alignment:
             orientations = "mm_o"
         self.orientations = gdf[orientations]
 
-        data = gdf.set_index(unique_id)
+        data = gdf.set_index(unique_id)[orientations]
 
         # iterating over rows one by one
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index, orient in tqdm(data.iteritems(), total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
-                    orientation = data.loc[neighbours][orientations]
-                    deviations = abs(orientation - row[orientations])
+                    orientation = data.loc[neighbours]
+                    deviations = abs(orientation - orient)
 
                     results_list.append(statistics.mean(deviations))
                 else:
@@ -547,16 +551,16 @@ class NeighborDistance:
         # define empty list for results
         results_list = []
 
-        data = gdf.set_index(unique_id)
+        data = gdf.set_index(unique_id).geometry
 
         # iterating over rows one by one
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index, geom in tqdm(data.iteritems(), total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index]
                 building_neighbours = data.loc[neighbours]
                 if len(building_neighbours) > 0:
                     results_list.append(
-                        building_neighbours.geometry.distance(row["geometry"]).mean()
+                        building_neighbours.geometry.distance(geom).mean()
                     )
                 else:
                     results_list.append(np.nan)
@@ -570,8 +574,8 @@ class MeanInterbuildingDistance:
     """
     Calculate the mean interbuilding distance
 
-    Interbuilding distances are calculated between buildings on adjacent cells based on `spatial_weights`,
-    while the extent is defined in `spatial_weights_higher`.
+    Interbuilding distances are calculated between buildings on adjacent cells based on
+    `spatial_weights`, while the extent is defined in `spatial_weights_higher`.
 
     .. math::
 
@@ -642,6 +646,8 @@ class MeanInterbuildingDistance:
             spatial_weights_higher = sw_high(k=order, weights=spatial_weights)
         self.sw_higher = spatial_weights_higher
 
+        data = gdf.set_index(unique_id).copy()
+
         # define empty list for results
         results_list = []
 
@@ -652,25 +658,23 @@ class MeanInterbuildingDistance:
 
         print("Computing interbuilding distances...")
         # measure each interbuilding distance of neighbours and save them to adjacency list
-        for index, row in tqdm(adj_list.iterrows(), total=adj_list.shape[0]):
+        for row in tqdm(adj_list.itertuples(), total=adj_list.shape[0]):
             inverted = adj_list[(adj_list.focal == row.neighbor)][
                 (adj_list.neighbor == row.focal)
             ].iloc[0]["distance"]
             if inverted == -1:
-                building_object = gdf.loc[gdf[unique_id] == row.focal.astype(int)]
+                building_object = data.loc[row.focal]
 
-                building_neighbour = gdf.loc[gdf[unique_id] == row.neighbor.astype(int)]
-                adj_list.loc[index, "distance"] = building_neighbour.iloc[
+                building_neighbour = data.loc[row.neighbor]
+                adj_list.loc[row.Index, "distance"] = building_neighbour.iloc[
                     0
-                ].geometry.distance(building_object.iloc[0].geometry)
+                ].distance(building_object.iloc[0])
             else:
-                adj_list.at[index, "distance"] = inverted
+                adj_list.at[row.Index, "distance"] = inverted
 
         print("Computing mean interbuilding distances...")
         # iterate over objects to get the final values
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-            # id to match spatial weights
-            uid = row[unique_id]
+        for uid in tqdm(data.index, total=data.shape[0]):
             # define neighbours based on weights matrix defining analysis area
             if uid in spatial_weights_higher.neighbors.keys():
                 neighbours = spatial_weights_higher.neighbors[uid].copy()
@@ -728,17 +732,12 @@ class NeighboringStreetOrientationDeviation:
         results_list = []
         gdf = gdf.copy()
 
-        def _azimuth(point1, point2):
-            """azimuth between 2 shapely points (interval 0 - 180)"""
-            angle = np.arctan2(point2.x - point1.x, point2.y - point1.y)
-            return np.degrees(angle) if angle > 0 else np.degrees(angle) + 180
-
         # iterating over rows one by one
         print(" Preparing street orientations...")
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
 
-            start = Point(row["geometry"].coords[0])
-            end = Point(row["geometry"].coords[-1])
+            start = geom.coords[0]
+            end = geom.coords[-1]
             az = _azimuth(start, end)
             if 90 > az >= 45:
                 diff = az - 45
@@ -764,24 +763,17 @@ class NeighboringStreetOrientationDeviation:
         self.sindex = gdf.sindex
         results_list = []
 
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        for row in tqdm(gdf.itertuples(), total=gdf.shape[0]):
             possible_neighbors_idx = list(self.sindex.intersection(row.geometry.bounds))
             possible_neighbours = gdf.iloc[possible_neighbors_idx]
             neighbors = possible_neighbours[
                 possible_neighbours.intersects(row.geometry)
             ]
-            neighbors.drop([index])
+            neighbors.drop([row.Index])
 
-            orientations = []
-            for idx, r in neighbors.iterrows():
-                orientations.append(r.tmporient)
+            deviations = np.abs(neighbors.tmporient - row.tmporient)
 
-            deviations = []
-            for o in orientations:
-                dev = abs(o - row.tmporient)
-                deviations.append(dev)
-
-            if deviations:
+            if not deviations.empty:
                 results_list.append(np.mean(deviations))
             else:
                 results_list.append(0)
@@ -862,11 +854,11 @@ class BuildingAdjacency:
         patches = dict(zip(gdf[unique_id], spatial_weights.component_labels))
 
         print("Calculating adjacency...")
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-            if row[unique_id] in spatial_weights_higher.neighbors.keys():
-                neighbours = spatial_weights_higher.neighbors[row[unique_id]].copy()
+        for uid in tqdm(self.id, total=gdf.shape[0]):
+            if uid in spatial_weights_higher.neighbors.keys():
+                neighbours = spatial_weights_higher.neighbors[uid].copy()
                 if neighbours:
-                    neighbours.append(row[unique_id])
+                    neighbours.append(uid)
 
                     patches_sub = [patches[x] for x in neighbours]
                     patches_nr = len(set(patches_sub))
@@ -938,15 +930,16 @@ class Neighbors:
         self.weighted = weighted
 
         neighbours = []
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-            if row[unique_id] in spatial_weights.neighbors.keys():
+        for index, geom in tqdm(
+            gdf.set_index(unique_id).geometry.iteritems(), total=gdf.shape[0]
+        ):
+            if index in spatial_weights.neighbors.keys():
                 if weighted is True:
                     neighbours.append(
-                        spatial_weights.cardinalities[row[unique_id]]
-                        / row.geometry.length
+                        spatial_weights.cardinalities[index] / geom.length
                     )
                 else:
-                    neighbours.append(spatial_weights.cardinalities[row[unique_id]])
+                    neighbours.append(spatial_weights.cardinalities[index])
             else:
                 neighbours.append(np.nan)
 
