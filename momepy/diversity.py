@@ -314,7 +314,7 @@ class Simpson:
 
         """ Given a hash { 'species': count } , returns the Simpson Diversity Index
 
-        >>> simpson_di({'a': 10, 'b': 20, 'c': 30,})
+        >>> _simpson_di({'a': 10, 'b': 20, 'c': 30,})
         0.3888888888888889
 
         https://gist.github.com/martinjc/f227b447791df8c90568
@@ -548,7 +548,7 @@ class Shannon:
     def _shannon(self, data):
         """ Given a hash { 'species': count } , returns the SDI
 
-        >>> sdi({'a': 10, 'b': 20, 'c': 30,})
+        >>> _shannon({'a': 10, 'b': 20, 'c': 30,})
         1.0114042647073518
 
         https://gist.github.com/audy/783125
