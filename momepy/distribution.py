@@ -263,9 +263,6 @@ class StreetAlignment:
         self.right = right
         self.network_id = network_id
 
-        # define empty list for results
-        results_list = []
-
         left = left.copy()
         right = right.copy()
 
@@ -296,40 +293,16 @@ class StreetAlignment:
             right_network_id = "mm_nis"
         self.right_network_id = right[right_network_id]
 
-        index_keep = left.index
-        right = right.set_index(right_network_id)
-        left = left.set_index(left_network_id)
+        right["_orientation"] = Orientation(right).series
 
-        geomcol = right._geometry_column_name
+        merged = left[[left_network_id, orientations]].merge(
+            right[[right_network_id, "_orientation"]],
+            left_on=left_network_id,
+            right_on=right_network_id,
+            how="left",
+        )
 
-        # iterating over rows one by one
-        for nid, orientation in tqdm(
-            left[orientations].iteritems(), total=left.shape[0]
-        ):
-            if pd.isnull(nid):
-                results_list.append(0)
-            else:
-                streetssub = right.at[nid, geomcol].coords
-                start = streetssub[0]
-                end = streetssub[-1]
-                az = _azimuth(start, end)
-                if 90 > az >= 45:
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 135 > az >= 90:
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 181 > az >= 135:
-                    diff = az - 135
-                    az = az - 2 * diff
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                results_list.append(abs(orientation - az))
-        self.series = pd.Series(results_list, index=index_keep)
+        self.series = np.abs(merged[orientations] - merged["_orientation"])
 
 
 class CellAlignment:
