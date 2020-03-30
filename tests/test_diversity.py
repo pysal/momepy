@@ -27,6 +27,7 @@ class TestDiversity:
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
         self.df_tessellation["area"] = mm.Area(self.df_tessellation).series
         self.sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
+        self.sw.neighbors[100] = []
         self.sw_drop = sw_high(k=3, gdf=self.df_tessellation[2:], ids="uID")
 
     def test_Range(self):
