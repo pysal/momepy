@@ -125,6 +125,7 @@ diversity
    Shannon
    Simpson
    Theil
+   Unique
 
 utilities
 ---------

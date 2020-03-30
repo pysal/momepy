@@ -9,7 +9,7 @@ import pandas as pd
 import scipy as sp
 from tqdm import tqdm  # progress bar
 
-__all__ = ["Range", "Theil", "Simpson", "Gini", "Shannon"]
+__all__ = ["Range", "Theil", "Simpson", "Gini", "Shannon", "Unique"]
 
 
 class Range:
@@ -222,6 +222,10 @@ class Simpson:
         return Gini-Simpson index instead of Simpson index (1 - λ)
     inverse : bool (default False)
         return Inverse Simpson index instead of Simpson index (1 / λ)
+    categorical : bool (default False)
+        treat values as categories (will not use binning)
+    categories : list-like (default None)
+        list of categories. If None values.unique() is used.
     **classification_kwds : dict
         Keyword arguments for classification scheme
         For details see mapclassify documentation:
@@ -267,26 +271,34 @@ class Simpson:
         binning="HeadTailBreaks",
         gini_simpson=False,
         inverse=False,
+        categorical=False,
+        categories=None,
         **classification_kwds
     ):
-        try:
-            import mapclassify.classifiers as classifiers
-        except ImportError:
-            raise ImportError("The 'mapclassify' package is required")
+        if not categorical:
+            try:
+                import mapclassify.classifiers as classifiers
+            except ImportError:
+                raise ImportError("The 'mapclassify' package is required")
 
-        schemes = {}
-        for classifier in classifiers.CLASSIFIERS:
-            schemes[classifier.lower()] = getattr(classifiers, classifier)
-        binning = binning.lower()
-        if binning not in schemes:
-            raise ValueError(
-                "Invalid binning. Binning must be in the" " set: %r" % schemes.keys()
-            )
+            schemes = {}
+            for classifier in classifiers.CLASSIFIERS:
+                schemes[classifier.lower()] = getattr(classifiers, classifier)
+            binning = binning.lower()
+            if binning not in schemes:
+                raise ValueError(
+                    "Invalid binning. Binning must be in the"
+                    " set: %r" % schemes.keys()
+                )
 
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
         self.binning = binning
+        self.gini_simpson = gini_simpson
+        self.inverse = inverse
+        self.categorical = categorical
+        self.categories = categories
         self.classification_kwds = classification_kwds
 
         data = gdf.copy()
@@ -296,8 +308,14 @@ class Simpson:
                 values = "mm_v"
         self.values = data[values]
 
-        self.bins = schemes[binning](data[values], **classification_kwds).bins
+        if not categorical:
+            self.bins = schemes[binning](data[values], **classification_kwds).bins
+
         data = data.set_index(unique_id)[values]
+
+        if not categories:
+            categories = data.unique()
+
         results_list = []
         for index in tqdm(data.index, total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
@@ -308,8 +326,15 @@ class Simpson:
                     neighbours = [index]
                 values_list = data.loc[neighbours]
 
-                sample_bins = classifiers.UserDefined(values_list, self.bins)
-                counts = dict(zip(self.bins, sample_bins.counts))
+                if categorical:
+                    counts = values_list.value_counts().to_dict()
+                    for c in categories:
+                        if c not in counts.keys():
+                            counts[c] = 0
+                else:
+                    sample_bins = classifiers.UserDefined(values_list, self.bins)
+                    counts = dict(zip(self.bins, sample_bins.counts))
+
                 results_list.append(self._simpson_di(counts))
             else:
                 results_list.append(np.nan)
@@ -463,6 +488,10 @@ class Shannon:
         JenksCaspallForced, JenksCaspallSampled, MaxPClassifier,
         MaximumBreaks, NaturalBreaks, Quantiles, Percentiles, StdMean,
         UserDefined
+    categorical : bool (default False)
+        treat values as categories (will not use binning)
+    categories : list-like (default None)
+        list of categories. If None values.unique() is used.
     **classification_kwds : dict
         Keyword arguments for classification scheme
         For details see mapclassify documentation:
@@ -505,28 +534,32 @@ class Shannon:
         spatial_weights,
         unique_id,
         binning="HeadTailBreaks",
-        gini_simpson=False,
-        inverse=False,
+        categorical=False,
+        categories=None,
         **classification_kwds
     ):
-        try:
-            import mapclassify.classifiers as classifiers
-        except ImportError:
-            raise ImportError("The 'mapclassify' package is required")
+        if not categorical:
+            try:
+                import mapclassify.classifiers as classifiers
+            except ImportError:
+                raise ImportError("The 'mapclassify' package is required")
 
-        schemes = {}
-        for classifier in classifiers.CLASSIFIERS:
-            schemes[classifier.lower()] = getattr(classifiers, classifier)
-        binning = binning.lower()
-        if binning not in schemes:
-            raise ValueError(
-                "Invalid binning. Binning must be in the" " set: %r" % schemes.keys()
-            )
+            schemes = {}
+            for classifier in classifiers.CLASSIFIERS:
+                schemes[classifier.lower()] = getattr(classifiers, classifier)
+            binning = binning.lower()
+            if binning not in schemes:
+                raise ValueError(
+                    "Invalid binning. Binning must be in the"
+                    " set: %r" % schemes.keys()
+                )
 
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
         self.binning = binning
+        self.categorical = categorical
+        self.categories = categories
         self.classification_kwds = classification_kwds
 
         data = gdf.copy()
@@ -536,8 +569,14 @@ class Shannon:
                 values = "mm_v"
         self.values = data[values]
 
-        self.bins = schemes[binning](data[values], **classification_kwds).bins
+        if not categorical:
+            self.bins = schemes[binning](data[values], **classification_kwds).bins
+
         data = data.set_index(unique_id)[values]
+
+        if not categories:
+            categories = data.unique()
+
         results_list = []
         for index in tqdm(data.index, total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
@@ -548,8 +587,15 @@ class Shannon:
                     neighbours = [index]
                 values_list = data.loc[neighbours]
 
-                sample_bins = classifiers.UserDefined(values_list, self.bins)
-                counts = dict(zip(self.bins, sample_bins.counts))
+                if categorical:
+                    counts = values_list.value_counts().to_dict()
+                    for c in categories:
+                        if c not in counts.keys():
+                            counts[c] = 0
+                else:
+                    sample_bins = classifiers.UserDefined(values_list, self.bins)
+                    counts = dict(zip(self.bins, sample_bins.counts))
+
                 results_list.append(self._shannon(counts))
             else:
                 results_list.append(np.nan)
@@ -576,3 +622,78 @@ class Shannon:
         N = sum(data.values())
 
         return -sum(p(n, N) for n in data.values() if n != 0)
+
+
+class Unique:
+    """
+    Calculates the number of unique values within neighbours defined in `spatial_weights`.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame
+        GeoDataFrame containing morphological tessellation
+    values : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored character value.
+    spatial_weights : libpysal.weights
+        spatial weights matrix
+    unique_id : str
+        name of the column with unique id used as spatial_weights index
+
+    Attributes
+    ----------
+    series : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : Series
+        Series containing used values
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
+
+
+    References
+    ----------
+
+    Examples
+    --------
+    >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
+    >>> tessellation_df['cluster_unique'] = mm.Unique(tessellation_df, 'area', sw, 'uID').series
+    100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
+
+
+    """
+
+    def __init__(self, gdf, values, spatial_weights, unique_id):
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+
+        data = gdf.copy()
+        if values is not None:
+            if not isinstance(values, str):
+                data["mm_v"] = values
+                values = "mm_v"
+        self.values = data[values]
+
+        data = data.set_index(unique_id)[values]
+
+        results_list = []
+        for index in tqdm(data.index, total=data.shape[0]):
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
+                else:
+                    neighbours = [index]
+
+                values_list = data.loc[neighbours]
+                results_list.append(len(values_list.unique()))
+            else:
+                results_list.append(np.nan)
+
+        self.series = pd.Series(results_list, index=gdf.index)

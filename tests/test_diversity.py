@@ -98,6 +98,22 @@ class TestDiversity:
         ).series
         assert inv[0] == 1 / 0.385
 
+        self.df_tessellation["cat"] = list(range(8)) * 18
+        cat = mm.Simpson(
+            self.df_tessellation, "cat", self.sw, "uID", categorical=True
+        ).series
+        assert cat[0] == pytest.approx(0.15)
+
+        cat2 = mm.Simpson(
+            self.df_tessellation,
+            "cat",
+            self.sw,
+            "uID",
+            categorical=True,
+            categories=range(15),
+        ).series
+        assert cat2[0] == pytest.approx(0.15)
+
     def test_Gini(self):
         full_sw = mm.Gini(self.df_tessellation, "area", self.sw, "uID").series
         assert full_sw[0] == approx(0.3945388)
@@ -137,3 +153,24 @@ class TestDiversity:
             .series.isna()
             .any()
         )
+
+        self.df_tessellation["cat"] = list(range(8)) * 18
+        cat = mm.Shannon(
+            self.df_tessellation, "cat", self.sw, "uID", categorical=True
+        ).series
+        assert cat[0] == pytest.approx(1.973)
+
+        cat2 = mm.Shannon(
+            self.df_tessellation,
+            "cat",
+            self.sw,
+            "uID",
+            categorical=True,
+            categories=range(15),
+        ).series
+        assert cat2[0] == pytest.approx(1.973)
+
+    def test_Unique(self):
+        self.df_tessellation["cat"] = list(range(8)) * 18
+        un = mm.Unique(self.df_tessellation, "cat", self.sw, "uID").series
+        assert un[0] == 8
