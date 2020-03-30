@@ -9,7 +9,6 @@ import statistics
 
 import numpy as np
 import pandas as pd
-from shapely.geometry import Point
 from tqdm import tqdm  # progress bar
 
 from .utils import _azimuth
@@ -33,8 +32,10 @@ class Orientation:
     """
     Calculate the orientation of object
 
+    Captures the deviation of orientation from cardinal directions.
     Defined as an orientation of the longext axis of bounding rectangle in range 0 - 45.
-    It captures the deviation of orientation from cardinal directions.
+    Orientation of LineStrings is represented by the orientation of line
+    connecting first and last point of the segment.
 
     Parameters
     ----------
@@ -70,48 +71,38 @@ class Orientation:
             return math.hypot(b[0] - a[0], b[1] - a[1])
 
         for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
-            # TODO: vectorize once minimum_rotated_rectangle is in geopandas from pygeos
-            bbox = list(geom.minimum_rotated_rectangle.exterior.coords)
-            axis1 = _dist(bbox[0], bbox[3])
-            axis2 = _dist(bbox[0], bbox[1])
+            if geom.type in ["Polygon", "MultiPolygon", "LinearRing"]:
+                # TODO: vectorize once minimum_rotated_rectangle is in geopandas from pygeos
+                bbox = list(geom.minimum_rotated_rectangle.exterior.coords)
+                axis1 = _dist(bbox[0], bbox[3])
+                axis2 = _dist(bbox[0], bbox[1])
 
-            if axis1 <= axis2:
-                az = _azimuth(bbox[0], bbox[1])
-                if 90 > az >= 45:
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 135 > az >= 90:
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 181 > az >= 135:
-                    diff = az - 135
-                    az = az - 2 * diff
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                results_list.append(az)
+                if axis1 <= axis2:
+                    az = _azimuth(bbox[0], bbox[1])
+                else:
+                    az = _azimuth(bbox[0], bbox[3])
+            elif geom.type in ["LineString", "MultiLineString"]:
+                coords = geom.coords
+                az = _azimuth(coords[0], coords[-1])
             else:
-                az = 170
-                az = _azimuth(bbox[0], bbox[3])
-                if 90 > az >= 45:
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 135 > az >= 90:
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 181 > az >= 135:
-                    diff = az - 135
-                    az = az - 2 * diff
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                results_list.append(az)
+                results_list.append(np.nan)
+
+            if 90 > az >= 45:
+                diff = az - 45
+                az = az - 2 * diff
+            elif 135 > az >= 90:
+                diff = az - 90
+                az = az - 2 * diff
+                diff = az - 45
+                az = az - 2 * diff
+            elif 181 > az >= 135:
+                diff = az - 135
+                az = az - 2 * diff
+                diff = az - 90
+                az = az - 2 * diff
+                diff = az - 45
+                az = az - 2 * diff
+            results_list.append(az)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -227,7 +218,7 @@ class StreetAlignment:
         GeoDataFrame containing street network
     orientations : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored object orientation value
-        (can be calculated using :py:func:`momepy.orientation`)
+        (can be calculated using :py:func:`momepy.Orientation`)
     network_id : str (default None)
         the name of the column storing network ID in both left and right
     left_network_id : str, list, np.array, pd.Series (default None)
@@ -272,9 +263,6 @@ class StreetAlignment:
         self.right = right
         self.network_id = network_id
 
-        # define empty list for results
-        results_list = []
-
         left = left.copy()
         right = right.copy()
 
@@ -305,40 +293,16 @@ class StreetAlignment:
             right_network_id = "mm_nis"
         self.right_network_id = right[right_network_id]
 
-        index_keep = left.index
-        right = right.set_index(right_network_id)
-        left = left.set_index(left_network_id)
+        right["_orientation"] = Orientation(right).series
 
-        geomcol = right._geometry_column_name
+        merged = left[[left_network_id, orientations]].merge(
+            right[[right_network_id, "_orientation"]],
+            left_on=left_network_id,
+            right_on=right_network_id,
+            how="left",
+        )
 
-        # iterating over rows one by one
-        for nid, orientation in tqdm(
-            left[orientations].iteritems(), total=left.shape[0]
-        ):
-            if pd.isnull(nid):
-                results_list.append(0)
-            else:
-                streetssub = right.at[nid, geomcol].coords
-                start = streetssub[0]
-                end = streetssub[-1]
-                az = _azimuth(start, end)
-                if 90 > az >= 45:
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 135 > az >= 90:
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 181 > az >= 135:
-                    diff = az - 135
-                    az = az - 2 * diff
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                results_list.append(abs(orientation - az))
-        self.series = pd.Series(results_list, index=index_keep)
+        self.series = np.abs(merged[orientations] - merged["_orientation"])
 
 
 class CellAlignment:
