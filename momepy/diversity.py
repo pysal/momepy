@@ -662,7 +662,7 @@ class Unique:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['cluster_unique'] = mm.Unique(tessellation_df, 'area', sw, 'uID').series
+    >>> tessellation_df['cluster_unique'] = mm.Unique(tessellation_df, 'cluster', sw, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
 
 
