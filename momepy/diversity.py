@@ -237,6 +237,10 @@ class Simpson:
         binning method
     bins : mapclassify.classifiers.Classifier
         generated bins
+    gini_simpson : bool (default False)
+        return Gini-Simpson index instead of Simpson index (1 - λ)
+    inverse : bool (default False)
+        return Inverse Simpson index instead of Simpson index (1 / λ)
     classification_kwds : dict
         classification_kwds
 
@@ -259,6 +263,8 @@ class Simpson:
         spatial_weights,
         unique_id,
         binning="HeadTailBreaks",
+        gini_simpson=False,
+        inverse=False,
         **classification_kwds
     ):
         try:
@@ -306,7 +312,12 @@ class Simpson:
             else:
                 results_list.append(np.nan)
 
-        self.series = pd.Series(results_list, index=gdf.index)
+        if gini_simpson:
+            self.series = 1 - pd.Series(results_list, index=gdf.index)
+        elif inverse:
+            self.series = 1 / pd.Series(results_list, index=gdf.index)
+        else:
+            self.series = pd.Series(results_list, index=gdf.index)
 
     def _simpson_di(self, data):
 
