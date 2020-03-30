@@ -216,6 +216,10 @@ class Simpson:
         JenksCaspallForced, JenksCaspallSampled, MaxPClassifier,
         MaximumBreaks, NaturalBreaks, Quantiles, Percentiles, StdMean,
         UserDefined
+    gini_simpson : bool (default False)
+        return Gini-Simpson index instead of Simpson index (1 - λ)
+    inverse : bool (default False)
+        return Inverse Simpson index instead of Simpson index (1 / λ)
     **classification_kwds : dict
         Keyword arguments for classification scheme
         For details see mapclassify documentation:
@@ -237,10 +241,6 @@ class Simpson:
         binning method
     bins : mapclassify.classifiers.Classifier
         generated bins
-    gini_simpson : bool (default False)
-        return Gini-Simpson index instead of Simpson index (1 - λ)
-    inverse : bool (default False)
-        return Inverse Simpson index instead of Simpson index (1 / λ)
     classification_kwds : dict
         classification_kwds
 
