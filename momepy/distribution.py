@@ -218,7 +218,7 @@ class StreetAlignment:
         GeoDataFrame containing street network
     orientations : str, list, np.array, pd.Series
         the name of the dataframe column, np.array, or pd.Series where is stored object orientation value
-        (can be calculated using :py:func:`momepy.orientation`)
+        (can be calculated using :py:func:`momepy.Orientation`)
     network_id : str (default None)
         the name of the column storing network ID in both left and right
     left_network_id : str, list, np.array, pd.Series (default None)
