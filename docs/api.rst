@@ -120,10 +120,11 @@ diversity
 .. autosummary::
    :toctree: generated/
 
+   Gini
    Range
+   Shannon
    Simpson
    Theil
-   Gini
 
 utilities
 ---------

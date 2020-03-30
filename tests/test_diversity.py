@@ -106,3 +106,25 @@ class TestDiversity:
             .series.isna()
             .any()
         )
+
+    def test_Shannon(self):
+        ht_sw = mm.Shannon(self.df_tessellation, "area", self.sw, "uID").series
+        assert ht_sw[0] == 1.094056456831614
+        quan_sw = mm.Shannon(
+            self.df_tessellation,
+            self.df_tessellation.area,
+            self.sw,
+            "uID",
+            binning="quantiles",
+            k=3,
+        ).series
+        assert quan_sw[0] == 0.9985793315873921
+        with pytest.raises(ValueError):
+            ht_sw = mm.Shannon(
+                self.df_tessellation, "area", self.sw, "uID", binning="nonexistent"
+            )
+        assert (
+            mm.Shannon(self.df_tessellation, "area", self.sw_drop, "uID")
+            .series.isna()
+            .any()
+        )

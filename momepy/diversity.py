@@ -9,7 +9,7 @@ import pandas as pd
 import scipy as sp
 from tqdm import tqdm  # progress bar
 
-__all__ = ["Range", "Theil", "Simpson", "Gini"]
+__all__ = ["Range", "Theil", "Simpson", "Gini", "Shannon"]
 
 
 class Range:
@@ -109,6 +109,7 @@ class Theil:
 
     .. math::
 
+        T = \sum_{i=1}^n \left( \\frac{y_i}{\sum_{i=1}^n y_i} \ln \left[ N \\frac{y_i}{\sum_{i=1}^n y_i}\\right] \\right)
 
     Parameters
     ----------
@@ -197,6 +198,7 @@ class Simpson:
 
     .. math::
 
+        \\lambda=\\sum_{i=1}^{R} p_{i}^{2}
 
     Parameters
     ----------
@@ -335,6 +337,8 @@ class Gini:
 
     Uses `inequality.gini.Gini` under the hood. Requires 'inequality' package.
 
+    .. math::
+
     Parameters
     ----------
     gdf : GeoDataFrame
@@ -418,3 +422,147 @@ class Gini:
                 results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
+
+
+class Shannon:
+    """
+    Calculates the Shannon index of values within neighbours defined in `spatial_weights`.
+
+    Uses `mapclassify.classifiers` under the hood for binning. Requires `mapclassify>=.2.1.0` dependency.
+
+    .. math::
+
+        H^{\\prime}=-\\sum_{i=1}^{R} p_{i} \\ln p_{i}
+
+    Parameters
+    ----------
+    objects : GeoDataFrame
+        GeoDataFrame containing morphological tessellation
+    values : str, list, np.array, pd.Series
+        the name of the dataframe column, np.array, or pd.Series where is stored character value.
+    spatial_weights : libpysal.weights, optional
+        spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
+        based on objects.
+    order : int
+        order of Queen contiguity
+    binning : str
+        One of mapclassify classification schemes
+        Options are BoxPlot, EqualInterval, FisherJenks,
+        FisherJenksSampled, HeadTailBreaks, JenksCaspall,
+        JenksCaspallForced, JenksCaspallSampled, MaxPClassifier,
+        MaximumBreaks, NaturalBreaks, Quantiles, Percentiles, StdMean,
+        UserDefined
+    **classification_kwds : dict
+        Keyword arguments for classification scheme
+        For details see mapclassify documentation:
+        https://pysal.org/mapclassify
+
+    Attributes
+    ----------
+    series : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : Series
+        Series containing used values
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
+    binning : str
+        binning method
+    bins : mapclassify.classifiers.Classifier
+        generated bins
+    classification_kwds : dict
+        classification_kwds
+
+    References
+    ----------
+
+
+    Examples
+    --------
+    >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
+    >>> tessellation_df['area_Shannon'] = mm.Shannon(tessellation_df, 'area', sw, 'uID').series
+    100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
+    """
+
+    def __init__(
+        self,
+        gdf,
+        values,
+        spatial_weights,
+        unique_id,
+        binning="HeadTailBreaks",
+        gini_simpson=False,
+        inverse=False,
+        **classification_kwds
+    ):
+        try:
+            import mapclassify.classifiers as classifiers
+        except ImportError:
+            raise ImportError("The 'mapclassify' package is required")
+
+        schemes = {}
+        for classifier in classifiers.CLASSIFIERS:
+            schemes[classifier.lower()] = getattr(classifiers, classifier)
+        binning = binning.lower()
+        if binning not in schemes:
+            raise ValueError(
+                "Invalid binning. Binning must be in the" " set: %r" % schemes.keys()
+            )
+
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+        self.binning = binning
+        self.classification_kwds = classification_kwds
+
+        data = gdf.copy()
+        if values is not None:
+            if not isinstance(values, str):
+                data["mm_v"] = values
+                values = "mm_v"
+        self.values = data[values]
+
+        self.bins = schemes[binning](data[values], **classification_kwds).bins
+        data = data.set_index(unique_id)[values]
+        results_list = []
+        for index in tqdm(data.index, total=data.shape[0]):
+            if index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index].copy()
+                if neighbours:
+                    neighbours.append(index)
+                else:
+                    neighbours = [index]
+                values_list = data.loc[neighbours]
+
+                sample_bins = classifiers.UserDefined(values_list, self.bins)
+                counts = dict(zip(self.bins, sample_bins.counts))
+                results_list.append(self._shannon(counts))
+            else:
+                results_list.append(np.nan)
+
+        self.series = pd.Series(results_list, index=gdf.index)
+
+    def _shannon(self, data):
+        """ Given a hash { 'species': count } , returns the SDI
+
+        >>> sdi({'a': 10, 'b': 20, 'c': 30,})
+        1.0114042647073518
+
+        https://gist.github.com/audy/783125
+        """
+
+        from math import log as ln
+
+        def p(n, N):
+            """ Relative abundance """
+            if n == 0:
+                return 0
+            else:
+                return (float(n) / N) * ln(float(n) / N)
+
+        N = sum(data.values())
+
+        return -sum(p(n, N) for n in data.values() if n != 0)
