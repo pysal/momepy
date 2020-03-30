@@ -88,6 +88,15 @@ class TestDiversity:
             .series.isna()
             .any()
         )
+        gs = mm.Simpson(
+            self.df_tessellation, "area", self.sw, "uID", gini_simpson=True
+        ).series
+        assert gs[0] == 1 - 0.385
+
+        inv = mm.Simpson(
+            self.df_tessellation, "area", self.sw, "uID", inverse=True
+        ).series
+        assert inv[0] == 1 / 0.385
 
     def test_Gini(self):
         full_sw = mm.Gini(self.df_tessellation, "area", self.sw, "uID").series
