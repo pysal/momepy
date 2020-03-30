@@ -177,4 +177,5 @@ class TestDiversity:
         un = mm.Unique(self.df_tessellation, list(range(8)) * 18, self.sw, "uID").series
         assert un[0] == 8
         un = mm.Unique(self.df_tessellation, "cat", self.sw_drop, "uID").series
-        assert un[0] == 8
+        assert un.isna().any()
+        assert un[5] == 8
