@@ -312,13 +312,13 @@ class StreetAlignment:
         geomcol = right._geometry_column_name
 
         # iterating over rows one by one
-        for network_id, orientation in tqdm(
+        for nid, orientation in tqdm(
             left[orientations].iteritems(), total=left.shape[0]
         ):
-            if pd.isnull(network_id):
+            if pd.isnull(nid):
                 results_list.append(0)
             else:
-                streetssub = right.at[network_id, geomcol].coords
+                streetssub = right.at[nid, geomcol].coords
                 start = streetssub[0]
                 end = streetssub[-1]
                 az = _azimuth(start, end)
