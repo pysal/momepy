@@ -9,7 +9,6 @@ import statistics
 
 import numpy as np
 import pandas as pd
-from shapely.geometry import Point
 from tqdm import tqdm  # progress bar
 
 from .utils import _azimuth
@@ -33,8 +32,10 @@ class Orientation:
     """
     Calculate the orientation of object
 
+    Captures the deviation of orientation from cardinal directions.
     Defined as an orientation of the longext axis of bounding rectangle in range 0 - 45.
-    It captures the deviation of orientation from cardinal directions.
+    Orientation of LineStrings is represented by the orientation of line
+    connecting first and last point of the segment.
 
     Parameters
     ----------
@@ -70,48 +71,38 @@ class Orientation:
             return math.hypot(b[0] - a[0], b[1] - a[1])
 
         for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
-            # TODO: vectorize once minimum_rotated_rectangle is in geopandas from pygeos
-            bbox = list(geom.minimum_rotated_rectangle.exterior.coords)
-            axis1 = _dist(bbox[0], bbox[3])
-            axis2 = _dist(bbox[0], bbox[1])
+            if geom.type in ["Polygon", "MultiPolygon", "LinearRing"]:
+                # TODO: vectorize once minimum_rotated_rectangle is in geopandas from pygeos
+                bbox = list(geom.minimum_rotated_rectangle.exterior.coords)
+                axis1 = _dist(bbox[0], bbox[3])
+                axis2 = _dist(bbox[0], bbox[1])
 
-            if axis1 <= axis2:
-                az = _azimuth(bbox[0], bbox[1])
-                if 90 > az >= 45:
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 135 > az >= 90:
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 181 > az >= 135:
-                    diff = az - 135
-                    az = az - 2 * diff
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                results_list.append(az)
+                if axis1 <= axis2:
+                    az = _azimuth(bbox[0], bbox[1])
+                else:
+                    az = _azimuth(bbox[0], bbox[3])
+            elif geom.type in ["LineString", "MultiLineString"]:
+                coords = geom.coords
+                az = _azimuth(coords[0], coords[-1])
             else:
-                az = 170
-                az = _azimuth(bbox[0], bbox[3])
-                if 90 > az >= 45:
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 135 > az >= 90:
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                elif 181 > az >= 135:
-                    diff = az - 135
-                    az = az - 2 * diff
-                    diff = az - 90
-                    az = az - 2 * diff
-                    diff = az - 45
-                    az = az - 2 * diff
-                results_list.append(az)
+                results_list.append(np.nan)
+
+            if 90 > az >= 45:
+                diff = az - 45
+                az = az - 2 * diff
+            elif 135 > az >= 90:
+                diff = az - 90
+                az = az - 2 * diff
+                diff = az - 45
+                az = az - 2 * diff
+            elif 181 > az >= 135:
+                diff = az - 135
+                az = az - 2 * diff
+                diff = az - 90
+                az = az - 2 * diff
+                diff = az - 45
+                az = az - 2 * diff
+            results_list.append(az)
 
         self.series = pd.Series(results_list, index=gdf.index)
 

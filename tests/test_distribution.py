@@ -24,6 +24,10 @@ class TestDistribution:
         check = 41.05146788287027
         assert self.df_buildings["orient"][0] == pytest.approx(check)
 
+        self.df_streets["orient"] = mm.Orientation(self.df_streets).series
+        check = 40.7607
+        assert self.df_streets["orient"][0] == pytest.approx(check)
+
     def test_SharedWallsRatio(self):
         self.df_buildings["swr"] = mm.SharedWallsRatio(self.df_buildings, "uID").series
         self.df_buildings["swr_uid"] = mm.SharedWallsRatio(
