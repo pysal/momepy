@@ -22,7 +22,7 @@ class TestDistribution:
     def test_Orientation(self):
         self.df_buildings["orient"] = mm.Orientation(self.df_buildings).series
         check = 41.05146788287027
-        assert self.df_buildings["orient"][0] == check
+        assert self.df_buildings["orient"][0] == pytest.approx(check)
 
     def test_SharedWallsRatio(self):
         self.df_buildings["swr"] = mm.SharedWallsRatio(self.df_buildings, "uID").series
@@ -73,9 +73,9 @@ class TestDistribution:
                 self.df_buildings, self.df_streets, "orient", right_network_id="nID"
             )
         check = 0.29073888476702336
-        assert self.df_buildings["street_alignment"][0] == check
-        assert self.df_buildings["street_alignment2"][0] == check
-        assert self.df_buildings["street_a_arr"][0] == check
+        assert self.df_buildings["street_alignment"][0] == pytest.approx(check)
+        assert self.df_buildings["street_alignment2"][0] == pytest.approx(check)
+        assert self.df_buildings["street_a_arr"][0] == pytest.approx(check)
 
     def test_CellAlignment(self):
         self.df_buildings["orient"] = blgori = mm.Orientation(self.df_buildings).series
@@ -94,7 +94,7 @@ class TestDistribution:
                 self.df_tessellation["uID"] == self.df_buildings["uID"][0]
             ]["orient"].iloc[0]
         )
-        assert self.df_buildings["c_align"][0] == check
+        assert self.df_buildings["c_align"][0] == pytest.approx(check)
 
     def test_Alignment(self):
         self.df_buildings["orient"] = mm.Orientation(self.df_buildings).series
@@ -102,7 +102,7 @@ class TestDistribution:
         self.df_buildings["align_sw"] = mm.Alignment(
             self.df_buildings, sw, "uID", self.df_buildings["orient"]
         ).series
-        assert self.df_buildings["align_sw"][0] == 18.299481296455237
+        assert self.df_buildings["align_sw"][0] == pytest.approx(18.299481296)
         sw_drop = Queen.from_dataframe(self.df_tessellation[2:], ids="uID")
         assert (
             mm.Alignment(self.df_buildings, sw_drop, "uID", self.df_buildings["orient"])

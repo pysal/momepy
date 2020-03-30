@@ -260,7 +260,7 @@ class Courtyards:
         # dict to store nr of courtyards for each uID
         courtyards = {}
         components = pd.Series(spatial_weights.component_labels, index=gdf.index)
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        for index in tqdm(gdf.index, total=gdf.shape[0]):
             # if the id is already present in courtyards, continue (avoid repetition)
             if index in courtyards:
                 continue
@@ -351,7 +351,7 @@ class BlocksCount:
         if weighted is True:
             areas = data.geometry.area
 
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 neighbours.append(index)
@@ -465,9 +465,9 @@ class Reached:
             count = collections.Counter(right[right_id])
 
         # iterating over rows one by one
-        for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+        for index, lid in tqdm(left[left_id].iteritems(), total=left.shape[0]):
             if spatial_weights is None:
-                ids = [row[left_id]]
+                ids = [lid]
             else:
                 neighbours = list(spatial_weights.neighbors[index])
                 neighbours.append(index)
@@ -590,7 +590,7 @@ class NodeDensity:
         lengths = right.geometry.length
 
         # iterating over rows one by one
-        for index, row in tqdm(left.iterrows(), total=left.shape[0]):
+        for index in tqdm(left.index, total=left.shape[0]):
 
             neighbours = list(spatial_weights.neighbors[index])
             neighbours.append(index)
@@ -684,7 +684,7 @@ class Density:
 
         data = data.set_index(unique_id)
         # iterating over rows one by one
-        for index, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0]):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:

@@ -453,7 +453,7 @@ class CircularCompactness:
             areas = "mm_a"
         self.areas = gdf[areas]
         gdf["hull"] = gdf.convex_hull.exterior
-        self.series = gdf.apply(
+        self.series = gdf[[areas, "hull"]].apply(
             lambda row: (row[areas]) / (_circle_area(list(row.hull.coords))), axis=1
         )
 
@@ -798,9 +798,9 @@ class Corners:
             return False
 
         # fill new column with the value of area, iterating over rows one by one
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
             corners = 0  # define empty variables
-            points = list(row["geometry"].exterior.coords)  # get points of a shape
+            points = list(geom.exterior.coords)  # get points of a shape
             stop = len(points) - 1  # define where to stop
             for i in np.arange(
                 len(points)
@@ -883,9 +883,9 @@ class Squareness:
             return angle
 
         # fill new column with the value of area, iterating over rows one by one
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
             angles = []
-            points = list(row["geometry"].exterior.coords)  # get points of a shape
+            points = list(geom.exterior.coords)  # get points of a shape
             stop = len(points) - 1  # define where to stop
             for i in np.arange(
                 len(points)
@@ -917,10 +917,7 @@ class Squareness:
                         angles.append(ang)
                     else:
                         continue
-            deviations = []
-            for i in angles:
-                dev = abs(90 - i)
-                deviations.append(dev)
+            deviations = [abs(90 - i) for i in angles]
             results_list.append(np.mean(deviations))
 
         self.series = pd.Series(results_list, index=gdf.index)
@@ -1119,10 +1116,10 @@ class CentroidCorners:
             return False
 
         # iterating over rows one by one
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
+        for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
             distances = []  # set empty list of distances
-            centroid = row["geometry"].centroid  # define centroid
-            points = list(row["geometry"].exterior.coords)  # get points of a shape
+            centroid = geom.centroid  # define centroid
+            points = list(geom.exterior.coords)  # get points of a shape
             stop = len(points) - 1  # define where to stop
             for i in np.arange(
                 len(points)
@@ -1157,7 +1154,6 @@ class CentroidCorners:
             if not distances:  # circular buildings
                 from momepy.dimension import _longest_axis
 
-                geom = row["geometry"]
                 if geom.has_z:
                     coords = [
                         (coo[0], coo[1]) for coo in geom.convex_hull.exterior.coords
@@ -1216,10 +1212,8 @@ class Linearity:
         lenghts = gdf.geometry.length
         # fill new column with the value of area, iterating over rows one by one
         # TODO use math instead of shapely points
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-            euclidean = Point(row["geometry"].coords[0]).distance(
-                Point(row["geometry"].coords[-1])
-            )
+        for index, geom in tqdm(gdf.geometry.iteritems(), total=gdf.shape[0]):
+            euclidean = Point(geom.coords[0]).distance(Point(geom.coords[-1]))
             results_list.append(euclidean / lenghts.loc[index])
 
         self.series = pd.Series(results_list, index=gdf.index)
