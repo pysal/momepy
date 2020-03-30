@@ -560,8 +560,7 @@ class Shannon:
             """ Relative abundance """
             if n == 0:
                 return 0
-            else:
-                return (float(n) / N) * ln(float(n) / N)
+            return (float(n) / N) * ln(float(n) / N)
 
         N = sum(data.values())
 
