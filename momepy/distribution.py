@@ -610,7 +610,7 @@ class MeanInterbuildingDistance:
             spatial_weights_higher = sw_high(k=order, weights=spatial_weights)
         self.sw_higher = spatial_weights_higher
 
-        data = gdf.set_index(unique_id).geometry.copy()
+        data = gdf.set_index(unique_id).geometry
 
         # define empty list for results
         results_list = []
