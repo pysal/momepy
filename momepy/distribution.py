@@ -610,7 +610,7 @@ class MeanInterbuildingDistance:
             spatial_weights_higher = sw_high(k=order, weights=spatial_weights)
         self.sw_higher = spatial_weights_higher
 
-        data = gdf.set_index(unique_id).copy()
+        data = gdf.set_index(unique_id).geometry.copy()
 
         # define empty list for results
         results_list = []
@@ -630,9 +630,9 @@ class MeanInterbuildingDistance:
                 building_object = data.loc[row.focal]
 
                 building_neighbour = data.loc[row.neighbor]
-                adj_list.loc[row.Index, "distance"] = building_neighbour.iloc[
-                    0
-                ].distance(building_object.iloc[0])
+                adj_list.loc[row.Index, "distance"] = building_neighbour.distance(
+                    building_object
+                )
             else:
                 adj_list.at[row.Index, "distance"] = inverted
 
