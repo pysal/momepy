@@ -1,6 +1,12 @@
 Changes
 =======
 
+Version 0.2.1 (April 15, 2020)
+------------------------------
+
+- fixed regression causing `MeanInterbuildingDistance` failure (#161)
+
+
 Version 0.2.0 (April 13, 2020)
 ------------------------------
 
