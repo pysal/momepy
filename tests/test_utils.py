@@ -174,3 +174,8 @@ class TestUtils:
         check = mm.CheckTessellationInput(self.df_buildings, overlap=False)
         assert len(check.collapse) == 1
         assert len(check.split) == 1
+
+        check = mm.CheckTessellationInput(self.df_buildings, shrink=0)
+        assert len(check.collapse) == 0
+        assert len(check.split) == 0
+        assert len(check.overlap) == 4
