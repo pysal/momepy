@@ -156,7 +156,7 @@ class TestDistribution:
         check = 5.986848512501008
         assert self.df_streets["dev"].mean() == check
 
-    def test_BuildingAdjacencyy(self):
+    def test_BuildingAdjacency(self):
         sw = Queen.from_dataframe(self.df_buildings, ids="uID")
         swh = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         self.df_buildings["adj_sw"] = mm.BuildingAdjacency(

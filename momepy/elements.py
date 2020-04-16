@@ -50,8 +50,20 @@ def buffered_limit(gdf, buffer=100):
 
 class Tessellation:
     """
-    Generate morphological tessellation around given buildings or proximity bands around given
-    street network.
+    Generate morphological tessellation around given buildings or proximity bands around
+    given street network.
+
+    Tessellation requires data of relatively high level of precision and there are three
+    particular patterns causign issues.\n
+    1. Features will collapse into empty polygon - these do not have tessellation
+    cell in the end.\n
+    2. Features will split into MultiPolygon - at some cases, featuers with narrow links
+    between parts split into two during 'shrinking'. In most cases that is not an issue
+    and resulting tessellation is correct anyway, but sometimes this result in a cell
+    being MultiPolygon, which is not correct.\n
+    3. Overlapping features - features which overlap even after 'shrinking' cause invalid
+    tessellation geoemtry.\n
+    All three types can be tested prior 'Tessellation' using `CheckTessellationInput`.
 
     Parameters
     ----------
@@ -82,6 +94,10 @@ class Tessellation:
         used segment value
     sindex : rtree spatial index
         spatial index of tessellation
+    collapsed : list
+        list of unique_id's of collapsed features (if there are some)
+    multipolygons : list
+        list of unique_id's of features causing MultiPolygons (if there are some)
 
 
     Examples
@@ -421,20 +437,24 @@ class Tessellation:
         if len(ids_original) != len(ids_generated):
             import warnings
 
-            diff = set(ids_original).difference(ids_generated)
+            self.collapsed = set(ids_original).difference(ids_generated)
             warnings.warn(
                 "Tessellation does not fully match buildings. {len} element(s) collapsed "
-                "during generation - unique_id: {i}".format(len=len(diff), i=diff)
+                "during generation - unique_id: {i}".format(
+                    len=len(self.collapsed), i=self.collapsed
+                )
             )
 
         # check MultiPolygons - usually caused by error in input geometry
-        uids = tesselation[tesselation.geometry.type == "MultiPolygon"][unique_id]
-        if len(uids) > 0:
+        self.multipolygons = tesselation[tesselation.geometry.type == "MultiPolygon"][
+            unique_id
+        ]
+        if len(self.multipolygons) > 0:
             import warnings
 
             warnings.warn(
                 "Tessellation contains MultiPolygon elements. Initial objects should be edited. "
-                "unique_id of affected elements: {}".format(list(uids))
+                "unique_id of affected elements: {}".format(list(self.multipolygons))
             )
 
 
