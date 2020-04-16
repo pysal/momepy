@@ -132,6 +132,7 @@ utilities
 .. autosummary::
    :toctree: generated/
 
+   CheckTessellationInput
    gdf_to_nx
    limit_range
    network_false_nodes

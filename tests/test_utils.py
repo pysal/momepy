@@ -5,7 +5,8 @@ import networkx
 import numpy as np
 import pytest
 
-from shapely.geometry import LineString
+from shapely.geometry import Polygon, MultiPoint, Point, LineString
+from shapely import affinity
 
 
 class TestUtils:
@@ -151,3 +152,30 @@ class TestUtils:
         assert sum(snapped.geometry.length) == 5980.041004739525
         assert sum(snapped_edge.geometry.length) == 5980.718889937014
         assert sum(snapped_nonedge.geometry.length) < 5980.041004739525
+
+    def test_CheckTessellationInput(self):
+        df = self.df_buildings
+        df.loc[144, "geometry"] = Polygon([(0, 0), (0, 1), (1, 0)])
+        df.loc[145, "geometry"] = MultiPoint([(0, 0), (1, 0)]).buffer(0.55)
+        df.loc[146, "geometry"] = affinity.rotate(df.geometry.iloc[0], 12)
+        check = mm.CheckTessellationInput(self.df_buildings)
+        assert len(check.collapse) == 1
+        assert len(check.split) == 1
+        assert len(check.overlap) == 2
+
+        check = mm.CheckTessellationInput(self.df_buildings, collapse=False)
+        assert len(check.split) == 1
+        assert len(check.overlap) == 2
+
+        check = mm.CheckTessellationInput(self.df_buildings, split=False)
+        assert len(check.collapse) == 1
+        assert len(check.overlap) == 2
+
+        check = mm.CheckTessellationInput(self.df_buildings, overlap=False)
+        assert len(check.collapse) == 1
+        assert len(check.split) == 1
+
+        check = mm.CheckTessellationInput(self.df_buildings, shrink=0)
+        assert len(check.collapse) == 0
+        assert len(check.split) == 0
+        assert len(check.overlap) == 4
