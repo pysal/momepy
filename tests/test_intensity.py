@@ -216,3 +216,14 @@ class TestIntensity:
             .series.isna()
             .any()
         )
+
+        # island
+        sw.neighbors[1] = []
+        dens3 = mm.Density(
+            self.df_tessellation,
+            self.df_buildings["fl_area"],
+            sw,
+            "uID",
+            self.df_tessellation.area,
+        ).series
+        assert dens3.mean() == approx(1.656420)

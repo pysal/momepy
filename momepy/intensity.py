@@ -695,7 +695,7 @@ class Density:
                 values_list = subset[values]
                 areas_list = subset[areas]
 
-                results_list.append(sum(values_list) / sum(areas_list))
+                results_list.append(np.sum(values_list) / np.sum(areas_list))
             else:
                 results_list.append(np.nan)
 
