@@ -17,7 +17,6 @@ from .shape import CircularCompactness
 
 __all__ = [
     "unique_id",
-    "sw_high",
     "gdf_to_nx",
     "nx_to_gdf",
     "limit_range",
@@ -45,70 +44,6 @@ def unique_id(objects):
     """
     series = range(len(objects))
     return series
-
-
-def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True):
-    """
-    Generate spatial weights based on Queen or Rook contiguity of order k.
-
-    Adjacent are all features within <= k steps. Pass either gdf or weights.
-    If both are passed, weights is used. If weights are passed, contiguity is
-    ignored and high order spatial weights based on `weights` are computed.
-
-    Parameters
-    ----------
-    k : int
-        order of contiguity
-    gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse. Index has to be consecutive range 0:x.
-        Otherwise, spatial weights will not match objects.
-    weights : libpysal.weights
-        libpysal.weights of order 1
-    contiguity : str (default 'queen')
-        type of contiguity weights. Can be 'queen' or 'rook'.
-    silent : bool (default True)
-        silence libpysal islands warnings
-
-    Returns
-    -------
-    libpysal.weights
-        libpysal.weights object
-
-    Examples
-    --------
-    >>> first_order = libpysal.weights.Queen.from_dataframe(geodataframe)
-    >>> first_order.mean_neighbors
-    5.848032564450475
-    >>> fourth_order = sw_high(k=4, gdf=geodataframe)
-    >>> fourth.mean_neighbors
-    85.73188602442333
-
-    """
-    if weights is not None:
-        first_order = weights
-    elif gdf is not None:
-        if contiguity == "queen":
-            first_order = libpysal.weights.Queen.from_dataframe(
-                gdf, ids=ids, silence_warnings=silent
-            )
-        elif contiguity == "rook":
-            first_order = libpysal.weights.Rook.from_dataframe(
-                gdf, ids=ids, silence_warnings=silent
-            )
-        else:
-            raise ValueError(
-                "{} is not supported. Use 'queen' or 'rook'.".format(contiguity)
-            )
-    else:
-        raise AttributeError("GeoDataFrame or spatial weights must be given.")
-
-    joined = first_order
-    for i in list(range(2, k + 1)):
-        i_order = libpysal.weights.higher_order(
-            first_order, k=i, silence_warnings=silent
-        )
-        joined = libpysal.weights.w_union(joined, i_order, silence_warnings=silent)
-    return joined
 
 
 def _angle(a, b, c):
