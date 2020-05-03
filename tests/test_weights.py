@@ -37,8 +37,10 @@ class TestWeights:
         db_ids = mm.DistanceBand(self.df_buildings, 100, ids="uID")
 
         for k in range(len(self.df_buildings)):
+            assert k in db.neighbors.keys()
             assert sorted(lp.neighbors[k]) == sorted(db.neighbors[k])
         for k in self.df_buildings.uID:
+            assert k in db_ids.neighbors.keys()
             assert sorted(lp_ids.neighbors[k]) == sorted(db_ids.neighbors[k])
 
         db_cent_false = mm.DistanceBand(self.df_buildings, 100, centroid=False)
