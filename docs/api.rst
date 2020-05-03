@@ -127,6 +127,15 @@ diversity
    Theil
    Unique
 
+spatial weights
+---------------
+.. autosummary::
+   :toctree: generated/
+
+   DistanceBand
+   sw_high
+
+
 utilities
 ---------
 .. autosummary::
@@ -139,5 +148,4 @@ utilities
    nx_to_gdf
    preprocess
    snap_street_network_edge
-   sw_high
    unique_id

@@ -6,6 +6,7 @@ from .diversity import *
 from .distribution import *
 from .graph import *
 from .shape import *
+from .weights import *
 import momepy.datasets
 
 __author__ = "Martin Fleischmann"
