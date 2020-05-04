@@ -14,7 +14,8 @@
 #
 import os
 import sys
-import sphinx_bootstrap_theme
+
+# import sphinx_bootstrap_theme
 
 sys.path.insert(0, os.path.abspath("../.."))
 
@@ -41,7 +42,7 @@ autodoc_mock_imports = [
 # -- Project information -----------------------------------------------------
 
 project = "momepy"
-copyright = "2018-2020, Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit"
+copyright = "2018-2020, Martin Fleischmann"
 author = "Martin Fleischmann"
 
 # The short X.Y version
@@ -69,8 +70,13 @@ extensions = [
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
     "numpydoc",
+    "nbsphinx",
     "matplotlib.sphinxext.plot_directive",
+    "IPython.sphinxext.ipython_console_highlighting",
 ]
+
+# nbsphinx do not use requirejs (breaks bootstrap)
+nbsphinx_requirejs_path = ""
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -106,62 +112,14 @@ pygments_style = "sphinx"
 # a list of builtin themes.
 #
 # html_theme = 'sphinx_rtd_theme'
-html_theme = "bootstrap"
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+html_theme = "pydata_sphinx_theme"
+# html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {
-    # Navigation bar title. (Default: ``project`` value)
-    "navbar_title": "momepy",
-    # Render the next and previous page links in navbar. (Default: true)
-    "navbar_sidebarrel": False,
-    # Render the current pages TOC in the navbar. (Default: true)
-    # 'navbar_pagenav': True,
-    # 'navbar_pagenav': False,
-    # No sidebar
-    "nosidebar": True,
-    # Tab name for the current pages TOC. (Default: "Page")
-    # 'navbar_pagenav_name': "Page",
-    # Global TOC depth for "site" navbar tab. (Default: 1)
-    # Switching to -1 shows all levels.
-    "globaltoc_depth": 2,
-    # Include hidden TOCs in Site navbar?
-    #
-    # Note: If this is "false", you cannot have mixed ``:hidden:`` and
-    # non-hidden ``toctree`` directives in the same page, or else the build
-    # will break.
-    #
-    # Values: "true" (default) or "false"
-    "globaltoc_includehidden": "true",
-    # HTML navbar class (Default: "navbar") to attach to <div> element.
-    # For black navbar, do "navbar navbar-inverse"
-    # 'navbar_class': "navbar navbar-inverse",
-    # Fix navigation bar to top of page?
-    # Values: "true" (default) or "false"
-    "navbar_fixed_top": "true",
-    # Location of link to source.
-    # Options are "nav" (default), "footer" or anything else to exclude.
-    "source_link_position": "footer",
-    # Bootswatch (http://bootswatch.com/) theme.
-    #
-    # Options are nothing (default) or the name of a valid theme
-    # such as "amelia" or "cosmo", "yeti", "flatly".
-    "bootswatch_theme": "yeti",
-    # Choose Bootstrap version.
-    # Values: "3" (default) or "2" (in quotes)
-    "bootstrap_version": "3",
-    "navbar_links": [
-        # ("Gallery", "auto_examples/index"),
-        ("Installation", "install"),
-        ("User Guide", "https://guide.momepy.org/", True),
-        ("API", "api"),
-        ("Contributing", "contributing"),
-        ("References", "references"),
-    ],
-}
+html_theme_options = {}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -267,6 +225,24 @@ numpydoc_show_class_members = True
 class_members_toctree = True
 numpydoc_show_inherited_class_members = True
 numpydoc_use_plots = True
+
+nbsphinx_prolog = r"""
+{% set docname = env.doc2path(env.docname, base=None) %}
+
+.. only:: html
+
+    .. role:: raw-html(raw)
+        :format: html
+
+    .. nbinfo::
+
+        .. note::
+            This page was generated from `{{ docname }}`__.
+            Interactive online version:
+            :raw-html:`<a href="https://mybinder.org/v2/gh/martinfleis/momepy/master/docs/{{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
+
+            __ https://github.com/martinfleis/momepy/blob/master/docs/{{ docname }}
+"""
 
 
 def linkcode_resolve(domain, info):

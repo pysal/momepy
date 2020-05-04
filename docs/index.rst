@@ -8,7 +8,7 @@ momepy documentation
 Introduction
 ------------
 
-Moomepy is a library for quantitative analysis of urban form - urban
+Momepy is a library for quantitative analysis of urban form - urban
 morphometrics. It is built on top of `GeoPandas`_, `PySAL`_ and
 `networkX`_.
 
@@ -151,8 +151,9 @@ Documentation contents
 .. toctree::
    :maxdepth: 1
 
+   Home <self>
    install
-   User Guide <http://guide.momepy.org>
+   user_guide/intro
    api
    contributing
    references
