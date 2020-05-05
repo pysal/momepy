@@ -2,3 +2,4 @@ matplotlib
 sphinxcontrib.bibtex
 numpydoc
 pydata_sphinx_theme
+nbsphinx
