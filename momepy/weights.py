@@ -82,12 +82,9 @@ class _Neighbors(dict, DistanceBand):
         if self.ids_bool:
             int_id = np.where(self.ids == key)[0][0]
             integers = self.fetch_items(int_id)
-            self[key] = item = list(self.ids[integers])
-            return item
+            return list(self.ids[integers])
         else:
-            integers = self.fetch_items(key)
-            self[key] = item = integers
-            return item
+            return self.fetch_items(key)
 
     def keys(self):
         return self.ids
