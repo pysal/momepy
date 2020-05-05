@@ -68,7 +68,7 @@ An easy way to create a momepy development environment is as follows:
 
 - Install either `Anaconda <http://docs.continuum.io/anaconda/>`_ or
   `miniconda <http://conda.pydata.org/miniconda.html>`_
-- Make sure that you have :ref:`cloned the repository <contributing.forking>`
+- Make sure that you have cloned the repository
 - ``cd`` to the *momepy* source directory
 
 Tell conda to create a new environment, named ``momepy_dev``, or any other name you would like

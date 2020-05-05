@@ -155,8 +155,8 @@ Documentation contents
    Home <self>
    install
    user_guide/intro
-   api
-   contributing
+   API reference <api>
+   Contributing <contributing>
    references
 
 

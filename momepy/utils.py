@@ -120,7 +120,7 @@ def gdf_to_nx(gdf_network, approach="primal", length="mm_len"):
     gdf_network : GeoDataFrame
         GeoDataFrame containing objects to convert
     approach : str, default 'primal'
-        Decide wheter genereate 'primal' or 'dual' graph.
+        Decide wheter genereate ``'primal'`` or ``'dual'`` graph.
     length : str, default mm_len
         name of attribute of segment length (geographical) which will be saved to graph
 
@@ -230,12 +230,12 @@ def _dual_to_gdf(net):
 
 def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeID"):
     """
-    Convert networkx.Graph to LineString GeoDataFrame and Point GeoDataFrame
+    Convert ``networkx.Graph`` to LineString GeoDataFrame and Point GeoDataFrame
 
     Parameters
     ----------
     net : networkx.Graph
-        networkx.Graph
+        ``networkx.Graph``
     points : bool
         export point-based gdf representing intersections
     lines : bool
@@ -325,7 +325,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     If feature area is smaller than set size it will be a) deleted if it does not
     touch any other feature; b) will be joined to feature with which it shares the
     longest boundary. If feature is fully within other feature, these will be joined.
-    If feature's circular compactness (:py:func:`momepy.circular_compactness`)
+    If feature's circular compactness (:py:class:`momepy.CircularCompactness`)
     is < 0.2, it will be joined to feature with which it shares the longest boundary.
     Function does two loops through.
 
@@ -557,7 +557,7 @@ def snap_street_network_edge(
     edge=None,
 ):
     """
-    Fix street network before performing blocks()
+    Fix street network before performing :class:`momepy.Blocks`.
 
     Extends unjoined ends of street segments to join with other segmets or
     tessellation boundary.
@@ -578,8 +578,8 @@ def snap_street_network_edge(
         tolerance in snapping to edge of tessellated area (by how much could be street
         segment extended).
     edge : Polygon
-        edge of area covered by morphological tessellation (same as `limit` in
-        :py:func:`momepy.tessellation`)
+        edge of area covered by morphological tessellation (same as ``limit`` in
+        :py:class:`momepy.Tessellation`)
 
     Returns
     -------
@@ -873,9 +873,9 @@ def _azimuth(point1, point2):
 
 class CheckTessellationInput:
     """
-    Check input data for Tessellation for potential errors.
+    Check input data for :class:`Tessellation` for potential errors.
 
-    Tessellation requires data of relatively high level of precision and there are three
+    :class:`Tessellation` requires data of relatively high level of precision and there are three
     particular patterns causign issues.\n
     1. Features will collapse into empty polygon - these do not have tessellation
     cell in the end.\n
@@ -886,7 +886,7 @@ class CheckTessellationInput:
     3. Overlapping features - features which overlap even after 'shrinking' cause invalid
     tessellation geoemtry.\n
 
-    CheckTessellationInput will check for all of these. Overlapping features has to be fixed
+    :class:`CheckTessellationInput` will check for all of these. Overlapping features has to be fixed
     prior Tessellation. Features which will split will cause issues only sometimes, so
     should be checked and fixed if necessary. Features which will collapse could be
     ignored, but they will have to excluded from next steps of tessellation-based analysis.
@@ -894,7 +894,7 @@ class CheckTessellationInput:
     Parameters
     ----------
     gdf : GeoDataFrame or GeoSeries
-        GeoDataFrame containing objects to be used as `gdf` in `Tessellation`
+        GeoDataFrame containing objects to be used as ``gdf`` in :class:`Tessellation`
     shrink : float (default 0.4)
         distance for negative buffer
     collapse : bool (default True)

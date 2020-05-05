@@ -12,26 +12,26 @@ class DistanceBand:
     """
     On demand distance-based spatial weights-like class.
 
-    Mimic the behavior of `libpysal.weights.DistanceBand` but do not compute all
-    neighbors at once but only on demand. Only `DistanceBand.neighbors[key]` is
-    implemented. Once user asks for `DistanceBand.neighbors[key]`, neigbors for
+    Mimic the behavior of ``libpysal.weights.DistanceBand`` but do not compute all
+    neighbors at once but only on demand. Only ``DistanceBand.neighbors[key]`` is
+    implemented. Once user asks for ``DistanceBand.neighbors[key]``, neigbors for
     specified key will be computed using rtree. The algorithm is significantly
-    slower than `libpysal.weights.DistanceBand` but allows for large number of
+    slower than ``libpysal.weights.DistanceBand`` but allows for large number of
     neighbors which may cause memory issues in libpysal.
 
-    Use `libpysal.weights.DistanceBand` if possible. `momepy.weights.DistanceBand`
-    only when necessary. DistanceBand.neighbors[key] should yield same results as
-    DistanceBand.
+    Use ``libpysal.weights.DistanceBand`` if possible. ``momepy.weights.DistanceBand``
+    only when necessary. ``DistanceBand.neighbors[key]`` should yield same results as
+    :class:`momepy.DistanceBand`.
 
     Parameters
     ----------
     gdf : GeoDataFrame or GeoSeries
-        GeoDataFrame containing objects to be used as `gdf` in `Tessellation`
+        GeoDataFrame containing objects to be used
     threshold : float
         distance band to be used as buffer
     centroid : bool (default True)
-        use centroid of geometry (as in libpysal.weights.DistanceBand).
-        If False, works with the geometry as it is.
+        use centroid of geometry (as in ``libpysal.weights.DistanceBand``).
+        If ``False``, works with the geometry as it is.
     ids : str
         column to be used as geometry ids. If not set, integer position is used.
 
@@ -97,21 +97,21 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True
     """
     Generate spatial weights based on Queen or Rook contiguity of order k.
 
-    Adjacent are all features within <= k steps. Pass either gdf or weights.
-    If both are passed, weights is used. If weights are passed, contiguity is
-    ignored and high order spatial weights based on `weights` are computed.
+    Adjacent are all features within <= k steps. Pass either ``gdf`` or ``weights``.
+    If both are passed, ``weights`` is used. If ``weights`` are passed, ``contiguity`` is
+    ignored and high order spatial weights based on ``weights`` are computed.
 
     Parameters
     ----------
     k : int
         order of contiguity
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse. Index has to be consecutive range 0:x.
+        GeoDataFrame containing objects to analyse. Index has to be consecutive range ``0:x``.
         Otherwise, spatial weights will not match objects.
     weights : libpysal.weights
         libpysal.weights of order 1
     contiguity : str (default 'queen')
-        type of contiguity weights. Can be 'queen' or 'rook'.
+        type of contiguity weights. Can be ``'queen'`` or ``'rook'``.
     silent : bool (default True)
         silence libpysal islands warnings
 

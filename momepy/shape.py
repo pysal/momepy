@@ -34,20 +34,22 @@ __all__ = [
 
 class FormFactor:
     """
-    Calculates form factor of each object in given geoDataFrame.
+    Calculates form factor of each object in given GeoDataFrame.
 
     .. math::
         area \\over {volume^{2 \\over 3}}
+
+    Adapted from :cite:`bourdic2012`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     volumes : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series where is stored volume value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored volume value.
         (To calculate volume you can use :py:func:`momepy.volume`)
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -60,12 +62,6 @@ class FormFactor:
         Series containing used volume values
     areas : Series
         Series containing used area values
-
-    References
-    ----------
-    Bourdic, L., Salat, S. and Nowacki, C. (2012) ‘Assessing cities: a new system
-    of cross-scale spatial indicators’, Building Research & Information, 40(5),
-    pp. 592–605. doi: 10.1080/09613218.2012.703488self.
 
     Examples
     --------
@@ -102,20 +98,22 @@ class FormFactor:
 
 class FractalDimension:
     """
-    Calculates fractal dimension of each object in given geoDataFrame.
+    Calculates fractal dimension of each object in given GeoDataFrame.
 
     .. math::
         {2log({{perimeter} \\over {4}})} \\over log(area)
+
+    Based on :cite:`mcgarigal1995fragstats`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value. If set to None, function will calculate perimeters
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value. If set to ``None``, function will calculate perimeters
         during the process without saving them separately.
 
     Attributes
@@ -128,10 +126,6 @@ class FractalDimension:
         Series containing used perimeter values
     areas : Series
         Series containing used area values
-
-    References
-    ----------
-    McGarigal, K., & Marks, B. (1995). FRAGSTATS: spatial pattern analysis program for quantifying landscape structure.
 
     Examples
     --------
@@ -167,21 +161,23 @@ class FractalDimension:
 
 class VolumeFacadeRatio:
     """
-    Calculates volume/facade ratio of each object in given geoDataFrame.
+    Calculates volume/facade ratio of each object in given GeoDataFrame.
 
     .. math::
         volume \\over perimeter * heigth
+
+    Adapted from :cite:`schirmer2015`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     heights : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored height value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored height value
     volumes : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored volume value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored volume value
     perimeters : , list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value
 
 
     Attributes
@@ -195,14 +191,8 @@ class VolumeFacadeRatio:
     volumes : Series
         Series containing used volume values
 
-    References
-    ----------
-    Schirmer, P. M. and Axhausen, K. W. (2015) ‘A multiscale classification of
-    urban morphology’, Journal of Transport and Land Use, 9(1), pp. 101–130.
-    doi: 10.5198/jtlu.2015.667.
-
     Examples
-    -----
+    --------
     >>> buildings_df['vfr'] = momepy.VolumeFacadeRatio(buildings_df, 'height').series
     >>> buildings_df.vfr[0]
     5.310715735236504
@@ -406,17 +396,19 @@ def _circle_area(points):
 
 class CircularCompactness:
     """
-    Calculates compactness index of each object in given geoDataFrame.
+    Calculates compactness index of each object in given GeoDataFrame.
 
     .. math::
         area \\over \\textit{area of enclosing circle}
+
+    Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -427,11 +419,6 @@ class CircularCompactness:
         original GeoDataFrame
     areas : Series
         Series containing used area values
-
-    References
-    ----------
-    Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
-    Form. University of Strathclyde.
 
     Examples
     --------
@@ -460,22 +447,24 @@ class CircularCompactness:
 
 class SquareCompactness:
     """
-    Calculates compactness index of each object in given geoDataFrame.
+    Calculates compactness index of each object in given GeoDataFrame.
 
     .. math::
         \\begin{equation*}
         \\left(\\frac{4 \\sqrt{area}}{perimeter}\\right) ^ 2
         \\end{equation*}
 
+    Adapted from :cite:`feliciotti2018`.
+
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value. If set to None, function will calculate perimeters
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value. If set to ``None``, function will calculate perimeters
         during the process without saving them separately.
 
     Attributes
@@ -488,11 +477,6 @@ class SquareCompactness:
         Series containing used area values
     perimeters : Series
         Series containing used perimeter values
-
-    References
-    ----------
-    Feliciotti A (2018) RESILIENCE AND URBAN DESIGN:A SYSTEMS APPROACH TO THE
-    STUDY OF RESILIENCE IN URBAN FORM. LEARNING FROM THE CASE OF GORBALS. Glasgow.
 
     Examples
     --------
@@ -526,17 +510,19 @@ class SquareCompactness:
 
 class Convexeity:
     """
-    Calculates convexeity index of each object in given geoDataFrame.
+    Calculates convexeity index of each object in given GeoDataFrame.
 
     .. math::
         area \\over \\textit{convex hull area}
+
+    Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -547,11 +533,6 @@ class Convexeity:
         original GeoDataFrame
     areas : Series
         Series containing used area values
-
-    References
-    ----------
-    Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
-    Form. University of Strathclyde.
 
     Examples
     --------
@@ -576,20 +557,22 @@ class Convexeity:
 
 class CourtyardIndex:
     """
-    Calculates courtyard index of each object in given geoDataFrame.
+    Calculates courtyard index of each object in given GeoDataFrame.
 
     .. math::
         \\textit{area of courtyards} \\over \\textit{total area}
+
+    Adapted from :cite:`schirmer2015`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     courtyard_areas : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series where is stored area value
-        (To calculate volume you can use :py:func:`momepy.dimension.courtyard_area`)
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value
+        (To calculate volume you can use :py:class:`momepy.CourtyardArea`)
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -603,19 +586,13 @@ class CourtyardIndex:
     areas : Series
         Series containing used area values
 
-    References
-    ----------
-    Schirmer, P. M. and Axhausen, K. W. (2015) ‘A multiscale classification of
-    urban morphology’, Journal of Transport and Land Use, 9(1), pp. 101–130.
-    doi: 10.5198/jtlu.2015.667.
-
     Examples
     --------
     >>> buildings_df['courtyard_index'] = momepy.CourtyardIndex(buildings, 'courtyard_area', 'area').series
     >>> buildings_df.courtyard_index[80]
     0.16605915738643523
 
-    >>> buildings_df['courtyard_index2'] = momepy.CourtyardIndex(buildings_df, momepy.courtyard_area(buildings_df).ca).series
+    >>> buildings_df['courtyard_index2'] = momepy.CourtyardIndex(buildings_df, momepy.CourtyardArea(buildings_df).series).series
     >>> buildings_df.courtyard_index2[80]
     0.16605915738643523
     """
@@ -639,17 +616,19 @@ class CourtyardIndex:
 
 class Rectangularity:
     """
-    Calculates rectangularity of each object in given geoDataFrame.
+    Calculates rectangularity of each object in given GeoDataFrame.
 
     .. math::
         {area \\over \\textit{minimum bounding rotated rectangle area}}
+
+    Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -660,11 +639,6 @@ class Rectangularity:
         original GeoDataFrame
     areas : Series
         Series containing used area values
-
-    References
-    ----------
-    Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
-    Form. University of Strathclyde.
 
     Examples
     --------
@@ -692,7 +666,7 @@ class Rectangularity:
 
 class ShapeIndex:
     """
-    Calculates shape index of each object in given geoDataFrame.
+    Calculates shape index of each object in given GeoDataFrame.
 
     .. math::
         {\\sqrt{{area} \\over {\\pi}}} \\over {0.5 * \\textit{longest axis}}
@@ -702,9 +676,9 @@ class ShapeIndex:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     longest_axis : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series where is stored longest axis value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored longest axis value
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -747,9 +721,9 @@ class ShapeIndex:
 
 class Corners:
     """
-    Calculates number of corners of each object in given geoDataFrame.
+    Calculates number of corners of each object in given GeoDataFrame.
 
-    Uses only external shape (shapely.geometry.exterior), courtyards are not included.
+    Uses only external shape (``shapely.geometry.exterior``), courtyards are not included.
 
     .. math::
         \\sum corner
@@ -834,14 +808,16 @@ class Corners:
 
 class Squareness:
     """
-    Calculates squareness of each object in given geoDataFrame.
+    Calculates squareness of each object in given GeoDataFrame.
 
-    Uses only external shape (shapely.geometry.exterior), courtyards are not included.
+    Uses only external shape (``shapely.geometry.exterior``), courtyards are not included.
 
     .. math::
         \\mu=\\frac{\\sum_{i=1}^{N} d_{i}}{N}
 
-    where `d` is the deviation of angle of corner `i` from 90 degrees.
+    where :math:`d` is the deviation of angle of corner :math:`i` from 90 degrees.
+
+    Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
@@ -854,11 +830,6 @@ class Squareness:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-
-    References
-    ----------
-    Dibble, J. (2016) Urban Morphometrics: Towards a Quantitative Science of Urban
-    Form. University of Strathclyde.
 
     Examples
     --------
@@ -925,20 +896,22 @@ class Squareness:
 
 class EquivalentRectangularIndex:
     """
-    Calculates equivalent rectangular index of each object in given geoDataFrame.
+    Calculates equivalent rectangular index of each object in given GeoDataFrame.
 
     .. math::
         \\sqrt{{area} \\over \\textit{area of bounding rectangle}} * {\\textit{perimeter of bounding rectangle} \\over {perimeter}}
+
+    Based on :cite:`basaraner2017`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value. If set to None, function will calculate perimeters
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value. If set to ``None``, function will calculate perimeters
         during the process without saving them separately.
 
     Attributes
@@ -951,14 +924,6 @@ class EquivalentRectangularIndex:
         Series containing used area values
     perimeters : Series
         Series containing used perimeter values
-
-    References
-    ----------
-    Basaraner M and Cetinkaya S (2017) Performance of shape indices and classification
-    schemes for characterising perceptual shape complexity of building footprints in GIS.
-    2nd ed. International Journal of Geographical Information Science, Taylor & Francis
-    31(10): 1952–1977. Available from:
-    https://www.tandfonline.com/doi/full/10.1080/13658816.2017.1346257.
 
     Examples
     --------
@@ -1005,6 +970,8 @@ class Elongation:
 
     where `a` is the area of the object and `p` its perimeter.
 
+    Based on :cite:`gil2012`.
+
     Parameters
     ----------
     gdf : GeoDataFrame
@@ -1016,12 +983,6 @@ class Elongation:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-
-    References
-    ----------
-    Gil J, Montenegro N, Beirão JN, et al. (2012) On the Discovery of
-    Urban Typologies: Data Mining the Multi-dimensional Character of
-    Neighbourhoods. Urban Morphology 16(1): 27–40.
 
     Examples
     --------
@@ -1063,6 +1024,8 @@ class CentroidCorners:
     .. math::
         \\overline{x}=\\frac{1}{n}\\left(\\sum_{i=1}^{n} dist_{i}\\right);\\space \\mathrm{SD}=\\sqrt{\\frac{\\sum|x-\\overline{x}|^{2}}{n}}
 
+    Adapted from :cite:`schirmer2015` and :cite:`cimburova2017`.
+
     Parameters
     ----------
     gdf : GeoDataFrame
@@ -1076,12 +1039,6 @@ class CentroidCorners:
         Series containing standard deviation values.
     gdf : GeoDataFrame
         original GeoDataFrame
-
-    References
-    ----------
-    Schirmer PM and Axhausen KW (2015) A multiscale classiﬁcation of urban morphology.
-    Journal of Transport and Land Use 9(1): 101–130.
-    + Cimburova (ADD)
 
     Examples
     --------
@@ -1171,12 +1128,14 @@ class CentroidCorners:
 
 class Linearity:
     """
-    Calculates linearity of each LineString object in given geoDataFrame.
+    Calculates linearity of each LineString object in given GeoDataFrame.
 
     .. math::
         \\frac{l_{euclidean}}{l_{segment}}
 
     where `l` is the length of the LineString.
+
+    Adapted from :cite:`araldi2019`.
 
     Parameters
     ----------
@@ -1189,12 +1148,6 @@ class Linearity:
         Series containing mean distance values.
     gdf : GeoDataFrame
         original GeoDataFrame
-
-    References
-    ----------
-    Araldi A and Fusco G (2017) Decomposing and Recomposing Urban Fabric:
-    The City from the Pedestrian Point of View. In:, pp. 365–376. Available
-    from: http://link.springer.com/10.1007/978-3-319-62407-5.
 
     Examples
     --------
@@ -1221,7 +1174,7 @@ class Linearity:
 
 class CompactnessWeightedAxis:
     """
-    Calculates compactness-weighted axis of each object in given geoDataFrame.
+    Calculates compactness-weighted axis of each object in given GeoDataFrame.
 
     Initially designed for blocks.
 
@@ -1233,13 +1186,13 @@ class CompactnessWeightedAxis:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored perimeter value. If set to None, function will calculate perimeters
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value. If set to ``None``, function will calculate perimeters
         during the process without saving them separately.
     longest_axis : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored longest axis length value. If set to None, function will calculate it
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored longest axis length value. If set to ``None``, function will calculate it
         during the process without saving them separately.
 
     Attributes
