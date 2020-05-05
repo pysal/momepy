@@ -1,9 +1,10 @@
 momepy documentation
 ==================================
 
-.. image:: logo.png
+.. image:: _static/logo.png
    :alt: momepy: Urban morphology measuring toolkit
    :align: center
+   :width: 50%
 
 Introduction
 ------------
