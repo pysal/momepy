@@ -35,14 +35,14 @@ def node_degree(graph, name="degree"):
     """
     Calculates node degree for each node.
 
-    Wrapper around `networkx.degree()`.
+    Wrapper around ``networkx.degree()``.
 
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
-    name : str(default 'degree')
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+    name : str (default 'degree')
         calculated attribute name
 
     Returns
@@ -75,7 +75,7 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
     """
     Calculates meshedness for subgraph around each node.
 
-    Subgraph is generated around each node within set radius. If distance=None,
+    Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in distance
     attribute.
 
@@ -84,30 +84,27 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
 
     where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
 
+    Adapted from :cite:`feliciotti2018`.
+
 
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
         calculated attribute name
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
 
     Returns
     -------
     Graph
         networkx.Graph
-
-    References
-    ----------
-    Feliciotti A (2018) RESILIENCE AND URBAN DESIGN:A SYSTEMS APPROACH TO THE STUDY OF RESILIENCE IN URBAN FORM.
-    LEARNING FROM THE CASE OF GORBALS. Glasgow.
 
     Examples
     --------
@@ -130,13 +127,13 @@ def mean_node_dist(graph, name="meanlen", length="mm_len"):
     """
     Calculates mean distance to neighbouring nodes.
 
-    Mean of values in `length` attribute.
+    Mean of values in ``length`` attribute.
 
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     name : str, optional
         calculated attribute name
     length : str, optional
@@ -191,7 +188,7 @@ def cds_length(
     """
     Calculates length of cul-de-sacs for subgraph around each node.
 
-    Subgraph is generated around each node within set radius. If distance=None,
+    Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in distance
     attribute.
 
@@ -200,11 +197,11 @@ def cds_length(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius : int
         number of topological steps defining the extent of subgraph
     mode : str (defualt 'sum')
-        if 'sum', calculate total length, if 'mean' calculate mean length
+        if ``'sum'``, calculate total length, if ``'mean'`` calculate mean length
     name : str, optional
         calculated attribute name
     degree : str
@@ -213,7 +210,7 @@ def cds_length(
         name of attribute of segment length (geographical)
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
 
 
@@ -257,8 +254,8 @@ def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=
     """
     Calculates mean node degree for subgraph around each node.
 
-    Subgraph is generated around each node within set radius. If distance=None,
-    radius will define topological distance, otherwise it uses values in distance
+    Subgraph is generated around each node within set radius. If ``distance=None``,
+    radius will define topological distance, otherwise it uses values in ``distance``
     attribute.
 
 
@@ -266,7 +263,7 @@ def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         radius defining the extent of subgraph
     name : str, optional
@@ -275,7 +272,7 @@ def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=
         name of attribute of node degree (:py:func:`momepy.node_degree`)
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
 
     Returns
@@ -315,15 +312,15 @@ def proportion(
     """
     Calculates the proportion of intersection types for subgraph around each node.
 
-    Subgraph is generated around each node within set radius. If distance=None,
-    radius will define topological distance, otherwise it uses values in distance
+    Subgraph is generated around each node within set radius. If ``distance=None``,
+    radius will define topological distance, otherwise it uses values in ``distance``
     attribute.
 
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     three : str, optional
@@ -336,7 +333,7 @@ def proportion(
         name of attribute of node degree (:py:func:`momepy.node_degree`)
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
 
     Returns
@@ -381,8 +378,8 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
     """
     Calculates cyclomatic complexity for subgraph around each node.
 
-    Subgraph is generated around each node within set radius. If distance=None,
-    radius will define topological distance, otherwise it uses values in distance
+    Subgraph is generated around each node within set radius. If ``distance=None``,
+    radius will define topological distance, otherwise it uses values in ``distance``
     attribute.
 
     .. math::
@@ -390,29 +387,26 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
 
     where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
 
+    Adapted from :cite:`bourdic2012`.
+
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
         calculated attribute name
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
 
     Returns
     -------
     Graph
         networkx.Graph
-
-    References
-    ----------
-    Bourdic L, Salat S and Nowacki C (2012) Assessing cities: a new system of cross-scale spatial indicators.
-    Building Research & Information 40(5): 592–605.
 
     Examples
     --------
@@ -444,8 +438,8 @@ def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
     """
     Calculates edge / node ratio for subgraph around each node.
 
-    Subgraph is generated around each node within set radius. If distance=None,
-    radius will define topological distance, otherwise it uses values in distance
+    Subgraph is generated around each node within set radius. If ``distance=None``,
+    radius will define topological distance, otherwise it uses values in ``distance``
     attribute.
 
     .. math::
@@ -453,30 +447,26 @@ def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
 
     where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
 
+    Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
         calculated attribute name
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
 
     Returns
     -------
     Graph
         networkx.Graph
-
-    References
-    ----------
-    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.
-    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.
 
     Examples
     --------
@@ -510,8 +500,8 @@ def gamma(graph, radius=5, name="gamma", distance=None):
     """
     Calculates connectivity gamma index for subgraph around each node.
 
-    Subgraph is generated around each node within set radius. If distance=None,
-    radius will define topological distance, otherwise it uses values in distance
+    Subgraph is generated around each node within set radius. If ``distance=None``,
+    radius will define topological distance, otherwise it uses values in ``distance``
     attribute.
 
     .. math::
@@ -519,30 +509,26 @@ def gamma(graph, radius=5, name="gamma", distance=None):
 
     where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
 
+    Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
         calculated attribute name
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
 
     Returns
     -------
     Graph
         networkx.Graph
-
-    References
-    ----------
-    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.
-    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.
 
     Examples
     --------
@@ -571,7 +557,7 @@ def clustering(graph, name="cluster"):
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     name : str, optional
         calculated attribute name
 
@@ -685,9 +671,9 @@ def local_closeness_centrality(
     """
     Calculates local closeness for each node based on the defined distance.
 
-    Subgraph is generated around each node within set radius. If distance=None,
-    radius will define topological distance, otherwise it uses values in distance
-    attribute. Based on networkx.closeness_centrality.
+    Subgraph is generated around each node within set radius. If ``distance=None``,
+    radius will define topological distance, otherwise it uses values in ``distance``
+    attribute. Based on ``networkx.closeness_centrality``.
 
     Local closeness centrality of a node `u` is the reciprocal of the
     average shortest path distance to `u` over all `n-1` nodes within subgraph.
@@ -696,22 +682,24 @@ def local_closeness_centrality(
 
         C(u) = \\frac{n - 1}{\\sum_{v=1}^{n-1} d(v, u)},
 
-    where `d(v, u)` is the shortest-path distance between `v` and `u`,
-    and `n` is the number of nodes that can reach `u`.
+    where :math:`d(v, u)` is the shortest-path distance between :math:`v` and :math:`u`,
+    and :math:`n` is the number of nodes that can reach :math:`u`.
+
+    Adapted from :cite:`porta2006`.
 
 
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
         calculated attribute name
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n during ego_graph generation.
     weight : str, optional
       Use the specified edge attribute as the edge distance in shortest
@@ -721,11 +709,6 @@ def local_closeness_centrality(
     -------
     Graph
         networkx.Graph
-
-    References
-    ----------
-    Porta S, Crucitti P and Latora V (2006) The network analysis of urban streets: A primal approach.
-    Environment and Planning B: Planning and Design 33(5): 705–725.
 
     Examples
     --------
@@ -758,15 +741,15 @@ def closeness_centrality(graph, name="closeness", weight="mm_len", **kwargs):
 
         C(u) = \\frac{n - 1}{\\sum_{v=1}^{n-1} d(v, u)},
 
-    where `d(v, u)` is the shortest-path distance between `v` and `u`,
-    and `n` is the number of nodes that can reach `u`.
+    where :math:`d(v, u)` is the shortest-path distance between :math:`v` and :math:`u`,
+    and :math:`n` is the number of nodes that can reach :math:`u`.
 
 
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     name : str, optional
         calculated attribute name
     weight : str (default 'mm_len')
@@ -823,12 +806,13 @@ def betweenness_centrality(
     shortest :math:`(s, t)`-paths, and :math:`\\sigma(s, t|e)` is the number of
     those paths passing through edge `e`.
 
+    Adapted from :cite:`porta2006`.
 
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     name : str, optional
         calculated attribute name
     mode : str, default 'nodes'
@@ -842,11 +826,6 @@ def betweenness_centrality(
     -------
     Graph
         networkx.Graph
-
-    References
-    ----------
-    Porta S, Crucitti P and Latora V (2006) The network analysis of urban streets: A primal approach.
-    Environment and Planning B: Planning and Design 33(5): 705–725.
 
     Examples
     --------
@@ -900,8 +879,8 @@ def local_betweenness_centrality(
     """
     Calculates the shortest-path betweenness centrality for nodes within subgraph.
 
-    Subgraph is generated around each node within set radius. If distance=None,
-    radius will define topological distance, otherwise it uses values in distance
+    Subgraph is generated around each node within set radius. If ``distance=None``,
+    radius will define topological distance, otherwise it uses values in ``distance``
     attribute. Based on ``networkx.betweenness_centrality``.
 
     Betweenness centrality of a node `v` is the sum of the
@@ -922,14 +901,14 @@ def local_betweenness_centrality(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
         calculated attribute name
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n during ego_graph generation.
     weight : str, optional
         Use the specified edge attribute as the edge distance in shortest
@@ -1018,11 +997,13 @@ def straightness_centrality(
     where :math:`\\mathrm{d}^{\\mathrm{E} \\mathrm{u}}_{\\mathrm{ij}}` is the Euclidean distance
     between nodes `i` and `j` along a straight line.
 
+    Adapted from :cite:`porta2006`.
+
     Parameters
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     weight : str (default 'mm_len')
         attribute holding length of edge
     normalized : bool
@@ -1034,11 +1015,6 @@ def straightness_centrality(
     -------
     Graph
         networkx.Graph
-
-    References
-    ----------
-    Porta S, Crucitti P and Latora V (2006) The network analysis of urban streets: A primal approach.
-    Environment and Planning B: Planning and Design 33(5): 705–725.
 
     Examples
     --------
@@ -1058,8 +1034,8 @@ def local_straightness_centrality(
     """
     Calculates local straightness for each node based on the defined distance.
 
-    Subgraph is generated around each node within set radius. If distance=None,
-    radius will define topological distance, otherwise it uses values in distance
+    Subgraph is generated around each node within set radius. If ``distance=None``,
+    radius will define topological distance, otherwise it uses values in ``distance``
     attribute.
 
     .. math::
@@ -1073,14 +1049,14 @@ def local_straightness_centrality(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
         calculated attribute name
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n during ego_graph generation.
     weight : str, optional
       Use the specified edge attribute as the edge distance in shortest
@@ -1138,19 +1114,19 @@ def subgraph(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`
+        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         radius defining the extent of subgraph
     distance : str, optional
         Use specified edge data key as distance.
-        For example, setting distance=’weight’ will use the edge weight to
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
     meshedness : bool, default True
         Calculate meshedness (True/False)
     cds_length : bool, default True
         Calculate cul-de-sac length (True/False)
     mode : str (defualt 'sum')
-        if 'sum', calculate total cds_length, if 'mean' calculate mean cds_length
+        if ``'sum'``, calculate total cds_length, if ``'mean'`` calculate mean cds_length
     degree : str
         name of attribute of node degree (:py:func:`momepy.node_degree`)
     length : str, default `mm_len`

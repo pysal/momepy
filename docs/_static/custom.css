@@ -1,17 +1,84 @@
-@import url("./basic.css");
-@import url("./bootstrap-sphinx.css");
+/* @import url("./basic.css");
+@import url("./bootstrap-sphinx.css"); */
 
 
-table.longtable.table tr td {
-    width: 50%;
-    text-align: left;
-}
 
 code {
-    color: #3c6cb0;
-    background-color: #f2f7f9;
+    color: #e32e00;
 }
 
 dt:target, span.highlighted {
-background-color: #e7edef;
+background-color: rgba(11, 76, 99, 0.07);
+}
+
+h1, h2 {
+color: #0b4c63;
+}
+
+.active {
+color: #e32e00!important;
+}
+
+.toc-entry>.nav-link.active {
+border-left: 2px solid #e32e00;
+}
+
+.navbar-nav>.active>.nav-link {
+font-weight: 600;
+color: #e32e00!important;
+}
+
+.bd-sidebar .nav>.active:hover>a, .bd-sidebar .nav>.active>a {
+font-weight: 600;
+color: #e32e00;
+}
+
+.bd-sidebar .nav>li>a:hover {
+color: #0b4c63;
+}
+
+.bd-sidebar .nav>li>ul>.active>a {
+color: #e32e00;
+}
+.alert-info a {
+color: #e32e00;
+}
+
+.reference a {
+color: #e32e00;
+}
+
+pre {
+border: 0px;
+box-shadow: 1px 1px 1px #f41616;
+}
+
+div.nbinput.container div.input_area {
+border: 0px!important;
+box-shadow: 1px 1px 1px #f41616!important;
+background: #fafafa!important;
+}
+
+div.output_area.stderr {
+display: none;
+}
+
+.highlight .kn {
+color: #0aac18;
+}
+
+.highlight .k {
+color: #0aac18;
+}
+.highlight .kc {
+color: #0aac18;
+}
+.highlight .mi {
+color: #0aac18;
+}
+.highlight .mf {
+color: #0aac18;
+}
+.highlight .gp {
+color: #0aac18;
 }

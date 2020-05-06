@@ -35,7 +35,7 @@ class Area:
     Calculates area of each object in given GeoDataFrame. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
-    It is a simple wrapper for geopandas `gdf.geometry.area` for the consistency of momepy.
+    It is a simple wrapper for GeoPandas ``.area`` for the consistency of momepy.
 
     Parameters
     ----------
@@ -68,7 +68,7 @@ class Perimeter:
     Calculates perimeter of each object in given GeoDataFrame. It can be used for any
     suitable element (building footprint, plot, tessellation, block).
 
-    It is a simple wrapper for geopandas `gdf.geometry.length` for the consistency of momepy.
+    It is a simple wrapper for GeoPandas ``.length`` for the consistency of momepy.
 
     Parameters
     ----------
@@ -108,9 +108,9 @@ class Volume:
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     heights : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series where is stored height value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored height value
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -178,9 +178,9 @@ class FloorArea:
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     heights : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series where is stored height value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored height value
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -236,14 +236,14 @@ class CourtyardArea:
     """
     Calculates area of holes within geometry - area of courtyards.
 
-    Ensure that your geometry is shapely Polygon.
+    Ensure that your geometry is ``shapely.geometry.Polygon``.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -325,22 +325,25 @@ class LongestAxisLength:
 
 class AverageCharacter:
     """
-    Calculates the average of a character within a set neighbourhood defined in spatial_weights
+    Calculates the average of a character within a set neighbourhood defined in ``spatial_weights``
 
-    Average value of the character within a set neighbourhood defined in spatial_weights.
-    Can be set to `mean`, `median` or `mode`. `mean` is defined as:
+    Average value of the character within a set neighbourhood defined in ``spatial_weights``.
+    Can be set to ``mean``, ``median`` or ``mode``. ``mean`` is defined as:
 
     .. math::
         \\frac{1}{n}\\left(\\sum_{i=1}^{n} value_{i}\\right)
+
+    Adapted from :cite:`hausleitner2017`.
+
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
-        the name of the dataframe column, np.array, or pd.Series where is stored character value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
     unique_id : str
-        name of the column with unique id used as spatial_weights index.
+        name of the column with unique id used as ``spatial_weights`` index.
     spatial_weights : libpysal.weights
         spatial weights matrix
     rng : Two-element sequence containing floats in range of [0,100], optional
@@ -373,11 +376,6 @@ class AverageCharacter:
     modes : str
         mode
 
-    References
-    ----------
-    Hausleitner B and Berghauser Pont M (2017) Development of a configurational
-    typology for micro-businesses integrating geometric and configurational variables.
-    [adapted]
 
     Examples
     --------
@@ -465,12 +463,11 @@ class StreetProfile:
 
     Returns a dictionary with widths, standard deviation of width, openness, heights,
     standard deviation of height and ratio height/width. Algorithm generates perpendicular
-    lines to `right` dataframe features every `distance` and measures values on intersection
-    with features of `left.` If no feature is reached within
-    `tick_length` its value is set as width (being theoretical maximum).
+    lines to ``right`` dataframe features every ``distance`` and measures values on intersection
+    with features of ``left``. If no feature is reached within
+    ``tick_length`` its value is set as width (being a theoretical maximum).
 
-    .. math::
-        \\
+    Derived from :cite:`araldi2019`.
 
     Parameters
     ----------
@@ -479,7 +476,7 @@ class StreetProfile:
     right : GeoDataFrame
         GeoDataFrame containing buildings along the streets (only Polygon geometry type is supported)
     heights: str, list, np.array, pd.Series (default None)
-        the name of the buildings dataframe column, np.array, or pd.Series where is stored building height. If set to None,
+        the name of the buildings dataframe column, ``np.array``, or ``pd.Series`` where is stored building height. If set to None,
         height and ratio height/width will not be calculated.
     distance : int (default 10)
         distance between perpendicular ticks
@@ -510,15 +507,6 @@ class StreetProfile:
         lenght of ticks
     heights : GeoDataFrame
         Series containing used height values
-
-    References
-    ----------
-    Oliveira V (2013) Morpho: a methodology for assessing urban form. Urban Morphology 17(1): 21–33.
-
-    Araldi A and Fusco G (2017) Decomposing and Recomposing Urban Fabric: The City from the Pedestrian
-    Point of View. In: Gervasi O, Murgante B, Misra S, et al. (eds), Computational Science and Its
-    Applications – ICCSA 2017, Lecture Notes in Computer Science, Cham: Springer International
-    Publishing, pp. 365–376. Available from: http://link.springer.com/10.1007/978-3-319-62407-5.
 
     Examples
     --------
@@ -727,24 +715,26 @@ class WeightedCharacter:
     """
     Calculates the weighted character
 
-    Character weighted by the area of the objects within `k` topological steps defined in spatial_weights.
+    Character weighted by the area of the objects within ``k`` topological steps defined in ``spatial_weights``.
 
     .. math::
         \\frac{\\sum_{i=1}^{n} {character_{i} * area_{i}}}{\\sum_{i=1}^{n} area_{i}}
+
+    Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     values : str, list, np.array, pd.Series
-        the name of the gdf dataframe column, np.array, or pd.Series where is stored character to be weighted
+        the name of the gdf dataframe column, ``np.array``, or ``pd.Series`` where is stored character to be weighted
     spatial_weights : libpysal.weights
         spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
         based on left.
     unique_id : str
-        name of the column with unique id used as spatial_weights index.
+        name of the column with unique id used as ``spatial_weights`` index.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the left dataframe column, np.array, or pd.Series where is stored area value
+        the name of the left dataframe column, ``np.array``, or ``pd.Series`` where is stored area value
 
 
     Attributes
@@ -761,11 +751,6 @@ class WeightedCharacter:
         spatial weights matrix
     id : Series
         Series containing used unique ID
-
-    References
-    ----------
-    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.
-    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.
 
     Examples
     --------
@@ -819,7 +804,7 @@ class CoveredArea:
     """
     Calculates the area covered by neighbours
 
-    Total area covered by neighbours defined in spatial_weights and element itself.
+    Total area covered by neighbours defined in ``spatial_weights`` and element itself.
 
     .. math::
 
@@ -831,7 +816,7 @@ class CoveredArea:
     spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str
-        name of the column with unique id used as spatial_weights index.
+        name of the column with unique id used as ``spatial_weights`` index.
 
     Attributes
     ----------
@@ -951,8 +936,8 @@ class SegmentsLength:
     Calculate the cummulative and/or mean length of segments.
 
     Length of segments within set topological distance from each of them.
-    Reached topological distance should be captured by spatial_weights. If mean=False it
-    will compute sum of length, if mean=True it will compute sum and mean.
+    Reached topological distance should be captured by ``spatial_weights``. If ``mean=False`` it
+    will compute sum of length, if ``mean=True`` it will compute sum and mean.
 
     Parameters
     ----------

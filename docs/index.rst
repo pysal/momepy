@@ -1,14 +1,15 @@
 momepy documentation
 ==================================
 
-.. image:: logo.png
+.. image:: _static/logo.png
    :alt: momepy: Urban morphology measuring toolkit
    :align: center
+   :width: 50%
 
 Introduction
 ------------
 
-Moomepy is a library for quantitative analysis of urban form - urban
+Momepy is a library for quantitative analysis of urban form - urban
 morphometrics. It is built on top of `GeoPandas`_, `PySAL`_ and
 `networkX`_.
 
@@ -133,10 +134,7 @@ transparent.
 
 If you decide to contribute to the codebase, ensure that you are using an
 up-to-date ``master`` branch. The latest development version will always be there,
-including a significant part of the documentation (powered by ``sphinx``). The
-user guide is located in the separate GitHub repository
-`martinfleis/momepy-guide <http://github.com/martinfleis/momepy-guide>`__ and is
-powered by ``Jupyter book``.
+including the documentation (powered by ``sphinx``).
 
 Details are available in the :doc:`contributing guide <contributing>`.
 
@@ -151,10 +149,11 @@ Documentation contents
 .. toctree::
    :maxdepth: 1
 
+   Home <self>
    install
-   User Guide <http://guide.momepy.org>
-   api
-   contributing
+   user_guide/intro
+   API reference <api>
+   Contributing <contributing>
    references
 
 
