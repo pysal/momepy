@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/martinfleis/momepy/branch/master/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
 
 
-<img src="https://raw.githubusercontent.com/martinfleis/momepy/pydata_theme/docs/_static/logo.png" width="50%">
+<img src="https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/logo.png" width="50%">
 
 ## Introduction
 Momepy is a library for quantitative analysis of urban form - urban morphometrics. It is built on top of [GeoPandas](http://geopandas.org), [PySAL](http://pysal.org) and [networkX](http://networkx.github.io).
