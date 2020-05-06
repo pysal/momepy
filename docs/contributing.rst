@@ -17,9 +17,7 @@ momepy transparent.
 
 If you decide to contribute to the codebase, ensure that you are using an
 up-to-date `master` branch. The latest development version will always be there,
-including a significant part of the documentation (powered by `sphinx`_). The
-user guide is located in the ``gh-pages`` branch and is powered by
-`Jupyter book`_.
+including the documentation (powered by `sphinx`_).
 
 
 Eight Steps for Contributing
@@ -53,8 +51,7 @@ want to use command line, you can fork momepy repository using following::
 This creates the directory momepy-yourname and connects your repository to
 the upstream (main project) momepy repository.
 
-Then simply create a new branch of either master (for codebase and documentation)
-or gh-pages branch (for user guide).
+Then simply create a new branch of master branch.
 
 
 2. Create a development environment
@@ -181,19 +178,10 @@ usually quite straightforward.
 Updating User Guide
 ~~~~~~~~~~~~~~~~~~~
 
-Updating user guide might be slightly more complicated as it is powered by `Jupyter book`_
-and consists of collection of markdown files and Jupyter notebooks. Moreover, it sits in the separate GitHub repository
-`martinfleis/momepy-guide <http://github.com/martinfleis/momepy-guide>`__.
-Changes in markdown are straightforward, changes in notebooks should be done using Jupyter.
-
-Once you are done with changes, you should navigate to parental folder of momepy git folder
-and run (not necessary, updating .md or .ipynb is a good start)::
-
-    jupyter-book build momepy/
-
-Then you can push your fork to GitHub. If you don't have jupyter-book, you can install it using pip::
-
-    pip install jupyter-book
+Updating user guide might be slightly more complicated as it
+consists of collection of reStructuredText files and Jupyter notebooks.
+Changes in reStructuredText are straightforward, changes in notebooks should be done using Jupyter. Make sure that all cells have their correct outputs as notebooks
+are not executed by readthedocs.
 
 7. Formatting the code
 ^^^^^^^^^^^^^^^^^^^^^^
