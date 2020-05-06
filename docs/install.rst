@@ -90,7 +90,6 @@ Required dependencies:
 
 Some functions also depend on additional packages, which are optional:
 
-- `inequality`_
 - `mapclassify`_ (>= 2.1.1)
 - `inequality`_
 
@@ -103,7 +102,7 @@ or
 
 .. _mapclassify: http://pysal.org/mapclassify
 
-.. _libpysal: https://libpysal.readthedocs.io
+.. _libpysal: http://pysal.org/libpysal
 
 .. _inequality: https://inequality.readthedocs.io
 

@@ -8,7 +8,7 @@ For any kind of morphometric analysis, data needs to be provided as
 ``GeoDataFrames``. Results of morphometric analysis from ``momepy`` can
 be generally returned as pandas ``Series`` to be added as a column of
 existing ``GeoDataFrame``. All the detailes and attributes of each class
-are clearly described in the `API`_.
+are clearly described in the :doc:`API <../api>`.
 
 Morphometric functions
 ----------------------
@@ -22,12 +22,14 @@ outputs.
    Simple morphometric characters are using single ``GeoDataFrame`` as a
    source of the data.
 
+
 2. Relational characters
 
    Relational characters are based on relations between two or more
    ``GeoDataFrames``. Typical example is ``AreaRatio``, which requires
    a) features to be covered (e.g. land unit) and b) features which are
    covering them (e.g. buildings).
+
 
 3. Network analysis
 
@@ -40,7 +42,7 @@ Morphological elements
 
 Additional modules (``elements`` and ``utils``) cover functions
 generating new morphological elements (like morphological tessellation)
-or links between them. For details, please refer to the `API`_.
+or links between them. For details, please refer to the :doc:`API <../api>`.
 
 Majority of functions used within ``momepy`` is not limited to one type
 of morphological elements. However, the whole package is built with a
@@ -50,7 +52,7 @@ true especially for morphological tessellation, partitioning of space
 based on building footprints. Morphological tessellation can substitute
 plots for certain types of analysis and provide additional information,
 like the adjacency, for the other. More information on tessellation is
-in dedicated `section`_ of this guide.
+in dedicated :doc:`section <elements/tessellation>` of this guide.
 
 Generally, we can work with any kind of morphological element which fits
 selected function, there is no restriction. Sometimes, where
@@ -100,8 +102,8 @@ as a reference for ``buildings_gdf``. In principle, elements on the
 smaller scale contains IDs of elements on the larger - blocks will not
 have building IDs.
 
-Momepy can generate unique ID using ``momepy.unique_id()`` and `link
-certain types of elements together`_.
+Momepy can generate unique ID using ``momepy.unique_id()`` and :doc:`link
+certain types of elements together <elements/links>`
 
 Spatial weights
 ---------------
@@ -110,12 +112,9 @@ Unique IDs are also used as an ID within spatial weights matrices.
 Thanks to this, spatial weights generated on morphological tessellation
 (like Queen contiguity) can be directly used on buildings and vice
 versa. Detailed information on using spatial weights within momepy will
-be `discussed later`_.
+be :doc:`discussed later <weights/weights>`.
 
 .. _link certain types of elements together: elements/links
-.. _discussed later: weights/weights
 .. _geopandas: http://geopandas.org
 .. _networkx: https://networkx.github.io
-.. _API: https://docs.momepy.org/en/latest/api.html
 .. _Urban Design Studies Unit: http://www.udsu-strath.com
-.. _section: elements/tessellation
