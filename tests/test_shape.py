@@ -113,15 +113,15 @@ class TestShape:
 
         assert self.df_buildings["sqcom2"][0] == check
 
-    def test_Convexeity(self):
-        self.df_buildings["conv"] = mm.Convexeity(self.df_buildings).series
+    def test_Convexity(self):
+        self.df_buildings["conv"] = mm.Convexity(self.df_buildings).series
         check = (
             self.df_buildings.geometry.area[0]
             / self.df_buildings.geometry.convex_hull.area[0]
         )
         assert self.df_buildings["conv"][0] == check
 
-        self.df_buildings["conv2"] = mm.Convexeity(
+        self.df_buildings["conv2"] = mm.Convexity(
             self.df_buildings, areas=self.df_buildings.geometry.area
         ).series
 

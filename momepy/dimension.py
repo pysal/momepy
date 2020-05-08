@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # dimension.py
-# definitons of dimension characters
+# definitions of dimension characters
 
 import math
 
@@ -481,7 +481,7 @@ class StreetProfile:
     distance : int (default 10)
         distance between perpendicular ticks
     tick_length : int (default 50)
-        lenght of ticks
+        length of ticks
 
     Attributes
     ----------
@@ -504,7 +504,7 @@ class StreetProfile:
     distance : int
         distance between perpendicular ticks
     tick_length : int
-        lenght of ticks
+        length of ticks
     heights : GeoDataFrame
         Series containing used height values
 
@@ -945,7 +945,7 @@ class SegmentsLength:
         GeoDataFrame containing streets (edges) to analyse
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on streets (note: spatial_weights shoud be based on index, not unique ID).
+        based on streets (note: spatial_weights should be based on index, not unique ID).
     mean : boolean, optional
         If mean=False it will compute sum of length, if mean=True it will compute
         sum and mean

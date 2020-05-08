@@ -460,9 +460,9 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
     Parameters
     ----------
     gdf : GeoDataFrame, GeoSeries
-        GeoDataFrame  or GeoSeries containg edge representation of street network.
+        GeoDataFrame  or GeoSeries containing edge representation of street network.
     tolerance : float
-        nodes wihtin tolearance are seen as identical (floating point precision fix)
+        nodes within a tolerance are seen as identical (floating point precision fix)
     precision : int
         rounding parameter in estimating uniqueness of two points based on their
         coordinates
@@ -559,7 +559,7 @@ def snap_street_network_edge(
     """
     Fix street network before performing :class:`momepy.Blocks`.
 
-    Extends unjoined ends of street segments to join with other segmets or
+    Extends unjoined ends of street segments to join with other segments or
     tessellation boundary.
 
     Parameters
@@ -884,7 +884,7 @@ class CheckTessellationInput:
     and resulting tessellation is correct anyway, but sometimes this result in a cell
     being MultiPolygon, which is not correct.\n
     3. Overlapping features - features which overlap even after 'shrinking' cause
-    invalid tessellation geoemtry.\n
+    invalid tessellation geometry.\n
 
     :class:`CheckTessellationInput` will check for all of these. Overlapping features
     have to be fixed prior Tessellation. Features which will split will cause issues

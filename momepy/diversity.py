@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # diversity.py
-# definitons of diversity characters
+# definitions of diversity characters
 
 import numpy as np
 import pandas as pd

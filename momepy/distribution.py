@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # distribution.py
-# definitons of spatial distribution characters
+# definitions of spatial distribution characters
 
 import math
 import statistics
