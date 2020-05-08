@@ -114,3 +114,5 @@ cache/
 # my playing files
 sandbox/
 run/
+
+.vscode
