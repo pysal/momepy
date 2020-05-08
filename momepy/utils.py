@@ -875,20 +875,22 @@ class CheckTessellationInput:
     """
     Check input data for :class:`Tessellation` for potential errors.
 
-    :class:`Tessellation` requires data of relatively high level of precision and there are three
-    particular patterns causign issues.\n
+    :class:`Tessellation` requires data of relatively high level of precision and there
+    are three particular patterns causing issues.\n
     1. Features will collapse into empty polygon - these do not have tessellation
     cell in the end.\n
-    2. Features will split into MultiPolygon - at some cases, featuers with narrow links
+    2. Features will split into MultiPolygon - at some cases, features with narrow links
     between parts split into two during 'shrinking'. In most cases that is not an issue
     and resulting tessellation is correct anyway, but sometimes this result in a cell
     being MultiPolygon, which is not correct.\n
-    3. Overlapping features - features which overlap even after 'shrinking' cause invalid
-    tessellation geoemtry.\n
+    3. Overlapping features - features which overlap even after 'shrinking' cause
+    invalid tessellation geoemtry.\n
 
-    :class:`CheckTessellationInput` will check for all of these. Overlapping features has to be fixed
-    prior Tessellation. Features which will split will cause issues only sometimes, so
-    should be checked and fixed if necessary. Features which will collapse could be
+    :class:`CheckTessellationInput` will check for all of these. Overlapping features
+    have to be fixed prior Tessellation. Features which will split will cause issues
+    only sometimes, so
+    should be checked and fixed if necessary. Features which will collapse could
+    be
     ignored, but they will have to excluded from next steps of tessellation-based analysis.
 
     Parameters
