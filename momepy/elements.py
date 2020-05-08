@@ -61,12 +61,12 @@ class Tessellation:
     particular patterns causign issues.\n
     1. Features will collapse into empty polygon - these do not have tessellation
     cell in the end.\n
-    2. Features will split into MultiPolygon - at some cases, featuers with narrow links
+    2. Features will split into MultiPolygon - at some cases, features with narrow links
     between parts split into two during 'shrinking'. In most cases that is not an issue
     and resulting tessellation is correct anyway, but sometimes this result in a cell
     being MultiPolygon, which is not correct.\n
     3. Overlapping features - features which overlap even after 'shrinking' cause invalid
-    tessellation geoemtry.\n
+    tessellation geometry.\n
     All three types can be tested prior :class:`momepy.Tessellation` using :class:`momepy.CheckTessellationInput`.
 
     Parameters
@@ -80,7 +80,7 @@ class Tessellation:
     shrink : float (default 0.4)
         distance for negative buffer to generate space between adjacent polygons (if geometry type of gdf is (Multi)Polygon).
     segment : float (default 0.5)
-        maximum distance between points after discretisation
+        maximum distance between points after discretization
 
     Attributes
     ----------

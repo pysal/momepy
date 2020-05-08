@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # shape.py
-# definitons of shape characters
+# definitions of shape characters
 
 import math
 import random
@@ -18,7 +18,7 @@ __all__ = [
     "VolumeFacadeRatio",
     "CircularCompactness",
     "SquareCompactness",
-    "Convexeity",
+    "Convexity",
     "CourtyardIndex",
     "Rectangularity",
     "ShapeIndex",
@@ -164,7 +164,7 @@ class VolumeFacadeRatio:
     Calculates volume/facade ratio of each object in given GeoDataFrame.
 
     .. math::
-        volume \\over perimeter * heigth
+        volume \\over perimeter * height
 
     Adapted from :cite:`schirmer2015`.
 
@@ -508,9 +508,9 @@ class SquareCompactness:
         self.series = ((np.sqrt(gdf[areas]) * 4) / gdf[perimeters]) ** 2
 
 
-class Convexeity:
+class Convexity:
     """
-    Calculates convexeity index of each object in given GeoDataFrame.
+    Calculates Convexity index of each object in given GeoDataFrame.
 
     .. math::
         area \\over \\textit{convex hull area}
@@ -536,8 +536,8 @@ class Convexeity:
 
     Examples
     --------
-    >>> buildings_df['convexeity'] = momepy.Convexeity(buildings_df).series
-    >>> buildings_df.convexeity[0]
+    >>> buildings_df['convexity'] = momepy.Convexity(buildings_df).series
+    >>> buildings_df['convexity'][0]
     0.8151964258521672
     """
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # connectivity.py
-# definitons of connectivity characters
+# definitions of connectivity characters
 import math
 
 import networkx as nx
@@ -41,7 +41,7 @@ def node_degree(graph, name="degree"):
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     name : str (default 'degree')
         calculated attribute name
 
@@ -91,7 +91,7 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
@@ -133,7 +133,7 @@ def mean_node_dist(graph, name="meanlen", length="mm_len"):
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     name : str, optional
         calculated attribute name
     length : str, optional
@@ -197,10 +197,10 @@ def cds_length(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius : int
         number of topological steps defining the extent of subgraph
-    mode : str (defualt 'sum')
+    mode : str (default 'sum')
         if ``'sum'``, calculate total length, if ``'mean'`` calculate mean length
     name : str, optional
         calculated attribute name
@@ -238,7 +238,7 @@ def cds_length(
         )  # define subgraph of steps=radius
         netx.nodes[n][name] = _cds_length(
             sub, mode=mode, length=length
-        )  # save value calulated for subgraph to node
+        )  # save value calculated for subgraph to node
 
     return netx
 
@@ -263,7 +263,7 @@ def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         radius defining the extent of subgraph
     name : str, optional
@@ -320,7 +320,7 @@ def proportion(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     three : str, optional
@@ -393,7 +393,7 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
@@ -453,7 +453,7 @@ def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
@@ -515,7 +515,7 @@ def gamma(graph, radius=5, name="gamma", distance=None):
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
@@ -557,7 +557,7 @@ def clustering(graph, name="cluster"):
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     name : str, optional
         calculated attribute name
 
@@ -692,7 +692,7 @@ def local_closeness_centrality(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
@@ -749,7 +749,7 @@ def closeness_centrality(graph, name="closeness", weight="mm_len", **kwargs):
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     name : str, optional
         calculated attribute name
     weight : str (default 'mm_len')
@@ -812,7 +812,7 @@ def betweenness_centrality(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     name : str, optional
         calculated attribute name
     mode : str, default 'nodes'
@@ -901,7 +901,7 @@ def local_betweenness_centrality(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
@@ -1003,7 +1003,7 @@ def straightness_centrality(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     weight : str (default 'mm_len')
         attribute holding length of edge
     normalized : bool
@@ -1049,7 +1049,7 @@ def local_straightness_centrality(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         number of topological steps defining the extent of subgraph
     name : str, optional
@@ -1114,7 +1114,7 @@ def subgraph(
     ----------
     graph : networkx.Graph
         Graph representing street network.
-        Ideally genereated from GeoDataFrame using :func:`momepy.gdf_to_nx`
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
         radius defining the extent of subgraph
     distance : str, optional

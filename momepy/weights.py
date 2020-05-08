@@ -14,7 +14,7 @@ class DistanceBand:
 
     Mimic the behavior of ``libpysal.weights.DistanceBand`` but do not compute all
     neighbors at once but only on demand. Only ``DistanceBand.neighbors[key]`` is
-    implemented. Once user asks for ``DistanceBand.neighbors[key]``, neigbors for
+    implemented. Once user asks for ``DistanceBand.neighbors[key]``, neighbors for
     specified key will be computed using rtree. The algorithm is significantly
     slower than ``libpysal.weights.DistanceBand`` but allows for large number of
     neighbors which may cause memory issues in libpysal.
@@ -37,7 +37,7 @@ class DistanceBand:
 
     Attributes
     ----------
-    neigbors[key] : list
+    neighbors[key] : list
         list of ids of neighboring features
 
     """

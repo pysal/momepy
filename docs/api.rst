@@ -48,7 +48,7 @@ shape
   CentroidCorners
   CircularCompactness
   CompactnessWeightedAxis
-  Convexeity
+  Convexity
   Corners
   CourtyardIndex
   Elongation

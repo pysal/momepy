@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # intensity.py
-# definitons of intensity characters
+# definitions of intensity characters
 
 import collections
 
