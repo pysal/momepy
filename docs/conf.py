@@ -239,13 +239,12 @@ nbsphinx_prolog = r"""
     .. role:: raw-html(raw)
         :format: html
 
-    .. nbinfo::
+    .. note::
 
-        .. note::
-            | This page was generated from `{{ docname }}`__.
-            | Interactive online version: :raw-html:`<a href="https://mybinder.org/v2/gh/martinfleis/momepy/master?urlpath=lab/tree/docs/{{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
+        | This page was generated from `{{ docname }}`__.
+        | Interactive online version: :raw-html:`<a href="https://mybinder.org/v2/gh/martinfleis/momepy/master?urlpath=lab/tree/docs/{{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
 
-            __ https://github.com/martinfleis/momepy/blob/master/docs/{{ docname }}
+        __ https://github.com/martinfleis/momepy/blob/master/docs/{{ docname }}
 """
 
 

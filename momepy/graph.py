@@ -831,8 +831,8 @@ def betweenness_centrality(
     --------
     >>> network_graph = mm.betweenness_centrality(network_graph)
 
-    Note
-    ----
+    Notes
+    -----
     In case of angular betweenness, implementation is based on "Tasos Implementation".
     """
     netx = graph.copy()
