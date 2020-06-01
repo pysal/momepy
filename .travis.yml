@@ -10,6 +10,9 @@ matrix:
   allow_failures:
     - env: ENV_FILE="ci/travis/dev.yaml" DEV=true
 
+before_install:
+  - chmod +x ci/travis/test_user_guide.sh
+
 install:
   - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the
