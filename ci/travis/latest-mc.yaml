@@ -7,12 +7,16 @@ dependencies:
   - libpysal
   - networkx
   - tqdm
+  - mapclassify
+  # testing
   - pytest
   - pytest-cov
   - codecov
-  - mapclassify
-  - pip
+  # user guide testing
   - osmnx
+  - matplotlib
+  - jupyter
+  - pip
   - pip:
     - inequality
     - black
