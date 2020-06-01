@@ -5,10 +5,13 @@ sudo: false
 matrix:
   include:
     - env: ENV_FILE="ci/travis/37-pysal.yaml"
-    - env: ENV_FILE="ci/travis/latest-mc.yaml" STYLE=true
+    - env: ENV_FILE="ci/travis/latest-mc.yaml" STYLE=true GUIDE=true
     - env: ENV_FILE="ci/travis/dev.yaml" DEV=true
   allow_failures:
     - env: ENV_FILE="ci/travis/dev.yaml" DEV=true
+
+before_install:
+  - chmod +x ci/travis/test_user_guide.sh
 
 install:
   - sudo apt-get update
@@ -36,6 +39,7 @@ install:
 
 script:
   - pytest -v --cov-config .coveragerc --cov=momepy tests
+  - if [ "$GUIDE" ]; then ci/travis/test_user_guide.sh; fi
   - if [ "$STYLE" ]; then black --check .; fi
 
 after_success:
