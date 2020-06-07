@@ -20,6 +20,7 @@ class TestGraph:
         net = mm.meshedness(self.network)
         check = 0.14893617021276595
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["meshedness"] == check
+        assert mm.meshedness(self.network, radius=None) == 0.1320754716981132
 
     def test_mean_node_dist(self):
         net = mm.mean_node_dist(self.network)
@@ -35,11 +36,13 @@ class TestGraph:
         assert net2.nodes[(1603650.450422848, 6464368.600601688)]["cds_mean"] == mean
         with pytest.raises(ValueError):
             net2 = mm.cds_length(self.network, mode="nonexistent")
+        assert mm.cds_length(self.network, radius=None) == 2291.4520621447705
 
     def test_mean_node_degree(self):
         net = mm.mean_node_degree(self.network)
         check = 2.576923076923077
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["mean_nd"] == check
+        assert mm.mean_node_degree(self.network, radius=None) == 2.413793103448276
 
     def test_proportion(self):
         net = mm.proportion(self.network, three="three", four="four", dead="dead")
@@ -49,6 +52,12 @@ class TestGraph:
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["dead"] == dead
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["four"] == four
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["three"] == three
+        glob = mm.proportion(
+            self.network, three="three", four="four", dead="dead", radius=None
+        )
+        assert glob["dead"] == 0.3793103448275862
+        assert glob["four"] == 0.2413793103448276
+        assert glob["three"] == 0.20689655172413793
 
     def test_proportion_error(self):
         with pytest.raises(ValueError):
@@ -58,6 +67,7 @@ class TestGraph:
         net = mm.cyclomatic(self.network)
         check = 7
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["cyclomatic"] == check
+        assert mm.cyclomatic(self.network, radius=None) == 7
 
     def test_edge_node_ratio(self):
         net = mm.edge_node_ratio(self.network)
@@ -66,11 +76,13 @@ class TestGraph:
             net.nodes[(1603650.450422848, 6464368.600601688)]["edge_node_ratio"]
             == check
         )
+        assert mm.edge_node_ratio(self.network, radius=None) == 1.206896551724138
 
     def test_gamma(self):
         net = mm.gamma(self.network)
         check = 0.4444444444444444
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["gamma"] == check
+        assert mm.gamma(self.network, radius=None) == 0.43209876543209874
 
     def test_local_closeness_centrality(self):
         net = mm.local_closeness_centrality(self.network)
