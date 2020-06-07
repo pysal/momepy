@@ -73,7 +73,8 @@ def _meshedness(graph):
 
 def meshedness(graph, radius=5, name="meshedness", distance=None):
     """
-    Calculates meshedness for subgraph around each node.
+    Calculates meshedness for subgraph around each node if radius is set, or for
+    whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in distance
@@ -92,7 +93,7 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
     graph : networkx.Graph
         Graph representing street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
-    radius: int
+    radius: int, optional
         number of topological steps defining the extent of subgraph
     name : str, optional
         calculated attribute name
@@ -104,7 +105,9 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
     Returns
     -------
     Graph
-        networkx.Graph
+        networkx.Graph if radius is set
+    float
+        meshedness for graph if ``radius=None``
 
     Examples
     --------
@@ -112,15 +115,18 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
     """
     netx = graph.copy()
 
-    for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(
-            netx, n, radius=radius, distance=distance
-        )  # define subgraph of steps=radius
-        netx.nodes[n][name] = _meshedness(
-            sub
-        )  # save value calulated for subgraph to node
+    if radius:
+        for n in tqdm(netx, total=len(netx)):
+            sub = nx.ego_graph(
+                netx, n, radius=radius, distance=distance
+            )  # define subgraph of steps=radius
+            netx.nodes[n][name] = _meshedness(
+                sub
+            )  # save value calulated for subgraph to node
 
-    return netx
+        return netx
+
+    return _meshedness(netx)
 
 
 def mean_node_dist(graph, name="meanlen", length="mm_len"):
@@ -186,7 +192,8 @@ def cds_length(
     distance=None,
 ):
     """
-    Calculates length of cul-de-sacs for subgraph around each node.
+    Calculates length of cul-de-sacs for subgraph around each node if radius is set, or for
+    whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in distance
@@ -217,7 +224,9 @@ def cds_length(
     Returns
     -------
     Graph
-        networkx.Graph
+        networkx.Graph if radius is set
+    float
+        length of cul-de-sacs for graph if ``radius=None``
 
     Examples
     --------
@@ -232,15 +241,20 @@ def cds_length(
         else:
             netx[u][v][k]["cdsbool"] = False
 
-    for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(
-            netx, n, radius=radius, distance=distance
-        )  # define subgraph of steps=radius
-        netx.nodes[n][name] = _cds_length(
-            sub, mode=mode, length=length
-        )  # save value calculated for subgraph to node
+    if radius:
+        for n in tqdm(netx, total=len(netx)):
+            sub = nx.ego_graph(
+                netx, n, radius=radius, distance=distance
+            )  # define subgraph of steps=radius
+            netx.nodes[n][name] = _cds_length(
+                sub, mode=mode, length=length
+            )  # save value calculated for subgraph to node
 
-    return netx
+        return netx
+
+    return _cds_length(
+        netx, mode=mode, length=length
+    )  # save value calculated for subgraph to node
 
 
 def _mean_node_degree(graph, degree):
@@ -252,7 +266,8 @@ def _mean_node_degree(graph, degree):
 
 def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=None):
     """
-    Calculates mean node degree for subgraph around each node.
+    Calculates mean node degree for subgraph around each node if radius is set, or for
+    whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in ``distance``
@@ -278,7 +293,9 @@ def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=
     Returns
     -------
     Graph
-        networkx.Graph
+        networkx.Graph if radius is set
+    float
+        mean node degree for graph if ``radius=None``
 
     Examples
     --------
@@ -286,13 +303,16 @@ def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=
     """
     netx = graph.copy()
 
-    for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(
-            netx, n, radius=radius, distance=distance
-        )  # define subgraph of steps=radius
-        netx.nodes[n][name] = _mean_node_degree(sub, degree=degree)
+    if radius:
+        for n in tqdm(netx, total=len(netx)):
+            sub = nx.ego_graph(
+                netx, n, radius=radius, distance=distance
+            )  # define subgraph of steps=radius
+            netx.nodes[n][name] = _mean_node_degree(sub, degree=degree)
 
-    return netx
+        return netx
+
+    return _mean_node_degree(netx, degree=degree)
 
 
 def _proportion(graph, degree):
@@ -310,7 +330,8 @@ def proportion(
     graph, radius=5, three=None, four=None, dead=None, degree="degree", distance=None
 ):
     """
-    Calculates the proportion of intersection types for subgraph around each node.
+    Calculates the proportion of intersection types for subgraph around each node if radius is set, or for
+    whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in ``distance``
@@ -339,7 +360,9 @@ def proportion(
     Returns
     -------
     Graph
-        networkx.Graph
+        networkx.Graph if radius is set
+    dict
+        dict with proportions for graph if ``radius=None``
 
     Examples
     --------
@@ -351,18 +374,31 @@ def proportion(
         )
     netx = graph.copy()
 
-    for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(
-            netx, n, radius=radius, distance=distance
-        )  # define subgraph of steps=radius
-        counts = _proportion(sub, degree=degree)
-        if three:
-            netx.nodes[n][three] = counts[3] / len(sub)
-        if four:
-            netx.nodes[n][four] = counts[4] / len(sub)
-        if dead:
-            netx.nodes[n][dead] = counts[1] / len(sub)
-    return netx
+    if radius:
+        for n in tqdm(netx, total=len(netx)):
+            sub = nx.ego_graph(
+                netx, n, radius=radius, distance=distance
+            )  # define subgraph of steps=radius
+            counts = _proportion(sub, degree=degree)
+            if three:
+                netx.nodes[n][three] = counts[3] / len(sub)
+            if four:
+                netx.nodes[n][four] = counts[4] / len(sub)
+            if dead:
+                netx.nodes[n][dead] = counts[1] / len(sub)
+        return netx
+
+    # add example to docs explaining keys
+    counts = _proportion(netx, degree=degree)
+    result = {}
+    if three:
+        result[three] = counts[3] / len(netx)
+    if four:
+        result[four] = counts[4] / len(netx)
+    if dead:
+        result[dead] = counts[1] / len(netx)
+
+    return result
 
 
 def _cyclomatic(graph):
@@ -376,7 +412,8 @@ def _cyclomatic(graph):
 
 def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
     """
-    Calculates cyclomatic complexity for subgraph around each node.
+    Calculates cyclomatic complexity for subgraph around each node if radius is set, or for
+    whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in ``distance``
@@ -406,7 +443,9 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
     Returns
     -------
     Graph
-        networkx.Graph
+        networkx.Graph if radius is set
+    float
+        cyclomatic complexity for graph if ``radius=None``
 
     Examples
     --------
@@ -414,15 +453,18 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
     """
     netx = graph.copy()
 
-    for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(
-            netx, n, radius=radius, distance=distance
-        )  # define subgraph of steps=radius
-        netx.nodes[n][name] = _cyclomatic(
-            sub
-        )  # save value calulated for subgraph to node
+    if radius:
+        for n in tqdm(netx, total=len(netx)):
+            sub = nx.ego_graph(
+                netx, n, radius=radius, distance=distance
+            )  # define subgraph of steps=radius
+            netx.nodes[n][name] = _cyclomatic(
+                sub
+            )  # save value calulated for subgraph to node
 
-    return netx
+        return netx
+
+    return _cyclomatic(netx)
 
 
 def _edge_node_ratio(graph):
@@ -436,7 +478,8 @@ def _edge_node_ratio(graph):
 
 def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
     """
-    Calculates edge / node ratio for subgraph around each node.
+    Calculates edge / node ratio for subgraph around each node if radius is set, or for
+    whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in ``distance``
@@ -466,7 +509,9 @@ def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
     Returns
     -------
     Graph
-        networkx.Graph
+        networkx.Graph if radius is set
+    float
+        edge / node ratio for graph if ``radius=None``
 
     Examples
     --------
@@ -474,15 +519,18 @@ def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
     """
     netx = graph.copy()
 
-    for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(
-            netx, n, radius=radius, distance=distance
-        )  # define subgraph of steps=radius
-        netx.nodes[n][name] = _edge_node_ratio(
-            sub
-        )  # save value calulated for subgraph to node
+    if radius:
+        for n in tqdm(netx, total=len(netx)):
+            sub = nx.ego_graph(
+                netx, n, radius=radius, distance=distance
+            )  # define subgraph of steps=radius
+            netx.nodes[n][name] = _edge_node_ratio(
+                sub
+            )  # save value calulated for subgraph to node
 
-    return netx
+        return netx
+
+    return _edge_node_ratio(netx)
 
 
 def _gamma(graph):
@@ -498,7 +546,8 @@ def _gamma(graph):
 
 def gamma(graph, radius=5, name="gamma", distance=None):
     """
-    Calculates connectivity gamma index for subgraph around each node.
+    Calculates connectivity gamma index for subgraph around each node if radius is set, or for
+    whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in ``distance``
@@ -528,7 +577,9 @@ def gamma(graph, radius=5, name="gamma", distance=None):
     Returns
     -------
     Graph
-        networkx.Graph
+        networkx.Graph if radius is set
+    float
+        gamma index for graph if ``radius=None``
 
     Examples
     --------
@@ -537,13 +588,16 @@ def gamma(graph, radius=5, name="gamma", distance=None):
     """
     netx = graph.copy()
 
-    for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(
-            netx, n, radius=radius, distance=distance
-        )  # define subgraph of steps=radius
-        netx.nodes[n][name] = _gamma(sub)
+    if radius:
+        for n in tqdm(netx, total=len(netx)):
+            sub = nx.ego_graph(
+                netx, n, radius=radius, distance=distance
+            )  # define subgraph of steps=radius
+            netx.nodes[n][name] = _gamma(sub)
 
-    return netx
+        return netx
+
+    return _gamma(netx)
 
 
 def clustering(graph, name="cluster"):
