@@ -252,9 +252,7 @@ def cds_length(
 
         return netx
 
-    return _cds_length(
-        netx, mode=mode, length=length
-    )  # save value calculated for subgraph to node
+    return _cds_length(netx, mode=mode, length=length)
 
 
 def _mean_node_degree(graph, degree):
