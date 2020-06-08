@@ -11,7 +11,5 @@ dependencies:
   - pytest-cov
   - codecov
   - pysal
-  - pip
   - osmnx
-  - pip:
-    - black
+  - black

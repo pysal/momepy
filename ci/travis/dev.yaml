@@ -13,7 +13,6 @@ dependencies:
   - mapclassify
   - pip
   - osmnx
-  - pip:
-    - black
-    - nose
-    - inequality
+  - black
+  - nose
+  - inequality
