@@ -14,6 +14,4 @@ dependencies:
   - osmnx
   - momepy
   - jupyter
-  - pip
-  - pip:
-    - inequality
+  - inequality

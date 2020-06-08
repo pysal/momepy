@@ -16,7 +16,5 @@ dependencies:
   - osmnx
   - matplotlib
   - jupyter
-  - pip
-  - pip:
-    - inequality
-    - black
+  - inequality
+  - black
