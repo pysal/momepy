@@ -103,9 +103,6 @@ graph
    cyclomatic
    edge_node_ratio
    gamma
-   local_betweenness_centrality
-   local_closeness_centrality
-   local_straightness_centrality
    mean_node_degree
    mean_node_dist
    mean_nodes

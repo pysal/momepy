@@ -4,6 +4,7 @@
 # connectivity.py
 # definitions of connectivity characters
 import math
+import warnings
 
 import networkx as nx
 import numpy as np
@@ -94,7 +95,7 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
         Graph representing street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int, optional
-        number of topological steps defining the extent of subgraph
+        Include all neighbors of distance <= radius from n
     name : str, optional
         calculated attribute name
     distance : str, optional
@@ -206,7 +207,7 @@ def cds_length(
         Graph representing street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius : int
-        number of topological steps defining the extent of subgraph
+        Include all neighbors of distance <= radius from n
     mode : str (default 'sum')
         if ``'sum'``, calculate total length, if ``'mean'`` calculate mean length
     name : str, optional
@@ -341,7 +342,7 @@ def proportion(
         Graph representing street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
-        number of topological steps defining the extent of subgraph
+        Include all neighbors of distance <= radius from n
     three : str, optional
         attribute name for 3-way intersections proportion
     four : str, optional
@@ -430,7 +431,7 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
         Graph representing street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
-        number of topological steps defining the extent of subgraph
+        Include all neighbors of distance <= radius from n
     name : str, optional
         calculated attribute name
     distance : str, optional
@@ -496,7 +497,7 @@ def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
         Graph representing street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
-        number of topological steps defining the extent of subgraph
+        Include all neighbors of distance <= radius from n
     name : str, optional
         calculated attribute name
     distance : str, optional
@@ -564,7 +565,7 @@ def gamma(graph, radius=5, name="gamma", distance=None):
         Graph representing street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
-        number of topological steps defining the extent of subgraph
+        Include all neighbors of distance <= radius from n
     name : str, optional
         calculated attribute name
     distance : str, optional
@@ -746,7 +747,7 @@ def local_closeness_centrality(
         Graph representing street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
-        number of topological steps defining the extent of subgraph
+        Include all neighbors of distance <= radius from n
     name : str, optional
         calculated attribute name
     distance : str, optional
@@ -767,20 +768,20 @@ def local_closeness_centrality(
     >>> network_graph = mm.local_closeness_centrality(network_graph, radius=400, distance='edge_length')
 
     """
-    netx = graph.copy()
-    lengraph = len(netx)
-    for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(
-            netx, n, radius=radius, distance=distance
-        )  # define subgraph of steps=radius
-        netx.nodes[n][name] = _closeness_centrality(
-            sub, n, length=weight, len_graph=lengraph
-        )
+    warnings.warn(
+        "local_closeness_centrality() is deprecated and will be removed in momepy 0.4.0. "
+        "Use closeness_centrality() instead.",
+        FutureWarning,
+    )
 
-    return netx
+    return closeness_centrality(
+        graph=graph, radius=radius, name=name, distance=distance, weight=weight
+    )
 
 
-def closeness_centrality(graph, name="closeness", weight="mm_len", **kwargs):
+def closeness_centrality(
+    graph, name="closeness", weight="mm_len", radius=None, distance=None, **kwargs
+):
     """
     Calculates the closeness centrality for nodes.
 
@@ -806,6 +807,12 @@ def closeness_centrality(graph, name="closeness", weight="mm_len", **kwargs):
         calculated attribute name
     weight : str (default 'mm_len')
         attribute holding the weight of edge (e.g. length, angle)
+    radius: int
+        Include all neighbors of distance <= radius from n
+    distance : str, optional
+        Use specified edge data key as distance.
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
+        measure the distance from the node n during ego_graph generation.
     **kwargs
         kwargs for ``networkx.closeness_centrality``
 
@@ -820,14 +827,32 @@ def closeness_centrality(graph, name="closeness", weight="mm_len", **kwargs):
     """
     netx = graph.copy()
 
-    vals = nx.closeness_centrality(netx, distance=weight, **kwargs)
-    nx.set_node_attributes(netx, vals, name)
+    if radius:
+        lengraph = len(netx)
+        for n in tqdm(netx, total=len(netx)):
+            sub = nx.ego_graph(
+                netx, n, radius=radius, distance=distance
+            )  # define subgraph of steps=radius
+            netx.nodes[n][name] = _closeness_centrality(
+                sub, n, length=weight, len_graph=lengraph
+            )
+    else:
+        vals = nx.closeness_centrality(netx, distance=weight, **kwargs)
+        nx.set_node_attributes(netx, vals, name)
 
     return netx
 
 
 def betweenness_centrality(
-    graph, name="betweenness", mode="nodes", weight="mm_len", endpoints=True, **kwargs
+    graph,
+    name="betweenness",
+    mode="nodes",
+    weight="mm_len",
+    endpoints=True,
+    radius=None,
+    distance=None,
+    normalized=False,
+    **kwargs
 ):
     """
     Calculates the shortest-path betweenness centrality for nodes.
@@ -871,6 +896,15 @@ def betweenness_centrality(
         mode of betweenness calculation. 'node' for node-based, 'edges' for edge-based
     weight : str (default 'mm_len')
         attribute holding the weight of edge (e.g. length, angle)
+    radius: int
+        Include all neighbors of distance <= radius from n
+    distance : str, optional
+        Use specified edge data key as distance.
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
+        measure the distance from the node n during ego_graph generation.
+    normalized : bool, optional
+        If True the betweenness values are normalized by `2/((n-1)(n-2))`,
+        where n is the number of nodes in subgraph.
     **kwargs
         kwargs for ``networkx.betweenness_centrality`` or ``networkx.edge_betweenness_centrality``
 
@@ -898,7 +932,16 @@ def betweenness_centrality(
         else:
             G.add_edge(u, v, **data)
 
-    if mode == "nodes":
+    if radius:
+        for n in tqdm(G, total=len(G)):
+            sub = nx.ego_graph(
+                G, n, radius=radius, distance=distance
+            )  # define subgraph of steps=radius
+            netx.nodes[n][name] = nx.betweenness_centrality(
+                sub, weight=weight, normalized=normalized, **kwargs
+            )[n]
+
+    elif mode == "nodes":
         vals = nx.betweenness_centrality(
             G, weight=weight, endpoints=endpoints, **kwargs
         )
@@ -955,7 +998,7 @@ def local_betweenness_centrality(
         Graph representing street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
-        number of topological steps defining the extent of subgraph
+        Include all neighbors of distance <= radius from n
     name : str, optional
         calculated attribute name
     distance : str, optional
@@ -981,26 +1024,21 @@ def local_betweenness_centrality(
     >>> network_graph = mm.local_betweenness_centrality(network_graph, radius=800, distance='edge_length')
 
     """
-    netx = graph.copy()
+    warnings.warn(
+        "local_betweenness_centrality() is deprecated and will be removed in momepy 0.4.0. "
+        "Use betweenness_centrality() instead.",
+        FutureWarning,
+    )
 
-    # has to be Graph not MultiGraph as MG is not supported by networkx2.4
-    G = nx.Graph()
-    for u, v, k, data in netx.edges(data=True, keys=True):
-        if G.has_edge(u, v) and weight is not None:
-            if G[u][v][weight] > netx[u][v][k][weight]:
-                nx.set_edge_attributes(G, {(u, v): data})
-        else:
-            G.add_edge(u, v, **data)
-
-    for n in tqdm(G, total=len(G)):
-        sub = nx.ego_graph(
-            G, n, radius=radius, distance=distance
-        )  # define subgraph of steps=radius
-        netx.nodes[n][name] = nx.betweenness_centrality(
-            sub, weight=weight, normalized=normalized, **kwargs
-        )[n]
-
-    return netx
+    return betweenness_centrality(
+        graph,
+        radius=radius,
+        name=name,
+        distance=distance,
+        weight=weight,
+        normalized=normalized,
+        **kwargs
+    )
 
 
 def _euclidean(n, m):
@@ -1038,7 +1076,12 @@ def _straightness_centrality(G, weight, normalized=True):
 
 
 def straightness_centrality(
-    graph, weight="mm_len", normalized=True, name="straightness"
+    graph,
+    weight="mm_len",
+    normalized=True,
+    name="straightness",
+    radius=None,
+    distance=None,
 ):
     """
     Calculates the straightness centrality for nodes.
@@ -1059,9 +1102,16 @@ def straightness_centrality(
     weight : str (default 'mm_len')
         attribute holding length of edge
     normalized : bool
-        normalize to number of nodes-1 in connected part
+        normalize to number of nodes-1 in connected part (for local straightness
+        is recommended to set to normalized False)
     name : str, optional
         calculated attribute name
+    radius: int
+        Include all neighbors of distance <= radius from n
+    distance : str, optional
+        Use specified edge data key as distance.
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
+        measure the distance from the node n during ego_graph generation.
 
     Returns
     -------
@@ -1074,8 +1124,17 @@ def straightness_centrality(
     """
     netx = graph.copy()
 
-    vals = _straightness_centrality(netx, weight=weight, normalized=normalized)
-    nx.set_node_attributes(netx, vals, name)
+    if radius:
+        for n in tqdm(netx, total=len(netx)):
+            sub = nx.ego_graph(
+                netx, n, radius=radius, distance=distance
+            )  # define subgraph of steps=radius
+            netx.nodes[n][name] = _straightness_centrality(
+                sub, weight=weight, normalized=normalized
+            )[n]
+    else:
+        vals = _straightness_centrality(netx, weight=weight, normalized=normalized)
+        nx.set_node_attributes(netx, vals, name)
 
     return netx
 
@@ -1103,7 +1162,7 @@ def local_straightness_centrality(
         Graph representing street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
     radius: int
-        number of topological steps defining the extent of subgraph
+        Include all neighbors of distance <= radius from n
     name : str, optional
         calculated attribute name
     distance : str, optional
@@ -1125,16 +1184,15 @@ def local_straightness_centrality(
     >>> network_graph = mm.local_straightness_centrality(network_graph, radius=400, distance='edge_length')
 
     """
-    netx = graph.copy()
-    for n in tqdm(netx, total=len(netx)):
-        sub = nx.ego_graph(
-            netx, n, radius=radius, distance=distance
-        )  # define subgraph of steps=radius
-        netx.nodes[n][name] = _straightness_centrality(
-            sub, weight=weight, normalized=False
-        )[n]
+    warnings.warn(
+        "local_straightness_centrality() is deprecated and will be removed in momepy 0.4.0. "
+        "Use straightness_centrality() instead.",
+        FutureWarning,
+    )
 
-    return netx
+    return straightness_centrality(
+        graph=graph, radius=radius, name=name, distance=distance, weight=weight
+    )
 
 
 def subgraph(
