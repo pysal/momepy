@@ -304,7 +304,7 @@ def limit_range(vals, rng):
     return vals
 
 
-def preprocess(buildings, size=30, compactness=True, islands=True):
+def preprocess(buildings, size=30, compactness=0.2, islands=True, loops=2):
     """
     Preprocesses building geometry to eliminate additional structures being single features.
 
@@ -320,7 +320,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     longest boundary. If feature is fully within other feature, these will be joined.
     If feature's circular compactness (:py:class:`momepy.CircularCompactness`)
     is < 0.2, it will be joined to feature with which it shares the longest boundary.
-    Function does two loops through.
+    Function does multiple loops through.
 
 
     Parameters
@@ -330,12 +330,14 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     size : float (default 30)
         maximum area of feature to be considered as additional structure. Set to
         None if not wanted.
-    compactness : bool (default True)
-        if True, function will resolve additional structures identified based on
+    compactness : float (default .2)
+        if set, function will resolve additional structures identified based on
         their circular compactness.
     islands : bool (default True)
         if True, function will resolve additional structures which are fully within
         other structures (share 100% of exterior boundary).
+    loops : int (default 2)
+        number of loops
 
     Returns
     -------
@@ -345,8 +347,8 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     blg = buildings.copy()
     blg = blg.explode()
     blg.reset_index(drop=True, inplace=True)
-    for loop in range(0, 2):
-        print("Loop", loop + 1, "out of 2.")
+    for loop in range(0, loops):
+        print("Loop", loop + 1, f"out of {loops}.")
         blg.reset_index(inplace=True, drop=True)
         blg["mm_uid"] = range(len(blg))
         sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
@@ -390,7 +392,7 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
                     else:
                         delete.append(row.Index)
             if compactness:
-                if row.circu < 0.2:
+                if row.circu < compactness:
                     if row.n_count == 1:
                         uid = blg.iloc[row.neighbors[0]].mm_uid
                         if uid in join:
