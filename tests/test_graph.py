@@ -93,10 +93,10 @@ class TestGraph:
         check = 0.0016066095164175716
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
 
-        net = mm.local_closeness_centrality(self.network, radius=5)
+        net = mm.closeness_centrality(self.network, radius=5, weight=None)
         check = 0.27557319223985893
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
-        net2 = mm.local_closeness_centrality(self.network, weight="mm_len", radius=5)
+        net2 = mm.closeness_centrality(self.network, weight="mm_len", radius=5)
         check2 = 0.0015544070362478774
         assert net2.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check2
 
