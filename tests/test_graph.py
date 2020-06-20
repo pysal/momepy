@@ -85,17 +85,20 @@ class TestGraph:
         assert mm.gamma(self.network, radius=None) == 0.43209876543209874
 
     def test_local_closeness_centrality(self):
-        net = mm.local_closeness_centrality(self.network)
-        check = 0.27557319223985893
-        assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
-        net2 = mm.local_closeness_centrality(self.network, weight="mm_len")
-        check2 = 0.0015544070362478774
-        assert net2.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check2
+        with pytest.warns(FutureWarning):
+            mm.local_closeness_centrality(self.network)
 
     def test_closeness_centrality(self):
         net = mm.closeness_centrality(self.network, weight="mm_len")
         check = 0.0016066095164175716
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
+
+        net = mm.local_closeness_centrality(self.network, radius=5)
+        check = 0.27557319223985893
+        assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
+        net2 = mm.local_closeness_centrality(self.network, weight="mm_len", radius=5)
+        check2 = 0.0015544070362478774
+        assert net2.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check2
 
     def test_betweenness_centrality(self):
         net = mm.betweenness_centrality(self.network)
@@ -120,17 +123,20 @@ class TestGraph:
             == ang_b
         )
 
-    def test_local_betweenness_centrality(self):
-        net = mm.local_betweenness_centrality(self.network)
+        net = mm.betweenness_centrality(self.network, radius=5, weight=None)
         check = 53.74999999999999
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["betweenness"] == check
-        net2 = mm.local_betweenness_centrality(
-            self.network, weight="mm_len", normalized=True
+        net2 = mm.betweenness_centrality(
+            self.network, radius=5, weight="mm_len", normalized=True
         )
         check2 = 0.21333333333333335
         assert (
             net2.nodes[(1603650.450422848, 6464368.600601688)]["betweenness"] == check2
         )
+
+    def test_local_betweenness_centrality(self):
+        with pytest.warns(FutureWarning):
+            mm.local_betweenness_centrality(self.network)
 
     def test_straightness_centrality(self):
         net = mm.straightness_centrality(self.network)
@@ -150,12 +156,15 @@ class TestGraph:
             net3.nodes[(1603650.450422848, 6464368.600601688)]["straightness"] == check
         )
 
-    def test_local_straightness_centrality(self):
-        net = mm.local_straightness_centrality(self.network)
+        net = mm.straightness_centrality(self.network, radius=5, normalized=False)
         check = 0.8614261420539604
         assert (
             net.nodes[(1603650.450422848, 6464368.600601688)]["straightness"] == check
         )
+
+    def test_local_straightness_centrality(self):
+        with pytest.warns(FutureWarning):
+            mm.local_straightness_centrality(self.network)
 
     def test_mean_nodes(self):
         net = mm.straightness_centrality(self.network)
