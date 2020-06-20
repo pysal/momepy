@@ -252,30 +252,23 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
 
     """
     # generate nodes and edges geodataframes from graph
+    primal = None
     if "approach" in net.graph.keys():
         if net.graph["approach"] == "primal":
-            nid = 1
-            for n in net:
-                net.nodes[n][nodeID] = nid
-                nid += 1
-            return _primal_to_gdf(
-                net,
-                points=points,
-                lines=lines,
-                spatial_weights=spatial_weights,
-                nodeID=nodeID,
-            )
-        if net.graph["approach"] == "dual":
+            primal = True
+        elif net.graph["approach"] == "dual":
             return _dual_to_gdf(net)
-        raise ValueError(
-            "Approach {} is not supported. Use 'primal' or 'dual'.".format(
-                net.graph["approach"]
+        else:
+            raise ValueError(
+                "Approach {} is not supported. Use 'primal' or 'dual'.".format(
+                    net.graph["approach"]
+                )
             )
-        )
 
-    import warnings
+    if not primal:
+        import warnings
 
-    warnings.warn("Approach is not set. Defaulting to 'primal'.")
+        warnings.warn("Approach is not set. Defaulting to 'primal'.")
 
     nid = 1
     for n in net:
@@ -352,8 +345,8 @@ def preprocess(buildings, size=30, compactness=True, islands=True):
     blg = buildings.copy()
     blg = blg.explode()
     blg.reset_index(drop=True, inplace=True)
-    for l in range(0, 2):
-        print("Loop", l + 1, "out of 2.")
+    for loop in range(0, 2):
+        print("Loop", loop + 1, "out of 2.")
         blg.reset_index(inplace=True, drop=True)
         blg["mm_uid"] = range(len(blg))
         sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
