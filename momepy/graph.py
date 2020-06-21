@@ -1321,6 +1321,6 @@ def mean_nodes(G, attr):
     """
     Calculates mean value of nodes attr for each edge.
     """
-    for u, v, k in tqdm(G.edges(keys=True), total=G.number_of_edges()):
+    for u, v, k in G.edges(keys=True):
         mean = (G.nodes[u][attr] + G.nodes[v][attr]) / 2
         G[u][v][k][attr] = mean
