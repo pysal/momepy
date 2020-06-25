@@ -170,6 +170,8 @@ class TestShape:
         self.df_buildings["squ"] = mm.Squareness(self.df_buildings).series
         check = approx(3.707, rel=1e-3)
         assert self.df_buildings["squ"][0] == check
+        self.df_buildings["squ"] = mm.Squareness(self.df_buildings.exterior).series
+        assert self.df_buildings["squ"][0] is np.nan
 
     def test_EquivalentRectangularIndex(self):
         self.df_buildings["eri"] = mm.EquivalentRectangularIndex(
