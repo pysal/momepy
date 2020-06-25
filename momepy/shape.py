@@ -855,41 +855,45 @@ class Squareness:
 
         # fill new column with the value of area, iterating over rows one by one
         for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
-            angles = []
-            points = list(geom.exterior.coords)  # get points of a shape
-            stop = len(points) - 1  # define where to stop
-            for i in np.arange(
-                len(points)
-            ):  # for every point, calculate angle and add 1 if True angle
-                if i == 0:
-                    continue
-                elif i == stop:
-                    a = np.asarray(points[i - 1])
-                    b = np.asarray(points[i])
-                    c = np.asarray(points[1])
-                    ang = _angle(a, b, c)
-
-                    if ang <= 175:
-                        angles.append(ang)
-                    elif _angle(a, b, c) >= 185:
-                        angles.append(ang)
-                    else:
+            if geom.type == "Polygon":
+                angles = []
+                points = list(geom.exterior.coords)  # get points of a shape
+                stop = len(points) - 1  # define where to stop
+                for i in np.arange(
+                    len(points)
+                ):  # for every point, calculate angle and add 1 if True angle
+                    if i == 0:
                         continue
+                    elif i == stop:
+                        a = np.asarray(points[i - 1])
+                        b = np.asarray(points[i])
+                        c = np.asarray(points[1])
+                        ang = _angle(a, b, c)
 
-                else:
-                    a = np.asarray(points[i - 1])
-                    b = np.asarray(points[i])
-                    c = np.asarray(points[i + 1])
-                    ang = _angle(a, b, c)
+                        if ang <= 175:
+                            angles.append(ang)
+                        elif _angle(a, b, c) >= 185:
+                            angles.append(ang)
+                        else:
+                            continue
 
-                    if _angle(a, b, c) <= 175:
-                        angles.append(ang)
-                    elif _angle(a, b, c) >= 185:
-                        angles.append(ang)
                     else:
-                        continue
-            deviations = [abs(90 - i) for i in angles]
-            results_list.append(np.mean(deviations))
+                        a = np.asarray(points[i - 1])
+                        b = np.asarray(points[i])
+                        c = np.asarray(points[i + 1])
+                        ang = _angle(a, b, c)
+
+                        if _angle(a, b, c) <= 175:
+                            angles.append(ang)
+                        elif _angle(a, b, c) >= 185:
+                            angles.append(ang)
+                        else:
+                            continue
+                deviations = [abs(90 - i) for i in angles]
+                results_list.append(np.mean(deviations))
+
+            else:
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
