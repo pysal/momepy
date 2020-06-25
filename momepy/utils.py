@@ -535,11 +535,11 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
                 )
             )
 
-    geoms.crs = streets.crs
     streets = geoms.explode().reset_index(drop=True)
     if series:
+        streets.crs = gdf.crs
         return streets
-    geoms_gdf = gpd.GeoDataFrame(geometry=streets, crs=streets.crs)
+    geoms_gdf = gpd.GeoDataFrame(geometry=streets, crs=gdf.crs)
     return geoms_gdf
 
 

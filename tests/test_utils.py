@@ -4,8 +4,9 @@ import momepy as mm
 import networkx
 import numpy as np
 import pytest
+import osmnx as ox
 
-from shapely.geometry import Polygon, MultiPoint, Point, LineString
+from shapely.geometry import Polygon, MultiPoint, LineString
 from shapely import affinity
 
 
@@ -92,8 +93,6 @@ class TestUtils:
         assert len(edges) == 35
 
         # osmnx compatibility
-        import osmnx as ox
-
         G = ox.graph_from_place("Preborov, Czechia", network_type="drive")
         pts, lines = mm.nx_to_gdf(G)
         assert len(pts) == 7
@@ -125,9 +124,11 @@ class TestUtils:
         fixed = mm.network_false_nodes(self.false_network)
         assert len(fixed) == 55
         assert isinstance(fixed, gpd.GeoDataFrame)
+        assert self.false_network.crs.equals(fixed.crs)
         fixed_series = mm.network_false_nodes(self.false_network.geometry)
         assert len(fixed_series) == 55
         assert isinstance(fixed_series, gpd.GeoSeries)
+        assert self.false_network.crs.equals(fixed_series.crs)
         with pytest.raises(TypeError):
             mm.network_false_nodes(list())
         multiindex = self.false_network.explode()
