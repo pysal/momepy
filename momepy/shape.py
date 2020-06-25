@@ -855,7 +855,7 @@ class Squareness:
 
         # fill new column with the value of area, iterating over rows one by one
         for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
-            if geom.type == 'Polygon':
+            if geom.type == "Polygon":
                 angles = []
                 points = list(geom.exterior.coords)  # get points of a shape
                 stop = len(points) - 1  # define where to stop
