@@ -124,6 +124,9 @@ diversity
    Theil
    Unique
 
+   shannon_diversity
+   simpson_diversity
+
 spatial weights
 ---------------
 .. autosummary::
