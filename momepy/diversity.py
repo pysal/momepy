@@ -9,7 +9,16 @@ import pandas as pd
 import scipy as sp
 from tqdm import tqdm  # progress bar
 
-__all__ = ["Range", "Theil", "Simpson", "Gini", "Shannon", "Unique"]
+__all__ = [
+    "Range",
+    "Theil",
+    "Simpson",
+    "Gini",
+    "Shannon",
+    "Unique",
+    "simpson_diversity",
+    "shannon_diversity",
+]
 
 
 class Range:
@@ -198,22 +207,18 @@ class Simpson:
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
         the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
         based on objects.
-    order : int
-        order of Queen contiguity
-    binning : str
-        One of mapclassify classification schemes
-        Options are ``BoxPlot``, ``EqualInterval``, ``FisherJenks``,
-        ``FisherJenksSampled``, ``HeadTailBreaks``, ``JenksCaspall``,
-        ``JenksCaspallForced``, ``JenksCaspallSampled``, ``MaxPClassifier``,
-        ``MaximumBreaks``, ``NaturalBreaks``, ``Quantiles``, ``Percentiles``, ``StdMean``,
-        ``UserDefined``
+    unique_id : str
+        name of the column with unique id used as ``spatial_weights`` index
+    binning : str (default 'HeadTailBreaks')
+        One of mapclassify classification schemes. For details see
+        `mapclassify API documentation <http://pysal.org/mapclassify/api.html>`_.
     gini_simpson : bool (default False)
         return Gini-Simpson index instead of Simpson index (``1 - λ``)
     inverse : bool (default False)
@@ -250,6 +255,10 @@ class Simpson:
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
     >>> tessellation_df['area_Simpson'] = mm.Simpson(tessellation_df, 'area', sw, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
+
+    See also
+    --------
+    momepy.simpson_diversity : Calculates the Simpson\'s diversity index of data
     """
 
     def __init__(
@@ -298,13 +307,15 @@ class Simpson:
                 values = "mm_v"
         self.values = data[values]
 
-        if not categorical:
-            self.bins = schemes[binning](data[values], **classification_kwds).bins
-
         data = data.set_index(unique_id)[values]
 
         if not categories:
             categories = data.unique()
+
+        if not categorical:
+            self.bins = schemes[binning](data, **classification_kwds).bins
+        else:
+            self.bins = categories
 
         results_list = []
         for index in tqdm(data.index, total=data.shape[0]):
@@ -316,16 +327,14 @@ class Simpson:
                     neighbours = [index]
                 values_list = data.loc[neighbours]
 
-                if categorical:
-                    counts = values_list.value_counts().to_dict()
-                    for c in categories:
-                        if c not in counts.keys():
-                            counts[c] = 0
-                else:
-                    sample_bins = classifiers.UserDefined(values_list, self.bins)
-                    counts = dict(zip(self.bins, sample_bins.counts))
-
-                results_list.append(self._simpson_di(counts))
+                results_list.append(
+                    simpson_diversity(
+                        values_list,
+                        self.bins,
+                        categorical=categorical,
+                        categories=categories,
+                    )
+                )
             else:
                 results_list.append(np.nan)
 
@@ -336,25 +345,62 @@ class Simpson:
         else:
             self.series = pd.Series(results_list, index=gdf.index)
 
-    def _simpson_di(self, data):
 
-        """ Given a hash { 'species': count } , returns the Simpson Diversity Index
+def simpson_diversity(data, bins=None, categorical=False, categories=None):
+    """
+    Calculates the Simpson\'s diversity index of data. Helper function for
+    :py:class:`momepy.Simpson`.
 
-        >>> _simpson_di({'a': 10, 'b': 20, 'c': 30,})
-        0.3888888888888889
+    .. math::
 
-        https://gist.github.com/martinjc/f227b447791df8c90568
-        """
+        \\lambda=\\sum_{i=1}^{R} p_{i}^{2}
 
-        def p(n, N):
-            """ Relative abundance """
-            if n == 0:
-                return 0
-            return float(n) / N
+    Formula adapted from https://gist.github.com/martinjc/f227b447791df8c90568.
+    
+    Parameters
+    ----------
+    data : GeoDataFrame
+        GeoDataFrame containing morphological tessellation
+    bins : array, optional
+        array of top edges of classification bins. Result of binnng.bins.
+    categorical : bool (default False)
+        treat values as categories (will not use ``bins``)
+    categories : list-like (default None)
+        list of categories
 
-        N = sum(data.values())
+    Returns
+    -------
+    float
+        Simpson's diversity index
+    
+    See also
+    --------
+    momepy.Simpson : Calculates the Simpson\'s diversity index of values within neighbours
+    """
+    if not categorical:
+        try:
+            import mapclassify as mc
+        except ImportError:
+            raise ImportError("The 'mapclassify' package is required")
 
-        return sum(p(n, N) ** 2 for n in data.values() if n != 0)
+    def p(n, N):
+        """ Relative abundance """
+        if n == 0:
+            return 0
+        return float(n) / N
+
+    if categorical:
+        counts = data.value_counts().to_dict()
+        for c in categories:
+            if c not in counts.keys():
+                counts[c] = 0
+    else:
+        sample_bins = mc.UserDefined(data, bins)
+        counts = dict(zip(bins, sample_bins.counts))
+
+    N = sum(counts.values())
+
+    return sum(p(n, N) ** 2 for n in counts.values() if n != 0)
 
 
 class Gini:
@@ -462,22 +508,18 @@ class Shannon:
 
     Parameters
     ----------
-    objects : GeoDataFrame
+    gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
         the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
         based on objects.
-    order : int
-        order of Queen contiguity
+    unique_id : str
+        name of the column with unique id used as ``spatial_weights`` index
     binning : str
-        One of mapclassify classification schemes
-        Options are ``BoxPlot``, ``EqualInterval``, ``FisherJenks``,
-        ``FisherJenksSampled``, ``HeadTailBreaks``, ``JenksCaspall``,
-        ``JenksCaspallForced``, ``JenksCaspallSampled``, ``MaxPClassifier``,
-        ``MaximumBreaks``, ``NaturalBreaks``, ``Quantiles``, ``Percentiles``, ``StdMean``,
-        ``UserDefined``
+        One of mapclassify classification schemes. For details see
+        `mapclassify API documentation <http://pysal.org/mapclassify/api.html>`_.
     categorical : bool (default False)
         treat values as categories (will not use binning)
     categories : list-like (default None)
@@ -554,13 +596,15 @@ class Shannon:
                 values = "mm_v"
         self.values = data[values]
 
-        if not categorical:
-            self.bins = schemes[binning](data[values], **classification_kwds).bins
-
         data = data.set_index(unique_id)[values]
 
         if not categories:
             categories = data.unique()
+
+        if not categorical:
+            self.bins = schemes[binning](data, **classification_kwds).bins
+        else:
+            self.bins = categories
 
         results_list = []
         for index in tqdm(data.index, total=data.shape[0]):
@@ -572,41 +616,79 @@ class Shannon:
                     neighbours = [index]
                 values_list = data.loc[neighbours]
 
-                if categorical:
-                    counts = values_list.value_counts().to_dict()
-                    for c in categories:
-                        if c not in counts.keys():
-                            counts[c] = 0
-                else:
-                    sample_bins = classifiers.UserDefined(values_list, self.bins)
-                    counts = dict(zip(self.bins, sample_bins.counts))
-
-                results_list.append(self._shannon(counts))
+                results_list.append(
+                    shannon_diversity(
+                        values_list,
+                        self.bins,
+                        categorical=categorical,
+                        categories=categories,
+                    )
+                )
             else:
                 results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
-    def _shannon(self, data):
-        """ Given a hash { 'species': count } , returns the SDI
 
-        >>> _shannon({'a': 10, 'b': 20, 'c': 30,})
-        1.0114042647073518
+def shannon_diversity(data, bins=None, categorical=False, categories=None):
+    """
+    Calculates the Shannon\'s diversity index of data. Helper function for
+    :py:class:`momepy.Shannon`.
 
-        https://gist.github.com/audy/783125
-        """
+    .. math::
 
-        from math import log as ln
+        \\lambda=\\sum_{i=1}^{R} p_{i}^{2}
 
-        def p(n, N):
-            """ Relative abundance """
-            if n == 0:
-                return 0
-            return (float(n) / N) * ln(float(n) / N)
+    Formula adapted from https://gist.github.com/audy/783125
+    
+    Parameters
+    ----------
+    data : GeoDataFrame
+        GeoDataFrame containing morphological tessellation
+    bins : array, optional
+        array of top edges of classification bins. Result of binnng.bins.
+    categorical : bool (default False)
+        treat values as categories (will not use ``bins``)
+    categories : list-like (default None)
+        list of categories
 
-        N = sum(data.values())
+    Returns
+    -------
+    float
+        Shannon's diversity index
+    
+    See also
+    --------
+    momepy.Shannon : Calculates the Shannon's diversity index of values within neighbours
+    momepy.Simpson : Calculates the Simpson's diversity index of values within neighbours
+    momepy.simpson_diversity : Calculates the Simpson's diversity index of data
+    """
+    from math import log as ln
 
-        return -sum(p(n, N) for n in data.values() if n != 0)
+    if not categorical:
+        try:
+            import mapclassify as mc
+        except ImportError:
+            raise ImportError("The 'mapclassify' package is required")
+
+    def p(n, N):
+        """ Relative abundance """
+        if n == 0:
+            return 0
+        return (float(n) / N) * ln(float(n) / N)
+
+    if categorical:
+        counts = data.value_counts().to_dict()
+        for c in categories:
+            if c not in counts.keys():
+                counts[c] = 0
+    else:
+        sample_bins = mc.UserDefined(data, bins)
+        counts = dict(zip(bins, sample_bins.counts))
+
+    N = sum(counts.values())
+
+    return -sum(p(n, N) for n in counts.values() if n != 0)
 
 
 class Unique:
