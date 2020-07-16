@@ -46,7 +46,7 @@ class TimeDistribution:
         mm.NeighborDistance(self.df_buildings, self.sw, "uID")
 
     def time_MeanInterbuildingDistance(self):
-        mm.MeanInterbuildingDistance(self.df_buildings, self.sw, "uID", self.swh).series
+        mm.MeanInterbuildingDistance(self.df_buildings, self.sw, "uID", self.swh)
 
     def time_NeighboringStreetOrientationDeviation(self):
         mm.NeighboringStreetOrientationDeviation(self.df_streets)
