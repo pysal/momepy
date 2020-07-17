@@ -11,7 +11,6 @@ import pandas as pd
 import scipy as sp
 from shapely.geometry import LineString, Point, Polygon
 from tqdm import tqdm
-import pygeos
 
 from .shape import _make_circle
 
@@ -579,8 +578,8 @@ class StreetProfile:
                     )
                     angle = self._getAngle(line_end_1, list_points[num])
                     line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
-                    tick1 = LineString([line_end_1, list_points[num],])
-                    tick2 = LineString([line_end_2, list_points[num],])
+                    tick1 = LineString([line_end_1, list_points[num]])
+                    tick2 = LineString([line_end_2, list_points[num]])
                     ticks.append([tick1, tick2])
 
                 # end chainage
@@ -598,15 +597,16 @@ class StreetProfile:
             rights = []
             for duo in ticks:
                 for ix, tick in enumerate(duo):
-                    true_int = right.iloc[sindex.query(tick, predicate="intersects")]
-                    if not true_int.empty:
+                    int_blg = right.iloc[sindex.query(tick, predicate="intersects")]
+                    if not int_blg.empty:
+                        true_int = int_blg.intersection(tick)
                         dist = true_int.distance(Point(tick.coords[-1]))
                         if ix == 0:
                             lefts.append(dist.min())
                         else:
                             rights.append(dist.min())
                         if heights is not None:
-                            m_heights.append(true_int.loc[dist.idxmin()][heights])
+                            m_heights.append(int_blg.loc[dist.idxmin()][heights])
 
             openness = (len(lefts) + len(rights)) / len(ticks * 2)
             openness_list.append(1 - openness)
