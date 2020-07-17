@@ -5,20 +5,18 @@
 # definitions of dimension characters
 
 import math
+from distutils.version import LooseVersion
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
-import geopandas as gpd
 import scipy as sp
 from shapely.geometry import LineString, Point, Polygon
 from tqdm import tqdm
 
 from .shape import _make_circle
 
-from distutils.version import LooseVersion
-
 GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
-
 
 __all__ = [
     "Area",
