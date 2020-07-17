@@ -570,9 +570,6 @@ class MeanInterbuildingDistance:
     --------
     >>> buildings_df['mean_interbuilding_distance'] = momepy.MeanInterbuildingDistance(buildings_df, sw, 'uID').series
     Generating weights matrix (Queen) of 3 topological steps...
-    Generating adjacency matrix based on weights matrix...
-    Computing interbuilding distances...
-    100%|██████████| 746/746 [00:03<00:00, 200.14it/s]
     Computing mean interbuilding distances...
     100%|██████████| 144/144 [00:00<00:00, 317.42it/s]
     >>> buildings_df['mean_interbuilding_distance'][0]
@@ -604,26 +601,13 @@ class MeanInterbuildingDistance:
         # define empty list for results
         results_list = []
 
-        print("Generating adjacency matrix based on weights matrix...")
         # define adjacency list from lipysal
         adj_list = spatial_weights.to_adjlist()
-        adj_list["distance"] = -1
-
-        print("Computing interbuilding distances...")
-        # measure each interbuilding distance of neighbours and save them to adjacency list
-        for row in tqdm(adj_list.itertuples(), total=adj_list.shape[0]):
-            inverted = adj_list[(adj_list.focal == row.neighbor)][
-                (adj_list.neighbor == row.focal)
-            ].iloc[0]["distance"]
-            if inverted == -1:
-                building_object = data.loc[row.focal]
-
-                building_neighbour = data.loc[row.neighbor]
-                adj_list.loc[row.Index, "distance"] = building_neighbour.distance(
-                    building_object
-                )
-            else:
-                adj_list.at[row.Index, "distance"] = inverted
+        adj_list["distance"] = (
+            data.loc[adj_list.focal]
+            .reset_index()
+            .distance(data.loc[adj_list.neighbor].reset_index())
+        )
 
         print("Computing mean interbuilding distances...")
         # iterate over objects to get the final values
