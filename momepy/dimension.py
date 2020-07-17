@@ -546,15 +546,17 @@ class StreetProfile:
             # get the total length of the line
             line_length = shapely_line.length
             # append the starting coordinate to the list
-            list_points.append(Point(list(shapely_line.coords)[0]))
+            list_points.append(list(shapely_line.coords)[0])
             # https://nathanw.net/2012/08/05/generating-chainage-distance-nodes-in-qgis/
             # while the current cumulative distance is less than the total length of the line
             while current_dist < line_length:
                 # use interpolate and increase the current distance
-                list_points.append(shapely_line.interpolate(current_dist))
+                list_points.append(
+                    list(shapely_line.interpolate(current_dist).coords)[0]
+                )
                 current_dist += distance
             # append end coordinate to the list
-            list_points.append(Point(list(shapely_line.coords)[-1]))
+            list_points.append(list(shapely_line.coords)[-1])
 
             ticks = []
             for num, pt in enumerate(list_points, 1):
@@ -564,8 +566,8 @@ class StreetProfile:
                     line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
                     angle = self._getAngle(line_end_1, pt)
                     line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
-                    tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
-                    tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
+                    tick1 = LineString([line_end_1, pt])
+                    tick2 = LineString([line_end_2, pt])
                     ticks.append([tick1, tick2])
 
                 # everything in between
@@ -576,18 +578,8 @@ class StreetProfile:
                     )
                     angle = self._getAngle(line_end_1, list_points[num])
                     line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
-                    tick1 = LineString(
-                        [
-                            (line_end_1.x, line_end_1.y),
-                            (list_points[num].x, list_points[num].y),
-                        ]
-                    )
-                    tick2 = LineString(
-                        [
-                            (line_end_2.x, line_end_2.y),
-                            (list_points[num].x, list_points[num].y),
-                        ]
-                    )
+                    tick1 = LineString([line_end_1, list_points[num],])
+                    tick2 = LineString([line_end_2, list_points[num],])
                     ticks.append([tick1, tick2])
 
                 # end chainage
@@ -596,8 +588,8 @@ class StreetProfile:
                     line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
                     angle = self._getAngle(line_end_1, pt)
                     line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
-                    tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
-                    tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
+                    tick1 = LineString([line_end_1, pt])
+                    tick2 = LineString([line_end_2, pt])
                     ticks.append([tick1, tick2])
             # widths = []
             m_heights = []
@@ -688,25 +680,34 @@ class StreetProfile:
     # https://glenbambrick.com/tag/perpendicular/
     # angle between two points
     def _getAngle(self, pt1, pt2):
-        x_diff = pt2.x - pt1.x
-        y_diff = pt2.y - pt1.y
+        """
+        pt1, pt2 : tuple
+        """
+        x_diff = pt2[0] - pt1[0]
+        y_diff = pt2[1] - pt1[1]
         return math.degrees(math.atan2(y_diff, x_diff))
 
     # start and end points of chainage tick
     # get the first end point of a tick
     def _getPoint1(self, pt, bearing, dist):
+        """
+        pt : tuple
+        """
         angle = bearing + 90
         bearing = math.radians(angle)
-        x = pt.x + dist * math.cos(bearing)
-        y = pt.y + dist * math.sin(bearing)
-        return Point(x, y)
+        x = pt[0] + dist * math.cos(bearing)
+        y = pt[1] + dist * math.sin(bearing)
+        return (x, y)
 
     # get the second end point of a tick
     def _getPoint2(self, pt, bearing, dist):
+        """
+        pt : tuple
+        """
         bearing = math.radians(bearing)
-        x = pt.x + dist * math.cos(bearing)
-        y = pt.y + dist * math.sin(bearing)
-        return Point(x, y)
+        x = pt[0] + dist * math.cos(bearing)
+        y = pt[1] + dist * math.sin(bearing)
+        return (x, y)
 
 
 class WeightedCharacter:
