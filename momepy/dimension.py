@@ -8,11 +8,17 @@ import math
 
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import scipy as sp
 from shapely.geometry import LineString, Point, Polygon
 from tqdm import tqdm
 
 from .shape import _make_circle
+
+from distutils.version import LooseVersion
+
+GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
+
 
 __all__ = [
     "Area",
@@ -597,7 +603,17 @@ class StreetProfile:
             rights = []
             for duo in ticks:
                 for ix, tick in enumerate(duo):
-                    int_blg = right.iloc[sindex.query(tick, predicate="intersects")]
+                    if GPD_08:
+                        int_blg = right.iloc[sindex.query(tick, predicate="intersects")]
+                    else:
+                        possible_intersections_index = list(
+                            sindex.intersection(tick.bounds)
+                        )
+                        possible_intersections = right.iloc[
+                            possible_intersections_index
+                        ]
+                        real_intersections = possible_intersections.intersects(tick)
+                        int_blg = possible_intersections[real_intersections]
                     if not int_blg.empty:
                         true_int = int_blg.intersection(tick)
                         dist = true_int.distance(Point(tick.coords[-1]))
