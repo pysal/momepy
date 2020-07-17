@@ -538,13 +538,11 @@ class StreetProfile:
         heights_deviations_list = []
         openness_list = []
 
-        for idx, row in tqdm(left.iterrows(), total=left.shape[0]):
+        for shapely_line in tqdm(left.geometry, total=left.shape[0]):
             # list to hold all the point coords
             list_points = []
             # set the current distance to place the point
             current_dist = distance
-            # make shapely MultiLineString object
-            shapely_line = row.geometry
             # get the total length of the line
             line_length = shapely_line.length
             # append the starting coordinate to the list
@@ -648,8 +646,8 @@ class StreetProfile:
                                 )
                         if heights is not None:
                             indices = {}
-                            for idx, row in get_height.iterrows():
-                                dist = row.geometry.distance(Point(tick.coords[-1]))
+                            for idx, geom in get_height.geometry.iteritems():
+                                dist = geom.distance(Point(tick.coords[-1]))
                                 indices[idx] = dist
                             minim = min(indices, key=indices.get)
                             m_heights.append(right.loc[minim][heights])
