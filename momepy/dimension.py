@@ -11,6 +11,7 @@ import pandas as pd
 import scipy as sp
 from shapely.geometry import LineString, Point, Polygon
 from tqdm import tqdm
+import pygeos
 
 from .shape import _make_circle
 
@@ -596,53 +597,16 @@ class StreetProfile:
             lefts = []
             rights = []
             for duo in ticks:
-
                 for ix, tick in enumerate(duo):
-                    possible_intersections_index = list(
-                        sindex.intersection(tick.bounds)
-                    )
-                    possible_intersections = right.iloc[possible_intersections_index]
-                    real_intersections = possible_intersections.intersects(tick)
-                    get_height = right.loc[list(real_intersections.index)]
-                    possible_int = get_height.exterior.intersection(tick)
-
-                    if not possible_int.is_empty.all():
-                        true_int = []
-                        for one in list(possible_int.index):
-                            if possible_int[one].type == "Point":
-                                true_int.append(possible_int[one])
-                            elif possible_int[one].type == "MultiPoint":
-                                for p in possible_int[one]:
-                                    true_int.append(p)
-
-                        if len(true_int) > 1:
-                            distances = []
-                            ix = 0
-                            for p in true_int:
-                                dist = p.distance(Point(tick.coords[-1]))
-                                distances.append(dist)
-                                ix = ix + 1
-                            minimal = min(distances)
-                            if ix == 0:
-                                lefts.append(minimal)
-                            else:
-                                rights.append(minimal)
+                    true_int = right.iloc[sindex.query(tick, predicate="intersects")]
+                    if not true_int.empty:
+                        dist = true_int.distance(Point(tick.coords[-1]))
+                        if ix == 0:
+                            lefts.append(dist.min())
                         else:
-                            if ix == 0:
-                                lefts.append(
-                                    true_int[0].distance(Point(tick.coords[-1]))
-                                )
-                            else:
-                                rights.append(
-                                    true_int[0].distance(Point(tick.coords[-1]))
-                                )
+                            rights.append(dist.min())
                         if heights is not None:
-                            indices = {}
-                            for idx, geom in get_height.geometry.iteritems():
-                                dist = geom.distance(Point(tick.coords[-1]))
-                                indices[idx] = dist
-                            minim = min(indices, key=indices.get)
-                            m_heights.append(right.loc[minim][heights])
+                            m_heights.append(true_int.loc[dist.idxmin()][heights])
 
             openness = (len(lefts) + len(rights)) / len(ticks * 2)
             openness_list.append(1 - openness)
