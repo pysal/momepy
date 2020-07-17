@@ -4,7 +4,6 @@
 import libpysal
 import numpy as np
 
-
 __all__ = ["DistanceBand", "sw_high"]
 
 

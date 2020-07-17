@@ -5,7 +5,9 @@
 # definitions of dimension characters
 
 import math
+from distutils.version import LooseVersion
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import scipy as sp
@@ -13,6 +15,8 @@ from shapely.geometry import LineString, Point, Polygon
 from tqdm import tqdm
 
 from .shape import _make_circle
+
+GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 __all__ = [
     "Area",
@@ -538,25 +542,25 @@ class StreetProfile:
         heights_deviations_list = []
         openness_list = []
 
-        for idx, row in tqdm(left.iterrows(), total=left.shape[0]):
+        for shapely_line in tqdm(left.geometry, total=left.shape[0]):
             # list to hold all the point coords
             list_points = []
             # set the current distance to place the point
             current_dist = distance
-            # make shapely MultiLineString object
-            shapely_line = row.geometry
             # get the total length of the line
             line_length = shapely_line.length
             # append the starting coordinate to the list
-            list_points.append(Point(list(shapely_line.coords)[0]))
+            list_points.append(list(shapely_line.coords)[0])
             # https://nathanw.net/2012/08/05/generating-chainage-distance-nodes-in-qgis/
             # while the current cumulative distance is less than the total length of the line
             while current_dist < line_length:
                 # use interpolate and increase the current distance
-                list_points.append(shapely_line.interpolate(current_dist))
+                list_points.append(
+                    list(shapely_line.interpolate(current_dist).coords)[0]
+                )
                 current_dist += distance
             # append end coordinate to the list
-            list_points.append(Point(list(shapely_line.coords)[-1]))
+            list_points.append(list(shapely_line.coords)[-1])
 
             ticks = []
             for num, pt in enumerate(list_points, 1):
@@ -566,8 +570,8 @@ class StreetProfile:
                     line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
                     angle = self._getAngle(line_end_1, pt)
                     line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
-                    tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
-                    tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
+                    tick1 = LineString([line_end_1, pt])
+                    tick2 = LineString([line_end_2, pt])
                     ticks.append([tick1, tick2])
 
                 # everything in between
@@ -578,18 +582,8 @@ class StreetProfile:
                     )
                     angle = self._getAngle(line_end_1, list_points[num])
                     line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
-                    tick1 = LineString(
-                        [
-                            (line_end_1.x, line_end_1.y),
-                            (list_points[num].x, list_points[num].y),
-                        ]
-                    )
-                    tick2 = LineString(
-                        [
-                            (line_end_2.x, line_end_2.y),
-                            (list_points[num].x, list_points[num].y),
-                        ]
-                    )
+                    tick1 = LineString([line_end_1, list_points[num]])
+                    tick2 = LineString([line_end_2, list_points[num]])
                     ticks.append([tick1, tick2])
 
                 # end chainage
@@ -598,61 +592,35 @@ class StreetProfile:
                     line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
                     angle = self._getAngle(line_end_1, pt)
                     line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
-                    tick1 = LineString([(line_end_1.x, line_end_1.y), (pt.x, pt.y)])
-                    tick2 = LineString([(line_end_2.x, line_end_2.y), (pt.x, pt.y)])
+                    tick1 = LineString([line_end_1, pt])
+                    tick2 = LineString([line_end_2, pt])
                     ticks.append([tick1, tick2])
             # widths = []
             m_heights = []
             lefts = []
             rights = []
             for duo in ticks:
-
                 for ix, tick in enumerate(duo):
-                    possible_intersections_index = list(
-                        sindex.intersection(tick.bounds)
-                    )
-                    possible_intersections = right.iloc[possible_intersections_index]
-                    real_intersections = possible_intersections.intersects(tick)
-                    get_height = right.loc[list(real_intersections.index)]
-                    possible_int = get_height.exterior.intersection(tick)
-
-                    if not possible_int.is_empty.all():
-                        true_int = []
-                        for one in list(possible_int.index):
-                            if possible_int[one].type == "Point":
-                                true_int.append(possible_int[one])
-                            elif possible_int[one].type == "MultiPoint":
-                                for p in possible_int[one]:
-                                    true_int.append(p)
-
-                        if len(true_int) > 1:
-                            distances = []
-                            ix = 0
-                            for p in true_int:
-                                dist = p.distance(Point(tick.coords[-1]))
-                                distances.append(dist)
-                                ix = ix + 1
-                            minimal = min(distances)
-                            if ix == 0:
-                                lefts.append(minimal)
-                            else:
-                                rights.append(minimal)
+                    if GPD_08:
+                        int_blg = right.iloc[sindex.query(tick, predicate="intersects")]
+                    else:
+                        possible_intersections_index = list(
+                            sindex.intersection(tick.bounds)
+                        )
+                        possible_intersections = right.iloc[
+                            possible_intersections_index
+                        ]
+                        real_intersections = possible_intersections.intersects(tick)
+                        int_blg = possible_intersections[real_intersections]
+                    if not int_blg.empty:
+                        true_int = int_blg.intersection(tick)
+                        dist = true_int.distance(Point(tick.coords[-1]))
+                        if ix == 0:
+                            lefts.append(dist.min())
                         else:
-                            if ix == 0:
-                                lefts.append(
-                                    true_int[0].distance(Point(tick.coords[-1]))
-                                )
-                            else:
-                                rights.append(
-                                    true_int[0].distance(Point(tick.coords[-1]))
-                                )
+                            rights.append(dist.min())
                         if heights is not None:
-                            indices = {}
-                            for idx, row in get_height.iterrows():
-                                dist = row.geometry.distance(Point(tick.coords[-1]))
-                                indices[idx] = dist
-                            minim = min(indices, key=indices.get)
-                            m_heights.append(right.loc[minim][heights])
+                            m_heights.append(int_blg.loc[dist.idxmin()][heights])
 
             openness = (len(lefts) + len(rights)) / len(ticks * 2)
             openness_list.append(1 - openness)
@@ -690,25 +658,34 @@ class StreetProfile:
     # https://glenbambrick.com/tag/perpendicular/
     # angle between two points
     def _getAngle(self, pt1, pt2):
-        x_diff = pt2.x - pt1.x
-        y_diff = pt2.y - pt1.y
+        """
+        pt1, pt2 : tuple
+        """
+        x_diff = pt2[0] - pt1[0]
+        y_diff = pt2[1] - pt1[1]
         return math.degrees(math.atan2(y_diff, x_diff))
 
     # start and end points of chainage tick
     # get the first end point of a tick
     def _getPoint1(self, pt, bearing, dist):
+        """
+        pt : tuple
+        """
         angle = bearing + 90
         bearing = math.radians(angle)
-        x = pt.x + dist * math.cos(bearing)
-        y = pt.y + dist * math.sin(bearing)
-        return Point(x, y)
+        x = pt[0] + dist * math.cos(bearing)
+        y = pt[1] + dist * math.sin(bearing)
+        return (x, y)
 
     # get the second end point of a tick
     def _getPoint2(self, pt, bearing, dist):
+        """
+        pt : tuple
+        """
         bearing = math.radians(bearing)
-        x = pt.x + dist * math.cos(bearing)
-        y = pt.y + dist * math.sin(bearing)
-        return Point(x, y)
+        x = pt[0] + dist * math.cos(bearing)
+        y = pt[1] + dist * math.sin(bearing)
+        return (x, y)
 
 
 class WeightedCharacter:

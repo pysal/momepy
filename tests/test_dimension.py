@@ -205,10 +205,10 @@ class TestDimensions:
         )
         assert results2.w[0] == 67.563796073073
         assert results2.wd[0] == 8.791875291865827
-        assert results2.h[0] == 23.756643356643362
-        assert results2.p[0] == 0.3516179483306353
+        assert results2.h[0] == 23.74545454545455
+        assert results2.p[0] == 0.3514523446813568
         assert results2.o[0] == 0.5535714285714286
-        assert results2.hd[0] == 5.526848034418866
+        assert results2.hd[0] == 5.5188633970914065
 
         results3 = mm.StreetProfile(self.df_streets, self.df_buildings)
         assert results3.w[0] == 46.7290758769204

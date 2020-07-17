@@ -13,7 +13,6 @@ from tqdm import tqdm  # progress bar
 
 from .utils import _azimuth
 
-
 __all__ = [
     "Orientation",
     "SharedWallsRatio",
