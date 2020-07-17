@@ -570,9 +570,6 @@ class MeanInterbuildingDistance:
     --------
     >>> buildings_df['mean_interbuilding_distance'] = momepy.MeanInterbuildingDistance(buildings_df, sw, 'uID').series
     Generating weights matrix (Queen) of 3 topological steps...
-    Generating adjacency matrix based on weights matrix...
-    Computing interbuilding distances...
-    100%|██████████| 746/746 [00:03<00:00, 200.14it/s]
     Computing mean interbuilding distances...
     100%|██████████| 144/144 [00:00<00:00, 317.42it/s]
     >>> buildings_df['mean_interbuilding_distance'][0]
@@ -604,7 +601,6 @@ class MeanInterbuildingDistance:
         # define empty list for results
         results_list = []
 
-        print("Generating adjacency matrix based on weights matrix...")
         # define adjacency list from lipysal
         adj_list = spatial_weights.to_adjlist()
         adj_list["distance"] = (
