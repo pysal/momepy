@@ -539,7 +539,8 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
     if series:
         streets.crs = gdf.crs
         return streets
-    geoms_gdf = gpd.GeoDataFrame(geometry=streets, crs=gdf.crs)
+    geoms_gdf = gpd.GeoDataFrame(geometry=streets)
+    geoms_gdf.crs = gdf.crs
     return geoms_gdf
 
 
