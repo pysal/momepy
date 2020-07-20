@@ -719,11 +719,6 @@ def get_network_id(left, right, network_id, min_size=100):
     1
     """
     INFTY = 1000000000000
-    MIN_SIZE = min_size
-    # MIN_SIZE should be a vaule such that if you build a box centered in each
-    # point with edges of size 2*MIN_SIZE, you know a priori that at least one
-    # segment is intersected with the box. Otherwise, you could get an inexact
-    # solution, there is an exception checking this, though.
     left = left.copy()
     right = right.copy()
 
@@ -740,20 +735,16 @@ def get_network_id(left, right, network_id, min_size=100):
     idx = right.sindex
 
     result = []
-    for p in tqdm(buildings_c.geometry, total=buildings_c.shape[0], desc="Snapping"):
-        pbox = (p.x - MIN_SIZE, p.y - MIN_SIZE, p.x + MIN_SIZE, p.y + MIN_SIZE)
+    bounds = buildings_c.bounds
+    bounds[["minx", "miny"]] = bounds[["minx", "miny"]] - min_size
+    bounds[["maxx", "maxy"]] = bounds[["maxx", "maxy"]] + min_size
+    for p, pbox in zip(buildings_c.geometry, bounds.values):
         hits = list(idx.intersection(pbox))
-        d = INFTY
-        nid = None
-        for h in hits:
-            new_d = p.distance(right.geometry.iloc[h])
-            if d >= new_d:
-                d = new_d
-                nid = right[network_id].iloc[h]
-        if nid is None:
+        dist = right.iloc[hits].distance(p)
+        if dist.empty:
             result.append(np.nan)
         else:
-            result.append(nid)
+            result.append(right[network_id].loc[dist.idxmin()])
 
     series = pd.Series(result)
 
