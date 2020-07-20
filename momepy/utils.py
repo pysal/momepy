@@ -453,7 +453,7 @@ def preprocess(buildings, size=30, compactness=0.2, islands=True, loops=2):
 def network_false_nodes(gdf, tolerance=0.1, precision=3):
     """
     Check topology of street network and eliminate nodes of degree 2 by joining
-    affected edges. Attributes are not preserved.
+    affected edges.
 
     Parameters
     ----------
