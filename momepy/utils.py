@@ -552,15 +552,13 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
 
             warnings.warn(
                 "An exception during merging occured. "
-                "Lines at point [{x}, {y}] were not merged.".format(x=x, y=y)
+                f"Lines at point [{x}, {y}] were not merged."
             )
 
     streets = geoms.explode().reset_index(drop=True)
     if series:
         streets.crs = gdf.crs
         return streets
-    # geoms_gdf = gpd.GeoDataFrame(geometry=streets)
-    # geoms_gdf.crs = gdf.crs
     return streets
 
 
