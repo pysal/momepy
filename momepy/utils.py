@@ -517,7 +517,10 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
 
     false_unique = list(set(false_xy))
     x, y = zip(*false_unique)
-    points = gpd.points_from_xy(x, y).buffer(tolerance)
+    if GPD_08:
+        points = gpd.points_from_xy(x, y).buffer(tolerance)
+    else:
+        points = gpd.GeoSeries(gpd.points_from_xy(x, y)).buffer(tolerance)
 
     geoms = streets
     idx = max(geoms.index) + 1
