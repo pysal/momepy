@@ -789,27 +789,26 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
         Series containing node ID for objects
 
     """
-    nodes = nodes.copy()
+    nodes = nodes.set_index(node_id)
+    edges = edges.set_index(edge_id)
     if not isinstance(node_id, str):
         nodes["mm_noid"] = node_id
         node_id = "mm_noid"
 
     results_list = []
-    for row in tqdm(
-        objects[[edge_id, objects._geometry_column_name]].itertuples(),
-        total=objects.shape[0],
+    centroids = objects.centroid
+    for eid, centroid in tqdm(
+        zip(objects[edge_id], centroids), total=objects.shape[0],
     ):
-        if np.isnan(row[1]):
-
+        if np.isnan(eid):
             results_list.append(np.nan)
         else:
-            centroid = row[2].centroid
-            edge = edges.loc[edges[edge_id] == row[1]].iloc[0]
+            edge = edges.loc[eid]
             startID = edge.node_start
-            start = nodes.loc[nodes[node_id] == startID].iloc[0].geometry
+            start = nodes.loc[startID].geometry
             sd = centroid.distance(start)
             endID = edge.node_end
-            end = nodes.loc[nodes[node_id] == endID].iloc[0].geometry
+            end = nodes.loc[endID].geometry
             ed = centroid.distance(end)
             if sd > ed:
                 results_list.append(endID)
