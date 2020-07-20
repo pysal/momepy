@@ -533,8 +533,8 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
             matches = geoms.iloc[predic].index
         else:
             pos = list(geoms.sindex.intersection(point.bounds))
-            mat = streets.iloc[pos]
-            matches = list(mat[mat.intersects(point)].index)
+            mat = geoms.iloc[pos]
+            matches = mat[mat.intersects(point)].index
 
         try:
             snap = shapely.ops.snap(
