@@ -735,10 +735,34 @@ def get_network_id(left, right, network_id, min_size=100):
     idx = right.sindex
 
     result = []
-    bounds = buildings_c.bounds
-    bounds[["minx", "miny"]] = bounds[["minx", "miny"]] - min_size
-    bounds[["maxx", "maxy"]] = bounds[["maxx", "maxy"]] + min_size
-    for p, pbox in zip(buildings_c.geometry, bounds.values):
+    # for p in tqdm(buildings_c.geometry, total=buildings_c.shape[0], desc="Snapping"):
+    #     pbox = (p.x - min_size, p.y - min_size, p.x + min_size, p.y + min_size)
+    #     hits = list(idx.intersection(pbox))
+    #     d = INFTY
+    #     nid = None
+    #     for h in hits:
+    #         new_d = p.distance(right.geometry.iloc[h])
+    #         if d >= new_d:
+    #             d = new_d
+    #             nid = right[network_id].iloc[h]
+    #     if nid is None:
+    #         result.append(np.nan)
+    #     else:
+    #         result.append(nid)
+
+    # bounds = buildings_c.bounds
+    # bounds[["minx", "miny"]] = bounds[["minx", "miny"]] - min_size
+    # bounds[["maxx", "maxy"]] = bounds[["maxx", "maxy"]] + min_size
+    # for p, pbox in zip(buildings_c.geometry, bounds.values):
+    #     hits = list(idx.intersection(pbox))
+    #     dist = right.iloc[hits].distance(p)
+    #     if dist.empty:
+    #         result.append(np.nan)
+    #     else:
+    #         result.append(right[network_id].loc[dist.idxmin()])
+
+    for p in tqdm(buildings_c.geometry, total=buildings_c.shape[0], desc="Snapping"):
+        pbox = (p.x - min_size, p.y - min_size, p.x + min_size, p.y + min_size)
         hits = list(idx.intersection(pbox))
         dist = right.iloc[hits].distance(p)
         if dist.empty:
