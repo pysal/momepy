@@ -541,11 +541,20 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
             )
             multiline = snap.union(geoms.geometry.loc[matches[1]])
             linestring = shapely.ops.linemerge(multiline)
-            if series:
-                geoms.loc[idx] = linestring
-            else:
-                geoms.loc[idx, "geometry"] = linestring
-            idx += 1
+            if linestring.type == "LineString":
+                if series:
+                    geoms.loc[idx] = linestring
+                else:
+                    geoms.loc[idx, "geometry"] = linestring
+                idx += 1
+            elif linestring.type == "MultiLineString":
+                for g in linestring.geoms:
+                    if series:
+                        geoms.loc[idx] = g
+                    else:
+                        geoms.loc[idx, "geometry"] = g
+                    idx += 1
+
             geoms = geoms.drop(matches)
         except (IndexError, ValueError):
             import warnings
