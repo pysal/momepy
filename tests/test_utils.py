@@ -121,10 +121,12 @@ class TestUtils:
     def test_network_false_nodes(self):
         test_file_path2 = mm.datasets.get_path("tests")
         self.false_network = gpd.read_file(test_file_path2, layer="network")
+        self.false_network["vals"] = range(len(self.false_network))
         fixed = mm.network_false_nodes(self.false_network)
         assert len(fixed) == 55
         assert isinstance(fixed, gpd.GeoDataFrame)
         assert self.false_network.crs.equals(fixed.crs)
+        assert sorted(self.false_network.columns) == sorted(fixed.columns)
         fixed_series = mm.network_false_nodes(self.false_network.geometry)
         assert len(fixed_series) == 55
         assert isinstance(fixed_series, gpd.GeoSeries)
@@ -135,6 +137,7 @@ class TestUtils:
         fixed_multiindex = mm.network_false_nodes(multiindex)
         assert len(fixed_multiindex) == 55
         assert isinstance(fixed, gpd.GeoDataFrame)
+        assert sorted(self.false_network.columns) == sorted(fixed.columns)
 
     def test_snap_street_network_edge(self):
         snapped = mm.snap_street_network_edge(

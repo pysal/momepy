@@ -11,7 +11,6 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import shapely
-from shapely import predicates
 from shapely.geometry import LineString, Point
 from tqdm import tqdm
 
@@ -474,19 +473,18 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
         raise TypeError(
             "'gdf' should be GeoDataFrame or GeoSeries, got {}".format(type(gdf))
         )
-    streets = gdf.reset_index(drop=True).explode()
+    # double reset_index due to geopandas issue in explode
+    streets = gdf.reset_index(drop=True).explode().reset_index(drop=True)
     if isinstance(streets, gpd.GeoDataFrame):
         series = False
-        streets = streets.reset_index(drop=True).geometry
     elif isinstance(streets, gpd.GeoSeries):
-        streets = streets.reset_index(drop=True)
         series = True
 
     sindex = streets.sindex
 
     false_xy = []
     print("Identifying false points...")
-    for idx, line in tqdm(streets.iteritems(), total=streets.shape[0]):
+    for line in tqdm(streets.geometry, total=streets.shape[0]):
         l_coords = list(line.coords)
         start = Point(l_coords[0]).buffer(tolerance)
         end = Point(l_coords[-1]).buffer(tolerance)
@@ -537,11 +535,16 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
 
         try:
             snap = shapely.ops.snap(
-                geoms.loc[matches[0]], geoms.loc[matches[1]], tolerance
+                geoms.geometry.loc[matches[0]],
+                geoms.geometry.loc[matches[1]],
+                tolerance,
             )
-            multiline = snap.union(geoms.loc[matches[1]])
+            multiline = snap.union(geoms.geometry.loc[matches[1]])
             linestring = shapely.ops.linemerge(multiline)
-            geoms.loc[idx] = linestring
+            if series:
+                geoms.loc[idx] = linestring
+            else:
+                geoms.loc[idx, "geometry"] = linestring
             idx += 1
             geoms = geoms.drop(matches)
         except (IndexError, ValueError):
@@ -549,18 +552,16 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
 
             warnings.warn(
                 "An exception during merging occured. "
-                "Lines at point [{x}, {y}] were not merged.".format(
-                    x=point.x, y=point.y
-                )
+                "Lines at point [{x}, {y}] were not merged.".format(x=x, y=y)
             )
 
     streets = geoms.explode().reset_index(drop=True)
     if series:
         streets.crs = gdf.crs
         return streets
-    geoms_gdf = gpd.GeoDataFrame(geometry=streets)
-    geoms_gdf.crs = gdf.crs
-    return geoms_gdf
+    # geoms_gdf = gpd.GeoDataFrame(geometry=streets)
+    # geoms_gdf.crs = gdf.crs
+    return streets
 
 
 def snap_street_network_edge(
