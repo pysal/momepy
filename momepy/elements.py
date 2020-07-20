@@ -580,7 +580,7 @@ class Blocks:
             new_geom.append(cell.difference(possible_matches.unary_union))
 
         print("Defining adjacency...")
-        blocks_gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(new_geom))
+        blocks_gdf = gpd.GeoDataFrame(geometry=new_geom)
         blocks_gdf = blocks_gdf.explode().reset_index(drop=True)
 
         spatial_weights = libpysal.weights.Queen.from_dataframe(
@@ -597,22 +597,18 @@ class Blocks:
             else:
                 to_join = [idx]  # list of indices which should be joined together
                 neighbours = []  # list of neighbours
-                weights = spatial_weights.neighbors[
+                neighbours += spatial_weights.neighbors[
                     idx
                 ]  # neighbours from spatial weights
-                for w in weights:
-                    neighbours.append(w)  # make a list from weigths
 
                 for n in neighbours:
                     while (
                         n not in to_join
                     ):  # until there is some neighbour which is not in to_join
                         to_join.append(n)
-                        weights = spatial_weights.neighbors[n]
-                        for w in weights:
-                            neighbours.append(
-                                w
-                            )  # extend neighbours by neighbours of neighbours :)
+                        neighbours += spatial_weights.neighbors[
+                            n
+                        ]  # extend neighbours by neighbours of neighbours :)
                 for b in to_join:
                     patches[b] = jID  # fill dict with values
                 jID = jID + 1
