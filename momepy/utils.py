@@ -3,6 +3,7 @@
 
 import math
 import operator
+from distutils.version import LooseVersion
 
 import geopandas as gpd
 import libpysal
@@ -10,10 +11,13 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import shapely
+from shapely import predicates
 from shapely.geometry import LineString, Point
 from tqdm import tqdm
 
 from .shape import CircularCompactness
+
+GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 __all__ = [
     "unique_id",
@@ -487,43 +491,58 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
         start = Point(l_coords[0]).buffer(tolerance)
         end = Point(l_coords[-1]).buffer(tolerance)
 
-        # find out whether ends of the line are connected or not
-        possible_first_index = list(sindex.intersection(start.bounds))
-        possible_first_matches = streets.iloc[possible_first_index]
-        possible_first_matches_clean = possible_first_matches.drop(idx, axis=0)
-        real_first_matches = possible_first_matches_clean[
-            possible_first_matches_clean.intersects(start)
-        ]
+        if GPD_08:
+            real_first_matches = sindex.query(start, predicate="intersects")
+            real_second_matches = sindex.query(end, predicate="intersects")
+        else:
+            # find out whether ends of the line are connected or not
+            possible_first_index = list(sindex.intersection(start.bounds))
+            possible_first_matches = streets.iloc[possible_first_index]
+            real_first_matches = possible_first_matches[
+                possible_first_matches.intersects(start)
+            ]
 
-        possible_second_index = list(sindex.intersection(end.bounds))
-        possible_second_matches = streets.iloc[possible_second_index]
-        possible_second_matches_clean = possible_second_matches.drop(idx, axis=0)
-        real_second_matches = possible_second_matches_clean[
-            possible_second_matches_clean.intersects(end)
-        ]
+            possible_second_index = list(sindex.intersection(end.bounds))
+            possible_second_matches = streets.iloc[possible_second_index]
+            real_second_matches = possible_second_matches[
+                possible_second_matches.intersects(end)
+            ]
 
-        if len(real_first_matches) == 1:
+        if len(real_first_matches) == 2:
             false_xy.append(
                 (round(l_coords[0][0], precision), round(l_coords[0][1], precision))
             )
-        if len(real_second_matches) == 1:
+        if len(real_second_matches) == 2:
             false_xy.append(
                 (round(l_coords[-1][0], precision), round(l_coords[-1][1], precision))
             )
 
-    false_unique = [Point(x) for x in set(false_xy)]
+    false_unique = list(set(false_xy))
+    x, y = zip(*false_unique)
+    points = gpd.points_from_xy(x, y).buffer(tolerance)
 
     geoms = streets
+    idx = max(geoms.index) + 1
 
     print("Merging segments...")
-    for point in tqdm(false_unique):
-        matches = list(geoms[geoms.intersects(point.buffer(tolerance))].index)
-        idx = max(geoms.index) + 1
+    for x, y, point in tqdm(zip(x, y, points)):
+
+        if GPD_08:
+            predic = geoms.sindex.query(point, predicate="intersects")
+            matches = geoms.iloc[predic].index
+        else:
+            pos = list(geoms.sindex.intersection(point.bounds))
+            mat = streets.iloc[pos]
+            matches = list(mat[mat.intersects(point)].index)
+
         try:
-            snap = shapely.ops.snap(geoms[matches[0]], geoms[matches[1]], tolerance)
-            multiline = snap.union(geoms[matches[1]])
+            snap = shapely.ops.snap(
+                geoms.loc[matches[0]], geoms.loc[matches[1]], tolerance
+            )
+            multiline = snap.union(geoms.loc[matches[1]])
             linestring = shapely.ops.linemerge(multiline)
-            geoms = geoms.append(gpd.GeoSeries(linestring, index=[idx]))
+            geoms.loc[idx] = linestring
+            idx += 1
             geoms = geoms.drop(matches)
         except (IndexError, ValueError):
             import warnings
