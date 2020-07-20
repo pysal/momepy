@@ -572,9 +572,12 @@ class Blocks:
         for ix, cell in tqdm(
             cells_copy.geometry.iteritems(), total=cells_copy.shape[0]
         ):
-            possible_matches_index = list(streets_index.intersection(cell.bounds))
+            if GPD_08:
+                possible_matches_index = streets_index.query(cell)
+            else:
+                possible_matches_index = list(streets_index.intersection(cell.bounds))
             possible_matches = street_buff.iloc[possible_matches_index]
-            new_geom.append(cell.difference(possible_matches.geometry.unary_union))
+            new_geom.append(cell.difference(possible_matches.unary_union))
 
         print("Defining adjacency...")
         blocks_gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(new_geom))
