@@ -4,6 +4,7 @@
 # elements.py
 # generating derived elements (street edge, block)
 import operator
+from distutils.version import LooseVersion
 
 import geopandas as gpd
 import libpysal
@@ -14,6 +15,8 @@ from scipy.spatial import Voronoi
 from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.wkt import loads
 from tqdm import tqdm
+
+GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 __all__ = ["buffered_limit", "Tessellation", "Blocks", "get_network_id", "get_node_id"]
 
@@ -138,19 +141,17 @@ class Tessellation:
         self.shrink = shrink
         self.segment = segment
 
-        objects = gdf.copy()
+        objects = gdf.set_index(unique_id)
 
         centre = self._get_centre(objects)
         objects["geometry"] = objects["geometry"].translate(
             xoff=-centre[0], yoff=-centre[1]
         )
 
-        polys = ["Polygon", "MultiPolygon"]
         print("Inward offset...")
-        objects["geometry"] = objects.geometry.apply(
-            lambda g: g.buffer(-shrink, cap_style=2, join_style=2)
-            if g.type in polys
-            else g
+        mask = objects.type.isin(["Polygon", "MultiPolygon"])
+        objects.loc[mask, "geometry"] = objects[mask].buffer(
+            -shrink, cap_style=2, join_style=2
         )
 
         objects = objects.explode()
@@ -160,7 +161,7 @@ class Tessellation:
         objects["geometry"] = objects["geometry"].apply(self._densify, segment=segment)
 
         print("Generating input point array...")
-        points, ids = self._point_array(objects, unique_id)
+        points, ids = self._point_array(objects)
 
         # add convex hull buffered large distance to eliminate infinity issues
         series = gpd.GeoSeries(limit, crs=gdf.crs).translate(
@@ -298,9 +299,9 @@ class Tessellation:
         """
         Returns centre coords of gdf.
         """
-        bounds = gdf["geometry"].bounds
-        centre_x = (bounds["maxx"].max() + bounds["minx"].min()) / 2
-        centre_y = (bounds["maxy"].max() + bounds["miny"].min()) / 2
+        bounds = gdf.total_bounds
+        centre_x = (bounds[0] + bounds[2]) / 2
+        centre_y = (bounds[1] + bounds[3]) / 2
         return centre_x, centre_y
 
     # densify geometry before Voronoi tesselation
@@ -308,6 +309,7 @@ class Tessellation:
         """
         Returns densified geoemtry with segments no longer than `segment`.
         """
+        # TODO: use pygeos interpolate once in shapely
         # temporary solution for readthedocs fail. - cannot mock osgeo
         try:
             from osgeo import ogr
@@ -328,33 +330,30 @@ class Tessellation:
         except Exception:
             return poly
 
-    def _point_array(self, objects, unique_id):
+    def _point_array(self, objects):
         """
-        Returns lists of points and ids based on geometry and unique_id.
+        Returns lists of points and ids based on geometry and index.
         """
         points = []
         ids = []
-        for idx, row in tqdm(objects.iterrows(), total=objects.shape[0]):
-            if row["geometry"].type in ["Polygon", "MultiPolygon"]:
-                poly_ext = row["geometry"].boundary
-            else:
-                poly_ext = row["geometry"]
-            if poly_ext is not None:
-                if poly_ext.type == "MultiLineString":
-                    for line in poly_ext:
-                        point_coords = line.coords
-                        row_array = np.array(point_coords[:-1]).tolist()
-                        for i, a in enumerate(row_array):
-                            points.append(row_array[i])
-                            ids.append(row[unique_id])
-                elif poly_ext.type == "LineString":
-                    point_coords = poly_ext.coords
+        mask = objects.type.isin(["Polygon", "MultiPolygon"])
+        objects.loc[mask, "geometry"] = objects[mask].boundary
+        for idx, poly_ext in tqdm(objects.geometry.iteritems(), total=objects.shape[0]):
+            if poly_ext.type == "MultiLineString":
+                for line in poly_ext.geoms:
+                    point_coords = line.coords
                     row_array = np.array(point_coords[:-1]).tolist()
                     for i, a in enumerate(row_array):
                         points.append(row_array[i])
-                        ids.append(row[unique_id])
-                else:
-                    raise Exception("Boundary type is {}".format(poly_ext.type))
+                        ids.append(idx)
+            elif poly_ext.type == "LineString":
+                point_coords = poly_ext.coords
+                row_array = np.array(point_coords[:-1]).tolist()
+                for i, a in enumerate(row_array):
+                    points.append(row_array[i])
+                    ids.append(idx)
+            else:
+                raise Exception("Boundary type is {}".format(poly_ext.type))
         return points, ids
 
     def _regions(self, voronoi_diagram, unique_id, ids, crs):
@@ -407,23 +406,33 @@ class Tessellation:
         # find the points that intersect with each subpolygon and add them to points_within_geometry
         print("Identifying edge cells...")
         to_cut = pd.DataFrame()
-        for poly in tqdm(geometry_cut, total=(len(geometry_cut))):
-            # find approximate matches with r-tree, then precise matches from those approximate ones
-            possible_matches_index = list(sindex.intersection(poly.bounds))
-            possible_matches = tessellation.iloc[possible_matches_index]
-            precise_matches = possible_matches[possible_matches.intersects(poly)]
-            to_cut = to_cut.append(precise_matches)
+        if GPD_08:
+            inp, tree = sindex.query_bulk(
+                gpd.array.from_shapely([g for g in geometry_cut.geoms]),
+                predicate="intersects",
+            )
+            subselection = list(tessellation.iloc[list(set(tree))].index)
+        else:
+            for poly in tqdm(geometry_cut, total=(len(geometry_cut))):
+                # find approximate matches with r-tree, then precise matches from those approximate ones
+                possible_matches_index = list(sindex.intersection(poly.bounds))
+                possible_matches = tessellation.iloc[possible_matches_index]
+                precise_matches = possible_matches[possible_matches.intersects(poly)]
+                to_cut = to_cut.append(precise_matches)
 
-        # delete duplicates
-        to_cut = to_cut.drop_duplicates(subset=[unique_id])
-        subselection = list(to_cut.index)
+            # delete duplicates
+            to_cut = to_cut.drop_duplicates(subset=[unique_id])
+            subselection = list(to_cut.index)
 
         print("Cutting...")
-        for idx, rgeom in tqdm(
-            tessellation.loc[subselection].geometry.iteritems(),
-            total=tessellation.loc[subselection].shape[0],
+        tessellation.loc[subselection, "geometry"] = tessellation.loc[
+            subselection
+        ].intersection(limit)
+        mask = tessellation.type.isin(["MultiPolygon", "GeometryCollection"])
+
+        for idx, intersection in tqdm(
+            tessellation[mask].geometry.iteritems(), total=len(tessellation[mask]),
         ):
-            intersection = rgeom.intersection(limit)
             if intersection.type == "MultiPolygon":
                 areas = {}
                 for p, i in enumerate(intersection):
@@ -437,8 +446,6 @@ class Tessellation:
                         pass
                     else:
                         tessellation.loc[idx, "geometry"] = geom
-            else:
-                tessellation.loc[idx, "geometry"] = intersection
         return tessellation, sindex
 
     def _check_result(self, tesselation, orig_gdf, unique_id):
