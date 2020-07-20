@@ -824,6 +824,7 @@ def _split_lines(polygon, distance):
     list_points = []
     current_dist = distance  # set the current distance to place the point
 
+    # TODO: use pygeos interpolate
     boundary = polygon.boundary  # make shapely MultiLineString object
     if boundary.type == "LineString":
         line_length = boundary.length  # get the total length of the line
