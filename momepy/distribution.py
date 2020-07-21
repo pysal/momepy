@@ -168,22 +168,36 @@ class SharedWallsRatio:
             unique_id = "mm_uid"
         self.id = gdf[unique_id]
 
-        gdf["_bounds"] = gdf.geometry.bounds.apply(list, axis=1)
+        # gdf["_bounds"] = gdf.geometry.bounds.apply(list, axis=1)
+        # for i, row in tqdm(
+        #     enumerate(
+        #         gdf[[perimeters, "_bounds", gdf._geometry_column_name]].itertuples()
+        #     ),
+        #     total=gdf.shape[0],
+        # ):
+        #     neighbors = list(self.sindex.intersection(row[2]))
+        #     neighbors.remove(i)
+
+        #     # if no neighbour exists
+        #     length = 0
+        #     if not neighbors:
+        #         results_list.append(0)
+        #     else:
+        #         length = gdf.iloc[neighbors].intersection(row[3]).length.sum()
+        #         results_list.append(length / row[1])
+
+        inp, res = self.sindex.query_bulk(gdf.geometry)
         for i, row in tqdm(
-            enumerate(
-                gdf[[perimeters, "_bounds", gdf._geometry_column_name]].itertuples()
-            ),
+            enumerate(gdf[[perimeters, gdf._geometry_column_name]].itertuples()),
             total=gdf.shape[0],
         ):
-            neighbors = list(self.sindex.intersection(row[2]))
+            neighbors = list(res[inp == i])
             neighbors.remove(i)
 
-            # if no neighbour exists
-            length = 0
             if not neighbors:
                 results_list.append(0)
             else:
-                length = gdf.iloc[neighbors].intersection(row[3]).length.sum()
+                length = gdf.iloc[neighbors].intersection(row[2]).length.sum()
                 results_list.append(length / row[1])
 
         self.series = pd.Series(results_list, index=gdf.index)
