@@ -3,6 +3,7 @@
 
 import math
 import operator
+from distutils.version import LooseVersion
 
 import geopandas as gpd
 import libpysal
@@ -14,6 +15,8 @@ from shapely.geometry import LineString, Point
 from tqdm import tqdm
 
 from .shape import CircularCompactness
+
+GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 __all__ = [
     "unique_id",
@@ -450,7 +453,7 @@ def preprocess(buildings, size=30, compactness=0.2, islands=True, loops=2):
 def network_false_nodes(gdf, tolerance=0.1, precision=3):
     """
     Check topology of street network and eliminate nodes of degree 2 by joining
-    affected edges. Attributes are not preserved.
+    affected edges.
 
     Parameters
     ----------
@@ -470,78 +473,105 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
         raise TypeError(
             "'gdf' should be GeoDataFrame or GeoSeries, got {}".format(type(gdf))
         )
-    streets = gdf.reset_index(drop=True).explode()
+    # double reset_index due to geopandas issue in explode
+    streets = gdf.reset_index(drop=True).explode().reset_index(drop=True)
     if isinstance(streets, gpd.GeoDataFrame):
         series = False
-        streets = streets.reset_index(drop=True).geometry
     elif isinstance(streets, gpd.GeoSeries):
-        streets = streets.reset_index(drop=True)
         series = True
 
     sindex = streets.sindex
 
     false_xy = []
     print("Identifying false points...")
-    for idx, line in tqdm(streets.iteritems(), total=streets.shape[0]):
+    for line in tqdm(streets.geometry, total=streets.shape[0]):
         l_coords = list(line.coords)
         start = Point(l_coords[0]).buffer(tolerance)
         end = Point(l_coords[-1]).buffer(tolerance)
 
-        # find out whether ends of the line are connected or not
-        possible_first_index = list(sindex.intersection(start.bounds))
-        possible_first_matches = streets.iloc[possible_first_index]
-        possible_first_matches_clean = possible_first_matches.drop(idx, axis=0)
-        real_first_matches = possible_first_matches_clean[
-            possible_first_matches_clean.intersects(start)
-        ]
+        if GPD_08:
+            real_first_matches = sindex.query(start, predicate="intersects")
+            real_second_matches = sindex.query(end, predicate="intersects")
+        else:
+            # find out whether ends of the line are connected or not
+            possible_first_index = list(sindex.intersection(start.bounds))
+            possible_first_matches = streets.iloc[possible_first_index]
+            real_first_matches = possible_first_matches[
+                possible_first_matches.intersects(start)
+            ]
 
-        possible_second_index = list(sindex.intersection(end.bounds))
-        possible_second_matches = streets.iloc[possible_second_index]
-        possible_second_matches_clean = possible_second_matches.drop(idx, axis=0)
-        real_second_matches = possible_second_matches_clean[
-            possible_second_matches_clean.intersects(end)
-        ]
+            possible_second_index = list(sindex.intersection(end.bounds))
+            possible_second_matches = streets.iloc[possible_second_index]
+            real_second_matches = possible_second_matches[
+                possible_second_matches.intersects(end)
+            ]
 
-        if len(real_first_matches) == 1:
+        if len(real_first_matches) == 2:
             false_xy.append(
                 (round(l_coords[0][0], precision), round(l_coords[0][1], precision))
             )
-        if len(real_second_matches) == 1:
+        if len(real_second_matches) == 2:
             false_xy.append(
                 (round(l_coords[-1][0], precision), round(l_coords[-1][1], precision))
             )
 
-    false_unique = [Point(x) for x in set(false_xy)]
+    false_unique = list(set(false_xy))
+    x, y = zip(*false_unique)
+    if GPD_08:
+        points = gpd.points_from_xy(x, y).buffer(tolerance)
+    else:
+        points = gpd.GeoSeries(gpd.points_from_xy(x, y)).buffer(tolerance)
 
     geoms = streets
+    idx = max(geoms.index) + 1
 
     print("Merging segments...")
-    for point in tqdm(false_unique):
-        matches = list(geoms[geoms.intersects(point.buffer(tolerance))].index)
-        idx = max(geoms.index) + 1
+    for x, y, point in tqdm(zip(x, y, points)):
+
+        if GPD_08:
+            predic = geoms.sindex.query(point, predicate="intersects")
+            matches = geoms.iloc[predic].index
+        else:
+            pos = list(geoms.sindex.intersection(point.bounds))
+            mat = geoms.iloc[pos]
+            matches = mat[mat.intersects(point)].index
+
         try:
-            snap = shapely.ops.snap(geoms[matches[0]], geoms[matches[1]], tolerance)
-            multiline = snap.union(geoms[matches[1]])
+            snap = shapely.ops.snap(
+                geoms.geometry.loc[matches[0]],
+                geoms.geometry.loc[matches[1]],
+                tolerance,
+            )
+            multiline = snap.union(geoms.geometry.loc[matches[1]])
             linestring = shapely.ops.linemerge(multiline)
-            geoms = geoms.append(gpd.GeoSeries(linestring, index=[idx]))
+            if linestring.type == "LineString":
+                if series:
+                    geoms.loc[idx] = linestring
+                else:
+                    geoms.loc[idx, "geometry"] = linestring
+                idx += 1
+            elif linestring.type == "MultiLineString":
+                for g in linestring.geoms:
+                    if series:
+                        geoms.loc[idx] = g
+                    else:
+                        geoms.loc[idx, "geometry"] = g
+                    idx += 1
+
             geoms = geoms.drop(matches)
         except (IndexError, ValueError):
             import warnings
 
             warnings.warn(
                 "An exception during merging occured. "
-                "Lines at point [{x}, {y}] were not merged.".format(
-                    x=point.x, y=point.y
-                )
+                f"Lines at point [{x}, {y}] were not merged."
             )
 
     streets = geoms.explode().reset_index(drop=True)
     if series:
         streets.crs = gdf.crs
         return streets
-    geoms_gdf = gpd.GeoDataFrame(geometry=streets)
-    geoms_gdf.crs = gdf.crs
-    return geoms_gdf
+    return streets
 
 
 def snap_street_network_edge(
