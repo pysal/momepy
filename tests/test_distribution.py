@@ -1,8 +1,12 @@
+from distutils.version import LooseVersion
+
 import geopandas as gpd
 import momepy as mm
 import numpy as np
 import pytest
 from libpysal.weights import Queen
+
+GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 
 class TestDistribution:
@@ -28,6 +32,7 @@ class TestDistribution:
         check = 40.7607
         assert self.df_streets["orient"][0] == pytest.approx(check)
 
+    @pytest.mark.skipif(not GPD_08, reason="requires geopandas > 0.7")
     def test_SharedWallsRatio(self):
         self.df_buildings["swr"] = mm.SharedWallsRatio(self.df_buildings).series
         self.df_buildings["swr_array"] = mm.SharedWallsRatio(

@@ -7,12 +7,16 @@
 import math
 import statistics
 import warnings
+from distutils.version import LooseVersion
 
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 from tqdm import tqdm  # progress bar
 
 from .utils import _azimuth
+
+GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 __all__ = [
     "Orientation",
@@ -142,6 +146,10 @@ class SharedWallsRatio:
     """
 
     def __init__(self, gdf, unique_id=None, perimeters=None):
+        if not GPD_08:
+            raise ImportError(
+                "The 'geopandas' >= 0.8.0 package is required to use SharedWallsRatio."
+            )
         if unique_id:
             warnings.warn(
                 "unique_id is deprecated and will be removed in v0.4.", FutureWarning,
