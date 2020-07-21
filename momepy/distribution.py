@@ -156,7 +156,7 @@ class SharedWallsRatio:
         else:
             self.perimeters = perimeters
 
-        inp, res = self.sindex.query_bulk(gdf.geometry, predicate="intersects")
+        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
         left = gdf.geometry.take(inp).reset_index(drop=True)
         right = gdf.geometry.take(res).reset_index(drop=True)
         intersections = left.intersection(right).length
