@@ -141,7 +141,7 @@ class Tessellation:
         self.shrink = shrink
         self.segment = segment
 
-        objects = gdf.set_index(unique_id)
+        objects = gdf.copy()
 
         centre = self._get_centre(objects)
         objects["geometry"] = objects["geometry"].translate(
@@ -155,7 +155,7 @@ class Tessellation:
         )
 
         objects = objects.explode()
-        objects.reset_index(inplace=True, drop=True)
+        objects = objects.set_index(unique_id)
 
         print("Discretization...")
         objects["geometry"] = objects["geometry"].apply(self._densify, segment=segment)
