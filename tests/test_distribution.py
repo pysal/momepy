@@ -1,8 +1,12 @@
+from distutils.version import LooseVersion
+
 import geopandas as gpd
 import momepy as mm
 import numpy as np
 import pytest
 from libpysal.weights import Queen
+
+GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 
 class TestDistribution:
@@ -28,21 +32,20 @@ class TestDistribution:
         check = 40.7607
         assert self.df_streets["orient"][0] == pytest.approx(check)
 
+    @pytest.mark.skipif(not GPD_08, reason="requires geopandas > 0.7")
     def test_SharedWallsRatio(self):
-        self.df_buildings["swr"] = mm.SharedWallsRatio(self.df_buildings, "uID").series
-        self.df_buildings["swr_uid"] = mm.SharedWallsRatio(
-            self.df_buildings, range(len(self.df_buildings))
-        ).series
+        self.df_buildings["swr"] = mm.SharedWallsRatio(self.df_buildings).series
         self.df_buildings["swr_array"] = mm.SharedWallsRatio(
-            self.df_buildings, "uID", self.df_buildings.geometry.length
+            self.df_buildings, perimeters=self.df_buildings.geometry.length
         ).series
         nonconsecutive = self.df_buildings.drop(2)
-        result = mm.SharedWallsRatio(nonconsecutive, "uID").series
+        result = mm.SharedWallsRatio(nonconsecutive).series
         check = 0.3424804411228673
         assert self.df_buildings["swr"][10] == check
-        assert self.df_buildings["swr_uid"][10] == check
         assert self.df_buildings["swr_array"][10] == check
         assert result[10] == check
+        with pytest.warns(FutureWarning):
+            mm.SharedWallsRatio(self.df_buildings, "uID")
 
     def test_StreetAlignment(self):
         self.df_buildings["orient"] = orient = mm.Orientation(self.df_buildings).series

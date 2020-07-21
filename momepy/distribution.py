@@ -6,12 +6,17 @@
 
 import math
 import statistics
+import warnings
+from distutils.version import LooseVersion
 
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 from tqdm import tqdm  # progress bar
 
 from .utils import _azimuth
+
+GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 __all__ = [
     "Orientation",
@@ -119,8 +124,7 @@ class SharedWallsRatio:
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing gdf to analyse
-    unique_id : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` with unique id
+    unique_id : (deprecated)
     perimeters : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value
 
@@ -130,63 +134,47 @@ class SharedWallsRatio:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-    id : Series
-        Series containing used unique ID
     perimeters : GeoDataFrame
         Series containing used perimeters values
-    sindex : rtree spatial index
-        spatial index of gdf
 
     Examples
     --------
-    >>> buildings_df['swr'] = momepy.SharedWallsRatio(buildings_df, 'uID').series
+    >>> buildings_df['swr'] = momepy.SharedWallsRatio(buildings_df).series
     100%|██████████| 144/144 [00:00<00:00, 648.72it/s]
     >>> buildings_df['swr'][10]
     0.3424804411228673
     """
 
-    def __init__(self, gdf, unique_id, perimeters=None):
+    def __init__(self, gdf, unique_id=None, perimeters=None):
+        if not GPD_08:
+            raise ImportError(
+                "The 'geopandas' >= 0.8.0 package is required to use SharedWallsRatio."
+            )
+        if unique_id:
+            warnings.warn(
+                "unique_id is deprecated and will be removed in v0.4.", FutureWarning,
+            )
+
         self.gdf = gdf
 
-        gdf = gdf.copy()
-        self.sindex = gdf.sindex  # define rtree index
-        # define empty list for results
-        results_list = []
-
         if perimeters is None:
-            gdf["mm_p"] = gdf.geometry.length
-            perimeters = "mm_p"
+            self.perimeters = gdf.geometry.length
+        elif isinstance(perimeters, str):
+            self.perimeters = gdf[perimeters]
         else:
-            if not isinstance(perimeters, str):
-                gdf["mm_p"] = perimeters
-                perimeters = "mm_p"
+            self.perimeters = perimeters
 
-        self.perimeters = gdf[perimeters]
+        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
+        left = gdf.geometry.take(inp).reset_index(drop=True)
+        right = gdf.geometry.take(res).reset_index(drop=True)
+        intersections = left.intersection(right).length
+        results = (
+            intersections.groupby(inp).sum().reset_index(drop=True)
+            - self.perimeters.reset_index(drop=True)
+        ) / self.perimeters.reset_index(drop=True)
+        results.index = gdf.index
 
-        if not isinstance(unique_id, str):
-            gdf["mm_uid"] = unique_id
-            unique_id = "mm_uid"
-        self.id = gdf[unique_id]
-
-        gdf["_bounds"] = gdf.geometry.bounds.apply(list, axis=1)
-        for i, row in tqdm(
-            enumerate(
-                gdf[[perimeters, "_bounds", gdf._geometry_column_name]].itertuples()
-            ),
-            total=gdf.shape[0],
-        ):
-            neighbors = list(self.sindex.intersection(row[2]))
-            neighbors.remove(i)
-
-            # if no neighbour exists
-            length = 0
-            if not neighbors:
-                results_list.append(0)
-            else:
-                length = gdf.iloc[neighbors].intersection(row[3]).length.sum()
-                results_list.append(length / row[1])
-
-        self.series = pd.Series(results_list, index=gdf.index)
+        self.series = results
 
 
 class StreetAlignment:

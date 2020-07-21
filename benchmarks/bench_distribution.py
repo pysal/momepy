@@ -27,7 +27,7 @@ class TimeDistribution:
         mm.Orientation(self.df_buildings)
 
     def time_SharedWallsRatio(self):
-        mm.SharedWallsRatio(self.df_buildings, "uID")
+        mm.SharedWallsRatio(self.df_buildings)
 
     def time_StreetAlignment(self):
         mm.StreetAlignment(
