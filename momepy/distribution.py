@@ -641,14 +641,16 @@ class NeighboringStreetOrientationDeviation:
     Examples
     --------
     >>> streets_df['orient_dev'] = momepy.NeighboringStreetOrientationDeviation(streets_df).series
-    Preparing street orientations...
-    Generating spatial index...
-    100%|██████████| 33/33 [00:00<00:00, 249.02it/s]
     >>> streets_df['orient_dev'][6]
     7.043096518688273
     """
 
     def __init__(self, gdf):
+        if not GPD_08:
+            raise ImportError(
+                "The 'geopandas' >= 0.8.0 package is required to use "
+                "NeighboringStreetOrientationDeviation."
+            )
         self.gdf = gdf
         self.orientation = gdf.geometry.apply(self._orient)
 
@@ -664,9 +666,9 @@ class NeighboringStreetOrientationDeviation:
         results = deviations.groupby(inp).mean()
 
         match = gdf.iloc[list(results.index)]
-        match["res"] = results.to_list()
+        match["result"] = results.to_list()
 
-        self.series = match.res
+        self.series = match.result
 
     def _orient(self, geom):
         start = geom.coords[0]
