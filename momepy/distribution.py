@@ -666,9 +666,6 @@ class NeighboringStreetOrientationDeviation:
         self.gdf = gdf
 
         results_list = []
-        gdf = gdf.copy()
-
-        # iterating over rows one by one
         print(" Preparing street orientations...")
         for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
 
@@ -693,28 +690,42 @@ class NeighboringStreetOrientationDeviation:
             results_list.append(az)
         self.orientation = pd.Series(results_list, index=gdf.index)
 
-        gdf["tmporient"] = self.orientation
+        # gdf["tmporient"] = self.orientation
 
-        print(" Generating spatial index...")
-        self.sindex = gdf.sindex
-        results_list = []
+        # print(" Generating spatial index...")
+        # self.sindex = gdf.sindex
+        # results_list = []
 
-        for row in tqdm(gdf.itertuples(), total=gdf.shape[0]):
-            possible_neighbors_idx = list(self.sindex.intersection(row.geometry.bounds))
-            possible_neighbours = gdf.iloc[possible_neighbors_idx]
-            neighbors = possible_neighbours[
-                possible_neighbours.intersects(row.geometry)
-            ]
-            neighbors.drop([row.Index])
+        # for row in tqdm(gdf.itertuples(), total=gdf.shape[0]):
+        #     possible_neighbors_idx = list(self.sindex.intersection(row.geometry.bounds))
+        #     possible_neighbours = gdf.iloc[possible_neighbors_idx]
+        #     neighbors = possible_neighbours[
+        #         possible_neighbours.intersects(row.geometry)
+        #     ]
+        #     neighbors.drop([row.Index])
 
-            deviations = np.abs(neighbors.tmporient - row.tmporient)
+        #     deviations = np.abs(neighbors.tmporient - row.tmporient)
 
-            if not deviations.empty:
-                results_list.append(np.mean(deviations))
-            else:
-                results_list.append(0)
+        #     if not deviations.empty:
+        #         results_list.append(np.mean(deviations))
+        #     else:
+        #         results_list.append(0)
 
-        self.series = pd.Series(results_list, index=gdf.index)
+        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
+        itself = inp == res
+        inp = inp[~itself]
+        res = res[~itself]
+
+        left = self.orientation.take(inp).reset_index(drop=True)
+        right = self.orientation.take(res).reset_index(drop=True)
+        deviations = (left - right).abs()
+
+        results = deviations.groupby(inp).mean()
+
+        match = gdf.iloc[list(results.index)]
+        match["res"] = results.to_list()
+
+        self.series = match.res
 
 
 class BuildingAdjacency:
