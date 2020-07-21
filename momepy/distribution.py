@@ -186,21 +186,17 @@ class SharedWallsRatio:
         #         length = gdf.iloc[neighbors].intersection(row[3]).length.sum()
         #         results_list.append(length / row[1])
 
-        inp, res = self.sindex.query_bulk(gdf.geometry)
-        for i, row in tqdm(
-            enumerate(gdf[[perimeters, gdf._geometry_column_name]].itertuples()),
-            total=gdf.shape[0],
-        ):
-            neighbors = list(res[inp == i])
-            neighbors.remove(i)
+        inp, res = self.sindex.query_bulk(gdf.geometry, predicate="intersects")
+        left = gdf.geometry.take(inp).reset_index(drop=True)
+        right = gdf.geometry.take(res).reset_index(drop=True)
+        intersections = left.intersection(right).length
+        results = (
+            intersections.groupby(inp).sum().reset_index(drop=True)
+            - self.perimeters.reset_index(drop=True)
+        ) / self.perimeters.reset_index(drop=True)
+        results.index = gdf.index
 
-            if not neighbors:
-                results_list.append(0)
-            else:
-                length = gdf.iloc[neighbors].intersection(row[2]).length.sum()
-                results_list.append(length / row[1])
-
-        self.series = pd.Series(results_list, index=gdf.index)
+        self.series = results
 
 
 class StreetAlignment:
