@@ -152,6 +152,7 @@ class TestDistribution:
             .any()
         )
 
+    @pytest.mark.skipif(not GPD_08, reason="requires geopandas > 0.7")
     def test_NeighboringStreetOrientationDeviation(self):
         self.df_streets["dev"] = mm.NeighboringStreetOrientationDeviation(
             self.df_streets
