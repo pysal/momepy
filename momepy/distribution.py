@@ -649,8 +649,6 @@ class NeighboringStreetOrientationDeviation:
         original GeoDataFrame
     orientation : Series
         Series containing used street orientation values
-    sindex : rtree spatial index
-        spatial index of gdf
 
     Examples
     --------
@@ -664,52 +662,7 @@ class NeighboringStreetOrientationDeviation:
 
     def __init__(self, gdf):
         self.gdf = gdf
-
-        results_list = []
-        print(" Preparing street orientations...")
-        for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
-
-            start = geom.coords[0]
-            end = geom.coords[-1]
-            az = _azimuth(start, end)
-            if 90 > az >= 45:
-                diff = az - 45
-                az = az - 2 * diff
-            elif 135 > az >= 90:
-                diff = az - 90
-                az = az - 2 * diff
-                diff = az - 45
-                az = az - 2 * diff
-            elif 181 > az >= 135:
-                diff = az - 135
-                az = az - 2 * diff
-                diff = az - 90
-                az = az - 2 * diff
-                diff = az - 45
-                az = az - 2 * diff
-            results_list.append(az)
-        self.orientation = pd.Series(results_list, index=gdf.index)
-
-        # gdf["tmporient"] = self.orientation
-
-        # print(" Generating spatial index...")
-        # self.sindex = gdf.sindex
-        # results_list = []
-
-        # for row in tqdm(gdf.itertuples(), total=gdf.shape[0]):
-        #     possible_neighbors_idx = list(self.sindex.intersection(row.geometry.bounds))
-        #     possible_neighbours = gdf.iloc[possible_neighbors_idx]
-        #     neighbors = possible_neighbours[
-        #         possible_neighbours.intersects(row.geometry)
-        #     ]
-        #     neighbors.drop([row.Index])
-
-        #     deviations = np.abs(neighbors.tmporient - row.tmporient)
-
-        #     if not deviations.empty:
-        #         results_list.append(np.mean(deviations))
-        #     else:
-        #         results_list.append(0)
+        self.orientation = gdf.geometry.apply(self._orient)
 
         inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
         itself = inp == res
@@ -726,6 +679,27 @@ class NeighboringStreetOrientationDeviation:
         match["res"] = results.to_list()
 
         self.series = match.res
+
+    def _orient(self, geom):
+        start = geom.coords[0]
+        end = geom.coords[-1]
+        az = _azimuth(start, end)
+        if 90 > az >= 45:
+            diff = az - 45
+            az = az - 2 * diff
+        elif 135 > az >= 90:
+            diff = az - 90
+            az = az - 2 * diff
+            diff = az - 45
+            az = az - 2 * diff
+        elif 181 > az >= 135:
+            diff = az - 135
+            az = az - 2 * diff
+            diff = az - 90
+            az = az - 2 * diff
+            diff = az - 45
+            az = az - 2 * diff
+        return az
 
 
 class BuildingAdjacency:
