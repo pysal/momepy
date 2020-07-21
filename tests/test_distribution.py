@@ -29,20 +29,18 @@ class TestDistribution:
         assert self.df_streets["orient"][0] == pytest.approx(check)
 
     def test_SharedWallsRatio(self):
-        self.df_buildings["swr"] = mm.SharedWallsRatio(self.df_buildings, "uID").series
-        self.df_buildings["swr_uid"] = mm.SharedWallsRatio(
-            self.df_buildings, range(len(self.df_buildings))
-        ).series
+        self.df_buildings["swr"] = mm.SharedWallsRatio(self.df_buildings).series
         self.df_buildings["swr_array"] = mm.SharedWallsRatio(
-            self.df_buildings, "uID", self.df_buildings.geometry.length
+            self.df_buildings, perimeters=self.df_buildings.geometry.length
         ).series
         nonconsecutive = self.df_buildings.drop(2)
-        result = mm.SharedWallsRatio(nonconsecutive, "uID").series
+        result = mm.SharedWallsRatio(nonconsecutive).series
         check = 0.3424804411228673
         assert self.df_buildings["swr"][10] == check
-        assert self.df_buildings["swr_uid"][10] == check
         assert self.df_buildings["swr_array"][10] == check
         assert result[10] == check
+        with pytest.warns(FutureWarning):
+            mm.SharedWallsRatio(self.df_buildings, "uID")
 
     def test_StreetAlignment(self):
         self.df_buildings["orient"] = orient = mm.Orientation(self.df_buildings).series
