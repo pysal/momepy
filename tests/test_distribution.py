@@ -152,11 +152,12 @@ class TestDistribution:
             .any()
         )
 
+    @pytest.mark.skipif(not GPD_08, reason="requires geopandas > 0.7")
     def test_NeighboringStreetOrientationDeviation(self):
         self.df_streets["dev"] = mm.NeighboringStreetOrientationDeviation(
             self.df_streets
         ).series
-        check = 5.986848512501008
+        check = 7.527840590385933
         assert self.df_streets["dev"].mean() == check
 
     def test_BuildingAdjacency(self):
