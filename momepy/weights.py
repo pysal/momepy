@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from distutils.version import LooseVersion
 
 import libpysal
 import numpy as np
+import geopandas as gpd
+
+GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 __all__ = ["DistanceBand", "sw_high"]
 
@@ -48,14 +52,19 @@ class DistanceBand:
         self.neighbors = _Neighbors(gdf, threshold, ids=ids)
 
     def fetch_items(self, key):
-        possible_matches_index = list(
-            self.sindex.intersection(self.bufferred[key].bounds)
-        )
-        possible_matches = self.geoms.iloc[possible_matches_index]
-        match = possible_matches.index[
-            possible_matches.intersects(self.bufferred[key])
-        ].to_list()
-        match.remove(key)
+        if not GPD_08:
+            possible_matches_index = list(
+                self.sindex.intersection(self.bufferred[key].bounds)
+            )
+            possible_matches = self.geoms.iloc[possible_matches_index]
+            match = possible_matches.index[
+                possible_matches.intersects(self.bufferred[key])
+            ].to_list()
+            match.remove(key)
+        else:
+            hits = self.sindex.query(self.bufferred[key], predicate="intersects")
+            match = self.geoms.iloc[hits].index.to_list()
+            match.remove(key)
         return match
 
 
@@ -138,9 +147,7 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True
                 gdf, ids=ids, silence_warnings=silent
             )
         else:
-            raise ValueError(
-                "{} is not supported. Use 'queen' or 'rook'.".format(contiguity)
-            )
+            raise ValueError(f"{contiguity} is not supported. Use 'queen' or 'rook'.")
     else:
         raise AttributeError("GeoDataFrame or spatial weights must be given.")
 
