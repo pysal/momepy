@@ -652,17 +652,23 @@ class Blocks:
 
         # if polygon is within another one, delete it
         sindex = blocks.sindex
-        for idx, geom in tqdm(blocks.geometry.iteritems(), total=blocks.shape[0]):
-            possible_matches = list(sindex.intersection(geom.bounds))
-            possible_matches.remove(idx)
-            possible = blocks.iloc[possible_matches]
+        if not GPD_08:
+            for idx, geom in tqdm(blocks.geometry.iteritems(), total=blocks.shape[0]):
+                possible_matches = list(sindex.intersection(geom.bounds))
+                possible_matches.remove(idx)
+                possible = blocks.iloc[possible_matches]
 
-            for geom2 in possible.geometry:
-                if geom.within(geom2):
-                    blocks.loc[idx, "delete"] = 1
-
-        if "delete" in blocks.columns:
-            blocks = blocks.drop(list(blocks.loc[blocks["delete"] == 1].index))
+                for geom2 in possible.geometry:
+                    if geom.within(geom2):
+                        blocks.loc[idx, "delete"] = 1
+            if "delete" in blocks.columns:
+                blocks = blocks.drop(list(blocks.loc[blocks["delete"] == 1].index))
+        else:
+            inp, res = sindex.query_bulk(blocks.geometry, predicate="within")
+            res = res[~(inp == res)]
+            mask = np.ones(len(blocks.index), dtype=bool)
+            mask[list(set(res))] = False
+            blocks = blocks.loc[mask]
 
         self.blocks = blocks[[id_name, "geometry"]]
 

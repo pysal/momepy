@@ -5,6 +5,7 @@
 # definitions of intensity characters
 
 import collections
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -205,8 +206,7 @@ class Courtyards:
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    block_id : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored block ID
+    block_id : (deprecated)
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on objects. It is to denote adjacent buildings (note: based on integer index).
@@ -217,28 +217,25 @@ class Courtyards:
         Series containing resulting values
     gdf : GeoDataFrame
         original GeoDataFrame
-    block_id : Series
-        Series containing used block ID
     sw : libpysal.weights
         spatial weights matrix
 
     Examples
     --------
-    >>> buildings_df['courtyards'] = mm.Courtyards(buildings_df, 'bID').series
+    >>> buildings_df['courtyards'] = mm.Courtyards(buildings_df).series
     Calculating spatial weights...
     """
 
-    def __init__(self, gdf, block_id, spatial_weights=None):
+    def __init__(self, gdf, block_id=None, spatial_weights=None):
+        if block_id is not None:
+            warnings.warn(
+                "block_id is deprecated and will be removed in v0.4.", FutureWarning,
+            )
         self.gdf = gdf
 
         results_list = []
         gdf = gdf.copy()
 
-        if not isinstance(block_id, str):
-            gdf["mm_bid"] = block_id
-            block_id = "mm_bid"
-
-        self.block_id = gdf[block_id]
         # if weights matrix is not passed, generate it from objects
         if spatial_weights is None:
             print("Calculating spatial weights...")
@@ -267,9 +264,8 @@ class Courtyards:
                     print("Something unexpected happened.")
                 for b in to_join:
                     courtyards[b] = interiors  # fill dict with values
-        # copy values from dict to gdf
-        for index, row in tqdm(gdf.iterrows(), total=gdf.shape[0]):
-            results_list.append(courtyards[index])
+
+        results_list = [courtyards[index] for index in gdf.index]
 
         self.series = pd.Series(results_list, index=gdf.index)
 

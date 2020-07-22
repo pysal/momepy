@@ -150,7 +150,7 @@ class SharedWallsRatio:
             raise ImportError(
                 "The 'geopandas' >= 0.8.0 package is required to use SharedWallsRatio."
             )
-        if unique_id:
+        if unique_id is not None:
             warnings.warn(
                 "unique_id is deprecated and will be removed in v0.4.", FutureWarning,
             )
