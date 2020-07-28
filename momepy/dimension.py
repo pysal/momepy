@@ -356,6 +356,8 @@ class AverageCharacter:
     mode : str (default 'all')
         mode of average calculation. Can be set to `all`, `mean`, `median` or `mode` or
         list of any of the options.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -390,7 +392,16 @@ class AverageCharacter:
     4823.1334436678835
     """
 
-    def __init__(self, gdf, values, spatial_weights, unique_id, rng=None, mode="all"):
+    def __init__(
+        self,
+        gdf,
+        values,
+        spatial_weights,
+        unique_id,
+        rng=None,
+        mode="all",
+        verbose=True,
+    ):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -426,7 +437,7 @@ class AverageCharacter:
                 raise ValueError("{} is not supported as mode.".format(mode))
             mode = [mode]
 
-        for index in tqdm(data.index, total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -486,6 +497,8 @@ class StreetProfile:
         distance between perpendicular ticks
     tick_length : int (default 50)
         length of ticks
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -520,7 +533,9 @@ class StreetProfile:
     >>> streets_df['deviations'] = street_profile.wd
     """
 
-    def __init__(self, left, right, heights=None, distance=10, tick_length=50):
+    def __init__(
+        self, left, right, heights=None, distance=10, tick_length=50, verbose=True
+    ):
         self.left = left
         self.right = right
         self.distance = distance
@@ -542,7 +557,9 @@ class StreetProfile:
         heights_deviations_list = []
         openness_list = []
 
-        for shapely_line in tqdm(left.geometry, total=left.shape[0]):
+        for shapely_line in tqdm(
+            left.geometry, total=left.shape[0], disable=not verbose
+        ):
             # list to hold all the point coords
             list_points = []
             # set the current distance to place the point
@@ -712,6 +729,8 @@ class WeightedCharacter:
         name of the column with unique id used as ``spatial_weights`` index.
     areas : str, list, np.array, pd.Series (default None)
         the name of the left dataframe column, ``np.array``, or ``pd.Series`` where is stored area value
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
 
     Attributes
@@ -737,7 +756,9 @@ class WeightedCharacter:
     100%|██████████| 144/144 [00:00<00:00, 361.60it/s]
     """
 
-    def __init__(self, gdf, values, spatial_weights, unique_id, areas=None):
+    def __init__(
+        self, gdf, values, spatial_weights, unique_id, areas=None, verbose=True
+    ):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -759,7 +780,7 @@ class WeightedCharacter:
         data = data.set_index(unique_id)[[values, areas]]
 
         results_list = []
-        for index in tqdm(data.index, total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -794,6 +815,8 @@ class CoveredArea:
         spatial weights matrix
     unique_id : str
         name of the column with unique id used as ``spatial_weights`` index.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -814,7 +837,7 @@ class CoveredArea:
 
     """
 
-    def __init__(self, gdf, spatial_weights, unique_id):
+    def __init__(self, gdf, spatial_weights, unique_id, verbose=True):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -823,7 +846,7 @@ class CoveredArea:
         area = data.set_index(unique_id).geometry.area
 
         results_list = []
-        for index in tqdm(area.index, total=area.shape[0]):
+        for index in tqdm(area.index, total=area.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -850,6 +873,8 @@ class PerimeterWall:
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on gdf. It is to denote adjacent buildings (note: based on index, not ID).
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -872,15 +897,16 @@ class PerimeterWall:
     It might take a while to compute this character.
     """
 
-    def __init__(self, gdf, spatial_weights=None):
+    def __init__(self, gdf, spatial_weights=None, verbose=True):
         self.gdf = gdf
 
         if spatial_weights is None:
-            print("Calculating spatial weights...")
+
+            print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 
             spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
-            print("Spatial weights ready...")
+            print("Spatial weights ready...") if verbose else None
         self.sw = spatial_weights
 
         # dict to store walls for each uID
@@ -888,7 +914,7 @@ class PerimeterWall:
         components = pd.Series(spatial_weights.component_labels, index=range(len(gdf)))
         geom = gdf.geometry
 
-        for i in tqdm(range(gdf.shape[0]), total=gdf.shape[0]):
+        for i in tqdm(range(gdf.shape[0]), total=gdf.shape[0], disable=not verbose):
             # if the id is already present in walls, continue (avoid repetition)
             if i in walls:
                 continue
@@ -903,7 +929,7 @@ class PerimeterWall:
                     walls[b] = dissolved.exterior.length
 
         results_list = []
-        for i in tqdm(range(gdf.shape[0]), total=gdf.shape[0]):
+        for i in tqdm(range(gdf.shape[0]), total=gdf.shape[0], disable=not verbose):
             results_list.append(walls[i])
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -926,6 +952,8 @@ class SegmentsLength:
     mean : boolean, optional
         If mean=False it will compute sum of length, if mean=True it will compute
         sum and mean
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -947,22 +975,22 @@ class SegmentsLength:
     Spatial weights ready...
     """
 
-    def __init__(self, gdf, spatial_weights=None, mean=False):
+    def __init__(self, gdf, spatial_weights=None, mean=False, verbose=True):
         self.gdf = gdf
 
         if spatial_weights is None:
-            print("Calculating spatial weights...")
+            print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 
             spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
-            print("Spatial weights ready...")
+            print("Spatial weights ready...") if verbose else None
         self.sw = spatial_weights
 
         lenghts = gdf.geometry.length
 
         sums = []
         means = []
-        for index in tqdm(gdf.index, total=gdf.shape[0]):
+        for index in tqdm(gdf.index, total=gdf.shape[0], disable=not verbose):
             neighbours = spatial_weights.neighbors[index].copy()
             if neighbours:
                 neighbours.append(index)

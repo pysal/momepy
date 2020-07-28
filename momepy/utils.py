@@ -156,7 +156,7 @@ def gdf_to_nx(gdf_network, approach="primal", length="mm_len"):
     return net
 
 
-def _points_to_gdf(net, spatial_weights):
+def _points_to_gdf(net):
     """
     Generate point gdf from nodes.
     Helper for nx_to_gdf.
@@ -200,7 +200,7 @@ def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
     Helper for nx_to_gdf.
     """
     if points is True:
-        gdf_nodes = _points_to_gdf(net, spatial_weights)
+        gdf_nodes = _points_to_gdf(net)
 
         if spatial_weights is True:
             W = libpysal.weights.W.from_networkx(net)
@@ -307,7 +307,9 @@ def limit_range(vals, rng):
     return vals
 
 
-def preprocess(buildings, size=30, compactness=0.2, islands=True, loops=2):
+def preprocess(
+    buildings, size=30, compactness=0.2, islands=True, loops=2, verbose=True
+):
     """
     Preprocesses building geometry to eliminate additional structures being single features.
 
@@ -341,6 +343,8 @@ def preprocess(buildings, size=30, compactness=0.2, islands=True, loops=2):
         other structures (share 100% of exterior boundary).
     loops : int (default 2)
         number of loops
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -351,7 +355,7 @@ def preprocess(buildings, size=30, compactness=0.2, islands=True, loops=2):
     blg = blg.explode()
     blg.reset_index(drop=True, inplace=True)
     for loop in range(0, loops):
-        print("Loop", loop + 1, f"out of {loops}.")
+        print("Loop", loop + 1, f"out of {loops}.") if verbose else None
         blg.reset_index(inplace=True, drop=True)
         blg["mm_uid"] = range(len(blg))
         sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
@@ -365,7 +369,10 @@ def preprocess(buildings, size=30, compactness=0.2, islands=True, loops=2):
         delete = []
 
         for row in tqdm(
-            blg.itertuples(), total=blg.shape[0], desc="Identifying changes"
+            blg.itertuples(),
+            total=blg.shape[0],
+            desc="Identifying changes",
+            disable=not verbose,
         ):
             if size:
                 if row.geometry.area < size:
@@ -433,7 +440,9 @@ def preprocess(buildings, size=30, compactness=0.2, islands=True, loops=2):
                         else:
                             join[uid] = [row.mm_uid]
 
-        for key in tqdm(join, total=len(join), desc="Changing geometry"):
+        for key in tqdm(
+            join, total=len(join), desc="Changing geometry", disable=not verbose
+        ):
             selection = blg[blg["mm_uid"] == key]
             if not selection.empty:
                 geoms = [selection.iloc[0].geometry]
@@ -581,6 +590,7 @@ def snap_street_network_edge(
     tessellation=None,
     tolerance_edge=None,
     edge=None,
+    verbose=True,
 ):
     """
     Fix street network before performing :class:`momepy.Blocks`.
@@ -606,6 +616,8 @@ def snap_street_network_edge(
     edge : Polygon
         edge of area covered by morphological tessellation (same as ``limit`` in
         :py:class:`momepy.Tessellation`)
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -827,24 +839,28 @@ def snap_street_network_edge(
 
     network = edges.copy()
     # generating spatial index (rtree)
-    print("Building R-tree for network...")
+    print("Building spatial index for network...") if verbose else None
     sindex = network.sindex
-    print("Building R-tree for buildings...")
+    print("Building spatial index for buildings...") if verbose else None
     bindex = buildings.sindex
 
     def _get_geometry():
         if edge is not None:
             return edge.boundary
         if tessellation is not None:
-            print("Dissolving tesselation...")
+            print("Dissolving tesselation...") if verbose else None
             return tessellation.geometry.unary_union.boundary
         return None
 
     geometry = _get_geometry()
 
-    print("Snapping...")
     # iterating over each street segment
-    for idx, line in tqdm(network.geometry.iteritems(), total=network.shape[0]):
+    for idx, line in tqdm(
+        network.geometry.iteritems(),
+        total=network.shape[0],
+        desc="Snapping",
+        disable=not verbose,
+    ):
 
         l_coords = list(line.coords)
         # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont intersect itself
@@ -886,7 +902,7 @@ def snap_street_network_edge(
                 if geometry is not None:
                     extend_line_edge(tolerance_edge, idx)
         else:
-            print("Something went wrong.")
+            print("Something went wrong.") if verbose else None
 
     return network
 
