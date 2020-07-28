@@ -450,7 +450,7 @@ def preprocess(buildings, size=30, compactness=0.2, islands=True, loops=2):
     return blg[buildings.columns]
 
 
-def network_false_nodes(gdf, tolerance=0.1, precision=3):
+def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
     """
     Check topology of street network and eliminate nodes of degree 2 by joining
     affected edges.
@@ -464,6 +464,8 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
     precision : int
         rounding parameter in estimating uniqueness of two points based on their
         coordinates
+    verbose : bool
+        if True, shows progress bars in loops
 
     Returns
     -------
@@ -480,11 +482,19 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
     elif isinstance(streets, gpd.GeoSeries):
         series = True
 
+    if verbose:
+        disable_tqdm = False
+    else:
+        disable_tqdm = True
+
     sindex = streets.sindex
 
     false_xy = []
     for line in tqdm(
-        streets.geometry, total=streets.shape[0], desc="Identifying false points"
+        streets.geometry,
+        total=streets.shape[0],
+        desc="Identifying false points",
+        disable=disable_tqdm,
     ):
         l_coords = list(line.coords)
         start = Point(l_coords[0]).buffer(tolerance)
@@ -526,7 +536,9 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
     geoms = streets
     idx = max(geoms.index) + 1
 
-    for x, y, point in tqdm(zip(x, y, points), desc="Merging segments"):
+    for x, y, point in tqdm(
+        zip(x, y, points), desc="Merging segments", total=len(x), disable=disable_tqdm
+    ):
 
         if GPD_08:
             predic = geoms.sindex.query(point, predicate="intersects")
