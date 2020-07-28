@@ -213,7 +213,7 @@ class TestShape:
             Point(self.df_streets.geometry[0].coords[-1])
         )
         check = euclidean / self.df_streets.geometry[0].length
-        assert self.df_streets["lin"][0] == check
+        assert self.df_streets["lin"][0] == approx(check, rel=1e-6)
 
     def test_CompactnessWeightedAxis(self):
         self.df_buildings["cwa"] = mm.CompactnessWeightedAxis(self.df_buildings).series
