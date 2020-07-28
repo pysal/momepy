@@ -421,7 +421,9 @@ class Tessellation:
             )
             subselection = list(tessellation.iloc[list(set(tree))].index)
         else:
-            for poly in tqdm(geometry_cut, total=(len(geometry_cut)), verbose=verbose):
+            for poly in tqdm(
+                geometry_cut, total=(len(geometry_cut)), disable=not verbose
+            ):
                 # find approximate matches with r-tree, then precise matches from those approximate ones
                 possible_matches_index = list(sindex.intersection(poly.bounds))
                 possible_matches = tessellation.iloc[possible_matches_index]
