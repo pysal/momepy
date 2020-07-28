@@ -1156,24 +1156,20 @@ class Linearity:
     Examples
     --------
     >>> streets_df['linearity'] = momepy.Linearity(streets_df).series
-    100%|██████████| 33/33 [00:00<00:00, 1737.64it/s]
     >>> streets_df['linearity'][0]
     1.0
     """
 
     def __init__(self, gdf):
         self.gdf = gdf
-        # define empty list for results
-        results_list = []
 
-        lenghts = gdf.geometry.length
-        # fill new column with the value of area, iterating over rows one by one
-        # TODO use math instead of shapely points
-        for index, geom in tqdm(gdf.geometry.iteritems(), total=gdf.shape[0]):
-            euclidean = Point(geom.coords[0]).distance(Point(geom.coords[-1]))
-            results_list.append(euclidean / lenghts.loc[index])
+        euclidean = gdf.geometry.apply(
+            lambda geom: self._dist(geom.coords[0], geom.coords[-1])
+        )
+        self.series = euclidean / gdf.geometry.length
 
-        self.series = pd.Series(results_list, index=gdf.index)
+    def _dist(self, a, b):
+        return math.hypot(b[0] - a[0], b[1] - a[1])
 
 
 class CompactnessWeightedAxis:
