@@ -47,6 +47,8 @@ class Orientation:
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -63,7 +65,7 @@ class Orientation:
     41.05146788287027
     """
 
-    def __init__(self, gdf):
+    def __init__(self, gdf, verbose=True):
         self.gdf = gdf
         # define empty list for results
         results_list = []
@@ -71,7 +73,7 @@ class Orientation:
         def _dist(a, b):
             return math.hypot(b[0] - a[0], b[1] - a[1])
 
-        for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
+        for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
             if geom.type in ["Polygon", "MultiPolygon", "LinearRing"]:
                 # TODO: vectorize once minimum_rotated_rectangle is in geopandas from pygeos
                 bbox = list(geom.minimum_rotated_rectangle.exterior.coords)
@@ -140,7 +142,6 @@ class SharedWallsRatio:
     Examples
     --------
     >>> buildings_df['swr'] = momepy.SharedWallsRatio(buildings_df).series
-    100%|██████████| 144/144 [00:00<00:00, 648.72it/s]
     >>> buildings_df['swr'][10]
     0.3424804411228673
     """
@@ -224,7 +225,6 @@ class StreetAlignment:
     Examples
     --------
     >>> buildings_df['street_alignment'] = momepy.StreetAlignment(buildings_df, streets_df, 'orientation', 'nID', 'nID').series
-    100%|██████████| 144/144 [00:00<00:00, 529.94it/s]
     >>> buildings_df['street_alignment'][0]
     0.29073888476702336
     """
@@ -272,7 +272,7 @@ class StreetAlignment:
             right_network_id = "mm_nis"
         self.right_network_id = right[right_network_id]
 
-        right["_orientation"] = Orientation(right).series
+        right["_orientation"] = Orientation(right, verbose=False).series
 
         merged = left[[left_network_id, orientations]].merge(
             right[[right_network_id, "_orientation"]],
@@ -328,7 +328,6 @@ class CellAlignment:
     Examples
     --------
     >>> buildings_df['cell_alignment'] = momepy.CellAlignment(buildings_df, tessellation_df, 'bl_orient', 'tes_orient', 'uID', 'uID').series
-    100%|██████████| 144/144 [00:00<00:00, 799.09it/s]
     >>> buildings_df['cell_alignment'][0]
     0.8795123936951939
 
@@ -391,6 +390,8 @@ class Alignment:
         (can be calculated using :class:`momepy.Orientation`)
     unique_id : str
         name of the column with unique id used as ``spatial_weights`` index.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -413,7 +414,7 @@ class Alignment:
     18.299481296455237
     """
 
-    def __init__(self, gdf, spatial_weights, unique_id, orientations):
+    def __init__(self, gdf, spatial_weights, unique_id, orientations, verbose=True):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -429,7 +430,9 @@ class Alignment:
         data = gdf.set_index(unique_id)[orientations]
 
         # iterating over rows one by one
-        for index, orient in tqdm(data.iteritems(), total=data.shape[0]):
+        for index, orient in tqdm(
+            data.iteritems(), total=data.shape[0], disable=not verbose
+        ):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -464,6 +467,8 @@ class NeighborDistance:
         spatial weights matrix based on unique_id
     unique_id : str
         name of the column with unique id used as ``spatial_weights`` index.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -484,7 +489,7 @@ class NeighborDistance:
     29.18589019096464
     """
 
-    def __init__(self, gdf, spatial_weights, unique_id):
+    def __init__(self, gdf, spatial_weights, unique_id, verbose=True):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -494,7 +499,9 @@ class NeighborDistance:
         data = gdf.set_index(unique_id).geometry
 
         # iterating over rows one by one
-        for index, geom in tqdm(data.iteritems(), total=data.shape[0]):
+        for index, geom in tqdm(
+            data.iteritems(), total=data.shape[0], disable=not verbose
+        ):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index]
                 building_neighbours = data.loc[neighbours]
@@ -533,6 +540,8 @@ class MeanInterbuildingDistance:
         based on ``spatial_weights``
     order : int
         Order of Queen contiguity
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -564,7 +573,13 @@ class MeanInterbuildingDistance:
     """
 
     def __init__(
-        self, gdf, spatial_weights, unique_id, spatial_weights_higher=None, order=3
+        self,
+        gdf,
+        spatial_weights,
+        unique_id,
+        spatial_weights_higher=None,
+        order=3,
+        verbose=True,
     ):
         self.gdf = gdf
         self.sw = spatial_weights
@@ -572,10 +587,8 @@ class MeanInterbuildingDistance:
 
         if spatial_weights_higher is None:
             print(
-                "Generating weights matrix (Queen) of {} topological steps...".format(
-                    order
-                )
-            )
+                f"Generating weights matrix (Queen) of {order} topological steps..."
+            ) if verbose else None
             self.order = order
             from momepy import sw_high
 
@@ -598,7 +611,7 @@ class MeanInterbuildingDistance:
 
         print("Computing mean interbuilding distances...")
         # iterate over objects to get the final values
-        for uid in tqdm(data.index, total=data.shape[0]):
+        for uid in tqdm(data.index, total=data.shape[0], disable=not verbose):
             # define neighbours based on weights matrix defining analysis area
             if uid in spatial_weights_higher.neighbors.keys():
                 neighbours = spatial_weights_higher.neighbors[uid].copy()
@@ -713,6 +726,8 @@ class BuildingAdjacency:
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on gdf. It is to denote adjacent buildings (note: based on unique ID).
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -732,14 +747,14 @@ class BuildingAdjacency:
     >>> buildings_df['adjacency'] = momepy.BuildingAdjacency(buildings_df, swh, unique_id='uID').series
     Calculating spatial weights...
     Spatial weights ready...
-    100%|██████████| 144/144 [00:00<00:00, 9301.73it/s]
-    Calculating adjacency...
-    100%|██████████| 144/144 [00:00<00:00, 335.55it/s]
+    Calculating adjacency: 100%|██████████| 144/144 [00:00<00:00, 335.55it/s]
     >>> buildings_df['adjacency'][10]
     0.23809523809523808
     """
 
-    def __init__(self, gdf, spatial_weights_higher, unique_id, spatial_weights=None):
+    def __init__(
+        self, gdf, spatial_weights_higher, unique_id, spatial_weights=None, verbose=True
+    ):
         self.gdf = gdf
         self.sw_higher = spatial_weights_higher
         self.id = gdf[unique_id]
@@ -747,19 +762,23 @@ class BuildingAdjacency:
 
         # if weights matrix is not passed, generate it from gdf
         if spatial_weights is None:
-            print("Calculating spatial weights...")
+            print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 
             spatial_weights = Queen.from_dataframe(
                 gdf, silence_warnings=True, ids=unique_id
             )
-            print("Spatial weights ready...")
+            print("Spatial weights ready...") if verbose else None
 
         self.sw = spatial_weights
         patches = dict(zip(gdf[unique_id], spatial_weights.component_labels))
 
-        print("Calculating adjacency...")
-        for uid in tqdm(self.id, total=gdf.shape[0]):
+        for uid in tqdm(
+            self.id,
+            total=gdf.shape[0],
+            disable=not verbose,
+            desc="Calculating adjacency",
+        ):
             if uid in spatial_weights_higher.neighbors.keys():
                 neighbours = spatial_weights_higher.neighbors[uid].copy()
                 if neighbours:
@@ -797,6 +816,8 @@ class Neighbors:
         name of the column with unique id used as ``spatial_weights`` index
     weighted : bool (default False)
         if ``True``, number of neighbours will be divided by the perimeter of object, to return relative value
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -822,7 +843,7 @@ class Neighbors:
     4
     """
 
-    def __init__(self, gdf, spatial_weights, unique_id, weighted=False):
+    def __init__(self, gdf, spatial_weights, unique_id, weighted=False, verbose=True):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -830,7 +851,9 @@ class Neighbors:
 
         neighbours = []
         for index, geom in tqdm(
-            gdf.set_index(unique_id).geometry.iteritems(), total=gdf.shape[0]
+            gdf.set_index(unique_id).geometry.iteritems(),
+            total=gdf.shape[0],
+            disable=not verbose,
         ):
             if index in spatial_weights.neighbors.keys():
                 if weighted is True:

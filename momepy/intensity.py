@@ -210,6 +210,8 @@ class Courtyards:
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on objects. It is to denote adjacent buildings (note: based on integer index).
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -226,7 +228,7 @@ class Courtyards:
     Calculating spatial weights...
     """
 
-    def __init__(self, gdf, block_id=None, spatial_weights=None):
+    def __init__(self, gdf, block_id=None, spatial_weights=None, verbose=True):
         if block_id is not None:
             warnings.warn(
                 "block_id is deprecated and will be removed in v0.4.", FutureWarning,
@@ -238,7 +240,7 @@ class Courtyards:
 
         # if weights matrix is not passed, generate it from objects
         if spatial_weights is None:
-            print("Calculating spatial weights...")
+            print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 
             spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
@@ -247,7 +249,7 @@ class Courtyards:
         # dict to store nr of courtyards for each uID
         courtyards = {}
         components = pd.Series(spatial_weights.component_labels, index=gdf.index)
-        for index in tqdm(gdf.index, total=gdf.shape[0]):
+        for index in tqdm(gdf.index, total=gdf.shape[0], disable=not verbose):
             # if the id is already present in courtyards, continue (avoid repetition)
             if index in courtyards:
                 continue
@@ -292,6 +294,8 @@ class BlocksCount:
         name of the column with unique id used as ``spatial_weights`` index
     weigted : bool, default True
         return value weighted by the analysed area (``True``) or pure count (``False``)
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -314,7 +318,9 @@ class BlocksCount:
     >>> tessellation_df['blocks_within_4'] = mm.BlocksCount(tessellation_df, 'bID', sw4, 'uID').series
     """
 
-    def __init__(self, gdf, block_id, spatial_weights, unique_id, weighted=True):
+    def __init__(
+        self, gdf, block_id, spatial_weights, unique_id, weighted=True, verbose=True
+    ):
 
         self.gdf = gdf
         self.sw = spatial_weights
@@ -333,7 +339,7 @@ class BlocksCount:
         if weighted is True:
             areas = data.geometry.area
 
-        for index in tqdm(data.index, total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 neighbours.append(index)
@@ -389,6 +395,8 @@ class Reached:
         of reached elements.
     values : str (default None)
         the name of the objects dataframe column with values used for calculations
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -424,6 +432,7 @@ class Reached:
         spatial_weights=None,
         mode="count",
         values=None,
+        verbose=True,
     ):
         self.left = left
         self.right = right
@@ -447,7 +456,9 @@ class Reached:
             count = collections.Counter(right[right_id])
 
         # iterating over rows one by one
-        for index, lid in tqdm(left[left_id].iteritems(), total=left.shape[0]):
+        for index, lid in tqdm(
+            left[left_id].iteritems(), total=left.shape[0], disable=not verbose
+        ):
             if spatial_weights is None:
                 ids = [lid]
             else:
@@ -515,6 +526,8 @@ class NodeDensity:
         name of the column of right gdf containing id of starting node
     node_end : str (default 'node_end')
         name of the column of right gdf containing id of ending node
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -550,6 +563,7 @@ class NodeDensity:
         node_degree=None,
         node_start="node_start",
         node_end="node_end",
+        verbose=True,
     ):
         self.left = left
         self.right = right
@@ -565,7 +579,7 @@ class NodeDensity:
         lengths = right.geometry.length
 
         # iterating over rows one by one
-        for index in tqdm(left.index, total=left.shape[0]):
+        for index in tqdm(left.index, total=left.shape[0], disable=not verbose):
 
             neighbours = list(spatial_weights.neighbors[index])
             neighbours.append(index)
@@ -610,6 +624,8 @@ class Density:
     areas :  str, list, np.array, pd.Series (optional)
         the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If None,
         gdf.geometry.area will be used.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -631,7 +647,9 @@ class Density:
     >>> tessellation_df['floor_area_dens'] = mm.Density(tessellation_df, 'floor_area', sw, 'uID').series
     """
 
-    def __init__(self, gdf, values, spatial_weights, unique_id, areas=None):
+    def __init__(
+        self, gdf, values, spatial_weights, unique_id, areas=None, verbose=True
+    ):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -656,7 +674,7 @@ class Density:
 
         data = data.set_index(unique_id)
         # iterating over rows one by one
-        for index in tqdm(data.index, total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:

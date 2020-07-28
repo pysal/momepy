@@ -83,6 +83,8 @@ class Tessellation:
         distance for negative buffer to generate space between adjacent polygons (if geometry type of gdf is (Multi)Polygon).
     segment : float (default 0.5)
         maximum distance between points after discretization
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -134,7 +136,7 @@ class Tessellation:
     queen_corners is currently experimental method only and can cause errors.
     """
 
-    def __init__(self, gdf, unique_id, limit, shrink=0.4, segment=0.5):
+    def __init__(self, gdf, unique_id, limit, shrink=0.4, segment=0.5, verbose=True):
         self.gdf = gdf
         self.id = gdf[unique_id]
         self.limit = limit
@@ -148,7 +150,7 @@ class Tessellation:
             xoff=-centre[0], yoff=-centre[1]
         )
 
-        print("Inward offset...")
+        print("Inward offset...") if verbose else None
         mask = objects.type.isin(["Polygon", "MultiPolygon"])
         objects.loc[mask, "geometry"] = objects[mask].buffer(
             -shrink, cap_style=2, join_style=2
@@ -157,11 +159,11 @@ class Tessellation:
         objects = objects.explode()
         objects = objects.set_index(unique_id)
 
-        print("Discretization...")
+        print("Discretization...") if verbose else None
         objects["geometry"] = objects["geometry"].apply(self._densify, segment=segment)
 
-        print("Generating input point array...")
-        points, ids = self._point_array(objects)
+        print("Generating input point array...") if verbose else None
+        points, ids = self._point_array(objects, verbose=verbose)
 
         # add convex hull buffered large distance to eliminate infinity issues
         series = gpd.GeoSeries(limit, crs=gdf.crs).translate(
@@ -174,13 +176,15 @@ class Tessellation:
             points.append(hull_array[i])
             ids.append(-1)
 
-        print("Generating Voronoi diagram...")
+        print("Generating Voronoi diagram...") if verbose else None
         voronoi_diagram = Voronoi(np.array(points))
 
-        print("Generating GeoDataFrame...")
-        regions_gdf = self._regions(voronoi_diagram, unique_id, ids, crs=gdf.crs)
+        print("Generating GeoDataFrame...") if verbose else None
+        regions_gdf = self._regions(
+            voronoi_diagram, unique_id, ids, crs=gdf.crs, verbose=verbose
+        )
 
-        print("Dissolving Voronoi polygons...")
+        print("Dissolving Voronoi polygons...") if verbose else None
         morphological_tessellation = regions_gdf[[unique_id, "geometry"]].dissolve(
             by=unique_id, as_index=False
         )
@@ -190,7 +194,7 @@ class Tessellation:
         ].translate(xoff=centre[0], yoff=centre[1])
 
         morphological_tessellation, sindex = self._cut(
-            morphological_tessellation, limit, unique_id
+            morphological_tessellation, limit, unique_id, verbose=verbose
         )
         self.sindex = sindex
 
@@ -330,7 +334,7 @@ class Tessellation:
         except Exception:
             return poly
 
-    def _point_array(self, objects):
+    def _point_array(self, objects, verbose):
         """
         Returns lists of points and ids based on geometry and index.
         """
@@ -338,7 +342,9 @@ class Tessellation:
         ids = []
         mask = objects.type.isin(["Polygon", "MultiPolygon"])
         objects.loc[mask, "geometry"] = objects[mask].boundary
-        for idx, poly_ext in tqdm(objects.geometry.iteritems(), total=objects.shape[0]):
+        for idx, poly_ext in tqdm(
+            objects.geometry.iteritems(), total=objects.shape[0], disable=not verbose
+        ):
             if poly_ext.type == "MultiLineString":
                 for line in poly_ext.geoms:
                     point_coords = line.coords
@@ -356,7 +362,7 @@ class Tessellation:
                 raise Exception("Boundary type is {}".format(poly_ext.type))
         return points, ids
 
-    def _regions(self, voronoi_diagram, unique_id, ids, crs):
+    def _regions(self, voronoi_diagram, unique_id, ids, crs, verbose):
         """
         Generate GeoDataFrame of Voronoi regions from scipy.spatial.Voronoi.
         """
@@ -373,7 +379,9 @@ class Tessellation:
 
         # convert vertices to Polygons
         polygons = []
-        for region in tqdm(regions.vertices, desc="Vertices to Polygons"):
+        for region in tqdm(
+            regions.vertices, desc="Vertices to Polygons", disable=not verbose
+        ):
             if -1 not in region:
                 polygons.append(Polygon(voronoi_diagram.vertices[region]))
             else:
@@ -392,7 +400,7 @@ class Tessellation:
         regions_gdf.crs = crs
         return regions_gdf
 
-    def _cut(self, tessellation, limit, unique_id):
+    def _cut(self, tessellation, limit, unique_id, verbose):
         """
         Cut tessellation by the limit (Multi)Polygon.
 
@@ -413,7 +421,9 @@ class Tessellation:
             )
             subselection = list(tessellation.iloc[list(set(tree))].index)
         else:
-            for poly in tqdm(geometry_cut, total=(len(geometry_cut))):
+            for poly in tqdm(
+                geometry_cut, total=(len(geometry_cut)), disable=not verbose
+            ):
                 # find approximate matches with r-tree, then precise matches from those approximate ones
                 possible_matches_index = list(sindex.intersection(poly.bounds))
                 possible_matches = tessellation.iloc[possible_matches_index]
@@ -431,7 +441,9 @@ class Tessellation:
         mask = tessellation.type.isin(["MultiPolygon", "GeometryCollection"])
 
         for idx, intersection in tqdm(
-            tessellation[mask].geometry.iteritems(), total=len(tessellation[mask]),
+            tessellation[mask].geometry.iteritems(),
+            total=len(tessellation[mask]),
+            disable=not verbose,
         ):
             if intersection.type == "MultiPolygon":
                 areas = {}
@@ -499,6 +511,8 @@ class Blocks:
     unique_id : str
         name of the column with unique id. If there is none, it could be generated by :func:`momepy.unique_id`.
         This should be the same for cells and buildings, id's should match.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -545,7 +559,9 @@ class Blocks:
 
     """
 
-    def __init__(self, tessellation, edges, buildings, id_name, unique_id):
+    def __init__(
+        self, tessellation, edges, buildings, id_name, unique_id, verbose=True
+    ):
         self.tessellation = tessellation
         self.edges = edges
         self.buildings = buildings
@@ -559,18 +575,20 @@ class Blocks:
 
         cells_copy = tessellation[[unique_id, "geometry"]].copy()
 
-        print("Buffering streets...")
+        print("Buffering streets...") if verbose else None
         street_buff = edges.copy()
         street_buff["geometry"] = street_buff.buffer(0.1)
 
-        print("Generating spatial index...")
+        print("Generating spatial index...") if verbose else None
         streets_index = street_buff.sindex
 
-        print("Difference...")
+        print("Difference...") if verbose else None
         new_geom = []
 
         for ix, cell in tqdm(
-            cells_copy.geometry.iteritems(), total=cells_copy.shape[0]
+            cells_copy.geometry.iteritems(),
+            total=cells_copy.shape[0],
+            disable=not verbose,
         ):
             if GPD_08:
                 possible_matches_index = streets_index.query(cell)
@@ -579,7 +597,7 @@ class Blocks:
             possible_matches = street_buff.iloc[possible_matches_index]
             new_geom.append(cell.difference(possible_matches.unary_union))
 
-        print("Defining adjacency...")
+        print("Defining adjacency...") if verbose else None
         blocks_gdf = gpd.GeoDataFrame(geometry=new_geom)
         blocks_gdf = blocks_gdf.explode().reset_index(drop=True)
 
@@ -589,7 +607,9 @@ class Blocks:
 
         patches = {}
         jID = 1
-        for idx in tqdm(blocks_gdf.index, total=blocks_gdf.shape[0]):
+        for idx in tqdm(
+            blocks_gdf.index, total=blocks_gdf.shape[0], disable=not verbose
+        ):
 
             # if the id is already present in courtyards, continue (avoid repetition)
             if idx in patches:
@@ -615,33 +635,33 @@ class Blocks:
 
         blocks_gdf["patch"] = blocks_gdf.index.map(patches)
 
-        print("Defining street-based blocks...")
+        print("Defining street-based blocks...") if verbose else None
         blocks_single = blocks_gdf.dissolve(by="patch")
         blocks_single.crs = buildings.crs
 
         blocks_single["geometry"] = blocks_single.buffer(0.1)
 
-        print("Defining block ID...")  # street based
+        print("Defining block ID...") if verbose else None  # street based
         blocks_single[id_name] = range(len(blocks_single))
 
-        print("Generating centroids...")
+        print("Generating centroids...") if verbose else None
         buildings_c = buildings.copy()
         buildings_c["geometry"] = buildings_c.representative_point()  # make points
 
-        print("Spatial join...")
+        print("Spatial join...") if verbose else None
         centroids_tempID = gpd.sjoin(
             buildings_c, blocks_single, how="left", op="intersects"
         )
 
         tempID_to_uID = centroids_tempID[[unique_id, id_name]]
 
-        print("Attribute join (tesselation)...")
+        print("Attribute join (tesselation)...") if verbose else None
         cells_copy = cells_copy.merge(tempID_to_uID, on=unique_id, how="left")
 
-        print("Generating blocks...")
+        print("Generating blocks...") if verbose else None
         blocks = cells_copy.dissolve(by=id_name)
 
-        print("Multipart to singlepart...")
+        print("Multipart to singlepart...") if verbose else None
         blocks = blocks.explode()
         blocks.reset_index(inplace=True, drop=True)
 
@@ -653,7 +673,9 @@ class Blocks:
         # if polygon is within another one, delete it
         sindex = blocks.sindex
         if not GPD_08:
-            for idx, geom in tqdm(blocks.geometry.iteritems(), total=blocks.shape[0]):
+            for idx, geom in tqdm(
+                blocks.geometry.iteritems(), total=blocks.shape[0], disable=not verbose
+            ):
                 possible_matches = list(sindex.intersection(geom.bounds))
                 possible_matches.remove(idx)
                 possible = blocks.iloc[possible_matches]
@@ -677,20 +699,20 @@ class Blocks:
         )
         bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
 
-        print("Attribute join (buildings)...")
+        print("Attribute join (buildings)...") if verbose else None
         buildings_m = buildings[[unique_id]].merge(
             bl_ID_to_uID, on=unique_id, how="left"
         )
         self.buildings_id = buildings_m[id_name]
 
-        print("Attribute join (tesselation)...")
+        print("Attribute join (tesselation)...") if verbose else None
         cells_m = tessellation[[unique_id]].merge(
             bl_ID_to_uID, on=unique_id, how="left"
         )
         self.tessellation_id = cells_m[id_name]
 
 
-def get_network_id(left, right, network_id, min_size=100):
+def get_network_id(left, right, network_id, min_size=100, verbose=True):
     """
     Snap each element (preferably building) to the closest street network segment, saves its id.
 
@@ -709,6 +731,8 @@ def get_network_id(left, right, network_id, min_size=100):
         min_size should be a vaule such that if you build a box centered in each
         building centroid with edges of size ``2*min_size``, you know a priori that at least one
         segment is intersected with the box.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -732,17 +756,22 @@ def get_network_id(left, right, network_id, min_size=100):
         right["mm_nid"] = network_id
         network_id = "mm_nid"
 
-    print("Generating centroids...")
+    print("Generating centroids...") if verbose else None
     buildings_c = left.copy()
 
     buildings_c["geometry"] = buildings_c.centroid  # make centroids
 
-    print("Generating rtree...")
+    print("Generating rtree...") if verbose else None
     idx = right.sindex
 
     # TODO: use sjoin nearest once done
     result = []
-    for p in tqdm(buildings_c.geometry, total=buildings_c.shape[0], desc="Snapping"):
+    for p in tqdm(
+        buildings_c.geometry,
+        total=buildings_c.shape[0],
+        desc="Snapping",
+        disable=not verbose,
+    ):
         pbox = (p.x - min_size, p.y - min_size, p.x + min_size, p.y + min_size)
         hits = list(idx.intersection(pbox))
         d = INFTY
@@ -769,7 +798,7 @@ def get_network_id(left, right, network_id, min_size=100):
     return series
 
 
-def get_node_id(objects, nodes, edges, node_id, edge_id):
+def get_node_id(objects, nodes, edges, node_id, edge_id, verbose=True):
     """
     Snap each building to closest street network node on the closest network edge.
 
@@ -788,6 +817,8 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
         and end points of each segment. Start and endpoints are default outcome of :func:`momepy.nx_to_gdf`.
     node_id : str, list, np.array, pd.Series (default None)
         the name of the nodes dataframe column, ``np.array``, or ``pd.Series`` with unique id
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -804,7 +835,7 @@ def get_node_id(objects, nodes, edges, node_id, edge_id):
     results_list = []
     centroids = objects.centroid
     for eid, centroid in tqdm(
-        zip(objects[edge_id], centroids), total=objects.shape[0],
+        zip(objects[edge_id], centroids), total=objects.shape[0], disable=not verbose
     ):
         if np.isnan(eid):
             results_list.append(np.nan)

@@ -44,6 +44,8 @@ class Range:
         between 0 and 100, inclusive. The order of the elements is not important.
     **kwargs : keyword arguments
         optional arguments for ``scipy.stats.iqr``
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -71,7 +73,16 @@ class Range:
 
     """
 
-    def __init__(self, gdf, values, spatial_weights, unique_id, rng=(0, 100), **kwargs):
+    def __init__(
+        self,
+        gdf,
+        values,
+        spatial_weights,
+        unique_id,
+        rng=(0, 100),
+        verbose=True,
+        **kwargs
+    ):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -88,7 +99,7 @@ class Range:
         data = data.set_index(unique_id)[values]
 
         results_list = []
-        for index in tqdm(data.index, total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -127,6 +138,8 @@ class Theil:
     rng : Two-element sequence containing floats in range of [0,100], optional
         Percentiles over which to compute the range. Each must be
         between 0 and 100, inclusive. The order of the elements is not important.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -150,7 +163,7 @@ class Theil:
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
     """
 
-    def __init__(self, gdf, values, spatial_weights, unique_id, rng=None):
+    def __init__(self, gdf, values, spatial_weights, unique_id, rng=None, verbose=True):
         try:
             from inequality.theil import Theil
         except ImportError:
@@ -174,7 +187,7 @@ class Theil:
             from momepy import limit_range
 
         results_list = []
-        for index in tqdm(data.index, total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -227,6 +240,8 @@ class Simpson:
         treat values as categories (will not use ``binning``)
     categories : list-like (default None)
         list of categories. If None ``values.unique()`` is used.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
     **classification_kwds : dict
         Keyword arguments for classification scheme
         For details see `mapclassify documentation <https://pysal.org/mapclassify>`_.
@@ -272,6 +287,7 @@ class Simpson:
         inverse=False,
         categorical=False,
         categories=None,
+        verbose=True,
         **classification_kwds
     ):
         if not categorical:
@@ -318,7 +334,7 @@ class Simpson:
             self.bins = categories
 
         results_list = []
-        for index in tqdm(data.index, total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -424,6 +440,8 @@ class Gini:
     rng : Two-element sequence containing floats in range of [0,100], optional
         Percentiles over which to compute the range. Each must be
         between 0 and 100, inclusive. The order of the elements is not important.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -447,7 +465,7 @@ class Gini:
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
     """
 
-    def __init__(self, gdf, values, spatial_weights, unique_id, rng=None):
+    def __init__(self, gdf, values, spatial_weights, unique_id, rng=None, verbose=True):
         try:
             from inequality.gini import Gini
         except ImportError:
@@ -477,7 +495,7 @@ class Gini:
             from momepy import limit_range
 
         results_list = []
-        for index in tqdm(data.index, total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -524,6 +542,8 @@ class Shannon:
         treat values as categories (will not use binning)
     categories : list-like (default None)
         list of categories. If None values.unique() is used.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
     **classification_kwds : dict
         Keyword arguments for classification scheme
         For details see `mapclassify documentation <https://pysal.org/mapclassify>`_.
@@ -563,6 +583,7 @@ class Shannon:
         binning="HeadTailBreaks",
         categorical=False,
         categories=None,
+        verbose=True,
         **classification_kwds
     ):
         if not categorical:
@@ -607,7 +628,7 @@ class Shannon:
             self.bins = categories
 
         results_list = []
-        for index in tqdm(data.index, total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
@@ -708,6 +729,8 @@ class Unique:
         spatial weights matrix
     unique_id : str
         name of the column with unique id used as ``spatial_weights`` index
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -727,11 +750,9 @@ class Unique:
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
     >>> tessellation_df['cluster_unique'] = mm.Unique(tessellation_df, 'cluster', sw, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
-
-
     """
 
-    def __init__(self, gdf, values, spatial_weights, unique_id):
+    def __init__(self, gdf, values, spatial_weights, unique_id, verbose=True):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -746,7 +767,7 @@ class Unique:
         data = data.set_index(unique_id)[values]
 
         results_list = []
-        for index in tqdm(data.index, total=data.shape[0]):
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
