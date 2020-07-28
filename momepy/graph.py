@@ -72,7 +72,7 @@ def _meshedness(graph):
     return (e - v + 1) / (2 * v - 5)
 
 
-def meshedness(graph, radius=5, name="meshedness", distance=None):
+def meshedness(graph, radius=5, name="meshedness", distance=None, verbose=True):
     """
     Calculates meshedness for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``.
@@ -102,6 +102,8 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
         Use specified edge data key as distance.
         For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -117,7 +119,7 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
     netx = graph.copy()
 
     if radius:
-        for n in tqdm(netx, total=len(netx)):
+        for n in tqdm(netx, total=len(netx), disable=not verbose):
             sub = nx.ego_graph(
                 netx, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
@@ -130,7 +132,7 @@ def meshedness(graph, radius=5, name="meshedness", distance=None):
     return _meshedness(netx)
 
 
-def mean_node_dist(graph, name="meanlen", length="mm_len"):
+def mean_node_dist(graph, name="meanlen", length="mm_len", verbose=True):
     """
     Calculates mean distance to neighbouring nodes.
 
@@ -145,6 +147,8 @@ def mean_node_dist(graph, name="meanlen", length="mm_len"):
         calculated attribute name
     length : str, optional
         name of attribute of segment length (geographical)
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -158,7 +162,7 @@ def mean_node_dist(graph, name="meanlen", length="mm_len"):
     """
     netx = graph.copy()
 
-    for n, nbrs in tqdm(netx.adj.items(), total=len(netx)):
+    for n, nbrs in tqdm(netx.adj.items(), total=len(netx), disable=not verbose):
         lengths = []
         for nbr, keydict in nbrs.items():
             for key, eattr in keydict.items():
@@ -191,6 +195,7 @@ def cds_length(
     degree="degree",
     length="mm_len",
     distance=None,
+    verbose=True,
 ):
     """
     Calculates length of cul-de-sacs for subgraph around each node if radius is set, or for
@@ -220,6 +225,8 @@ def cds_length(
         Use specified edge data key as distance.
         For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
 
     Returns
@@ -243,7 +250,7 @@ def cds_length(
             netx[u][v][k]["cdsbool"] = False
 
     if radius:
-        for n in tqdm(netx, total=len(netx)):
+        for n in tqdm(netx, total=len(netx), disable=not verbose):
             sub = nx.ego_graph(
                 netx, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
@@ -263,7 +270,9 @@ def _mean_node_degree(graph, degree):
     return np.mean(list(dict(graph.nodes(degree)).values()))
 
 
-def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=None):
+def mean_node_degree(
+    graph, radius=5, name="mean_nd", degree="degree", distance=None, verbose=True
+):
     """
     Calculates mean node degree for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``.
@@ -288,6 +297,8 @@ def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=
         Use specified edge data key as distance.
         For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -303,7 +314,7 @@ def mean_node_degree(graph, radius=5, name="mean_nd", degree="degree", distance=
     netx = graph.copy()
 
     if radius:
-        for n in tqdm(netx, total=len(netx)):
+        for n in tqdm(netx, total=len(netx), disable=not verbose):
             sub = nx.ego_graph(
                 netx, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
@@ -326,7 +337,14 @@ def _proportion(graph, degree):
 
 
 def proportion(
-    graph, radius=5, three=None, four=None, dead=None, degree="degree", distance=None
+    graph,
+    radius=5,
+    three=None,
+    four=None,
+    dead=None,
+    degree="degree",
+    distance=None,
+    verbose=True,
 ):
     """
     Calculates the proportion of intersection types for subgraph around each node if radius is set, or for
@@ -355,6 +373,8 @@ def proportion(
         Use specified edge data key as distance.
         For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -374,7 +394,7 @@ def proportion(
     netx = graph.copy()
 
     if radius:
-        for n in tqdm(netx, total=len(netx)):
+        for n in tqdm(netx, total=len(netx), disable=not verbose):
             sub = nx.ego_graph(
                 netx, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
@@ -409,7 +429,7 @@ def _cyclomatic(graph):
     return e - v + 1
 
 
-def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
+def cyclomatic(graph, radius=5, name="cyclomatic", distance=None, verbose=True):
     """
     Calculates cyclomatic complexity for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``.
@@ -438,6 +458,8 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
         Use specified edge data key as distance.
         For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -453,7 +475,7 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None):
     netx = graph.copy()
 
     if radius:
-        for n in tqdm(netx, total=len(netx)):
+        for n in tqdm(netx, total=len(netx), disable=not verbose):
             sub = nx.ego_graph(
                 netx, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
@@ -475,7 +497,9 @@ def _edge_node_ratio(graph):
     return e / v
 
 
-def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
+def edge_node_ratio(
+    graph, radius=5, name="edge_node_ratio", distance=None, verbose=True
+):
     """
     Calculates edge / node ratio for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``.
@@ -504,6 +528,8 @@ def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
         Use specified edge data key as distance.
         For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -519,7 +545,7 @@ def edge_node_ratio(graph, radius=5, name="edge_node_ratio", distance=None):
     netx = graph.copy()
 
     if radius:
-        for n in tqdm(netx, total=len(netx)):
+        for n in tqdm(netx, total=len(netx), disable=not verbose):
             sub = nx.ego_graph(
                 netx, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
@@ -543,7 +569,7 @@ def _gamma(graph):
     return e / (3 * (v - 2))  # save value calulated for subgraph to node
 
 
-def gamma(graph, radius=5, name="gamma", distance=None):
+def gamma(graph, radius=5, name="gamma", distance=None, verbose=True):
     """
     Calculates connectivity gamma index for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``.
@@ -572,6 +598,8 @@ def gamma(graph, radius=5, name="gamma", distance=None):
         Use specified edge data key as distance.
         For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -588,7 +616,7 @@ def gamma(graph, radius=5, name="gamma", distance=None):
     netx = graph.copy()
 
     if radius:
-        for n in tqdm(netx, total=len(netx)):
+        for n in tqdm(netx, total=len(netx), disable=not verbose):
             sub = nx.ego_graph(
                 netx, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
@@ -780,7 +808,13 @@ def local_closeness_centrality(
 
 
 def closeness_centrality(
-    graph, name="closeness", weight="mm_len", radius=None, distance=None, **kwargs
+    graph,
+    name="closeness",
+    weight="mm_len",
+    radius=None,
+    distance=None,
+    verbose=True,
+    **kwargs
 ):
     """
     Calculates the closeness centrality for nodes.
@@ -813,6 +847,8 @@ def closeness_centrality(
         Use specified edge data key as distance.
         For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n during ego_graph generation.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
     **kwargs
         kwargs for ``networkx.closeness_centrality``
 
@@ -829,7 +865,7 @@ def closeness_centrality(
 
     if radius:
         lengraph = len(netx)
-        for n in tqdm(netx, total=len(netx)):
+        for n in tqdm(netx, total=len(netx), disable=not verbose):
             sub = nx.ego_graph(
                 netx, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
@@ -852,6 +888,7 @@ def betweenness_centrality(
     radius=None,
     distance=None,
     normalized=False,
+    verbose=True,
     **kwargs
 ):
     """
@@ -905,6 +942,8 @@ def betweenness_centrality(
     normalized : bool, optional
         If True the betweenness values are normalized by `2/((n-1)(n-2))`,
         where n is the number of nodes in subgraph.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
     **kwargs
         kwargs for ``networkx.betweenness_centrality`` or ``networkx.edge_betweenness_centrality``
 
@@ -933,7 +972,7 @@ def betweenness_centrality(
             G.add_edge(u, v, **data)
 
     if radius:
-        for n in tqdm(G, total=len(G)):
+        for n in tqdm(G, total=len(G), disable=not verbose):
             sub = nx.ego_graph(
                 G, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
@@ -1082,6 +1121,7 @@ def straightness_centrality(
     name="straightness",
     radius=None,
     distance=None,
+    verbose=True,
 ):
     """
     Calculates the straightness centrality for nodes.
@@ -1112,6 +1152,8 @@ def straightness_centrality(
         Use specified edge data key as distance.
         For example, setting ``distance=’weight’`` will use the edge ``weight`` to
         measure the distance from the node n during ego_graph generation.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Returns
     -------
@@ -1125,7 +1167,7 @@ def straightness_centrality(
     netx = graph.copy()
 
     if radius:
-        for n in tqdm(netx, total=len(netx)):
+        for n in tqdm(netx, total=len(netx), disable=not verbose):
             sub = nx.ego_graph(
                 netx, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
@@ -1211,6 +1253,7 @@ def subgraph(
     gamma=True,
     local_closeness=True,
     closeness_weight=None,
+    verbose=True,
 ):
     """
     Calculates all subgraph-based characters.
@@ -1256,6 +1299,8 @@ def subgraph(
     closeness_weight : str, optional
       Use the specified edge attribute as the edge distance in shortest
       path calculations in closeness centrality algorithm
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
 
     Returns
@@ -1270,7 +1315,7 @@ def subgraph(
 
     netx = graph.copy()
 
-    for n in tqdm(netx, total=len(netx)):
+    for n in tqdm(netx, total=len(netx), disable=not verbose):
         sub = nx.ego_graph(
             netx, n, radius=radius, distance=distance
         )  # define subgraph of steps=radius

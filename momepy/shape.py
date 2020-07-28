@@ -130,7 +130,6 @@ class FractalDimension:
     Examples
     --------
     >>> buildings_df['fractal'] = momepy.FractalDimension(buildings_df, 'area', 'peri').series
-    100%|██████████| 144/144 [00:00<00:00, 3928.09it/s]
     >>> buildings_df.fractal[0]
     1.0726778567038908
     """
@@ -423,7 +422,6 @@ class CircularCompactness:
     Examples
     --------
     >>> buildings_df['circ_comp'] = momepy.CircularCompactness(buildings_df, 'area').series
-    100%|██████████| 144/144 [00:00<00:00, 2498.75it/s]
     >>> buildings_df['circ_comp'][0]
     0.572145421828038
     """
@@ -732,6 +730,8 @@ class Corners:
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -751,7 +751,7 @@ class Corners:
 
     """
 
-    def __init__(self, gdf):
+    def __init__(self, gdf, verbose=True):
         self.gdf = gdf
 
         # define empty list for results
@@ -772,7 +772,7 @@ class Corners:
             return False
 
         # fill new column with the value of area, iterating over rows one by one
-        for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
+        for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
             corners = 0  # define empty variables
             points = list(geom.exterior.coords)  # get points of a shape
             stop = len(points) - 1  # define where to stop
@@ -823,6 +823,8 @@ class Squareness:
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -839,7 +841,7 @@ class Squareness:
     3.7075816043359864
     """
 
-    def __init__(self, gdf):
+    def __init__(self, gdf, verbose=True):
         self.gdf = gdf
         # define empty list for results
         results_list = []
@@ -854,7 +856,7 @@ class Squareness:
             return angle
 
         # fill new column with the value of area, iterating over rows one by one
-        for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
+        for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
             if geom.type == "Polygon":
                 angles = []
                 points = list(geom.exterior.coords)  # get points of a shape
@@ -932,7 +934,6 @@ class EquivalentRectangularIndex:
     Examples
     --------
     >>> buildings_df['eri'] = momepy.EquivalentRectangularIndex(buildings_df, 'area', 'peri').series
-    100%|██████████| 144/144 [00:00<00:00, 895.57it/s]
     >>> buildings_df['eri'][0]
     0.7879229963118455
     """
@@ -1034,6 +1035,8 @@ class CentroidCorners:
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -1056,7 +1059,7 @@ class CentroidCorners:
     3.0810634305400177
     """
 
-    def __init__(self, gdf):
+    def __init__(self, gdf, verbose=True):
         self.gdf = gdf
         # define empty list for results
         results_list = []
@@ -1077,7 +1080,7 @@ class CentroidCorners:
             return False
 
         # iterating over rows one by one
-        for geom in tqdm(gdf.geometry, total=gdf.shape[0]):
+        for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
             distances = []  # set empty list of distances
             centroid = geom.centroid  # define centroid
             points = list(geom.exterior.coords)  # get points of a shape
@@ -1145,6 +1148,8 @@ class Linearity:
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
@@ -1161,7 +1166,7 @@ class Linearity:
     1.0
     """
 
-    def __init__(self, gdf):
+    def __init__(self, gdf, verbose=True):
         self.gdf = gdf
         # define empty list for results
         results_list = []
@@ -1169,7 +1174,9 @@ class Linearity:
         lenghts = gdf.geometry.length
         # fill new column with the value of area, iterating over rows one by one
         # TODO use math instead of shapely points
-        for index, geom in tqdm(gdf.geometry.iteritems(), total=gdf.shape[0]):
+        for index, geom in tqdm(
+            gdf.geometry.iteritems(), total=gdf.shape[0], disable=not verbose
+        ):
             euclidean = Point(geom.coords[0]).distance(Point(geom.coords[-1]))
             results_list.append(euclidean / lenghts.loc[index])
 
