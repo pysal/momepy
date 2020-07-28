@@ -406,13 +406,13 @@ class Tessellation:
 
         ADD: add option to delete everything outside of limit. Now it keeps it.
         """
-        print("Preparing limit for edge resolving...")
+        print("Preparing limit for edge resolving...") if verbose else None
         geometry_cut = _split_lines(limit, 100)
 
-        print("Building R-tree...")
+        print("Building R-tree...") if verbose else None
         sindex = tessellation.sindex
         # find the points that intersect with each subpolygon and add them to points_within_geometry
-        print("Identifying edge cells...")
+        print("Identifying edge cells...") if verbose else None
         to_cut = pd.DataFrame()
         if GPD_08:
             inp, tree = sindex.query_bulk(
@@ -434,30 +434,30 @@ class Tessellation:
             to_cut = to_cut.drop_duplicates(subset=[unique_id])
             subselection = list(to_cut.index)
 
-        print("Cutting...")
+        print("Cutting...") if verbose else None
         tessellation.loc[subselection, "geometry"] = tessellation.loc[
             subselection
         ].intersection(limit)
         mask = tessellation.type.isin(["MultiPolygon", "GeometryCollection"])
-
-        for idx, intersection in tqdm(
-            tessellation[mask].geometry.iteritems(),
-            total=len(tessellation[mask]),
-            disable=not verbose,
-        ):
-            if intersection.type == "MultiPolygon":
-                areas = {}
-                for p, i in enumerate(intersection):
-                    area = intersection[p].area
-                    areas[p] = area
-                maximal = max(areas.items(), key=operator.itemgetter(1))[0]
-                tessellation.loc[idx, "geometry"] = intersection[maximal]
-            elif intersection.type == "GeometryCollection":
-                for geom in list(intersection.geoms):
-                    if geom.type != "Polygon":
-                        pass
-                    else:
-                        tessellation.loc[idx, "geometry"] = geom
+        if mask.any():
+            for idx, intersection in tqdm(
+                tessellation[mask].geometry.iteritems(),
+                total=len(tessellation[mask]),
+                disable=not verbose,
+            ):
+                if intersection.type == "MultiPolygon":
+                    areas = {}
+                    for p, i in enumerate(intersection):
+                        area = intersection[p].area
+                        areas[p] = area
+                    maximal = max(areas.items(), key=operator.itemgetter(1))[0]
+                    tessellation.loc[idx, "geometry"] = intersection[maximal]
+                elif intersection.type == "GeometryCollection":
+                    for geom in list(intersection.geoms):
+                        if geom.type != "Polygon":
+                            pass
+                        else:
+                            tessellation.loc[idx, "geometry"] = geom
         return tessellation, sindex
 
     def _check_result(self, tesselation, orig_gdf, unique_id):
