@@ -482,11 +482,6 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
     elif isinstance(streets, gpd.GeoSeries):
         series = True
 
-    if verbose:
-        disable_tqdm = False
-    else:
-        disable_tqdm = True
-
     sindex = streets.sindex
 
     false_xy = []
@@ -494,7 +489,7 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
         streets.geometry,
         total=streets.shape[0],
         desc="Identifying false points",
-        disable=disable_tqdm,
+        disable=not verbose,
     ):
         l_coords = list(line.coords)
         start = Point(l_coords[0]).buffer(tolerance)
@@ -537,7 +532,7 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
     idx = max(geoms.index) + 1
 
     for x, y, point in tqdm(
-        zip(x, y, points), desc="Merging segments", total=len(x), disable=disable_tqdm
+        zip(x, y, points), desc="Merging segments", total=len(x), disable=not verbose
     ):
 
         if GPD_08:
