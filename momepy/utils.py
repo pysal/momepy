@@ -483,8 +483,9 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
     sindex = streets.sindex
 
     false_xy = []
-    print("Identifying false points...")
-    for line in tqdm(streets.geometry, total=streets.shape[0]):
+    for line in tqdm(
+        streets.geometry, total=streets.shape[0], desc="Identifying false points"
+    ):
         l_coords = list(line.coords)
         start = Point(l_coords[0]).buffer(tolerance)
         end = Point(l_coords[-1]).buffer(tolerance)
@@ -525,24 +526,19 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
     geoms = streets
     idx = max(geoms.index) + 1
 
-    print("Merging segments...")
-    for x, y, point in tqdm(zip(x, y, points)):
+    for x, y, point in tqdm(zip(x, y, points), desc="Merging segments"):
 
         if GPD_08:
             predic = geoms.sindex.query(point, predicate="intersects")
-            matches = geoms.iloc[predic].index
+            matches = geoms.iloc[predic].geometry
         else:
             pos = list(geoms.sindex.intersection(point.bounds))
             mat = geoms.iloc[pos]
-            matches = mat[mat.intersects(point)].index
+            matches = mat[mat.intersects(point)].geometry
 
         try:
-            snap = shapely.ops.snap(
-                geoms.geometry.loc[matches[0]],
-                geoms.geometry.loc[matches[1]],
-                tolerance,
-            )
-            multiline = snap.union(geoms.geometry.loc[matches[1]])
+            snap = shapely.ops.snap(matches.iloc[0], matches.iloc[1], tolerance,)
+            multiline = snap.union(matches.iloc[1])
             linestring = shapely.ops.linemerge(multiline)
             if linestring.type == "LineString":
                 if series:
@@ -558,7 +554,7 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3):
                         geoms.loc[idx, "geometry"] = g
                     idx += 1
 
-            geoms = geoms.drop(matches)
+            geoms = geoms.drop(matches.index)
         except (IndexError, ValueError):
             import warnings
 
