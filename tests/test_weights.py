@@ -17,10 +17,10 @@ class TestWeights:
         from_sw = mm.sw_high(2, gdf=None, weights=first_order)
         from_df = mm.sw_high(2, gdf=self.df_tessellation)
         rook = mm.sw_high(2, gdf=self.df_tessellation, contiguity="rook")
-        check = [133, 134, 111, 112, 113, 114, 115, 121, 125]
-        assert from_sw.neighbors[0] == check
-        assert from_df.neighbors[0] == check
-        assert rook.neighbors[0] == check
+        check = sorted([133, 134, 111, 112, 113, 114, 115, 121, 125])
+        assert sorted(from_sw.neighbors[0]) == check
+        assert sorted(from_df.neighbors[0]) == check
+        assert sorted(rook.neighbors[0]) == check
 
         with pytest.raises(AttributeError):
             mm.sw_high(2, gdf=None, weights=None)
