@@ -154,6 +154,7 @@ Documentation contents
    user_guide/intro
    API reference <api>
    Contributing <contributing>
+   changelog
    references
 
 
