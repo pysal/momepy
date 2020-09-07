@@ -17,4 +17,4 @@ dependencies:
   - matplotlib
   - jupyter
   - inequality
-  - black
+  - black=19
