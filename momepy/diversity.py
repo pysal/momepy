@@ -372,7 +372,7 @@ def simpson_diversity(data, bins=None, categorical=False, categories=None):
         \\lambda=\\sum_{i=1}^{R} p_{i}^{2}
 
     Formula adapted from https://gist.github.com/martinjc/f227b447791df8c90568.
-    
+
     Parameters
     ----------
     data : GeoDataFrame
@@ -388,7 +388,7 @@ def simpson_diversity(data, bins=None, categorical=False, categories=None):
     -------
     float
         Simpson's diversity index
-    
+
     See also
     --------
     momepy.Simpson : Calculates the Simpson\'s diversity index of values within neighbours
@@ -661,7 +661,7 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
         \\lambda=\\sum_{i=1}^{R} p_{i}^{2}
 
     Formula adapted from https://gist.github.com/audy/783125
-    
+
     Parameters
     ----------
     data : GeoDataFrame
@@ -677,7 +677,7 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
     -------
     float
         Shannon's diversity index
-    
+
     See also
     --------
     momepy.Shannon : Calculates the Shannon's diversity index of values within neighbours

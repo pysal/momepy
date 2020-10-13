@@ -13,3 +13,4 @@ dependencies:
   - pysal
   - osmnx
   - black
+  - pygeos

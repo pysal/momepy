@@ -106,19 +106,43 @@ class TestUtils:
         test_file_path2 = mm.datasets.get_path("tests")
         self.false_network = gpd.read_file(test_file_path2, layer="network")
         self.false_network["vals"] = range(len(self.false_network))
-        fixed = mm.network_false_nodes(self.false_network)
+        with pytest.warns(FutureWarning):
+            fixed = mm.network_false_nodes(self.false_network)
         assert len(fixed) == 56
         assert isinstance(fixed, gpd.GeoDataFrame)
         assert self.false_network.crs.equals(fixed.crs)
         assert sorted(self.false_network.columns) == sorted(fixed.columns)
-        fixed_series = mm.network_false_nodes(self.false_network.geometry)
+        with pytest.warns(FutureWarning):
+            fixed_series = mm.network_false_nodes(self.false_network.geometry)
         assert len(fixed_series) == 56
         assert isinstance(fixed_series, gpd.GeoSeries)
         assert self.false_network.crs.equals(fixed_series.crs)
         with pytest.raises(TypeError):
             mm.network_false_nodes(list())
         multiindex = self.false_network.explode()
-        fixed_multiindex = mm.network_false_nodes(multiindex)
+        with pytest.warns(FutureWarning):
+            fixed_multiindex = mm.network_false_nodes(multiindex)
+        assert len(fixed_multiindex) == 56
+        assert isinstance(fixed, gpd.GeoDataFrame)
+        assert sorted(self.false_network.columns) == sorted(fixed.columns)
+
+    def test_remove_false_nodes(self):
+        test_file_path2 = mm.datasets.get_path("tests")
+        self.false_network = gpd.read_file(test_file_path2, layer="network")
+        self.false_network["vals"] = range(len(self.false_network))
+        fixed = mm.remove_false_nodes(self.false_network)
+        assert len(fixed) == 56
+        assert isinstance(fixed, gpd.GeoDataFrame)
+        assert self.false_network.crs.equals(fixed.crs)
+        assert sorted(self.false_network.columns) == sorted(fixed.columns)
+        fixed_series = mm.remove_false_nodes(self.false_network.geometry)
+        assert len(fixed_series) == 56
+        assert isinstance(fixed_series, gpd.GeoSeries)
+        # assert self.false_network.crs.equals(fixed_series.crs) GeoPandas 0.8 BUG
+        with pytest.raises(TypeError):
+            mm.network_false_nodes(list())
+        multiindex = self.false_network.explode()
+        fixed_multiindex = mm.remove_false_nodes(multiindex)
         assert len(fixed_multiindex) == 56
         assert isinstance(fixed, gpd.GeoDataFrame)
         assert sorted(self.false_network.columns) == sorted(fixed.columns)
