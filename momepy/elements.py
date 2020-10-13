@@ -3,20 +3,16 @@
 
 # elements.py
 # generating derived elements (street edge, block)
-import operator
-from distutils.version import LooseVersion
-
 import geopandas as gpd
 import libpysal
 import numpy as np
+import pygeos
 import pandas as pd
 import shapely
 from scipy.spatial import Voronoi
 from shapely.geometry import MultiPolygon, Point, Polygon
-from shapely.wkt import loads
+from shapely.geometry.base import BaseGeometry
 from tqdm import tqdm
-
-GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 __all__ = ["buffered_limit", "Tessellation", "Blocks", "get_network_id", "get_node_id"]
 
@@ -100,8 +96,6 @@ class Tessellation:
         used shrink value
     segment : float
         used segment value
-    sindex : rtree spatial index
-        spatial index of tessellation
     collapsed : list
         list of unique_id's of collapsed features (if there are some)
     multipolygons : list
@@ -136,7 +130,9 @@ class Tessellation:
     queen_corners is currently experimental method only and can cause errors.
     """
 
-    def __init__(self, gdf, unique_id, limit, shrink=0.4, segment=0.5, verbose=True):
+    def __init__(
+        self, gdf, unique_id, limit, shrink=0.4, segment=0.5, verbose=True,
+    ):
         self.gdf = gdf
         self.id = gdf[unique_id]
         self.limit = limit
@@ -145,58 +141,65 @@ class Tessellation:
 
         objects = gdf.copy()
 
-        centre = self._get_centre(objects)
+        if isinstance(limit, (gpd.GeoSeries, gpd.GeoDataFrame)):
+            limit = limit.unary_union
+        if isinstance(limit, BaseGeometry):
+            limit = pygeos.from_shapely(limit)
+
+        bounds = pygeos.bounds(limit)
+        centre_x = (bounds[0] + bounds[2]) / 2
+        centre_y = (bounds[1] + bounds[3]) / 2
         objects["geometry"] = objects["geometry"].translate(
-            xoff=-centre[0], yoff=-centre[1]
+            xoff=-centre_x, yoff=-centre_y
         )
 
-        print("Inward offset...") if verbose else None
-        mask = objects.type.isin(["Polygon", "MultiPolygon"])
-        objects.loc[mask, "geometry"] = objects[mask].buffer(
-            -shrink, cap_style=2, join_style=2
-        )
+        if shrink != 0:
+            print("Inward offset...") if verbose else None
+            mask = objects.type.isin(["Polygon", "MultiPolygon"])
+            objects.loc[mask, "geometry"] = objects[mask].buffer(
+                -shrink, cap_style=2, join_style=2
+            )
 
-        objects = objects.explode()
+        objects = objects.reset_index(drop=True).explode()
         objects = objects.set_index(unique_id)
 
-        print("Discretization...") if verbose else None
-        objects["geometry"] = objects["geometry"].apply(self._densify, segment=segment)
-
         print("Generating input point array...") if verbose else None
-        points, ids = self._point_array(objects, verbose=verbose)
+        points, ids = self._dense_point_array(
+            objects.geometry.values.data, distance=segment, index=objects.index
+        )
 
         # add convex hull buffered large distance to eliminate infinity issues
         series = gpd.GeoSeries(limit, crs=gdf.crs).translate(
-            xoff=-centre[0], yoff=-centre[1]
+            xoff=-centre_x, yoff=-centre_y
         )
-        hull = series.geometry[0].convex_hull.buffer(300)
-        hull = self._densify(hull, 20)
-        hull_array = np.array(hull.boundary.coords).tolist()
-        for i, a in enumerate(hull_array):
-            points.append(hull_array[i])
-            ids.append(-1)
+        width = bounds[2] - bounds[0]
+        leng = bounds[3] - bounds[1]
+        hull = series.geometry[[0]].buffer(2 * width if width > leng else 2 * leng)
+        # pygeos bug fix
+        if (hull.type == "MultiPolygon").any():
+            hull = hull.explode()
+        hull_p, hull_ix = self._dense_point_array(
+            hull.values.data, distance=pygeos.length(limit) / 100, index=hull.index
+        )
+        points = np.append(points, hull_p, axis=0)
+        ids = ids + ([-1] * len(hull_ix))
 
         print("Generating Voronoi diagram...") if verbose else None
         voronoi_diagram = Voronoi(np.array(points))
 
         print("Generating GeoDataFrame...") if verbose else None
-        regions_gdf = self._regions(
-            voronoi_diagram, unique_id, ids, crs=gdf.crs, verbose=verbose
-        )
+        regions_gdf = self._regions(voronoi_diagram, unique_id, ids, crs=gdf.crs)
 
         print("Dissolving Voronoi polygons...") if verbose else None
         morphological_tessellation = regions_gdf[[unique_id, "geometry"]].dissolve(
             by=unique_id, as_index=False
         )
 
+        morphological_tessellation = gpd.clip(morphological_tessellation, series)
+
         morphological_tessellation["geometry"] = morphological_tessellation[
             "geometry"
-        ].translate(xoff=centre[0], yoff=centre[1])
-
-        morphological_tessellation, sindex = self._cut(
-            morphological_tessellation, limit, unique_id, verbose=verbose
-        )
-        self.sindex = sindex
+        ].translate(xoff=centre_x, yoff=centre_y)
 
         self._check_result(morphological_tessellation, gdf, unique_id=unique_id)
 
@@ -229,7 +232,9 @@ class Tessellation:
             coords = cell.exterior.coords
             for i in coords:
                 point = Point(i)
-                possible_matches_index = list(self.sindex.intersection(point.bounds))
+                possible_matches_index = list(
+                    self.tessellation.sindex.intersection(point.bounds)
+                )
                 possible_matches = tessellation.iloc[possible_matches_index]
                 precise_matches = sum(possible_matches.intersects(point))
                 if precise_matches > 2:
@@ -299,166 +304,52 @@ class Tessellation:
                 tessellation.loc[ix, "geometry"] = newgeom
         return tessellation
 
-    def _get_centre(self, gdf):
+    def _dense_point_array(self, geoms, distance, index):
         """
-        Returns centre coords of gdf.
+        geoms - array of pygeos lines
         """
-        bounds = gdf.total_bounds
-        centre_x = (bounds[0] + bounds[2]) / 2
-        centre_y = (bounds[1] + bounds[3]) / 2
-        return centre_x, centre_y
-
-    # densify geometry before Voronoi tesselation
-    def _densify(self, geom, segment):
-        """
-        Returns densified geoemtry with segments no longer than `segment`.
-        """
-        # TODO: use pygeos interpolate once in shapely
-        # temporary solution for readthedocs fail. - cannot mock osgeo
-        try:
-            from osgeo import ogr
-        except ModuleNotFoundError:
-            import warnings
-
-            warnings.warn("OGR (GDAL) is required.")
-
-        poly = geom
-        wkt = geom.wkt  # shapely Polygon to wkt
-        geom = ogr.CreateGeometryFromWkt(wkt)  # create ogr geometry
-        geom.Segmentize(segment)  # densify geometry by 2 metres
-        geom.CloseRings()  # fix for GDAL 2.4.1 bug
-        wkt2 = geom.ExportToWkt()  # ogr geometry to wkt
-        try:
-            new = loads(wkt2)  # wkt to shapely Polygon
-            return new
-        except Exception:
-            return poly
-
-    def _point_array(self, objects, verbose):
-        """
-        Returns lists of points and ids based on geometry and index.
-        """
-        points = []
+        # interpolate lines to represent them as points for Voronoi
+        points = np.empty((0, 2))
         ids = []
-        mask = objects.type.isin(["Polygon", "MultiPolygon"])
-        objects.loc[mask, "geometry"] = objects[mask].boundary
-        for idx, poly_ext in tqdm(
-            objects.geometry.iteritems(), total=objects.shape[0], disable=not verbose
-        ):
-            if poly_ext.type == "MultiLineString":
-                for line in poly_ext.geoms:
-                    point_coords = line.coords
-                    row_array = np.array(point_coords[:-1]).tolist()
-                    for i, a in enumerate(row_array):
-                        points.append(row_array[i])
-                        ids.append(idx)
-            elif poly_ext.type == "LineString":
-                point_coords = poly_ext.coords
-                row_array = np.array(point_coords[:-1]).tolist()
-                for i, a in enumerate(row_array):
-                    points.append(row_array[i])
-                    ids.append(idx)
-            else:
-                raise Exception("Boundary type is {}".format(poly_ext.type))
+
+        if pygeos.get_type_id(geoms[0]) not in [1, 2, 5]:
+            lines = pygeos.boundary(geoms)
+        else:
+            lines = geoms
+        lengths = pygeos.length(lines)
+        for ix, line, length in zip(index, lines, lengths):
+            pts = pygeos.line_interpolate_point(
+                line,
+                np.linspace(0.1, length - 0.1, num=int((length - 0.1) // distance)),
+            )  # .1 offset to keep a gap between two segments
+            points = np.append(points, pygeos.get_coordinates(pts), axis=0)
+            ids += [ix] * len(pts)
+
         return points, ids
 
-    def _regions(self, voronoi_diagram, unique_id, ids, crs, verbose):
+        # here we might also want to append original coordinates of each line
+        # to get a higher precision on the corners
+
+    def _regions(self, voronoi_diagram, unique_id, ids, crs):
         """
         Generate GeoDataFrame of Voronoi regions from scipy.spatial.Voronoi.
         """
-        # generate DataFrame of results
-        regions = pd.DataFrame()
-        regions[unique_id] = ids  # add unique id
-        regions["region"] = voronoi_diagram.point_region  # add region id for each point
-
-        # add vertices of each polygon
-        vertices = []
-        for region in regions.region:
-            vertices.append(voronoi_diagram.regions[region])
-        regions["vertices"] = vertices
-
-        # convert vertices to Polygons
+        vertices = pd.Series(voronoi_diagram.regions).take(voronoi_diagram.point_region)
         polygons = []
-        for region in tqdm(
-            regions.vertices, desc="Vertices to Polygons", disable=not verbose
-        ):
+        for region in vertices:
             if -1 not in region:
-                polygons.append(Polygon(voronoi_diagram.vertices[region]))
+                polygons.append(pygeos.polygons(voronoi_diagram.vertices[region]))
             else:
                 polygons.append(None)
-        # save polygons as geometry column
-        regions["geometry"] = polygons
 
-        # generate GeoDataFrame
-        regions_gdf = gpd.GeoDataFrame(regions.dropna(), geometry="geometry")
-        regions_gdf = regions_gdf.loc[
-            regions_gdf["geometry"].length < 1000000
-        ]  # delete errors
+        regions_gdf = gpd.GeoDataFrame(
+            {unique_id: ids}, geometry=polygons, crs=crs
+        ).dropna()
         regions_gdf = regions_gdf.loc[
             regions_gdf[unique_id] != -1
         ]  # delete hull-based cells
-        regions_gdf.crs = crs
+
         return regions_gdf
-
-    def _cut(self, tessellation, limit, unique_id, verbose):
-        """
-        Cut tessellation by the limit (Multi)Polygon.
-
-        ADD: add option to delete everything outside of limit. Now it keeps it.
-        """
-        print("Preparing limit for edge resolving...") if verbose else None
-        geometry_cut = _split_lines(limit, 100)
-
-        print("Building R-tree...") if verbose else None
-        sindex = tessellation.sindex
-        # find the points that intersect with each subpolygon and add them to points_within_geometry
-        print("Identifying edge cells...") if verbose else None
-        to_cut = pd.DataFrame()
-        if GPD_08:
-            inp, tree = sindex.query_bulk(
-                gpd.array.from_shapely([g for g in geometry_cut.geoms]),
-                predicate="intersects",
-            )
-            subselection = list(tessellation.iloc[list(set(tree))].index)
-        else:
-            for poly in tqdm(
-                geometry_cut, total=(len(geometry_cut)), disable=not verbose
-            ):
-                # find approximate matches with r-tree, then precise matches from those approximate ones
-                possible_matches_index = list(sindex.intersection(poly.bounds))
-                possible_matches = tessellation.iloc[possible_matches_index]
-                precise_matches = possible_matches[possible_matches.intersects(poly)]
-                to_cut = to_cut.append(precise_matches)
-
-            # delete duplicates
-            to_cut = to_cut.drop_duplicates(subset=[unique_id])
-            subselection = list(to_cut.index)
-
-        print("Cutting...") if verbose else None
-        tessellation.loc[subselection, "geometry"] = tessellation.loc[
-            subselection
-        ].intersection(limit)
-        mask = tessellation.type.isin(["MultiPolygon", "GeometryCollection"])
-        if mask.any():
-            for idx, intersection in tqdm(
-                tessellation[mask].geometry.iteritems(),
-                total=len(tessellation[mask]),
-                disable=not verbose,
-            ):
-                if intersection.type == "MultiPolygon":
-                    areas = {}
-                    for p, i in enumerate(intersection):
-                        area = intersection[p].area
-                        areas[p] = area
-                    maximal = max(areas.items(), key=operator.itemgetter(1))[0]
-                    tessellation.loc[idx, "geometry"] = intersection[maximal]
-                elif intersection.type == "GeometryCollection":
-                    for geom in list(intersection.geoms):
-                        if geom.type != "Polygon":
-                            pass
-                        else:
-                            tessellation.loc[idx, "geometry"] = geom
-        return tessellation, sindex
 
     def _check_result(self, tesselation, orig_gdf, unique_id):
         """
@@ -590,10 +481,7 @@ class Blocks:
             total=cells_copy.shape[0],
             disable=not verbose,
         ):
-            if GPD_08:
-                possible_matches_index = streets_index.query(cell)
-            else:
-                possible_matches_index = list(streets_index.intersection(cell.bounds))
+            possible_matches_index = streets_index.query(cell)
             possible_matches = street_buff.iloc[possible_matches_index]
             new_geom.append(cell.difference(possible_matches.unary_union))
 
@@ -672,25 +560,11 @@ class Blocks:
 
         # if polygon is within another one, delete it
         sindex = blocks.sindex
-        if not GPD_08:
-            for idx, geom in tqdm(
-                blocks.geometry.iteritems(), total=blocks.shape[0], disable=not verbose
-            ):
-                possible_matches = list(sindex.intersection(geom.bounds))
-                possible_matches.remove(idx)
-                possible = blocks.iloc[possible_matches]
-
-                for geom2 in possible.geometry:
-                    if geom.within(geom2):
-                        blocks.loc[idx, "delete"] = 1
-            if "delete" in blocks.columns:
-                blocks = blocks.drop(list(blocks.loc[blocks["delete"] == 1].index))
-        else:
-            inp, res = sindex.query_bulk(blocks.geometry, predicate="within")
-            res = res[~(inp == res)]
-            mask = np.ones(len(blocks.index), dtype=bool)
-            mask[list(set(res))] = False
-            blocks = blocks.loc[mask]
+        inp, res = sindex.query_bulk(blocks.geometry, predicate="within")
+        res = res[~(inp == res)]
+        mask = np.ones(len(blocks.index), dtype=bool)
+        mask[list(set(res))] = False
+        blocks = blocks.loc[mask]
 
         self.blocks = blocks[[id_name, "geometry"]]
 
