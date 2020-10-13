@@ -1,6 +1,23 @@
 Changelog
 =========
 
+Version 0.4.0 (TBD)
+-------------------
+
+Requirements:
+
+- momepy now requires GeoPandas 0.8 or newer
+- momepy now requires pygeos
+
+API changes:
+
+- ``network_false_nodes`` is now deprecated. Use new ``remove_false_nodes`` instead.
+
+Enhancements:
+
+- New performant algorithm ``remove_false_nodes`` to remove nodes of a degree 2 of a LineString network.
+
+
 Version 0.3.0 (July 29, 2020)
 -----------------------------
 

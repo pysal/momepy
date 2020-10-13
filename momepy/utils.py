@@ -4,7 +4,6 @@
 import collections
 import math
 import operator
-import warnings
 
 import geopandas as gpd
 import libpysal
@@ -312,13 +311,14 @@ def preprocess(
     buildings, size=30, compactness=0.2, islands=True, loops=2, verbose=True
 ):
     """
-    Preprocesses building geometry to eliminate additional structures being single features.
+    Preprocesses building geometry to eliminate additional structures being single
+    features.
 
     Certain data providers (e.g. Ordnance Survey in GB) do not provide building geometry
-    as one feature, but divided into different features depending their level (if they are
-    on ground floor or not - passages, overhangs). Ideally, these features should share
-    one building ID on which they could be dissolved. If this is not the case, series of
-    steps needs to be done to minimize errors in morphological analysis.
+    as one feature, but divided into different features depending their level (if they
+    are on ground floor or not - passages, overhangs). Ideally, these features should
+    share one building ID on which they could be dissolved. If this is not the case,
+    series of steps needs to be done to minimize errors in morphological analysis.
 
     This script attempts to preprocess such geometry based on several condidions:
     If feature area is smaller than set size it will be a) deleted if it does not
@@ -481,6 +481,7 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
     -------
     gdf : GeoDataFrame, GeoSeries
     """
+    import warnings
 
     warnings.warn(
         "network_false_nodes() is deprecated and will be removed in momepy 0.5.0. "
@@ -783,7 +784,8 @@ def snap_street_network_edge(
     # function extending line to closest object within set distance
     def extend_line(tolerance, idx):
         """
-        Extends a line geometry withing GeoDataFrame to snap on itself withing tolerance.
+        Extends a line geometry withing GeoDataFrame to snap on itself withing 
+        tolerance.
         """
         if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
             if len(l_coords) > 2:
@@ -845,10 +847,12 @@ def snap_street_network_edge(
         else:
             return False
 
-    # function extending line to closest object within set distance to edge defined by tessellation
+    # function extending line to closest object within set distance to edge defined by
+    # tessellation
     def extend_line_edge(tolerance, idx):
         """
-        Extends a line geometry withing GeoDataFrame to snap on the boundary of tessellation withing tolerance.
+        Extends a line geometry withing GeoDataFrame to snap on the boundary of 
+        tessellation withing tolerance.
         """
         if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
             if len(l_coords) > 2:
@@ -931,7 +935,8 @@ def snap_street_network_edge(
     ):
 
         l_coords = list(line.coords)
-        # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont intersect itself
+        # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont
+        # intersect itself
         start = Point(l_coords[0])
         end = Point(l_coords[-1])
 
@@ -1000,8 +1005,8 @@ class CheckTessellationInput:
     have to be fixed prior Tessellation. Features which will split will cause issues
     only sometimes, so
     should be checked and fixed if necessary. Features which will collapse could
-    be
-    ignored, but they will have to excluded from next steps of tessellation-based analysis.
+    be ignored, but they will have to excluded from next steps of 
+    tessellation-based analysis.
 
     Parameters
     ----------

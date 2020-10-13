@@ -139,8 +139,6 @@ class TestUtils:
         assert len(fixed_series) == 56
         assert isinstance(fixed_series, gpd.GeoSeries)
         # assert self.false_network.crs.equals(fixed_series.crs) GeoPandas 0.8 BUG
-        with pytest.raises(TypeError):
-            mm.network_false_nodes(list())
         multiindex = self.false_network.explode()
         fixed_multiindex = mm.remove_false_nodes(multiindex)
         assert len(fixed_multiindex) == 56

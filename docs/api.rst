@@ -144,7 +144,7 @@ utilities
    CheckTessellationInput
    gdf_to_nx
    limit_range
-   network_false_nodes
+   remove_false_nodes
    nx_to_gdf
    preprocess
    snap_street_network_edge
