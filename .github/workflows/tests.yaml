@@ -39,12 +39,11 @@ jobs:
 
       - name: Install momepy
         shell: bash -l {0}
-        run: |
-          python setup.py install
+        run: python setup.py install
 
-     - name: Check environment
-       shell: bash -l {0}
-       run: |
+      - name: Check environment
+        shell: bash -l {0}
+        run: |
           conda info
           conda list
 
