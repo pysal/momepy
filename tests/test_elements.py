@@ -1,5 +1,4 @@
 import geopandas as gpd
-import libpysal
 import momepy as mm
 import pytest
 
@@ -22,9 +21,6 @@ class TestElements:
             self.df_streets, "nID", mm.buffered_limit(self.df_streets, 50), segment=5
         ).tessellation
         assert len(bands) == len(self.df_streets)
-        queen_corners = tes.queen_corners(2)
-        w = libpysal.weights.Queen.from_dataframe(queen_corners)
-        assert w.neighbors[14] == [35, 36, 13, 15, 26, 27, 28, 30, 31]
 
     def test_Blocks(self):
         blocks = mm.Blocks(
