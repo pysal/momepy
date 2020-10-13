@@ -40,9 +40,11 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v1
         with:
+          auto-update-conda: true
+          auto-activate-base: false
           activate-environment: test
           environment-file: ${{ matrix.env }}
-          auto-update-conda: true
+          channel-priority: strict
       - shell: bash -l {0}
         run: |
           conda info
