@@ -51,11 +51,10 @@ jobs:
           conda list
 
       - name: Test momepy
-        shell: bash
+        shell: bash -l {0}
         # if: 
         #   tests: true
         run: |
-          source activate test
           pytest -v --cov-config .coveragerc --cov=momepy tests
 
       # - name: Test user guide
