@@ -13,7 +13,7 @@ dependencies:
   - mapclassify
   - pip
   - osmnx
-  - black
+  - black=19.10b0
   - nose
   - inequality
   - pygeos
