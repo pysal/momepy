@@ -1,0 +1,54 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron:  '0 * * * *'
+
+jobs:
+  Linting:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: pre-commit/action@v2.0.0
+
+  Test:
+    needs: Linting
+    name: ${{ matrix.os }}, ${{ matrix.env }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        postgis: [false]
+        dev: [false]
+        env:
+          - ci/envs/stable.yaml
+          - ci/envs/latest.yaml
+          - ci/envs/dev.yaml
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v1
+        with:
+          auto-update-conda: true
+
+      - name: Install Env
+        shell: bash
+        run: |
+          conda env create -f ${{ matrix.env }}
+          conda activate test
+          conda list
+
+      - name: Test momepy
+        shell: bash
+        run: |
+          source activate test
+          pytest -v --cov-config .coveragerc --cov=momepy tests
+
+      - uses: codecov/codecov-action@v1
