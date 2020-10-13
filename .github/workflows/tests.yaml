@@ -38,6 +38,7 @@ jobs:
           channel-priority: strict
       - shell: bash -l {0}
         run: |
+          python setup.py install
           conda info
           conda list
 
