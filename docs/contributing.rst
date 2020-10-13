@@ -192,7 +192,7 @@ Python (PEP8 / black)
 *momepy* follows the `PEP8 <http://www.python.org/dev/peps/pep-0008/>`_ standard
 and uses `Black`_ to ensure a consistent code format throughout the project.
 
-Travis CI will run ``black --check`` and fails if there are files which would be
+CI will run ``black --check`` and fails if there are files which would be
 auto-formatted by ``black``. Therefore, it is helpful before submitting code to
 auto-format your code::
 

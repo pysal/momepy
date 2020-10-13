@@ -1,5 +1,5 @@
 # momepy
-[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Build Status](https://travis-ci.org/martinfleis/momepy.svg?branch=master)](https://travis-ci.org/martinfleis/momepy) [![Build status](https://ci.appveyor.com/api/projects/status/9shp9tcx4qn4528h?svg=true)](https://ci.appveyor.com/project/martinfleis/momepy)
+[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Actions Status](https://github.com/martinfleis/momepy/workflows/Tests/badge.svg)]
 [![codecov](https://codecov.io/gh/martinfleis/momepy/branch/master/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
 
 
