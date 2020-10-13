@@ -1,0 +1,66 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron:  '0 * * * *'
+
+jobs:
+  Test:
+    name: ${{ matrix.os }}, ${{ matrix.env }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        env:
+          - ci/envs/stable.yaml
+          - ci/envs/latest.yaml
+          - ci/envs/dev.yaml
+        include:
+          - env: ci/envs/latest.yaml
+            os: macos-latest
+          - env: ci/envs/latest.yaml
+            os: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v1
+        with:
+          auto-update-conda: true
+          auto-activate-base: false
+          activate-environment: test
+          environment-file: ${{ matrix.env }}
+          channel-priority: strict
+
+      - name: Install momepy
+        shell: bash -l {0}
+        run: python setup.py install
+
+      - name: Check environment
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+
+      - name: Test momepy
+        shell: bash -l {0}
+        run: |
+          pytest -v --color=yes --cov-config .coveragerc --cov=momepy --cov-append --cov-report term-missing --cov-report xml tests
+
+      - name: Test user guide
+        shell: bash -l {0}
+        if: contains(matrix.env, 'latest.yaml') && contains(matrix.os, 'ubuntu')
+        run: |
+          ci/envs/test_user_guide.sh
+
+      - name: Black
+        shell: bash -l {0}
+        run: |
+          black --check .
+
+      - uses: codecov/codecov-action@v1

@@ -17,5 +17,5 @@ dependencies:
   - matplotlib
   - jupyter
   - inequality
-  - black=19
+  - black=19.10b0
   - pygeos

@@ -12,5 +12,5 @@ dependencies:
   - codecov
   - pysal
   - osmnx
-  - black
+  - black=19.10b0
   - pygeos
