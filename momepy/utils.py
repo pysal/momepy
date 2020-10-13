@@ -559,7 +559,6 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
 
             geoms = geoms.drop(matches.index)
         except (IndexError, ValueError):
-            import warnings
 
             warnings.warn(
                 "An exception during merging occured. "
