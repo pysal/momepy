@@ -36,16 +36,22 @@ jobs:
           activate-environment: test
           environment-file: ${{ matrix.env }}
           channel-priority: strict
-      - shell: bash -l {0}
+
+      - name: Install momepy
+        shell: bash -l {0}
         run: |
           python setup.py install
+
+     - name: Check environment
+       shell: bash -l {0}
+       run: |
           conda info
           conda list
 
       - name: Test momepy
         shell: bash -l {0}
         run: |
-          pytest -v --cov-config .coveragerc --cov=momepy tests
+          pytest -v --color=yes --cov-config .coveragerc --cov=momepy --cov-append --cov-report term-missing --cov-report xml tests
 
       - name: Test user guide
         shell: bash -l {0}
