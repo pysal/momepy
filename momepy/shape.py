@@ -393,6 +393,13 @@ def _circle_area(points):
     return math.pi * circ[2] ** 2
 
 
+def _circle_radius(points):
+    if len(points[0]) == 3:
+        points = [x[:2] for x in points]
+    circ = _make_circle(points)
+    return circ[2]
+
+
 class CircularCompactness:
     """
     Calculates compactness index of each object in given GeoDataFrame.
@@ -407,7 +414,8 @@ class CircularCompactness:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is 
+        stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -421,26 +429,24 @@ class CircularCompactness:
 
     Examples
     --------
-    >>> buildings_df['circ_comp'] = momepy.CircularCompactness(buildings_df, 'area').series
-    >>> buildings_df['circ_comp'][0]
+    >>> buildings_df['comp'] = momepy.CircularCompactness(buildings_df, 'area').series
+    >>> buildings_df['comp'][0]
     0.572145421828038
     """
 
     def __init__(self, gdf, areas=None):
         self.gdf = gdf
 
-        gdf = gdf.copy()
-
         if areas is None:
             areas = gdf.geometry.area
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
-        self.areas = gdf[areas]
-        gdf["hull"] = gdf.convex_hull.exterior
-        self.series = gdf[[areas, "hull"]].apply(
-            lambda row: (row[areas]) / (_circle_area(list(row.hull.coords))), axis=1
+        elif isinstance(areas, str):
+            areas = gdf[areas]
+        self.areas = areas
+        hull = gdf.convex_hull.exterior
+        radius = hull.apply(
+            lambda g: _circle_radius(list(g.coords)) if g is not None else None
         )
+        self.series = areas / (np.pi * radius ** 2)
 
 
 class SquareCompactness:
