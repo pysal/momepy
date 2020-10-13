@@ -18,3 +18,4 @@ dependencies:
   - jupyter
   - inequality
   - black=19
+  - pygeos

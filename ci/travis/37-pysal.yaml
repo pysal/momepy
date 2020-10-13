@@ -3,7 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.7
-  - geopandas=0.7
+  - geopandas=0.8
   - libpysal
   - networkx
   - tqdm
@@ -13,3 +13,4 @@ dependencies:
   - pysal
   - osmnx
   - black
+  - pygeos

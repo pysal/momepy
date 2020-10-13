@@ -16,3 +16,4 @@ dependencies:
   - black
   - nose
   - inequality
+  - pygeos

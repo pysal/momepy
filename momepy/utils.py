@@ -1,22 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import collections
 import math
 import operator
-from distutils.version import LooseVersion
 
 import geopandas as gpd
 import libpysal
 import networkx as nx
 import numpy as np
 import pandas as pd
+import pygeos
 import shapely
 from shapely.geometry import LineString, Point
 from tqdm import tqdm
 
 from .shape import CircularCompactness
-
-GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 __all__ = [
     "unique_id",
@@ -25,6 +24,7 @@ __all__ = [
     "limit_range",
     "preprocess",
     "network_false_nodes",
+    "remove_false_nodes",
     "snap_street_network_edge",
     "CheckTessellationInput",
 ]
@@ -311,13 +311,14 @@ def preprocess(
     buildings, size=30, compactness=0.2, islands=True, loops=2, verbose=True
 ):
     """
-    Preprocesses building geometry to eliminate additional structures being single features.
+    Preprocesses building geometry to eliminate additional structures being single
+    features.
 
     Certain data providers (e.g. Ordnance Survey in GB) do not provide building geometry
-    as one feature, but divided into different features depending their level (if they are
-    on ground floor or not - passages, overhangs). Ideally, these features should share
-    one building ID on which they could be dissolved. If this is not the case, series of
-    steps needs to be done to minimize errors in morphological analysis.
+    as one feature, but divided into different features depending their level (if they
+    are on ground floor or not - passages, overhangs). Ideally, these features should
+    share one building ID on which they could be dissolved. If this is not the case,
+    series of steps needs to be done to minimize errors in morphological analysis.
 
     This script attempts to preprocess such geometry based on several condidions:
     If feature area is smaller than set size it will be a) deleted if it does not
@@ -480,6 +481,14 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
     -------
     gdf : GeoDataFrame, GeoSeries
     """
+    import warnings
+
+    warnings.warn(
+        "network_false_nodes() is deprecated and will be removed in momepy 0.5.0. "
+        "Use remove_false_nodes() instead.",
+        FutureWarning,
+    )
+
     if not isinstance(gdf, (gpd.GeoSeries, gpd.GeoDataFrame)):
         raise TypeError(
             "'gdf' should be GeoDataFrame or GeoSeries, got {}".format(type(gdf))
@@ -504,22 +513,8 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
         start = Point(l_coords[0]).buffer(tolerance)
         end = Point(l_coords[-1]).buffer(tolerance)
 
-        if GPD_08:
-            real_first_matches = sindex.query(start, predicate="intersects")
-            real_second_matches = sindex.query(end, predicate="intersects")
-        else:
-            # find out whether ends of the line are connected or not
-            possible_first_index = list(sindex.intersection(start.bounds))
-            possible_first_matches = streets.iloc[possible_first_index]
-            real_first_matches = possible_first_matches[
-                possible_first_matches.intersects(start)
-            ]
-
-            possible_second_index = list(sindex.intersection(end.bounds))
-            possible_second_matches = streets.iloc[possible_second_index]
-            real_second_matches = possible_second_matches[
-                possible_second_matches.intersects(end)
-            ]
+        real_first_matches = sindex.query(start, predicate="intersects")
+        real_second_matches = sindex.query(end, predicate="intersects")
 
         if len(real_first_matches) == 2:
             false_xy.append(
@@ -532,10 +527,7 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
 
     false_unique = list(set(false_xy))
     x, y = zip(*false_unique)
-    if GPD_08:
-        points = gpd.points_from_xy(x, y).buffer(tolerance)
-    else:
-        points = gpd.GeoSeries(gpd.points_from_xy(x, y)).buffer(tolerance)
+    points = gpd.points_from_xy(x, y).buffer(tolerance)
 
     geoms = streets
     idx = max(geoms.index) + 1
@@ -544,13 +536,8 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
         zip(x, y, points), desc="Merging segments", total=len(x), disable=not verbose
     ):
 
-        if GPD_08:
-            predic = geoms.sindex.query(point, predicate="intersects")
-            matches = geoms.iloc[predic].geometry
-        else:
-            pos = list(geoms.sindex.intersection(point.bounds))
-            mat = geoms.iloc[pos]
-            matches = mat[mat.intersects(point)].geometry
+        predic = geoms.sindex.query(point, predicate="intersects")
+        matches = geoms.iloc[predic].geometry
 
         try:
             snap = shapely.ops.snap(matches.iloc[0], matches.iloc[1], tolerance,)
@@ -572,7 +559,6 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
 
             geoms = geoms.drop(matches.index)
         except (IndexError, ValueError):
-            import warnings
 
             warnings.warn(
                 "An exception during merging occured. "
@@ -584,6 +570,85 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
         streets.crs = gdf.crs
         return streets
     return streets
+
+
+def remove_false_nodes(gdf):
+    """
+    Clean topology of existing LineString geometry by removal of nodes of degree 2.
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame, GeoSeries, array of pygeos geometries
+        (Multi)LineString data of street network
+
+    Returns
+    -------
+    gdf : GeoDataFrame, GeoSeries
+    """
+    if isinstance(gdf, (gpd.GeoDataFrame, gpd.GeoSeries)):
+        # explode to avoid MultiLineStrings
+        # double reset index due to the bug in GeoPandas explode
+        df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
+
+        # get underlying pygeos geometry
+        geom = df.geometry.values.data
+    else:
+        geom = gdf
+
+    # extract array of coordinates and number per geometry
+    coords = pygeos.get_coordinates(geom)
+    indices = pygeos.get_num_coordinates(geom)
+
+    # generate a list of start and end coordinates and create point geometries
+    edges = [0]
+    i = 0
+    for ind in indices:
+        ix = i + ind
+        edges.append(ix - 1)
+        edges.append(ix)
+        i = ix
+    edges = edges[:-1]
+    points = pygeos.points(np.unique(coords[edges], axis=0))
+
+    # query LineString geometry to identify points intersecting 2 geometries
+    tree = pygeos.STRtree(geom)
+    inp, res = tree.query_bulk(points, predicate="intersects")
+    unique, counts = np.unique(inp, return_counts=True)
+    merge = res[np.isin(inp, unique[counts == 2])]
+
+    if len(merge) > 0:
+        # filter duplications and create a dictionary with indication of components to
+        # be merged together
+        dups = [item for item, count in collections.Counter(merge).items() if count > 1]
+        split = np.split(merge, len(merge) / 2)
+        components = {}
+        for i, a in enumerate(split):
+            if a[0] in dups or a[1] in dups:
+                if a[0] in components.keys():
+                    i = components[a[0]]
+                elif a[1] in components.keys():
+                    i = components[a[1]]
+            components[a[0]] = i
+            components[a[1]] = i
+
+        # iterate through components and create new geometries
+        new = []
+        for c in set(components.values()):
+            keys = []
+            for item in components.items():
+                if item[1] == c:
+                    keys.append(item[0])
+            new.append(pygeos.line_merge(pygeos.union_all(geom[keys])))
+
+        # remove incorrect geometries and append fixed versions
+        df = df.drop(merge)
+        final = gpd.GeoSeries(new).explode().reset_index(drop=True)
+        if isinstance(gdf, gpd.GeoDataFrame):
+            return df.append(
+                gpd.GeoDataFrame({df.geometry.name: final}, geometry=df.geometry.name),
+                ignore_index=True,
+            )
+        return df.append(final, ignore_index=True)
 
 
 def snap_street_network_edge(
@@ -718,7 +783,8 @@ def snap_street_network_edge(
     # function extending line to closest object within set distance
     def extend_line(tolerance, idx):
         """
-        Extends a line geometry withing GeoDataFrame to snap on itself withing tolerance.
+        Extends a line geometry withing GeoDataFrame to snap on itself withing 
+        tolerance.
         """
         if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
             if len(l_coords) > 2:
@@ -780,10 +846,12 @@ def snap_street_network_edge(
         else:
             return False
 
-    # function extending line to closest object within set distance to edge defined by tessellation
+    # function extending line to closest object within set distance to edge defined by
+    # tessellation
     def extend_line_edge(tolerance, idx):
         """
-        Extends a line geometry withing GeoDataFrame to snap on the boundary of tessellation withing tolerance.
+        Extends a line geometry withing GeoDataFrame to snap on the boundary of 
+        tessellation withing tolerance.
         """
         if Point(l_coords[-2]).distance(Point(l_coords[-1])) <= 0.001:
             if len(l_coords) > 2:
@@ -866,7 +934,8 @@ def snap_street_network_edge(
     ):
 
         l_coords = list(line.coords)
-        # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont intersect itself
+        # network_w = network.drop(idx, axis=0)['geometry']  # ensure that it wont
+        # intersect itself
         start = Point(l_coords[0])
         end = Point(l_coords[-1])
 
@@ -935,8 +1004,8 @@ class CheckTessellationInput:
     have to be fixed prior Tessellation. Features which will split will cause issues
     only sometimes, so
     should be checked and fixed if necessary. Features which will collapse could
-    be
-    ignored, but they will have to excluded from next steps of tessellation-based analysis.
+    be ignored, but they will have to excluded from next steps of 
+    tessellation-based analysis.
 
     Parameters
     ----------
