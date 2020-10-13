@@ -15,8 +15,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        tests: [true]
-        user_guide: [false]
+        # tests: [true]
+        # user_guide: [false]
         env:
           - ci/envs/stable.yaml
           - ci/envs/latest.yaml
@@ -24,16 +24,16 @@ jobs:
         include:
           - env: ci/envs/latest.yaml
             os: macos-latest
-            tests: true
-            user_guide: false
+            # tests: true
+            # user_guide: false
           - env: ci/envs/latest.yaml
             os: windows-latest
-            tests: true
-            user_guide: false
+            # tests: true
+            # user_guide: false
           - env: ci/envs/latest.yaml
             os: ubuntu-latest
-            tests: false
-            user_guide: true
+            # tests: false
+            # user_guide: true
     steps:
       - uses: actions/checkout@v2
 
@@ -52,19 +52,19 @@ jobs:
 
       - name: Test momepy
         shell: bash
-        if: 
-          tests: true
+        # if: 
+        #   tests: true
         run: |
           source activate test
           pytest -v --cov-config .coveragerc --cov=momepy tests
 
-      - name: Test user guide
-        shell: bash
-        if: 
-          user_guide: true
-        run: |
-          source activate test
-          ci/envs/test_user_guide.sh
+      # - name: Test user guide
+      #   shell: bash
+      #   if: 
+      #     user_guide: true
+      #   run: |
+      #     source activate test
+      #     ci/envs/test_user_guide.sh
 
 
       - uses: codecov/codecov-action@v1
