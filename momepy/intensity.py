@@ -341,8 +341,8 @@ class BlocksCount:
 
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
-                neighbours.append(index)
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
 
                 vicinity = data.loc[neighbours]
 
@@ -366,7 +366,8 @@ class Reached:
     Calculates the number of objects reached within neighbours on street network
 
     Number of elements within neighbourhood defined in ``spatial_weights``. If
-    ``spatial_weights`` are ``None``, it will assume topological distance ``0`` (element itself).
+    ``spatial_weights`` are ``None``, it will assume topological distance ``0``
+    (element itself).
     If ``mode='area'``, returns sum of areas of reached elements. Requires unique_id
     of network assigned beforehand (e.g. using :py:func:`momepy.get_network_id`).
 
@@ -462,8 +463,8 @@ class Reached:
             if spatial_weights is None:
                 ids = [lid]
             else:
-                neighbours = list(spatial_weights.neighbors[index])
-                neighbours.append(index)
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
                 ids = left.iloc[neighbours][left_id]
             if mode == "count":
                 counts = []
@@ -581,8 +582,8 @@ class NodeDensity:
         # iterating over rows one by one
         for index in tqdm(left.index, total=left.shape[0], disable=not verbose):
 
-            neighbours = list(spatial_weights.neighbors[index])
-            neighbours.append(index)
+            neighbours = [index]
+            neighbours += spatial_weights.neighbors[index]
             if weighted:
                 neighbour_nodes = left.iloc[neighbours]
                 number_nodes = sum(neighbour_nodes[node_degree] - 1)
@@ -676,11 +677,8 @@ class Density:
         # iterating over rows one by one
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
-                if neighbours:
-                    neighbours.append(index)
-                else:
-                    neighbours = index
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
                 subset = data.loc[neighbours]
                 values_list = subset[values]
                 areas_list = subset[areas]

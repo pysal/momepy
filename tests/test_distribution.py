@@ -123,28 +123,23 @@ class TestDistribution:
             self.df_buildings, sw, "uID"
         ).series
         check = 29.18589019096464
-        assert self.df_buildings["dist_sw"][0] == check
+        assert self.df_buildings["dist_sw"][0] == pytest.approx(check)
 
         sw_drop = Queen.from_dataframe(self.df_tessellation[:-2], ids="uID")
         self.df_buildings["dist_sw"] = mm.NeighborDistance(
             self.df_buildings, sw_drop, "uID"
         ).series
         check = 29.18589019096464
-        assert self.df_buildings["dist_sw"][0] == check
+        assert self.df_buildings["dist_sw"][0] == pytest.approx(check)
         assert self.df_buildings["dist_sw"].isna().any()
 
     def test_MeanInterbuildingDistance(self):
         sw = Queen.from_dataframe(self.df_tessellation, ids="uID")
-        swh = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
-        self.df_buildings["m_dist_sw"] = mm.MeanInterbuildingDistance(
-            self.df_buildings, sw, "uID", swh
-        ).series
         self.df_buildings["m_dist"] = mm.MeanInterbuildingDistance(
             self.df_buildings, sw, "uID", order=3
         ).series
         check = 29.305457092042744
-        assert self.df_buildings["m_dist_sw"][0] == check
-        assert self.df_buildings["m_dist"][0] == check
+        assert self.df_buildings["m_dist"][0] == pytest.approx(check)
         sw_drop = Queen.from_dataframe(self.df_tessellation[2:], ids="uID")
         assert (
             mm.MeanInterbuildingDistance(self.df_buildings, sw_drop, "uID")

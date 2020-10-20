@@ -727,7 +727,8 @@ class Corners:
     """
     Calculates number of corners of each object in given GeoDataFrame.
 
-    Uses only external shape (``shapely.geometry.exterior``), courtyards are not included.
+    Uses only external shape (``shapely.geometry.exterior``), courtyards are not 
+    included.
 
     .. math::
         \\sum corner
@@ -771,6 +772,7 @@ class Corners:
             cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
             angle = np.arccos(cosine_angle)
 
+            # TODO: add arg to specify these values
             if np.degrees(angle) <= 170:
                 return True
             if np.degrees(angle) >= 190:
@@ -947,27 +949,25 @@ class EquivalentRectangularIndex:
     def __init__(self, gdf, areas=None, perimeters=None):
         self.gdf = gdf
         # define empty list for results
-        gdf = gdf.copy()
 
         if perimeters is None:
-            gdf["mm_p"] = gdf.geometry.length
-            perimeters = "mm_p"
+            perimeters = gdf.geometry.length
         else:
-            if not isinstance(perimeters, str):
-                gdf["mm_p"] = perimeters
-                perimeters = "mm_p"
-        self.perimeters = gdf[perimeters]
+            if isinstance(perimeters, str):
+                perimeters = gdf[perimeters]
+
+        self.perimeters = perimeters
+
         if areas is None:
-            gdf["mm_a"] = gdf.geometry.area
-            areas = "mm_a"
+            areas = gdf.geometry.area
         else:
-            if not isinstance(areas, str):
-                gdf["mm_a"] = areas
-                areas = "mm_a"
-        self.areas = gdf[areas]
+            if isinstance(areas, str):
+                areas = gdf[areas]
+
+        self.areas = areas
         # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
         bbox = gdf.geometry.apply(lambda g: g.minimum_rotated_rectangle)
-        res = np.sqrt(gdf[areas] / bbox.area) * (bbox.length / gdf[perimeters])
+        res = np.sqrt(areas / bbox.area) * (bbox.length / perimeters)
 
         self.series = pd.Series(res, index=gdf.index)
 
@@ -1122,15 +1122,13 @@ class CentroidCorners:
                     else:
                         continue
             if not distances:  # circular buildings
-                from momepy.dimension import _longest_axis
-
                 if geom.has_z:
                     coords = [
                         (coo[0], coo[1]) for coo in geom.convex_hull.exterior.coords
                     ]
                 else:
                     coords = geom.convex_hull.exterior.coords
-                results_list.append(_longest_axis(coords) / 2)
+                results_list.append(_circle_radius(coords))
                 results_list_sd.append(0)
             else:
                 results_list.append(np.mean(distances))  # calculate mean

@@ -10,11 +10,12 @@ from distutils.version import LooseVersion
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import pygeos
 import scipy as sp
-from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry import LineString, Point
 from tqdm import tqdm
 
-from .shape import _make_circle
+from .shape import _circle_radius
 
 GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
@@ -240,14 +241,15 @@ class CourtyardArea:
     """
     Calculates area of holes within geometry - area of courtyards.
 
-    Ensure that your geometry is ``shapely.geometry.Polygon``.
+    Expects pygeos backend of geopandas.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is 
+        stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -280,22 +282,17 @@ class CourtyardArea:
             areas = "mm_a"
         self.areas = gdf[areas]
 
-        exts = gdf.geometry.apply(lambda g: Polygon(g.exterior))
+        exts = pygeos.area(pygeos.polygons(gdf.geometry.exterior.values.data))
 
-        self.series = pd.Series(exts.area - gdf[areas], index=gdf.index)
-
-
-# calculate the radius of circumcircle
-def _longest_axis(points):
-    circ = _make_circle(points)
-    return circ[2] * 2
+        self.series = pd.Series(exts - gdf[areas], index=gdf.index)
 
 
 class LongestAxisLength:
     """
     Calculates the length of the longest axis of object.
 
-    Axis is defined as a diameter of minimal circumscribed circle around the convex hull.
+    Axis is defined as a diameter of minimal circumscribed circle around the 
+    convex hull.
     It does not have to be fully inside an object.
 
     .. math::
@@ -323,15 +320,17 @@ class LongestAxisLength:
 
     def __init__(self, gdf):
         self.gdf = gdf
-        hulls = gdf.geometry.convex_hull
-        self.series = hulls.apply(lambda hull: _longest_axis(hull.exterior.coords))
+        hulls = gdf.geometry.convex_hull.exterior
+        self.series = hulls.apply(lambda g: _circle_radius(list(g.coords))) * 2
 
 
 class AverageCharacter:
     """
-    Calculates the average of a character within a set neighbourhood defined in ``spatial_weights``
+    Calculates the average of a character within a set neighbourhood
+    defined in ``spatial_weights``
 
-    Average value of the character within a set neighbourhood defined in ``spatial_weights``.
+    Average value of the character within a set neighbourhood defined
+    in ``spatial_weights``.
     Can be set to ``mean``, ``median`` or ``mode``. ``mean`` is defined as:
 
     .. math::
@@ -439,11 +438,8 @@ class AverageCharacter:
 
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
-                if neighbours:
-                    neighbours.append(index)
-                else:
-                    neighbours = [index]
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
 
                 values_list = data.loc[neighbours]
 
@@ -782,11 +778,8 @@ class WeightedCharacter:
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
-                if neighbours:
-                    neighbours.append(index)
-                else:
-                    neighbours = [index]
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
 
                 subset = data.loc[neighbours]
                 results_list.append(
@@ -848,11 +841,8 @@ class CoveredArea:
         results_list = []
         for index in tqdm(area.index, total=area.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
-                if neighbours:
-                    neighbours.append(index)
-                else:
-                    neighbours = [index]
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
 
                 areas = area.loc[neighbours]
                 results_list.append(sum(areas))
@@ -991,11 +981,8 @@ class SegmentsLength:
         sums = []
         means = []
         for index in tqdm(gdf.index, total=gdf.shape[0], disable=not verbose):
-            neighbours = spatial_weights.neighbors[index].copy()
-            if neighbours:
-                neighbours.append(index)
-            else:
-                neighbours = [index]
+            neighbours = [index]
+            neighbours += spatial_weights.neighbors[index]
 
             dims = lenghts.iloc[neighbours]
             if mean:

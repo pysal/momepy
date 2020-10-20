@@ -180,3 +180,14 @@ class TestDiversity:
         un = mm.Unique(self.df_tessellation, "cat", self.sw_drop, "uID").series
         assert un.isna().any()
         assert un[5] == 8
+
+    def test_Percentile(self):
+        perc = mm.Percentiles(self.df_tessellation, "area", self.sw, "uID").frame
+        assert np.all(
+            perc.loc[0].values - np.array([1085.11492833, 2623.9962661, 4115.47168328])
+            < 0.00001
+        )
+        perc = mm.Percentiles(
+            self.df_tessellation, list(range(8)) * 18, self.sw, "uID"
+        ).frame
+        assert np.all(perc.loc[0].values == np.array([1.0, 3.5, 6.0]))
