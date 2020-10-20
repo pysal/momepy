@@ -5,18 +5,14 @@
 # definitions of spatial distribution characters
 
 import math
-import statistics
 import warnings
-from distutils.version import LooseVersion
 
+import networkx as nx
 import numpy as np
 import pandas as pd
-import geopandas as gpd
 from tqdm import tqdm  # progress bar
 
 from .utils import _azimuth
-
-GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
 
 __all__ = [
     "Orientation",
@@ -147,10 +143,6 @@ class SharedWallsRatio:
     """
 
     def __init__(self, gdf, unique_id=None, perimeters=None):
-        if not GPD_08:
-            raise ImportError(
-                "The 'geopandas' >= 0.8.0 package is required to use SharedWallsRatio."
-            )
         if unique_id is not None:
             warnings.warn(
                 "unique_id is deprecated and will be removed in v0.4.", FutureWarning,
@@ -434,12 +426,10 @@ class Alignment:
             data.iteritems(), total=data.shape[0], disable=not verbose
         ):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
+                neighbours = spatial_weights.neighbors[index]
                 if neighbours:
                     orientation = data.loc[neighbours]
-                    deviations = abs(orientation - orient)
-
-                    results_list.append(statistics.mean(deviations))
+                    results_list.append(abs(orientation - orient).mean())
                 else:
                     results_list.append(np.nan)
             else:
@@ -522,7 +512,7 @@ class MeanInterbuildingDistance:
     Calculate the mean interbuilding distance
 
     Interbuilding distances are calculated between buildings on adjacent cells based on
-    ``spatial_weights``, while the extent is defined in ``spatial_weights_higher``.
+    ``spatial_weights``, while the extent is defined as order of contiguity.
 
     .. math::
 
@@ -535,11 +525,8 @@ class MeanInterbuildingDistance:
         name of the column with unique id used as ``spatial_weights`` index
     spatial_weights : libpysal.weights
         spatial weights matrix
-    spatial_weights_higher : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity of a higher ``order`` will be calculated
-        based on ``spatial_weights``
     order : int
-        Order of Queen contiguity
+        Order of contiguity defining the extent
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
 
@@ -556,7 +543,7 @@ class MeanInterbuildingDistance:
     sw_higher : libpysal.weights
         Spatial weights matrix of higher order
     order : int
-        Order of Queen contiguity (only if spatial_weights_higher was not set)
+        Order of contiguity. 
 
     Notes
     -----
@@ -565,7 +552,6 @@ class MeanInterbuildingDistance:
     Examples
     --------
     >>> buildings_df['mean_interbuilding_distance'] = momepy.MeanInterbuildingDistance(buildings_df, sw, 'uID').series
-    Generating weights matrix (Queen) of 3 topological steps...
     Computing mean interbuilding distances...
     100%|██████████| 144/144 [00:00<00:00, 317.42it/s]
     >>> buildings_df['mean_interbuilding_distance'][0]
@@ -585,17 +571,6 @@ class MeanInterbuildingDistance:
         self.sw = spatial_weights
         self.id = gdf[unique_id]
 
-        if spatial_weights_higher is None:
-            print(
-                f"Generating weights matrix (Queen) of {order} topological steps..."
-            ) if verbose else None
-            self.order = order
-            from momepy import sw_high
-
-            # matrix to define area of analysis (more steps)
-            spatial_weights_higher = sw_high(k=order, weights=spatial_weights)
-        self.sw_higher = spatial_weights_higher
-
         data = gdf.set_index(unique_id).geometry
 
         # define empty list for results
@@ -603,27 +578,28 @@ class MeanInterbuildingDistance:
 
         # define adjacency list from lipysal
         adj_list = spatial_weights.to_adjlist()
-        adj_list["distance"] = (
+        adj_list["weight"] = (
             data.loc[adj_list.focal]
             .reset_index()
             .distance(data.loc[adj_list.neighbor].reset_index())
+            .values
         )
 
-        print("Computing mean interbuilding distances...")
-        # iterate over objects to get the final values
-        for uid in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            # define neighbours based on weights matrix defining analysis area
-            if uid in spatial_weights_higher.neighbors.keys():
-                neighbours = spatial_weights_higher.neighbors[uid].copy()
-                neighbours.append(uid)
-                if neighbours:
-                    selection = adj_list[adj_list.focal.isin(neighbours)][
-                        adj_list.neighbor.isin(neighbours)
-                    ]
-                    results_list.append(np.nanmean(selection.distance))
-            else:
-                results_list.append(np.nan)
+        # generate graph
+        G = nx.from_pandas_edgelist(
+            adj_list, source="focal", target="neighbor", edge_attr="weight"
+        )
 
+        print("Computing mean interbuilding distances...") if verbose else None
+        # iterate over subgraphs to get the final values
+        for uid in tqdm(data.index, total=data.shape[0], disable=not verbose):
+            try:
+                sub = nx.ego_graph(G, uid, radius=order)
+                results_list.append(
+                    np.nanmean([x[-1] for x in list(sub.edges.data("weight"))])
+                )
+            except Exception:
+                results_list.append(np.nan)
         self.series = pd.Series(results_list, index=gdf.index)
 
 
@@ -659,11 +635,6 @@ class NeighboringStreetOrientationDeviation:
     """
 
     def __init__(self, gdf):
-        if not GPD_08:
-            raise ImportError(
-                "The 'geopandas' >= 0.8.0 package is required to use "
-                "NeighboringStreetOrientationDeviation."
-            )
         self.gdf = gdf
         self.orientation = gdf.geometry.apply(self._orient)
 

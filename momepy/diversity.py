@@ -18,6 +18,7 @@ __all__ = [
     "Unique",
     "simpson_diversity",
     "shannon_diversity",
+    "Percentiles",
 ]
 
 
@@ -101,11 +102,8 @@ class Range:
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
-                if neighbours:
-                    neighbours.append(index)
-                else:
-                    neighbours = [index]
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
 
                 values_list = data.loc[neighbours]
                 results_list.append(sp.stats.iqr(values_list, rng=rng, **kwargs))
@@ -189,11 +187,8 @@ class Theil:
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
-                if neighbours:
-                    neighbours.append(index)
-                else:
-                    neighbours = [index]
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
 
                 values_list = data.loc[neighbours]
 
@@ -336,11 +331,8 @@ class Simpson:
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
-                if neighbours:
-                    neighbours.append(index)
-                else:
-                    neighbours = [index]
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
                 values_list = data.loc[neighbours]
 
                 results_list.append(
@@ -630,11 +622,8 @@ class Shannon:
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
-                if neighbours:
-                    neighbours.append(index)
-                else:
-                    neighbours = [index]
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
                 values_list = data.loc[neighbours]
 
                 results_list.append(
@@ -769,11 +758,8 @@ class Unique:
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
             if index in spatial_weights.neighbors.keys():
-                neighbours = spatial_weights.neighbors[index].copy()
-                if neighbours:
-                    neighbours.append(index)
-                else:
-                    neighbours = [index]
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
 
                 values_list = data.loc[neighbours]
                 results_list.append(len(values_list.unique()))
@@ -781,3 +767,98 @@ class Unique:
                 results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
+
+
+class Percentiles:
+    """
+    Calculates the percentiles of values within neighbours defined in ``spatial_weights``.
+
+    .. math::
+
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame
+        GeoDataFrame containing morphological tessellation
+    values : str, list, np.array, pd.Series
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
+    spatial_weights : libpysal.weights
+        spatial weights matrix
+    unique_id : str
+        name of the column with unique id used as ``spatial_weights`` index
+    percentiles : array-like (default [25, 50, 75])
+        percentiles to return
+    interpolation : {'linear', 'lower', 'higher', 'midpoint', 'nearest'}
+        This optional parameter specifies the interpolation method to
+        use when the desired percentile lies between two data points
+        ``i < j``:
+        * 'linear': ``i + (j - i) * fraction``, where ``fraction``
+          is the fractional part of the index surrounded by ``i``
+          and ``j``.
+        * 'lower': ``i``.
+        * 'higher': ``j``.
+        * 'nearest': ``i`` or ``j``, whichever is nearest.
+        * 'midpoint': ``(i + j) / 2``.
+    verbose : bool (default True)
+        if True, shows progress bars in loops and indication of steps
+
+    Attributes
+    ----------
+    frame : DataFrame
+        DataFrame containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+    values : Series
+        Series containing used values
+    sw : libpysal.weights
+        spatial weights matrix
+    id : Series
+        Series containing used unique ID
+
+    Examples
+    --------
+    >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
+    >>> tessellation_df['cluster_unique'] = mm.Percentiles(tessellation_df, 'cluster', sw, 'uID').series
+    100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
+    """
+
+    def __init__(
+        self,
+        gdf,
+        values,
+        spatial_weights,
+        unique_id,
+        percentiles=[25, 50, 75],
+        interpolation="midpoint",
+        verbose=True,
+    ):
+        self.gdf = gdf
+        self.sw = spatial_weights
+        self.id = gdf[unique_id]
+
+        data = gdf.copy()
+
+        if values is not None:
+            if not isinstance(values, str):
+                data["mm_v"] = values
+                values = "mm_v"
+        self.values = data[values]
+
+        data = data.set_index(unique_id)[values]
+
+        results_list = []
+        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
+            if index in spatial_weights.neighbors.keys():
+                neighbours = [index]
+                neighbours += spatial_weights.neighbors[index]
+
+                values_list = data.loc[neighbours]
+                results_list.append(
+                    np.nanpercentile(
+                        values_list, percentiles, interpolation=interpolation
+                    )
+                )
+            else:
+                results_list.append(np.nan)
+
+        self.frame = pd.DataFrame(results_list, columns=percentiles, index=gdf.index)
