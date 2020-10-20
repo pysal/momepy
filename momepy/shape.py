@@ -1122,15 +1122,13 @@ class CentroidCorners:
                     else:
                         continue
             if not distances:  # circular buildings
-                from momepy.dimension import _longest_axis
-
                 if geom.has_z:
                     coords = [
                         (coo[0], coo[1]) for coo in geom.convex_hull.exterior.coords
                     ]
                 else:
                     coords = geom.convex_hull.exterior.coords
-                results_list.append(_longest_axis(coords) / 2)
+                results_list.append(_circle_radius(coords))
                 results_list_sd.append(0)
             else:
                 results_list.append(np.mean(distances))  # calculate mean

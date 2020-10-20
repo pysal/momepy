@@ -287,12 +287,6 @@ class CourtyardArea:
         self.series = pd.Series(exts - gdf[areas], index=gdf.index)
 
 
-# calculate the radius of circumcircle
-def _longest_axis(points):
-    circ = _make_circle(points)
-    return circ[2] * 2
-
-
 class LongestAxisLength:
     """
     Calculates the length of the longest axis of object.
