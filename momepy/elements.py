@@ -25,6 +25,7 @@ __all__ = [
     "get_network_id",
     "get_node_id",
     "enclosures",
+    "enclosed_tessellation",
 ]
 
 
@@ -853,3 +854,130 @@ def enclosures(primary_barriers, limit=None, additional_barriers=None):
         return final_enclosures.set_crs(primary_barriers.crs)
 
     return enclosures
+
+
+def enclosed_tessellation(
+    buildings,
+    enclosures,
+    unique_id="uID",
+    enclosure_id="eID",
+    threshold=0.05,
+    use_dask=True,
+    bag_kwds={},
+    **kwargs,
+):
+    """Enclosed tessellation
+    Generate enclosed tessellation based on barriers defining enclosures and buildings
+    footprints.
+
+    Parameters
+    ----------
+    buildings : GeoDataFrame
+        GeoDataFrame containing building footprints. Expects (Multi)Polygon geometry.
+    enclosures : GeoDataFrame, GeoSeries
+        Enclosures geometry. Can  be generated using :func:`momepy.enclosures`.
+    unique_id : str
+        name of the column with unique id of buildings gdf
+    threshold : float
+        The minimum threshold for a building to be considered within an enclosure.
+        Threshold is a ratio of building area which needs to be within an enclosure to
+        inlude it in the tessellation of that enclosure. Resolves sliver geometry
+        issues.
+    use_dask : bool (default True)
+        Use parallelised algorithm based on ``dask.bag``. Requires dask.
+    bag_kwds : dict
+        Keyword arguments passed to ``dask.bag``.
+    **kwargs
+        Keyword arguments passed to Tessellation algorithm (as ``shrink``
+        or ``segment``).
+
+    Returns
+    -------
+    tessellation : GeoDataFrame
+        gdf contains three columns:
+            geometry,
+            unique_id matching with parental building, 
+            enclosure_id matching with enclosure integer index
+    """
+    # determine which polygons should be split
+    inp, res = buildings.sindex.query_bulk(
+        enclosures.values.data, predicate="intersects"
+    )
+    unique, counts = np.unique(inp, return_counts=True)
+    splits = unique[counts > 1]
+    single = unique[counts == 1]
+
+    if use_dask:
+        try:
+            import dask.bag as db
+        except ImportError:
+            use_dask = False
+
+            import warnings
+
+            warnings.warn("dask.bag could not be imported. Setting `use_dask=False`.")
+
+    # use enclosed tessellation algorithm
+    def tess(
+        ix,
+        enclosure,
+        buildings,
+        query_inp,
+        query_res,
+        threshold=threshold,
+        unique_id=unique_id,
+        **kwargs,
+    ):
+        poly = enclosure.values.data[ix]
+        blg = buildings.iloc[query_res[query_inp == ix]]
+        within = blg[
+            pygeos.area(pygeos.intersection(blg.geometry.values.data, poly))
+            > (pygeos.area(blg.geometry.values.data) * threshold)
+        ]
+        tess = Tessellation(within, unique_id, poly, **kwargs)
+        tess.tessellation[enclosure_id] = ix
+        return tess.tessellation
+
+    if use_dask:
+        # initialize dask.bag
+        bag = db.from_sequence(splits, **bag_kwds)
+
+        # generate enclosed tessellation using dask
+        new = bag.map(
+            tess,
+            enclosures,
+            buildings,
+            inp,
+            res,
+            threshold=threshold,
+            unique_id=unique_id,
+            verbose=False,
+            **kwargs,
+        ).compute()
+
+    else:
+        new = [
+            tess(
+                i,
+                enclosures,
+                buildings,
+                inp,
+                res,
+                threshold=threshold,
+                unique_id=unique_id,
+                verbose=False,
+                **kwargs,
+            )
+            for i in splits
+        ]
+
+    # finalise the result
+    clean_blocks = gpd.GeoDataFrame(geometry=enclosures)
+    clean_blocks[enclosure_id] = range(len(enclosures))
+    clean_blocks = clean_blocks.drop(splits)
+    clean_blocks.loc[single, "uID"] = clean_blocks.loc[single][enclosure_id].apply(
+        lambda ix: buildings.iloc[res[inp == ix][0]][unique_id]
+    )
+    tessellation = pd.concat(new)
+
+    return tessellation.append(clean_blocks)
