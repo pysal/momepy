@@ -14,5 +14,6 @@ This section covers:
    :maxdepth: 2
 
    tessellation
+   enclosed
    blocks
    links

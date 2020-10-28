@@ -143,7 +143,7 @@ class Tessellation:
     """
 
     def __init__(
-        self, gdf, unique_id, limit, shrink=0.4, segment=0.5, verbose=True,
+        self, gdf, unique_id, limit, shrink=0.4, segment=0.5, verbose=True, **kwargs
     ):
         self.gdf = gdf
         self.id = gdf[unique_id]
@@ -213,7 +213,8 @@ class Tessellation:
             "geometry"
         ].translate(xoff=centre_x, yoff=centre_y)
 
-        self._check_result(morphological_tessellation, gdf, unique_id=unique_id)
+        if kwargs.get("check", True):
+            self._check_result(morphological_tessellation, gdf, unique_id=unique_id)
 
         self.tessellation = morphological_tessellation
 
@@ -779,7 +780,7 @@ def enclosures(primary_barriers, limit=None, additional_barriers=None):
     """
     Generate enclosures based on passed barriers.
 
-    Enclosures are areas enclosed from all sides by at leas one type of
+    Enclosures are areas enclosed from all sides by at least one type of
     a barrier. Barriers are typically roads, railways, natural features
     like rivers and other water bodies or coastline. Enclosures are a
     result of polygonization of the  ``primary_barrier`` and ``limit`` and its
@@ -802,6 +803,10 @@ def enclosures(primary_barriers, limit=None, additional_barriers=None):
     -------
     enclosures : GeoSeries
        GeoSeries containing enclosure geometries
+    
+    Examples
+    --------
+    >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
 
     """
     if limit is not None:
@@ -863,7 +868,7 @@ def enclosed_tessellation(
     enclosure_id="eID",
     threshold=0.05,
     use_dask=True,
-    bag_kwds={},
+    n_chunks=8,
     **kwargs,
 ):
     """Enclosed tessellation
@@ -885,8 +890,8 @@ def enclosed_tessellation(
         issues.
     use_dask : bool (default True)
         Use parallelised algorithm based on ``dask.bag``. Requires dask.
-    bag_kwds : dict
-        Keyword arguments passed to ``dask.bag``.
+    n_chunks : int (default 8)
+        Number of chunks to be used in parallelization. Ideal is one chunk per thread.
     **kwargs
         Keyword arguments passed to Tessellation algorithm (as ``shrink``
         or ``segment``).
@@ -898,6 +903,12 @@ def enclosed_tessellation(
             geometry,
             unique_id matching with parental building, 
             enclosure_id matching with enclosure integer index
+    
+    Examples
+    --------
+    >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
+    >>> enclosed_tess = mm.enclosed_tessellation(buildings, enclosures)
+
     """
     # determine which polygons should be split
     inp, res = buildings.sindex.query_bulk(
@@ -909,13 +920,15 @@ def enclosed_tessellation(
 
     if use_dask:
         try:
-            import dask.bag as db
+            import dask.dataframe as dd
         except ImportError:
             use_dask = False
 
             import warnings
 
-            warnings.warn("dask.bag could not be imported. Setting `use_dask=False`.")
+            warnings.warn(
+                "dask.dataframe could not be imported. Setting `use_dask=False`."
+            )
 
     # use enclosed tessellation algorithm
     def tess(
@@ -934,26 +947,29 @@ def enclosed_tessellation(
             pygeos.area(pygeos.intersection(blg.geometry.values.data, poly))
             > (pygeos.area(blg.geometry.values.data) * threshold)
         ]
-        tess = Tessellation(within, unique_id, poly, **kwargs)
-        tess.tessellation[enclosure_id] = ix
-        return tess.tessellation
+        if len(within) > 1:
+            tess = Tessellation(
+                within, unique_id, poly, verbose=False, check=False, **kwargs
+            )
+            tess.tessellation[enclosure_id] = ix
+            return tess.tessellation
+        return gpd.GeoDataFrame(
+            {enclosure_id: ix, unique_id: None}, geometry=[poly], index=[0]
+        )
 
     if use_dask:
-        # initialize dask.bag
-        bag = db.from_sequence(splits, **bag_kwds)
-
+        # initialize dask.series
+        ds = dd.from_array(splits, chunksize=len(splits) // n_chunks)
         # generate enclosed tessellation using dask
-        new = bag.map(
-            tess,
-            enclosures,
-            buildings,
-            inp,
-            res,
-            threshold=threshold,
-            unique_id=unique_id,
-            verbose=False,
-            **kwargs,
-        ).compute()
+        new = (
+            ds.apply(
+                tess,
+                meta=(None, "object"),
+                args=(enclosures, buildings, inp, res, threshold, unique_id),
+            )
+            .compute()
+            .to_list()
+        )
 
     else:
         new = [
@@ -965,7 +981,6 @@ def enclosed_tessellation(
                 res,
                 threshold=threshold,
                 unique_id=unique_id,
-                verbose=False,
                 **kwargs,
             )
             for i in splits
