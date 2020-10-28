@@ -864,7 +864,7 @@ def enclosures(primary_barriers, limit=None, additional_barriers=None):
 def enclosed_tessellation(
     buildings,
     enclosures,
-    unique_id="uID",
+    unique_id,
     enclosure_id="eID",
     threshold=0.05,
     use_dask=True,
@@ -883,7 +883,7 @@ def enclosed_tessellation(
         Enclosures geometry. Can  be generated using :func:`momepy.enclosures`.
     unique_id : str
         name of the column with unique id of buildings gdf
-    threshold : float
+    threshold : float (default 0.05)
         The minimum threshold for a building to be considered within an enclosure.
         Threshold is a ratio of building area which needs to be within an enclosure to
         inlude it in the tessellation of that enclosure. Resolves sliver geometry
