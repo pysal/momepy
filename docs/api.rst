@@ -16,6 +16,7 @@ elements
 
    Blocks
    buffered_limit
+   enclosures
    get_network_id
    get_node_id
    Tessellation

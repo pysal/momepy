@@ -12,9 +12,20 @@ import shapely
 from scipy.spatial import Voronoi
 from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.geometry.base import BaseGeometry
+from shapely.ops import polygonize
 from tqdm import tqdm
 
-__all__ = ["buffered_limit", "Tessellation", "Blocks", "get_network_id", "get_node_id"]
+# TODO: this should not be needed with shapely 2.0
+from geopandas._vectorized import _pygeos_to_shapely
+
+__all__ = [
+    "buffered_limit",
+    "Tessellation",
+    "Blocks",
+    "get_network_id",
+    "get_node_id",
+    "enclosures",
+]
 
 
 def buffered_limit(gdf, buffer=100):
@@ -761,3 +772,84 @@ def _split_lines(polygon, distance):
         boundary, shapely.geometry.MultiPoint(list_points).buffer(0.001)
     )
     return cutted
+
+
+def enclosures(primary_barriers, limit=None, additional_barriers=None):
+    """
+    Generate enclosures based on passed barriers.
+
+    Enclosures are areas enclosed from all sides by at leas one type of
+    a barrier. Barriers are typically roads, railways, natural features
+    like rivers and other water bodies or coastline. Enclosures are a
+    result of polygonization of the  ``primary_barrier`` and ``limit`` and its
+    subdivision based on additional_barriers.
+
+    Parameters
+    ----------
+    primary_barriers : GeoDataFrame, GeoSeries
+        GeoDataFrame or GeoSeries containing primary barriers.
+        (Multi)LineString geometry is expected.
+    limit : GeoDataFrame, GeoSeries (default None)
+        GeoDataFrame or GeoSeries containing external limit of enclosures,
+        i.e. the area which gets partitioned. If None is passed,
+        the internal area of ``primary_barriers`` will be used.
+    additional_barriers : GeoDataFrame
+        GeoDataFrame or GeoSeries containing additional barriers.
+        (Multi)LineString geometry is expected.
+
+    Returns
+    -------
+    enclosures : GeoSeries
+       GeoSeries containing enclosure geometries
+
+    """
+    if limit is not None:
+        if limit.geom_type.isin(["Polygon", "MultiPolygon"]).any():
+            limit = limit.boundary
+        barriers = pd.concat([primary_barriers.geometry, limit.geometry])
+    else:
+        barriers = primary_barriers
+    unioned = barriers.unary_union
+    polygons = polygonize(unioned)
+    enclosures = gpd.GeoSeries(list(polygons), crs=primary_barriers.crs)
+
+    if additional_barriers is not None:
+        if not isinstance(additional_barriers, list):
+            raise TypeError(
+                "`additional_barriers` expects a list of GeoDataFrames or GeoSeries."
+                f"Got {type(additional_barriers)}."
+            )
+        additional = pd.concat([gdf.geometry for gdf in additional_barriers])
+
+        inp, res = enclosures.sindex.query_bulk(
+            additional.geometry, predicate="intersects"
+        )
+        unique = np.unique(res)
+
+        new = []
+
+        for i in unique:
+            poly = enclosures.values.data[i]  # get enclosure polygon
+            crossing = inp[res == i]  # get relevant additional barriers
+            buf = pygeos.buffer(poly, 0.01)  # to avoid floating point errors
+            crossing_ins = pygeos.intersection(
+                buf, additional.values.data[crossing]
+            )  # keeping only parts of additional barriers within polygon
+            union = pygeos.union_all(
+                np.append(crossing_ins, pygeos.boundary(poly))
+            )  # union
+            polygons = np.array(
+                list(polygonize(_pygeos_to_shapely(union)))
+            )  # polygonize
+            within = pygeos.covered_by(
+                pygeos.from_shapely(polygons), buf
+            )  # keep only those within original polygon
+            new += list(polygons[within])
+
+        final_enclosures = (
+            gpd.GeoSeries(enclosures).drop(unique).append(gpd.GeoSeries(new))
+        )
+
+        return final_enclosures.set_crs(primary_barriers.crs)
+
+    return enclosures
