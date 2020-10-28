@@ -117,3 +117,4 @@ run/
 
 .vscode
 .asv
+dask-worker-space

@@ -3,6 +3,7 @@ import momepy as mm
 import pytest
 
 from shapely.geometry import LineString
+from geopandas.testing import assert_geodataframe_equal
 
 
 class TestElements:
@@ -14,6 +15,9 @@ class TestElements:
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_streets["nID"] = range(len(self.df_streets))
         self.limit = mm.buffered_limit(self.df_buildings, 50)
+        self.enclosures = mm.enclosures(
+            self.df_streets, gpd.GeoSeries([self.limit.exterior])
+        )
 
     def test_Tessellation(self):
         tes = mm.Tessellation(self.df_buildings, "uID", self.limit, segment=2)
@@ -85,3 +89,19 @@ class TestElements:
             additional = mm.enclosures(
                 self.df_streets, gpd.GeoSeries([self.limit]), additional_barrier
             )
+
+    def test_enclosed_tessellation(self):
+        enc1 = mm.enclosed_tessellation(self.df_buildings, self.enclosures, "uID")
+        assert len(enc1) == 155
+        assert isinstance(enc1, gpd.GeoDataFrame)
+
+        enc1_loop = mm.enclosed_tessellation(
+            self.df_buildings, self.enclosures, "uID", use_dask=False
+        )
+        assert len(enc1) == 155
+        assert isinstance(enc1, gpd.GeoDataFrame)
+
+        assert len(enc1_loop) == 155
+        assert isinstance(enc1_loop, gpd.GeoDataFrame)
+
+        assert_geodataframe_equal(enc1, enc1_loop)

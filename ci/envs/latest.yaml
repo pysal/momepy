@@ -19,3 +19,4 @@ dependencies:
   - inequality
   - black=19.10b0
   - pygeos
+  - dask

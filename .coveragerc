@@ -9,6 +9,7 @@ exclude_lines =
     if __name__ == .__main__.:
     except ModuleNotFoundError:
     print("rtd")
+    except ImportError
 ignore_errors = True
 omit =
     tests/*
