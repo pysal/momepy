@@ -91,12 +91,12 @@ class TestElements:
             )
 
     def test_enclosed_tessellation(self):
-        enc1 = mm.enclosed_tessellation(self.df_buildings, self.enclosures)
+        enc1 = mm.enclosed_tessellation(self.df_buildings, self.enclosures, "uID")
         assert len(enc1) == 155
         assert isinstance(enc1, gpd.GeoDataFrame)
 
         enc1_loop = mm.enclosed_tessellation(
-            self.df_buildings, self.enclosures, use_dask=False
+            self.df_buildings, self.enclosures, "uID", use_dask=False
         )
         assert len(enc1) == 155
         assert isinstance(enc1, gpd.GeoDataFrame)
