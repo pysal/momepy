@@ -2,6 +2,8 @@ import geopandas as gpd
 import momepy as mm
 import pytest
 
+from shapely.geometry import LineString
+
 
 class TestElements:
     def setup_method(self):
@@ -60,3 +62,26 @@ class TestElements:
         dense2 = mm.elements._split_lines(small, 100)
         assert len(dense) == 53
         assert len(dense2) == 51
+
+    def test_enclosures(self):
+        basic = mm.enclosures(self.df_streets)
+        assert len(basic) == 7
+        assert isinstance(basic, gpd.GeoSeries)
+
+        limited = mm.enclosures(self.df_streets, gpd.GeoSeries([self.limit]))
+        assert len(limited) == 20
+        assert isinstance(limited, gpd.GeoSeries)
+
+        b = self.limit.bounds
+        additional_barrier = gpd.GeoSeries([LineString([(b[0], b[1]), (b[2], b[3])])])
+
+        additional = mm.enclosures(
+            self.df_streets, gpd.GeoSeries([self.limit]), [additional_barrier]
+        )
+        assert len(additional) == 28
+        assert isinstance(additional, gpd.GeoSeries)
+
+        with pytest.raises(TypeError):
+            additional = mm.enclosures(
+                self.df_streets, gpd.GeoSeries([self.limit]), additional_barrier
+            )
