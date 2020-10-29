@@ -82,6 +82,25 @@ class TestElements:
         ids = mm.get_node_id(self.df_buildings, nodes, edges, "nodeID", "nID")
         assert not ids.isna().any()
 
+        convex_hull = edges.unary_union.convex_hull
+        enclosures = mm.enclosures(edges, limit=gpd.GeoSeries([convex_hull]))
+        enclosed_tess = mm.Tessellation(
+            self.df_buildings, unique_id="uID", enclosures=enclosures
+        ).tessellation
+        links = mm.get_network_ratio(enclosed_tess, edges)
+        enclosed_tess[links.columns] = links
+
+        ids = mm.get_node_id(
+            enclosed_tess,
+            nodes,
+            edges,
+            node_id="nodeID",
+            edge_keys="edgeID_keys",
+            edge_values="edgeID_values",
+        )
+
+        assert not ids.isna().any()
+
     def test__split_lines(self):
         large = mm.buffered_limit(self.df_buildings, 100)
         dense = mm.elements._split_lines(large, 100)
@@ -112,3 +131,14 @@ class TestElements:
             additional = mm.enclosures(
                 self.df_streets, gpd.GeoSeries([self.limit]), additional_barrier
             )
+
+    def test_get_network_ratio(self):
+        convex_hull = self.df_streets.unary_union.convex_hull
+        enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
+        enclosed_tess = mm.Tessellation(
+            self.df_buildings, unique_id="uID", enclosures=enclosures
+        ).tessellation
+        links = mm.get_network_ratio(enclosed_tess, self.df_streets)
+
+        assert links.edgeID_values.apply(lambda x: sum(x)).sum() == len(enclosed_tess)
+        assert links.loc[149, "edgeID_keys"] == [13, 30, 27, 29, 28]
