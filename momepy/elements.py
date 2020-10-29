@@ -10,7 +10,7 @@ import pygeos
 import pandas as pd
 import shapely
 from scipy.spatial import Voronoi
-from shapely.geometry import MultiPolygon, Point, Polygon
+from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
 from tqdm import tqdm
@@ -25,7 +25,6 @@ __all__ = [
     "get_network_id",
     "get_node_id",
     "enclosures",
-    "enclosed_tessellation",
 ]
 
 
@@ -62,22 +61,32 @@ def buffered_limit(gdf, buffer=100):
 
 class Tessellation:
     """
-    Generate morphological tessellation around given buildings or proximity bands around
-    given street network.
+    Generates tessellation.
 
-    See :cite:`fleischmann2020` for details of implementation.
+    Three versions of tessellation can be created:
+
+    1. Morphological tessellation around given buildings ``gdf`` within set ``limit``.
+    2. Proximity bands around given street network ``gdf`` within set ``limit``.
+    3. Enclosed tessellation based on given buildings ``gdf`` within ``enclosures``.
+
+    Pass either ``limit`` to create morphological tessellation or proximity bands or
+    ``enclosures`` to create enclosed tessellation.
+
+    See :cite:`fleischmann2020` for details of implementation of morphological
+    tessellation and :cite:`araldi2019` for proximity bands.
 
     Tessellation requires data of relatively high level of precision and there are three
-    particular patterns causign issues.\n
+    particular patterns causing issues.\n
     1. Features will collapse into empty polygon - these do not have tessellation
     cell in the end.\n
     2. Features will split into MultiPolygon - at some cases, features with narrow links
     between parts split into two during 'shrinking'. In most cases that is not an issue
     and resulting tessellation is correct anyway, but sometimes this result in a cell
     being MultiPolygon, which is not correct.\n
-    3. Overlapping features - features which overlap even after 'shrinking' cause invalid
-    tessellation geometry.\n
-    All three types can be tested prior :class:`momepy.Tessellation` using :class:`momepy.CheckTessellationInput`.
+    3. Overlapping features - features which overlap even after 'shrinking' cause
+    invalid tessellation geometry.\n
+    All three types can be tested prior :class:`momepy.Tessellation` using
+    :class:`momepy.CheckTessellationInput`.
 
     Parameters
     ----------
@@ -85,19 +94,44 @@ class Tessellation:
         GeoDataFrame containing building footprints or street network
     unique_id : str
         name of the column with unique id
-    limit : MultiPolygon or Polygon
-        MultiPolygon or Polygon defining the study area limiting tessellation (otherwise it could go to infinity).
+    limit : MultiPolygon or Polygon (default None)
+        MultiPolygon or Polygon defining the study area limiting
+        morphological tessellation or proximity bands
+        (otherwise it could go to infinity).
     shrink : float (default 0.4)
-        distance for negative buffer to generate space between adjacent polygons (if geometry type of gdf is (Multi)Polygon).
+        distance for negative buffer to generate space between adjacent polygons
+        (if geometry type of gdf is (Multi)Polygon).
     segment : float (default 0.5)
         maximum distance between points after discretization
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
+    enclosures : GeoDataFrame, GeoSeries (default None)
+        Enclosures geometry. Can  be generated using :func:`momepy.enclosures`.
+    enclosure_id : str (default 'eID')
+        name of the enclosure_id (to be created). Applies only if ``enclosures`` are
+        passed.
+    threshold : float (default 0.05)
+        The minimum threshold for a building to be considered within an enclosure.
+        Threshold is a ratio of building area which needs to be within an enclosure to
+        inlude it in the tessellation of that enclosure. Resolves sliver geometry
+        issues. Applies only if ``enclosures`` are passed.
+    use_dask : bool (default True)
+        Use parallelised algorithm based on ``dask.bag``. Requires dask.
+        Applies only if ``enclosures`` are passed.
+    n_chunks : int (default 8)
+        Number of chunks to be used in parallelization. Ideal is one chunk per thread.
+        Applies only if ``enclosures`` are passed.
 
     Attributes
     ----------
     tessellation : GeoDataFrame
         GeoDataFrame containing resulting tessellation
+
+        For enclosed tessellation, gdf contains three columns:
+            - ``geometry``,
+            - ``unique_id`` matching with parental building, 
+            - ``enclosure_id`` matching with enclosure integer index
+
     gdf : GeoDataFrame
         original GeoDataFrame
     id : Series
@@ -110,25 +144,21 @@ class Tessellation:
         used segment value
     collapsed : list
         list of unique_id's of collapsed features (if there are some)
+        Applies only if ``limit`` is passed.
     multipolygons : list
         list of unique_id's of features causing MultiPolygons (if there are some)
-
+        Applies only if ``limit`` is passed.
 
     Examples
     --------
-    >>> tess = mm.Tessellation(buildings_df, 'uID', limit=mm.buffered_limit(buildings_df))
+    >>> tess = mm.Tessellation(
+    ... buildings_df, 'uID', limit=mm.buffered_limit(buildings_df)
+    ... )
     Inward offset...
-    Discretization...
     Generating input point array...
-    100%|██████████| 144/144 [00:00<00:00, 376.15it/s]
     Generating Voronoi diagram...
     Generating GeoDataFrame...
-    Vertices to Polygons: 100%|██████████| 33059/33059 [00:01<00:00, 31532.72it/s]
     Dissolving Voronoi polygons...
-    Preparing buffer zone for edge resolving...
-    Building R-tree...
-    100%|██████████| 42/42 [00:00<00:00, 752.54it/s]
-    Cutting...
     >>> tess.tessellation.head()
         uID	geometry
     0	1	POLYGON ((1603586.677274485 6464344.667944215,...
@@ -137,20 +167,60 @@ class Tessellation:
     3	4	POLYGON ((1603055.834005827 6464093.614718676,...
     4	5	POLYGON ((1603106.417554705 6464130.215958447,...
 
-    Notes
-    -------
-    queen_corners is currently experimental method only and can cause errors.
+    >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
+    >>> encl_tess = mm.Tessellation(
+    ... buildings_df, 'uID', enclosures=enclosures
+    ... )
+    >>> encl_tess.tessellation.head()
+         uID                                           geometry  eID
+    0  109.0  POLYGON ((1603369.789 6464340.661, 1603368.754...    0
+    1  110.0  POLYGON ((1603368.754 6464340.097, 1603369.789...    0
+    2  111.0  POLYGON ((1603458.666 6464332.614, 1603458.332...    0
+    3  112.0  POLYGON ((1603462.235 6464285.609, 1603454.795...    0
+    4  113.0  POLYGON ((1603524.561 6464388.609, 1603532.241...    0
+
     """
 
     def __init__(
-        self, gdf, unique_id, limit, shrink=0.4, segment=0.5, verbose=True, **kwargs
+        self,
+        gdf,
+        unique_id,
+        limit=None,
+        shrink=0.4,
+        segment=0.5,
+        verbose=True,
+        enclosures=None,
+        enclosure_id="eID",
+        threshold=0.05,
+        use_dask=True,
+        n_chunks=8,
+        **kwargs,
     ):
         self.gdf = gdf
         self.id = gdf[unique_id]
         self.limit = limit
         self.shrink = shrink
         self.segment = segment
+        self.enclosure_id = enclosure_id
 
+        if limit is not None and enclosures is not None:
+            raise ValueError(
+                "Both `limit` and `enclosures` cannot be passed together. "
+                "Pass `limit` for morphological tessellation or `enclosures` "
+                "for enclosed tessellation."
+            )
+        if enclosures is not None:
+            self.tessellation = self._enclosed_tessellation(
+                gdf, enclosures, unique_id, enclosure_id, threshold, use_dask, n_chunks,
+            )
+        else:
+            self.tessellation = self._morphological_tessellation(
+                gdf, unique_id, limit, shrink, segment, verbose
+            )
+
+    def _morphological_tessellation(
+        self, gdf, unique_id, limit, shrink, segment, verbose, check=True
+    ):
         objects = gdf.copy()
 
         if isinstance(limit, (gpd.GeoSeries, gpd.GeoDataFrame)):
@@ -213,109 +283,10 @@ class Tessellation:
             "geometry"
         ].translate(xoff=centre_x, yoff=centre_y)
 
-        if kwargs.get("check", True):
+        if check:
             self._check_result(morphological_tessellation, gdf, unique_id=unique_id)
 
-        self.tessellation = morphological_tessellation
-
-    def queen_corners(self, sensitivity):
-        """
-        Experimental function to fix unprecise corners.
-
-        Parameters
-        ----------
-        sensitivity : float
-            maximum distace between two corners to be merged
-
-        Returns
-        -------
-        tessellation : GeoDataFrame
-            GeoDataFrame containing resulting tessellation with fixed corners
-
-        """
-        tessellation = self.tessellation.copy()
-        changes = {}
-        qid = 0
-
-        for ix, row in tqdm(tessellation.iterrows(), total=tessellation.shape[0]):
-            corners = []
-            change = []
-
-            cell = row.geometry
-            coords = cell.exterior.coords
-            for i in coords:
-                point = Point(i)
-                possible_matches_index = list(
-                    self.tessellation.sindex.intersection(point.bounds)
-                )
-                possible_matches = tessellation.iloc[possible_matches_index]
-                precise_matches = sum(possible_matches.intersects(point))
-                if precise_matches > 2:
-                    corners.append(point)
-
-            if len(corners) > 2:
-                for c, it in enumerate(corners):
-                    next_c = c + 1
-                    if c == (len(corners) - 1):
-                        next_c = 0
-                    if corners[c].distance(corners[next_c]) < sensitivity:
-                        change.append([corners[c], corners[next_c]])
-            elif len(corners) == 2:
-                if corners[0].distance(corners[1]) > 0:
-                    if corners[0].distance(corners[1]) < sensitivity:
-                        change.append([corners[0], corners[1]])
-
-            if change:
-                for points in change:
-                    x_new = np.mean([points[0].x, points[1].x])
-                    y_new = np.mean([points[0].y, points[1].y])
-                    new = [(x_new, y_new), id]
-                    changes[(points[0].x, points[0].y)] = new
-                    changes[(points[1].x, points[1].y)] = new
-                    qid = qid + 1
-
-        for ix, row in tqdm(tessellation.iterrows(), total=tessellation.shape[0]):
-            cell = row.geometry
-            coords = list(cell.exterior.coords)
-
-            moves = {}
-            for x in coords:
-                if x in changes.keys():
-                    moves[coords.index(x)] = changes[x]
-            keys = list(moves.keys())
-            delete_points = []
-            for move, k in enumerate(keys):
-                if move < len(keys) - 1:
-                    if (
-                        moves[keys[move]][1] == moves[keys[move + 1]][1]
-                        and keys[move + 1] - keys[move] < 5
-                    ):
-                        delete_points = delete_points + (
-                            coords[keys[move] : keys[move + 1]]
-                        )
-                        # change the code above to have if based on distance not number
-
-            newcoords = [changes[x][0] if x in changes.keys() else x for x in coords]
-            for coord in newcoords:
-                if coord in delete_points:
-                    newcoords.remove(coord)
-            if coords != newcoords:
-                if not cell.interiors:
-                    # newgeom = Polygon(newcoords).buffer(0)
-                    be = Polygon(newcoords).exterior
-                    mls = be.intersection(be)
-                    if len(list(shapely.ops.polygonize(mls))) > 1:
-                        newgeom = MultiPolygon(shapely.ops.polygonize(mls))
-                        geoms = []
-                        for g, n in enumerate(newgeom):
-                            geoms.append(newgeom[g].area)
-                        newgeom = newgeom[geoms.index(max(geoms))]
-                    else:
-                        newgeom = list(shapely.ops.polygonize(mls))[0]
-                else:
-                    newgeom = Polygon(newcoords, holes=cell.interiors)
-                tessellation.loc[ix, "geometry"] = newgeom
-        return tessellation
+        return morphological_tessellation
 
     def _dense_point_array(self, geoms, distance, index):
         """
@@ -393,6 +364,149 @@ class Tessellation:
                 "Tessellation contains MultiPolygon elements. Initial objects should be edited. "
                 "unique_id of affected elements: {}".format(list(self.multipolygons))
             )
+
+    def _enclosed_tessellation(
+        self,
+        buildings,
+        enclosures,
+        unique_id,
+        enclosure_id="eID",
+        threshold=0.05,
+        use_dask=True,
+        n_chunks=8,
+        **kwargs,
+    ):
+        """Enclosed tessellation
+        Generate enclosed tessellation based on barriers defining enclosures and buildings
+        footprints.
+
+        Parameters
+        ----------
+        buildings : GeoDataFrame
+            GeoDataFrame containing building footprints. Expects (Multi)Polygon geometry.
+        enclosures : GeoDataFrame, GeoSeries
+            Enclosures geometry. Can  be generated using :func:`momepy.enclosures`.
+        unique_id : str
+            name of the column with unique id of buildings gdf
+        threshold : float (default 0.05)
+            The minimum threshold for a building to be considered within an enclosure.
+            Threshold is a ratio of building area which needs to be within an enclosure to
+            inlude it in the tessellation of that enclosure. Resolves sliver geometry
+            issues.
+        use_dask : bool (default True)
+            Use parallelised algorithm based on ``dask.bag``. Requires dask.
+        n_chunks : int (default 8)
+            Number of chunks to be used in parallelization. Ideal is one chunk per thread.
+        **kwargs
+            Keyword arguments passed to Tessellation algorithm (as ``shrink``
+            or ``segment``).
+
+        Returns
+        -------
+        tessellation : GeoDataFrame
+            gdf contains three columns:
+                geometry,
+                unique_id matching with parental building, 
+                enclosure_id matching with enclosure integer index
+        
+        Examples
+        --------
+        >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
+        >>> enclosed_tess = mm.enclosed_tessellation(buildings, enclosures)
+
+        """
+        # determine which polygons should be split
+        inp, res = buildings.sindex.query_bulk(
+            enclosures.values.data, predicate="intersects"
+        )
+        unique, counts = np.unique(inp, return_counts=True)
+        splits = unique[counts > 1]
+        single = unique[counts == 1]
+
+        if use_dask:
+            try:
+                import dask.dataframe as dd
+            except ImportError:
+                use_dask = False
+
+                import warnings
+
+                warnings.warn(
+                    "dask.dataframe could not be imported. Setting `use_dask=False`."
+                )
+
+        if use_dask:
+            # initialize dask.series
+            ds = dd.from_array(splits, chunksize=len(splits) // n_chunks)
+            # generate enclosed tessellation using dask
+            new = (
+                ds.apply(
+                    self._tess,
+                    meta=(None, "object"),
+                    args=(enclosures, buildings, inp, res, threshold, unique_id),
+                )
+                .compute()
+                .to_list()
+            )
+
+        else:
+            new = [
+                self._tess(
+                    i,
+                    enclosures,
+                    buildings,
+                    inp,
+                    res,
+                    threshold=threshold,
+                    unique_id=unique_id,
+                    **kwargs,
+                )
+                for i in splits
+            ]
+
+        # finalise the result
+        clean_blocks = gpd.GeoDataFrame(geometry=enclosures)
+        clean_blocks[enclosure_id] = range(len(enclosures))
+        clean_blocks = clean_blocks.drop(splits)
+        clean_blocks.loc[single, "uID"] = clean_blocks.loc[single][enclosure_id].apply(
+            lambda ix: buildings.iloc[res[inp == ix][0]][unique_id]
+        )
+        tessellation = pd.concat(new)
+
+        return tessellation.append(clean_blocks)
+
+    def _tess(
+        self,
+        ix,
+        enclosure,
+        buildings,
+        query_inp,
+        query_res,
+        threshold,
+        unique_id,
+        **kwargs,
+    ):
+        poly = enclosure.values.data[ix]
+        blg = buildings.iloc[query_res[query_inp == ix]]
+        within = blg[
+            pygeos.area(pygeos.intersection(blg.geometry.values.data, poly))
+            > (pygeos.area(blg.geometry.values.data) * threshold)
+        ]
+        if len(within) > 1:
+            tess = self._morphological_tessellation(
+                within,
+                unique_id,
+                poly,
+                shrink=self.shrink,
+                segment=self.segment,
+                verbose=False,
+                check=False,
+            )
+            tess[self.enclosure_id] = ix
+            return tess
+        return gpd.GeoDataFrame(
+            {self.enclosure_id: ix, unique_id: None}, geometry=[poly], index=[0]
+        )
 
 
 class Blocks:
@@ -859,140 +973,3 @@ def enclosures(primary_barriers, limit=None, additional_barriers=None):
         return final_enclosures.set_crs(primary_barriers.crs)
 
     return enclosures
-
-
-def enclosed_tessellation(
-    buildings,
-    enclosures,
-    unique_id,
-    enclosure_id="eID",
-    threshold=0.05,
-    use_dask=True,
-    n_chunks=8,
-    **kwargs,
-):
-    """Enclosed tessellation
-    Generate enclosed tessellation based on barriers defining enclosures and buildings
-    footprints.
-
-    Parameters
-    ----------
-    buildings : GeoDataFrame
-        GeoDataFrame containing building footprints. Expects (Multi)Polygon geometry.
-    enclosures : GeoDataFrame, GeoSeries
-        Enclosures geometry. Can  be generated using :func:`momepy.enclosures`.
-    unique_id : str
-        name of the column with unique id of buildings gdf
-    threshold : float (default 0.05)
-        The minimum threshold for a building to be considered within an enclosure.
-        Threshold is a ratio of building area which needs to be within an enclosure to
-        inlude it in the tessellation of that enclosure. Resolves sliver geometry
-        issues.
-    use_dask : bool (default True)
-        Use parallelised algorithm based on ``dask.bag``. Requires dask.
-    n_chunks : int (default 8)
-        Number of chunks to be used in parallelization. Ideal is one chunk per thread.
-    **kwargs
-        Keyword arguments passed to Tessellation algorithm (as ``shrink``
-        or ``segment``).
-
-    Returns
-    -------
-    tessellation : GeoDataFrame
-        gdf contains three columns:
-            geometry,
-            unique_id matching with parental building, 
-            enclosure_id matching with enclosure integer index
-    
-    Examples
-    --------
-    >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
-    >>> enclosed_tess = mm.enclosed_tessellation(buildings, enclosures)
-
-    """
-    # determine which polygons should be split
-    inp, res = buildings.sindex.query_bulk(
-        enclosures.values.data, predicate="intersects"
-    )
-    unique, counts = np.unique(inp, return_counts=True)
-    splits = unique[counts > 1]
-    single = unique[counts == 1]
-
-    if use_dask:
-        try:
-            import dask.dataframe as dd
-        except ImportError:
-            use_dask = False
-
-            import warnings
-
-            warnings.warn(
-                "dask.dataframe could not be imported. Setting `use_dask=False`."
-            )
-
-    # use enclosed tessellation algorithm
-    def tess(
-        ix,
-        enclosure,
-        buildings,
-        query_inp,
-        query_res,
-        threshold=threshold,
-        unique_id=unique_id,
-        **kwargs,
-    ):
-        poly = enclosure.values.data[ix]
-        blg = buildings.iloc[query_res[query_inp == ix]]
-        within = blg[
-            pygeos.area(pygeos.intersection(blg.geometry.values.data, poly))
-            > (pygeos.area(blg.geometry.values.data) * threshold)
-        ]
-        if len(within) > 1:
-            tess = Tessellation(
-                within, unique_id, poly, verbose=False, check=False, **kwargs
-            )
-            tess.tessellation[enclosure_id] = ix
-            return tess.tessellation
-        return gpd.GeoDataFrame(
-            {enclosure_id: ix, unique_id: None}, geometry=[poly], index=[0]
-        )
-
-    if use_dask:
-        # initialize dask.series
-        ds = dd.from_array(splits, chunksize=len(splits) // n_chunks)
-        # generate enclosed tessellation using dask
-        new = (
-            ds.apply(
-                tess,
-                meta=(None, "object"),
-                args=(enclosures, buildings, inp, res, threshold, unique_id),
-            )
-            .compute()
-            .to_list()
-        )
-
-    else:
-        new = [
-            tess(
-                i,
-                enclosures,
-                buildings,
-                inp,
-                res,
-                threshold=threshold,
-                unique_id=unique_id,
-                **kwargs,
-            )
-            for i in splits
-        ]
-
-    # finalise the result
-    clean_blocks = gpd.GeoDataFrame(geometry=enclosures)
-    clean_blocks[enclosure_id] = range(len(enclosures))
-    clean_blocks = clean_blocks.drop(splits)
-    clean_blocks.loc[single, "uID"] = clean_blocks.loc[single][enclosure_id].apply(
-        lambda ix: buildings.iloc[res[inp == ix][0]][unique_id]
-    )
-    tessellation = pd.concat(new)
-
-    return tessellation.append(clean_blocks)
