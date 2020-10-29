@@ -138,7 +138,7 @@ class TestElements:
         enclosed_tess = mm.Tessellation(
             self.df_buildings, unique_id="uID", enclosures=enclosures
         ).tessellation
-        links = mm.get_network_ratio(enclosed_tess, self.df_streets)
+        links = mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
 
         assert links.edgeID_values.apply(lambda x: sum(x)).sum() == len(enclosed_tess)
         assert links.loc[149, "edgeID_keys"] == [13, 30, 27, 29, 28]
