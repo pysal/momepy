@@ -28,6 +28,29 @@ class TestElements:
         ).tessellation
         assert len(bands) == len(self.df_streets)
 
+        #  test_enclosed_tessellation
+        enc1 = mm.Tessellation(
+            self.df_buildings, "uID", enclosures=self.enclosures
+        ).tessellation
+        assert len(enc1) == 155
+        assert isinstance(enc1, gpd.GeoDataFrame)
+
+        enc1_loop = mm.Tessellation(
+            self.df_buildings, "uID", enclosures=self.enclosures, use_dask=False
+        ).tessellation
+        assert len(enc1) == 155
+        assert isinstance(enc1, gpd.GeoDataFrame)
+
+        assert len(enc1_loop) == 155
+        assert isinstance(enc1_loop, gpd.GeoDataFrame)
+
+        assert_geodataframe_equal(enc1, enc1_loop)
+
+        with pytest.raises(ValueError):
+            mm.Tessellation(
+                self.df_buildings, "uID", limit=self.limit, enclosures=self.enclosures
+            )
+
     def test_Blocks(self):
         blocks = mm.Blocks(
             self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
@@ -89,19 +112,3 @@ class TestElements:
             additional = mm.enclosures(
                 self.df_streets, gpd.GeoSeries([self.limit]), additional_barrier
             )
-
-    def test_enclosed_tessellation(self):
-        enc1 = mm.enclosed_tessellation(self.df_buildings, self.enclosures, "uID")
-        assert len(enc1) == 155
-        assert isinstance(enc1, gpd.GeoDataFrame)
-
-        enc1_loop = mm.enclosed_tessellation(
-            self.df_buildings, self.enclosures, "uID", use_dask=False
-        )
-        assert len(enc1) == 155
-        assert isinstance(enc1, gpd.GeoDataFrame)
-
-        assert len(enc1_loop) == 155
-        assert isinstance(enc1_loop, gpd.GeoDataFrame)
-
-        assert_geodataframe_equal(enc1, enc1_loop)
