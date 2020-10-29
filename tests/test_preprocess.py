@@ -3,11 +3,11 @@ import momepy as mm
 import numpy as np
 import pytest
 
-from shapely.geometry import Polygon, MultiPoint
+from shapely.geometry import Polygon, MultiPoint, LineString
 from shapely import affinity
 
 
-class TestUtils:
+class TestPreprocessing:
     def setup_method(self):
 
         test_file_path = mm.datasets.get_path("bubenec")
@@ -109,3 +109,18 @@ class TestUtils:
         assert len(check.collapse) == 0
         assert len(check.split) == 0
         assert len(check.overlap) == 4
+
+    def test_close_gaps(self):
+        l1 = LineString([(1, 0), (2, 1)])
+        l2 = LineString([(2.1, 1), (3, 2)])
+        l3 = LineString([(3.1, 2), (4, 0)])
+        l4 = LineString([(4.1, 0), (5, 0)])
+        l5 = LineString([(5.1, 0), (6, 0)])
+        df = gpd.GeoDataFrame(geometry=[l1, l2, l3, l4, l5])
+
+        closed = mm.close_gaps(df, 0.25)
+        assert len(closed) == len(df)
+
+        merged = mm.remove_false_nodes(closed)
+        assert len(merged) == 1
+        assert merged.length[0] == pytest.approx(7.0502, rel=1e-3)

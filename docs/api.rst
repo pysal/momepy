@@ -142,6 +142,7 @@ preprocessing
    :toctree: generated/
 
    CheckTessellationInput
+   close_gaps
    remove_false_nodes
    preprocess
    snap_street_network_edge
