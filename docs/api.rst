@@ -136,17 +136,23 @@ spatial weights
    DistanceBand
    sw_high
 
+preprocessing
+-------------
+.. autosummary::
+   :toctree: generated/
+
+   CheckTessellationInput
+   remove_false_nodes
+   preprocess
+   snap_street_network_edge
+
 
 utilities
 ---------
 .. autosummary::
    :toctree: generated/
 
-   CheckTessellationInput
    gdf_to_nx
    limit_range
-   remove_false_nodes
    nx_to_gdf
-   preprocess
-   snap_street_network_edge
    unique_id
