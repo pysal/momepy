@@ -150,3 +150,8 @@ class TestPreprocessing:
         ext4 = mm.extend_lines(gdf, 2, extension=1)
         assert ext4.length.sum() > gdf.length.sum()
         assert ext4.length.sum() == pytest.approx(10.2, rel=1e-3)
+
+        gdf = gpd.GeoDataFrame([1, 2, 3, 4], geometry=[l1, l2, l3, barrier])
+        ext5 = mm.extend_lines(gdf, 2)
+        assert ext5.length.sum() > gdf.length.sum()
+        assert ext5.length.sum() == pytest.approx(6.2, rel=1e-3)
