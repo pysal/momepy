@@ -18,6 +18,7 @@ elements
    buffered_limit
    enclosures
    get_network_id
+   get_network_ratio
    get_node_id
    Tessellation
 
