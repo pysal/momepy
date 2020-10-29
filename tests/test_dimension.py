@@ -192,28 +192,28 @@ class TestDimensions:
 
     def test_StreetProfile(self):
         results = mm.StreetProfile(self.df_streets, self.df_buildings, heights="height")
-        assert results.w[0] == 46.7290758769204
-        assert results.wd[0] == 0.5690458650581023
-        assert results.h[0] == 19.454545454545457
-        assert results.p[0] == 0.4163263469148574
-        assert results.o[0] == 0.9107142857142857
-        assert results.hd[0] == 7.720786443287433
+        assert results.w[0] == 47.9039130128257
+        assert results.wd[0] == 0.026104885468705645
+        assert results.h[0] == 15.26806526806527
+        assert results.p[0] == 0.31872271611668607
+        assert results.o[0] == 0.9423076923076923
+        assert results.hd[0] == 9.124556701878003
 
         height = np.linspace(10.0, 30.0, 144)
         results2 = mm.StreetProfile(
             self.df_streets, self.df_buildings, heights=height, tick_length=100
         )
-        assert results2.w[0] == 67.563796073073
-        assert results2.wd[0] == 8.791875291865827
-        assert results2.h[0] == 23.74545454545455
-        assert results2.p[0] == 0.3514523446813568
-        assert results2.o[0] == 0.5535714285714286
-        assert results2.hd[0] == 5.5188633970914065
+        assert results2.w[0] == 70.7214870365335
+        assert results2.wd[0] == 8.50508193935929
+        assert results2.h[0] == 23.87158296249206
+        assert results2.p[0] == 0.3375435664999579
+        assert results2.o[0] == 0.5769230769230769
+        assert results2.hd[0] == 5.9307227575674
 
         results3 = mm.StreetProfile(self.df_streets, self.df_buildings)
-        assert results3.w[0] == 46.7290758769204
-        assert results3.wd[0] == 0.5690458650581023
-        assert results3.o[0] == 0.9107142857142857
+        assert results3.w[0] == 47.9039130128257
+        assert results3.wd[0] == 0.026104885468705645
+        assert results3.o[0] == 0.9423076923076923
 
     def test_WeightedCharacter(self):
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
