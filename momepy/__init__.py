@@ -9,6 +9,7 @@ from .intensity import *
 from .shape import *
 from .utils import *
 from .weights import *
+from .preprocessing import *
 
 __author__ = "Martin Fleischmann"
 __author_email__ = "martin@martinfleischmann.net"
