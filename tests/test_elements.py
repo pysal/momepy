@@ -46,6 +46,11 @@ class TestElements:
 
         assert_geodataframe_equal(enc1, enc1_loop)
 
+        with pytest.raises(ValueError):
+            mm.Tessellation(
+                self.df_buildings, "uID", limit=self.limit, enclosures=self.enclosures
+            )
+
     def test_Blocks(self):
         blocks = mm.Blocks(
             self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
