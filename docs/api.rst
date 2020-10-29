@@ -141,8 +141,9 @@ preprocessing
 .. autosummary::
    :toctree: generated/
 
-   CheckTessellationInput
    close_gaps
+   CheckTessellationInput
+   extend_lines
    remove_false_nodes
    preprocess
    snap_street_network_edge

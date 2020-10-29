@@ -124,3 +124,34 @@ class TestPreprocessing:
         merged = mm.remove_false_nodes(closed)
         assert len(merged) == 1
         assert merged.length[0] == pytest.approx(7.0502, rel=1e-3)
+
+    def test_extend_lines(self):
+        l1 = LineString([(1, 0), (1.9, 0)])
+        l2 = LineString([(2.1, -1), (2.1, 1)])
+        l3 = LineString([(2, 1.1), (3, 1.1)])
+        gdf = gpd.GeoDataFrame([1, 2, 3], geometry=[l1, l2, l3])
+
+        ext1 = mm.extend_lines(gdf, 2)
+        assert ext1.length.sum() > gdf.length.sum()
+        assert ext1.length.sum() == pytest.approx(4.2, rel=1e-3)
+
+        target = gpd.GeoSeries([l2.centroid.buffer(3)])
+        ext2 = mm.extend_lines(gdf, 3, target)
+
+        assert ext2.length.sum() > gdf.length.sum()
+        assert ext2.length.sum() == pytest.approx(17.3776, rel=1e-3)
+
+        barrier = LineString([(2, -1), (2, 1)])
+        ext3 = mm.extend_lines(gdf, 2, barrier=gpd.GeoSeries([barrier]))
+
+        assert ext3.length.sum() > gdf.length.sum()
+        assert ext3.length.sum() == pytest.approx(4, rel=1e-3)
+
+        ext4 = mm.extend_lines(gdf, 2, extension=1)
+        assert ext4.length.sum() > gdf.length.sum()
+        assert ext4.length.sum() == pytest.approx(10.2, rel=1e-3)
+
+        gdf = gpd.GeoDataFrame([1, 2, 3, 4], geometry=[l1, l2, l3, barrier])
+        ext5 = mm.extend_lines(gdf, 2)
+        assert ext5.length.sum() > gdf.length.sum()
+        assert ext5.length.sum() == pytest.approx(6.2, rel=1e-3)
