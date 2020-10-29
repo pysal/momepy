@@ -248,7 +248,7 @@ class CourtyardArea:
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is 
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
         stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
@@ -291,7 +291,7 @@ class LongestAxisLength:
     """
     Calculates the length of the longest axis of object.
 
-    Axis is defined as a diameter of minimal circumscribed circle around the 
+    Axis is defined as a diameter of minimal circumscribed circle around the
     convex hull.
     It does not have to be fully inside an object.
 
@@ -537,132 +537,105 @@ class StreetProfile:
         self.distance = distance
         self.tick_length = tick_length
 
+        pygeos_lines = left.geometry.values.data
+
+        list_points = np.empty((0, 2))
+        ids = []
+        end_markers = []
+
+        lengths = pygeos.length(pygeos_lines)
+        for ix, (line, length) in enumerate(zip(pygeos_lines, lengths)):
+
+            pts = pygeos.line_interpolate_point(
+                line, np.linspace(0, length, num=int((length) // distance))
+            )
+            list_points = np.append(list_points, pygeos.get_coordinates(pts), axis=0)
+            if len(pts) > 1:
+                ids += [ix] * len(pts) * 2
+                markers = [True] + ([False] * (len(pts) - 2)) + [True]
+                end_markers += markers
+            elif len(pts) == 1:
+                end_markers += [True]
+                ids += [ix] * 2
+
+        ticks = []
+        for num, (pt, end) in enumerate(zip(list_points, end_markers), 1):
+            if end:
+                ticks.append([pt, pt])
+                ticks.append([pt, pt])
+
+            else:
+                angle = self._getAngle(pt, list_points[num])
+                line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
+                angle = self._getAngle(line_end_1, pt)
+                line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
+                ticks.append([line_end_1, pt])
+                ticks.append([line_end_2, pt])
+
+        ticks = pygeos.linestrings(ticks)
+
+        inp, res = right.sindex.query_bulk(ticks, predicate="intersects")
+        intersections = pygeos.intersection(ticks[inp], right.geometry.values.data[res])
+        distances = pygeos.distance(intersections, pygeos.points(list_points[inp // 2]))
+        inp_uni, inp_cts = np.unique(inp, return_counts=True)
+        splitter = np.cumsum(inp_cts)[:-1]
+        dist_per_res = np.split(distances, splitter)
+        inp_per_res = np.split(res, splitter)
+
+        min_distances = []
+        min_inds = []
+        for dis, ind in zip(dist_per_res, inp_per_res):
+            min_distances.append(np.min(dis))
+            min_inds.append(ind[np.argmin(dis)])
+
+        dists = np.zeros((len(ticks),))
+        dists[:] = np.nan
+        dists[inp_uni] = min_distances
+
         if heights is not None:
-            if not isinstance(heights, str):
-                right = right.copy()
-                right["mm_h"] = heights
-                heights = "mm_h"
+            if isinstance(heights, str):
+                heights = self.heights = right[heights]
+            elif not isinstance(heights, pd.Series):
+                heights = self.heights = pd.Series(heights)
 
-            self.heights = right[heights]
+            blgs = np.zeros((len(ticks),))
+            blgs[:] = None
+            blgs[inp_uni] = min_inds
+            do_heights = True
+        else:
+            do_heights = False
 
-        sindex = right.sindex
-
-        results_list = []
-        deviations_list = []
+        ids = np.array(ids)
+        widths = []
+        openness = []
+        deviations = []
         heights_list = []
         heights_deviations_list = []
-        openness_list = []
 
-        for shapely_line in tqdm(
-            left.geometry, total=left.shape[0], disable=not verbose
-        ):
-            # list to hold all the point coords
-            list_points = []
-            # set the current distance to place the point
-            current_dist = distance
-            # get the total length of the line
-            line_length = shapely_line.length
-            # append the starting coordinate to the list
-            list_points.append(list(shapely_line.coords)[0])
-            # https://nathanw.net/2012/08/05/generating-chainage-distance-nodes-in-qgis/
-            # while the current cumulative distance is less than the total length of the line
-            while current_dist < line_length:
-                # use interpolate and increase the current distance
-                list_points.append(
-                    list(shapely_line.interpolate(current_dist).coords)[0]
-                )
-                current_dist += distance
-            # append end coordinate to the list
-            list_points.append(list(shapely_line.coords)[-1])
+        for i in range(len(left)):
+            f = ids == i
+            s = dists[f]
+            lefts = s[::2]
+            rights = s[1::2]
+            left_mean = np.nanmean(lefts) if ~np.isnan(lefts).all() else tick_length / 2
+            right_mean = (
+                np.nanmean(rights) if ~np.isnan(rights).all() else tick_length / 2
+            )
+            widths.append(np.mean([left_mean, right_mean]) * 2)
+            openness.append(np.isnan(s).sum() / (f).sum())
+            deviations.append(np.nanstd(s))
 
-            ticks = []
-            for num, pt in enumerate(list_points, 1):
-                # start chainage 0
-                if num == 1:
-                    angle = self._getAngle(pt, list_points[num])
-                    line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
-                    angle = self._getAngle(line_end_1, pt)
-                    line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
-                    tick1 = LineString([line_end_1, pt])
-                    tick2 = LineString([line_end_2, pt])
-                    ticks.append([tick1, tick2])
+            if do_heights:
+                b = blgs[f]
+                h = heights.iloc[b[~np.isnan(b)]]
+                heights_list.append(h.mean())
+                heights_deviations_list.append(h.std())
 
-                # everything in between
-                if num < len(list_points) - 1:
-                    angle = self._getAngle(pt, list_points[num])
-                    line_end_1 = self._getPoint1(
-                        list_points[num], angle, tick_length / 2
-                    )
-                    angle = self._getAngle(line_end_1, list_points[num])
-                    line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
-                    tick1 = LineString([line_end_1, list_points[num]])
-                    tick2 = LineString([line_end_2, list_points[num]])
-                    ticks.append([tick1, tick2])
+        self.w = pd.Series(widths, index=left.index)
+        self.wd = pd.Series(deviations, index=left.index)
+        self.o = pd.Series(openness, index=left.index)
 
-                # end chainage
-                if num == len(list_points):
-                    angle = self._getAngle(list_points[num - 2], pt)
-                    line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
-                    angle = self._getAngle(line_end_1, pt)
-                    line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
-                    tick1 = LineString([line_end_1, pt])
-                    tick2 = LineString([line_end_2, pt])
-                    ticks.append([tick1, tick2])
-            # widths = []
-            m_heights = []
-            lefts = []
-            rights = []
-            for duo in ticks:
-                for ix, tick in enumerate(duo):
-                    if GPD_08:
-                        int_blg = right.iloc[sindex.query(tick, predicate="intersects")]
-                    else:
-                        possible_intersections_index = list(
-                            sindex.intersection(tick.bounds)
-                        )
-                        possible_intersections = right.iloc[
-                            possible_intersections_index
-                        ]
-                        real_intersections = possible_intersections.intersects(tick)
-                        int_blg = possible_intersections[real_intersections]
-                    if not int_blg.empty:
-                        true_int = int_blg.intersection(tick)
-                        dist = true_int.distance(Point(tick.coords[-1]))
-                        if ix == 0:
-                            lefts.append(dist.min())
-                        else:
-                            rights.append(dist.min())
-                        if heights is not None:
-                            m_heights.append(int_blg.loc[dist.idxmin()][heights])
-
-            openness = (len(lefts) + len(rights)) / len(ticks * 2)
-            openness_list.append(1 - openness)
-            if rights and lefts:
-                results_list.append(2 * np.mean(lefts + rights))
-                deviations_list.append(np.std(lefts + rights))
-            elif not lefts and rights:
-                results_list.append(2 * np.mean([np.mean(rights), tick_length / 2]))
-                deviations_list.append(np.std(rights))
-            elif not rights and lefts:
-                results_list.append(2 * np.mean([np.mean(lefts), tick_length / 2]))
-                deviations_list.append(np.std(lefts))
-            else:
-                results_list.append(tick_length)
-                deviations_list.append(0)
-
-            if heights is not None:
-                if m_heights:
-                    heights_list.append(np.mean(m_heights))
-                    heights_deviations_list.append(np.std(m_heights))
-                else:
-                    heights_list.append(0)
-                    heights_deviations_list.append(0)
-
-        self.w = pd.Series(results_list, index=left.index)
-        self.wd = pd.Series(deviations_list, index=left.index)
-        self.o = pd.Series(openness_list, index=left.index)
-
-        if heights is not None:
+        if do_heights:
             self.h = pd.Series(heights_list, index=left.index)
             self.hd = pd.Series(heights_deviations_list, index=left.index)
             self.p = self.h / self.w
