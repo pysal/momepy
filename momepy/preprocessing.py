@@ -738,7 +738,7 @@ def _extend_line(coords, target, tolerance, snap=True):
 
 def _get_extrapolated_line(coords, tolerance, point=False):
     """
-    Creates a line extrapoled in p1->p2 direction.
+    Creates a pygeos line extrapoled in p1->p2 direction.
     """
     p1 = coords[:2]
     p2 = coords[2:]
