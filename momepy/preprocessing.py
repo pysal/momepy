@@ -22,6 +22,7 @@ __all__ = [
     "remove_false_nodes",
     "snap_street_network_edge",
     "CheckTessellationInput",
+    "close_gaps",
 ]
 
 
@@ -814,3 +815,51 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
         streets.crs = gdf.crs
         return streets
     return streets
+
+
+def close_gaps(gdf, tolerance):
+    """Close gaps in LineString geometry where it should be contiguous.
+
+    Snaps both lines to a centroid of a gap in between.
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame, GeoSeries
+        GeoDataFrame  or GeoSeries containing LineString representation of a network.
+    tolerance : float
+        nodes within a tolerance will be snapped together
+
+    Returns
+    -------
+    GeoSeries
+
+    """
+    geom = gdf.geometry.values.data
+    coords = pygeos.get_coordinates(geom)
+    indices = pygeos.get_num_coordinates(geom)
+
+    # generate a list of start and end coordinates and create point geometries
+    edges = [0]
+    i = 0
+    for ind in indices:
+        ix = i + ind
+        edges.append(ix - 1)
+        edges.append(ix)
+        i = ix
+    edges = edges[:-1]
+    points = pygeos.points(np.unique(coords[edges], axis=0))
+
+    buffered = pygeos.buffer(points, tolerance / 2)
+
+    dissolved = pygeos.union_all(buffered)
+
+    exploded = [
+        pygeos.get_geometry(dissolved, i)
+        for i in range(pygeos.get_num_geometries(dissolved))
+    ]
+
+    centroids = pygeos.centroid(exploded)
+
+    snapped = pygeos.snap(geom, pygeos.union_all(centroids), tolerance)
+
+    return gpd.GeoSeries(snapped, crs=gdf.crs)
