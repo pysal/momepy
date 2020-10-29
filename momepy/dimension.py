@@ -473,10 +473,11 @@ class StreetProfile:
     Calculates the street profile characters.
 
     Returns a dictionary with widths, standard deviation of width, openness, heights,
-    standard deviation of height and ratio height/width. Algorithm generates perpendicular
-    lines to ``right`` dataframe features every ``distance`` and measures values on intersection
-    with features of ``left``. If no feature is reached within
-    ``tick_length`` its value is set as width (being a theoretical maximum).
+    standard deviation of height and ratio height/width. Algorithm generates
+    perpendicular ines to ``right`` dataframe features every ``distance`` and
+    measures values on intersectionwith features of ``left``. If no feature is
+    reached within ``tick_length`` its value is set as width (being a theoretical
+    maximum).
 
     Derived from :cite:`araldi2019`.
 
@@ -485,16 +486,16 @@ class StreetProfile:
     left : GeoDataFrame
         GeoDataFrame containing streets to analyse
     right : GeoDataFrame
-        GeoDataFrame containing buildings along the streets (only Polygon geometry type is supported)
+        GeoDataFrame containing buildings along the streets (only Polygon geometry type
+        is supported)
     heights: str, list, np.array, pd.Series (default None)
-        the name of the buildings dataframe column, ``np.array``, or ``pd.Series`` where is stored building height. If set to None,
+        the name of the buildings dataframe column, ``np.array``, or ``pd.Series``
+        where is stored building height. If set to None,
         height and ratio height/width will not be calculated.
     distance : int (default 10)
         distance between perpendicular ticks
     tick_length : int (default 50)
         length of ticks
-    verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
 
     Attributes
     ----------
