@@ -192,6 +192,11 @@ def remove_false_nodes(gdf):
     Returns
     -------
     gdf : GeoDataFrame, GeoSeries
+    
+    See also
+    --------
+    momepy.extend_lines
+    momepy.close_gaps
     """
     if isinstance(gdf, (gpd.GeoDataFrame, gpd.GeoSeries)):
         # explode to avoid MultiLineStrings
@@ -565,6 +570,11 @@ def close_gaps(gdf, tolerance):
     Returns
     -------
     GeoSeries
+    
+    See also
+    --------
+    momepy.extend_lines
+    momepy.remove_false_nodes
 
     """
     geom = gdf.geometry.values.data
@@ -600,13 +610,16 @@ def close_gaps(gdf, tolerance):
 
 def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     """ Extends lines from gdf to istelf or target within a set tolerance
+
     Extends unjoined ends of LineString segments to join with other segments or
-    target. If ``target` is passed, extend lines to target. Otherwise extend
+    target. If ``target`` is passed, extend lines to target. Otherwise extend
     lines to itself.
+
     If ``barrier`` is passed, each extended line is checked for intersection
     with ``barrier``. If they intersect, extended line is not returned. This
     can be useful if you don't want to extend street network segments through
     buildings.
+    
     Parameters
     ----------
     gdf : GeoDataFrame
@@ -627,6 +640,12 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     -------
     GeoDataFrame
         GeoDataFrame of with extended geometry
+    
+    See also
+    --------
+    momepy.close_gaps
+    momepy.remove_false_nodes
+
     """
     # explode to avoid MultiLineStrings
     # double reset index due to the bug in GeoPandas explode
