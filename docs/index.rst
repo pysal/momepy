@@ -33,13 +33,6 @@ Momepy aims to provide a wide range of tools for a systematic and
 exhaustive analysis of urban form. It can work with a wide range of
 elements, while focused on building footprints and street networks.
 
-
-Momepy is a result of ongoing research of `Urban
-Design Studies Unit (UDSU) <http://udsu-strath.com>`__ supported by the
-Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form
-Resilience Project” in partnership with University of Strathclyde in Glasgow,
-UK.
-
 Comments, suggestions, feedback, and contributions, as well as bug
 reports, are very welcome.
 
@@ -143,6 +136,14 @@ Get in touch
 If you have a question regarding momepy, feel free to open an issue on GitHub.
 Eventually, you can contact us on dev@momepy.org.
 
+Acknowledgements
+----------------
+Initial release of momepy was a result of a research of `Urban Design
+Studies Unit (UDSU)`_ supported by the Axel and Margaret Ax:son Johnson
+Foundation as a part of “The Urban Form Resilience Project” in
+partnership with University of Strathclyde in Glasgow, UK. Further
+development was supported by `Geographic Data Science Lab`_ of the
+University of Liverpool wihtin `Urban Grammar AI`_ research project.
 
 Documentation contents
 ----------------------
@@ -168,3 +169,6 @@ Indices and tables
 .. _GeoPandas: http://geopandas.org
 .. _PySAL: http://pysal.org
 .. _networkX: http://networkx.github.io
+.. _Urban Design Studies Unit (UDSU): http://udsu-strath.com
+.. _Geographic Data Science Lab: https://www.liverpool.ac.uk/geographic-data-science/
+.. _Urban Grammar AI: https://urbangrammarai.github.io
