@@ -120,6 +120,7 @@ diversity
    :toctree: generated/
 
    Gini
+   Percentiles
    Range
    Shannon
    Simpson
