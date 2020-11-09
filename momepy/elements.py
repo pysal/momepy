@@ -117,11 +117,12 @@ class Tessellation:
         inlude it in the tessellation of that enclosure. Resolves sliver geometry
         issues. Applies only if ``enclosures`` are passed.
     use_dask : bool (default True)
-        Use parallelised algorithm based on ``dask.bag``. Requires dask.
+        Use parallelised algorithm based on ``dask.dataframe``. Requires dask.
         Applies only if ``enclosures`` are passed.
-    n_chunks : int (default 8)
+    n_chunks : None
         Number of chunks to be used in parallelization. Ideal is one chunk per thread.
-        Applies only if ``enclosures`` are passed.
+        Applies only if ``enclosures`` are passed. Defualt automatically uses
+        n == dask.system.cpu_count.
 
     Attributes
     ----------
@@ -130,7 +131,7 @@ class Tessellation:
 
         For enclosed tessellation, gdf contains three columns:
             - ``geometry``,
-            - ``unique_id`` matching with parental building, 
+            - ``unique_id`` matching with parental building,
             - ``enclosure_id`` matching with enclosure integer index
 
     gdf : GeoDataFrame
@@ -194,7 +195,7 @@ class Tessellation:
         enclosure_id="eID",
         threshold=0.05,
         use_dask=True,
-        n_chunks=8,
+        n_chunks=None,
         **kwargs,
     ):
         self.gdf = gdf
@@ -374,7 +375,7 @@ class Tessellation:
         enclosure_id="eID",
         threshold=0.05,
         use_dask=True,
-        n_chunks=8,
+        n_chunks=None,
         **kwargs,
     ):
         """Enclosed tessellation
@@ -395,9 +396,11 @@ class Tessellation:
             inlude it in the tessellation of that enclosure. Resolves sliver geometry
             issues.
         use_dask : bool (default True)
-            Use parallelised algorithm based on ``dask.bag``. Requires dask.
-        n_chunks : int (default 8)
+            Use parallelised algorithm based on ``dask.dataframe``. Requires dask.
+        n_chunks : None
             Number of chunks to be used in parallelization. Ideal is one chunk per thread.
+            Applies only if ``enclosures`` are passed. Defualt automatically uses
+            n == dask.system.cpu_count.
         **kwargs
             Keyword arguments passed to Tessellation algorithm (as ``shrink``
             or ``segment``).
@@ -407,9 +410,9 @@ class Tessellation:
         tessellation : GeoDataFrame
             gdf contains three columns:
                 geometry,
-                unique_id matching with parental building, 
+                unique_id matching with parental building,
                 enclosure_id matching with enclosure integer index
-        
+
         Examples
         --------
         >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
@@ -427,6 +430,7 @@ class Tessellation:
         if use_dask:
             try:
                 import dask.dataframe as dd
+                from dask.system import cpu_count
             except ImportError:
                 use_dask = False
 
@@ -437,6 +441,8 @@ class Tessellation:
                 )
 
         if use_dask:
+            if n_chunks is None:
+                n_chunks = cpu_count()
             # initialize dask.series
             ds = dd.from_array(splits, chunksize=len(splits) // n_chunks)
             # generate enclosed tessellation using dask
@@ -821,7 +827,7 @@ def get_node_id(
     """
     Snap each building to closest street network node on the closest network edge.
 
-    Adds node ID to objects (preferably buildings). Gets ID of edge 
+    Adds node ID to objects (preferably buildings). Gets ID of edge
     (:func:`momepy.get_network_id` or :func:`get_network_ratio`)
     , and determines which of its end points is closer to building centroid.
 
@@ -840,7 +846,7 @@ def get_node_id(
         and end points of each segment. Start and endpoints are default
         outcome of :func:`momepy.nx_to_gdf`.
     node_id : str, list, np.array, pd.Series
-        the name of the nodes dataframe column, ``np.array``, or ``pd.Series`` 
+        the name of the nodes dataframe column, ``np.array``, or ``pd.Series``
         with unique id
     edge_id : str (default None)
         the name of the objects dataframe column
@@ -1059,7 +1065,7 @@ def enclosures(primary_barriers, limit=None, additional_barriers=None):
     -------
     enclosures : GeoSeries
        GeoSeries containing enclosure geometries
-    
+
     Examples
     --------
     >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
