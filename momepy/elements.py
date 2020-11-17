@@ -987,8 +987,7 @@ def get_network_ratio(df, edges, initial_buffer=500):
     nans = df.index.difference(edge_dicts.index)
     buffered = df.iloc[nans].buffer(initial_buffer)
     additional = []
-    for i in range(len(buffered)):
-        geom = buffered.geometry.iloc[i]
+    for geom in buffered.geometry:
         query = edges.sindex.query(geom)
         b = initial_buffer
         while query.size == 0:
