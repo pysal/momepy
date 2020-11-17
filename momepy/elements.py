@@ -987,13 +987,13 @@ def get_network_ratio(df, edges, initial_buffer=500):
     nans = df.index.difference(edge_dicts.index)
     buffered = df.iloc[nans].buffer(initial_buffer)
     additional = []
-    for geom in buffered.geometry:
-        query = edges.sindex.query(geom)
+    for orig, geom in zip(df.iloc[nans].geometry, buffered.geometry):
+        query = edges.sindex.query(geom, predicate="intersects")
         b = initial_buffer
         while query.size == 0:
-            query = edges.sindex.query(geom.buffer(b))
+            query = edges.sindex.query(geom.buffer(b), predicate="intersects")
             b += initial_buffer
-        additional.append({edges.iloc[query].distance(geom).idxmin(): 1})
+        additional.append({edges.iloc[query].distance(orig).idxmin(): 1})
 
     additional = pd.Series(additional, index=nans)
     ratios = pd.concat([edge_dicts, additional]).sort_index()
