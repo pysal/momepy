@@ -74,12 +74,6 @@ class TestUtils:
         assert len(nodes) == 29
         assert len(edges) == 35
 
-        # osmnx compatibility
-        G = ox.graph_from_place("Preborov, Czechia", network_type="drive")
-        pts, lines = mm.nx_to_gdf(G)
-        assert len(pts) == 7
-        assert len(lines) == 16
-
         # LineString Z
         line1 = LineString([(0, 0, 0), (1, 1, 1)])
         line2 = LineString([(0, 0, 0), (-1, -1, -1)])
@@ -88,6 +82,14 @@ class TestUtils:
         pts, lines = mm.nx_to_gdf(G)
         assert pts.iloc[0].geometry.wkt == "POINT Z (0 0 0)"
         assert lines.iloc[0].geometry.wkt == "LINESTRING Z (0 0 0, 1 1 1)"
+
+    @pytest.mark.xfail(reason="nominatim connection error")
+    def test_nx_to_gdf_osmnx(self):
+        # osmnx compatibility
+        G = ox.graph_from_place("Preborov, Czechia", network_type="drive")
+        pts, lines = mm.nx_to_gdf(G)
+        assert len(pts) == 7
+        assert len(lines) == 16
 
     def test_limit_range(self):
         assert list(mm.limit_range(range(10), rng=(25, 75))) == [2, 3, 4, 5, 6, 7]
