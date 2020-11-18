@@ -1,8 +1,11 @@
 import geopandas as gpd
 import momepy as mm
+import numpy as np
 import pytest
 
-from shapely.geometry import LineString
+from shapely.geometry import Polygon, MultiPoint, LineString
+from shapely import affinity
+
 from geopandas.testing import assert_geodataframe_equal
 
 
@@ -50,6 +53,20 @@ class TestElements:
             mm.Tessellation(
                 self.df_buildings, "uID", limit=self.limit, enclosures=self.enclosures
             )
+
+        # erroneous geometry
+        df = self.df_buildings
+        b = df.total_bounds
+        x = np.mean([b[0], b[2]])
+        y = np.mean([b[1], b[3]])
+
+        df.loc[144] = [145, Polygon([(x, y), (x, y + 1), (x + 1, y)])]
+        df.loc[145] = [146, MultiPoint([(x, y), (x + 1, y)]).buffer(0.55)]
+        df.loc[146] = [147, affinity.rotate(df.geometry.iloc[0], 12)]
+
+        tess = mm.Tessellation(df, "uID", self.limit)
+        assert tess.collapsed == {145}
+        assert len(tess.multipolygons) == 3
 
     def test_Blocks(self):
         blocks = mm.Blocks(

@@ -304,12 +304,13 @@ class Tessellation:
             lines = geoms
         lengths = pygeos.length(lines)
         for ix, line, length in zip(index, lines, lengths):
-            pts = pygeos.line_interpolate_point(
-                line,
-                np.linspace(0.1, length - 0.1, num=int((length - 0.1) // distance)),
-            )  # .1 offset to keep a gap between two segments
-            points = np.append(points, pygeos.get_coordinates(pts), axis=0)
-            ids += [ix] * len(pts)
+            if length > distance:  # some polygons might have collapsed
+                pts = pygeos.line_interpolate_point(
+                    line,
+                    np.linspace(0.1, length - 0.1, num=int((length - 0.1) // distance)),
+                )  # .1 offset to keep a gap between two segments
+                points = np.append(points, pygeos.get_coordinates(pts), axis=0)
+                ids += [ix] * len(pts)
 
         return points, ids
 
