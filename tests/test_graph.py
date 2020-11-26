@@ -1,6 +1,11 @@
+from distutils.version import LooseVersion
+
 import geopandas as gpd
 import momepy as mm
+import networkx as nx
 import pytest
+
+NX_26 = str(nx.__version__) < LooseVersion("2.6")
 
 
 class TestGraph:
@@ -179,9 +184,10 @@ class TestGraph:
             == edge
         )
 
+    @pytest.mark.skipif(NX_26, reason="networkx<2.6 has a bug")
     def test_clustering(self):
         net = mm.clustering(self.network)
-        check = 0.09090909090909091
+        check = 0.05555555555555555
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["cluster"] == check
 
     def test_subgraph(self):
