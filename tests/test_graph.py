@@ -184,7 +184,7 @@ class TestGraph:
             == edge
         )
 
-    @pytest.mark.skipif(NX_26, "networkx<2.6 has a bug")
+    @pytest.mark.skipif(NX_26, reason="networkx<2.6 has a bug")
     def test_clustering(self):
         net = mm.clustering(self.network)
         check = 0.05555555555555555
