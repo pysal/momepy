@@ -5,7 +5,7 @@ import momepy as mm
 import networkx as nx
 import pytest
 
-NX_26 = str(nx.__version__) < LooseVersion("2.6.0")
+NX_26 = str(nx.__version__) < LooseVersion("2.6")
 
 
 class TestGraph:
