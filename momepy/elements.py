@@ -618,7 +618,10 @@ class Blocks:
         ):
             possible_matches_index = streets_index.query(cell)
             possible_matches = street_buff.iloc[possible_matches_index]
-            new_geom.append(cell.difference(possible_matches.unary_union))
+            if len(possible_matches) > 0:
+                new_geom.append(cell.difference(possible_matches.unary_union))
+            else:
+                new_geom.append(cell)
 
         print("Defining adjacency...") if verbose else None
         blocks_gdf = gpd.GeoDataFrame(geometry=new_geom)
