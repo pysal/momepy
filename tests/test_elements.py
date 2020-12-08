@@ -54,6 +54,12 @@ class TestElements:
                 self.df_buildings, "uID", limit=self.limit, enclosures=self.enclosures
             )
 
+        enc1_loop = mm.Tessellation(
+            self.df_buildings, "uID", enclosures=self.enclosures, use_dask=False
+        ).tessellation
+        assert len(enc1) == 155
+        assert isinstance(enc1, gpd.GeoDataFrame)
+
         # erroneous geometry
         df = self.df_buildings
         b = df.total_bounds
@@ -129,11 +135,11 @@ class TestElements:
     def test_enclosures(self):
         basic = mm.enclosures(self.df_streets)
         assert len(basic) == 7
-        assert isinstance(basic, gpd.GeoSeries)
+        assert isinstance(basic, gpd.GeoDataFrame)
 
         limited = mm.enclosures(self.df_streets, gpd.GeoSeries([self.limit]))
         assert len(limited) == 20
-        assert isinstance(limited, gpd.GeoSeries)
+        assert isinstance(limited, gpd.GeoDataFrame)
 
         b = self.limit.bounds
         additional_barrier = gpd.GeoSeries([LineString([(b[0], b[1]), (b[2], b[3])])])
@@ -142,7 +148,7 @@ class TestElements:
             self.df_streets, gpd.GeoSeries([self.limit]), [additional_barrier]
         )
         assert len(additional) == 28
-        assert isinstance(additional, gpd.GeoSeries)
+        assert isinstance(additional, gpd.GeoDataFrame)
 
         with pytest.raises(TypeError):
             additional = mm.enclosures(

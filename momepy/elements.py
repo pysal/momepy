@@ -106,11 +106,11 @@ class Tessellation:
         maximum distance between points after discretization
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
-    enclosures : GeoDataFrame, GeoSeries (default None)
+    enclosures : GeoDataFrame (default None)
         Enclosures geometry. Can  be generated using :func:`momepy.enclosures`.
     enclosure_id : str (default 'eID')
-        name of the enclosure_id (to be created). Applies only if ``enclosures`` are
-        passed.
+        name of the enclosure_id containing unique identifer for each row in ``enclosures``.
+        Applies only if ``enclosures`` are passed.
     threshold : float (default 0.05)
         The minimum threshold for a building to be considered within an enclosure.
         Threshold is a ratio of building area which needs to be within an enclosure to
@@ -387,7 +387,7 @@ class Tessellation:
         ----------
         buildings : GeoDataFrame
             GeoDataFrame containing building footprints. Expects (Multi)Polygon geometry.
-        enclosures : GeoDataFrame, GeoSeries
+        enclosures : GeoDataFrame
             Enclosures geometry. Can  be generated using :func:`momepy.enclosures`.
         unique_id : str
             name of the column with unique id of buildings gdf
@@ -420,9 +420,11 @@ class Tessellation:
         >>> enclosed_tess = mm.enclosed_tessellation(buildings, enclosures)
 
         """
+        enclosures = enclosures.reset_index(drop=True)
+
         # determine which polygons should be split
         inp, res = buildings.sindex.query_bulk(
-            enclosures.values.data, predicate="intersects"
+            enclosures.geometry, predicate="intersects"
         )
         unique, counts = np.unique(inp, return_counts=True)
         splits = unique[counts > 1]
@@ -473,9 +475,7 @@ class Tessellation:
             ]
 
         # finalise the result
-        clean_blocks = gpd.GeoDataFrame(geometry=enclosures)
-        clean_blocks[enclosure_id] = range(len(enclosures))
-        clean_blocks = clean_blocks.drop(splits)
+        clean_blocks = enclosures.drop(splits)
         clean_blocks.loc[single, "uID"] = clean_blocks.loc[single][enclosure_id].apply(
             lambda ix: buildings.iloc[res[inp == ix][0]][unique_id]
         )
@@ -494,7 +494,7 @@ class Tessellation:
         unique_id,
         **kwargs,
     ):
-        poly = enclosure.values.data[ix]
+        poly = enclosure.geometry.values.data[ix]
         blg = buildings.iloc[query_res[query_inp == ix]]
         within = blg[
             pygeos.area(pygeos.intersection(blg.geometry.values.data, poly))
@@ -510,10 +510,12 @@ class Tessellation:
                 verbose=False,
                 check=False,
             )
-            tess[self.enclosure_id] = ix
+            tess[self.enclosure_id] = enclosure[self.enclosure_id].iloc[ix]
             return tess
         return gpd.GeoDataFrame(
-            {self.enclosure_id: ix, unique_id: None}, geometry=[poly], index=[0]
+            {self.enclosure_id: enclosure[self.enclosure_id].iloc[ix], unique_id: None},
+            geometry=[poly],
+            index=[0],
         )
 
 
@@ -1041,7 +1043,9 @@ def _split_lines(polygon, distance):
     return cutted
 
 
-def enclosures(primary_barriers, limit=None, additional_barriers=None):
+def enclosures(
+    primary_barriers, limit=None, additional_barriers=None, enclosure_id="eID"
+):
     """
     Generate enclosures based on passed barriers.
 
@@ -1063,11 +1067,13 @@ def enclosures(primary_barriers, limit=None, additional_barriers=None):
     additional_barriers : GeoDataFrame
         GeoDataFrame or GeoSeries containing additional barriers.
         (Multi)LineString geometry is expected.
+    enclosure_id : str (default 'eID')
+        name of the enclosure_id (to be created).
 
     Returns
     -------
-    enclosures : GeoSeries
-       GeoSeries containing enclosure geometries
+    enclosures : GeoDataFrame
+       GeoDataFrame containing enclosure geometries and enclosure_id
 
     Examples
     --------
@@ -1118,9 +1124,14 @@ def enclosures(primary_barriers, limit=None, additional_barriers=None):
             new += list(polygons[within])
 
         final_enclosures = (
-            gpd.GeoSeries(enclosures).drop(unique).append(gpd.GeoSeries(new))
+            gpd.GeoSeries(enclosures)
+            .drop(unique)
+            .append(gpd.GeoSeries(new))
+            .reset_index(drop=True)
+        ).set_crs(primary_barriers.crs)
+
+        return gpd.GeoDataFrame(
+            {enclosure_id: range(len(final_enclosures))}, geometry=final_enclosures
         )
 
-        return final_enclosures.set_crs(primary_barriers.crs)
-
-    return enclosures
+    return gpd.GeoDataFrame({enclosure_id: range(len(enclosures))}, geometry=enclosures)
