@@ -249,12 +249,14 @@ class Courtyards:
         # dict to store nr of courtyards for each uID
         courtyards = {}
         components = pd.Series(spatial_weights.component_labels, index=gdf.index)
-        for index in tqdm(gdf.index, total=gdf.shape[0], disable=not verbose):
+        for i, index in tqdm(
+            enumerate(gdf.index), total=gdf.shape[0], disable=not verbose
+        ):
             # if the id is already present in courtyards, continue (avoid repetition)
             if index in courtyards:
                 continue
             else:
-                comp = spatial_weights.component_labels[index]
+                comp = spatial_weights.component_labels[i]
                 to_join = components[components == comp].index
                 joined = gdf.loc[to_join]
                 dissolved = joined.geometry.buffer(
