@@ -492,7 +492,7 @@ class NeighborDistance:
         for index, geom in tqdm(
             data.iteritems(), total=data.shape[0], disable=not verbose
         ):
-            if index in spatial_weights.neighbors.keys():
+            if geom is not None and index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index]
                 building_neighbours = data.loc[neighbours]
                 if len(building_neighbours) > 0:
@@ -543,7 +543,7 @@ class MeanInterbuildingDistance:
     sw_higher : libpysal.weights
         Spatial weights matrix of higher order
     order : int
-        Order of contiguity. 
+        Order of contiguity.
 
     Notes
     -----
@@ -580,8 +580,8 @@ class MeanInterbuildingDistance:
         adj_list = spatial_weights.to_adjlist()
         adj_list["weight"] = (
             data.loc[adj_list.focal]
-            .reset_index()
-            .distance(data.loc[adj_list.neighbor].reset_index())
+            .reset_index(drop=True)
+            .distance(data.loc[adj_list.neighbor].reset_index(drop=True))
             .values
         )
 
