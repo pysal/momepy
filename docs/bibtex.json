@@ -1,0 +1,118 @@
+{
+    "cited": {
+        "generated/momepy.AreaRatio": [
+            "schirmer2015"
+        ],
+        "generated/momepy.AverageCharacter": [
+            "hausleitner2017"
+        ],
+        "generated/momepy.BlocksCount": [
+            "dibble2017"
+        ],
+        "generated/momepy.BuildingAdjacency": [
+            "vanderhaegen2017"
+        ],
+        "generated/momepy.CentroidCorners": [
+            "schirmer2015",
+            "cimburova2017"
+        ],
+        "generated/momepy.CircularCompactness": [
+            "dibble2017"
+        ],
+        "generated/momepy.Convexity": [
+            "dibble2017"
+        ],
+        "generated/momepy.Count": [
+            "hermosilla2012",
+            "feliciotti2018"
+        ],
+        "generated/momepy.CourtyardIndex": [
+            "schirmer2015"
+        ],
+        "generated/momepy.Courtyards": [
+            "schirmer2015"
+        ],
+        "generated/momepy.Density": [
+            "dibble2017"
+        ],
+        "generated/momepy.Elongation": [
+            "gil2012"
+        ],
+        "generated/momepy.EquivalentRectangularIndex": [
+            "basaraner2017"
+        ],
+        "generated/momepy.FormFactor": [
+            "bourdic2012"
+        ],
+        "generated/momepy.FractalDimension": [
+            "mcgarigal1995fragstats"
+        ],
+        "generated/momepy.Linearity": [
+            "araldi2019"
+        ],
+        "generated/momepy.NeighborDistance": [
+            "schirmer2015"
+        ],
+        "generated/momepy.Neighbors": [
+            "hermosilla2012"
+        ],
+        "generated/momepy.NodeDensity": [
+            "dibble2017"
+        ],
+        "generated/momepy.Orientation": [
+            "schirmer2015"
+        ],
+        "generated/momepy.Range": [
+            "dibble2017"
+        ],
+        "generated/momepy.Rectangularity": [
+            "dibble2017"
+        ],
+        "generated/momepy.SharedWallsRatio": [
+            "hamaina2012a"
+        ],
+        "generated/momepy.Simpson": [
+            "feliciotti2018"
+        ],
+        "generated/momepy.SquareCompactness": [
+            "feliciotti2018"
+        ],
+        "generated/momepy.Squareness": [
+            "dibble2017"
+        ],
+        "generated/momepy.StreetProfile": [
+            "araldi2019"
+        ],
+        "generated/momepy.Tessellation": [
+            "fleischmann2020",
+            "araldi2019"
+        ],
+        "generated/momepy.VolumeFacadeRatio": [
+            "schirmer2015"
+        ],
+        "generated/momepy.WeightedCharacter": [
+            "dibble2017"
+        ],
+        "generated/momepy.betweenness_centrality": [
+            "porta2006"
+        ],
+        "generated/momepy.buffered_limit": [
+            "fleischmann2020"
+        ],
+        "generated/momepy.cyclomatic": [
+            "bourdic2012"
+        ],
+        "generated/momepy.edge_node_ratio": [
+            "dibble2017"
+        ],
+        "generated/momepy.gamma": [
+            "dibble2017"
+        ],
+        "generated/momepy.meshedness": [
+            "feliciotti2018"
+        ],
+        "generated/momepy.straightness_centrality": [
+            "porta2006"
+        ]
+    }
+}

@@ -106,6 +106,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 
+# path to bib file with references
+bibtex_bibfiles = ["_static/references.bib"]
 
 # -- Options for HTML output -------------------------------------------------
 
