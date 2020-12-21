@@ -5,7 +5,6 @@
 # definitions of spatial distribution characters
 
 import math
-import warnings
 
 import networkx as nx
 import numpy as np
@@ -16,6 +15,7 @@ from .utils import _azimuth
 
 __all__ = [
     "Orientation",
+    "SharedWalls",
     "SharedWallsRatio",
     "StreetAlignment",
     "CellAlignment",
@@ -106,7 +106,55 @@ class Orientation:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
-class SharedWallsRatio:
+class SharedWalls:
+    """
+    Calculate the length of shared walls of adjacent elements (typically buildings)
+
+    .. math::
+        \\textit{length of shared walls}
+
+    Note that data needs to be topologically correct. Overlapping polygons will lead to
+    incorrect results.
+
+    Adapted from :cite:`hamaina2012a`.
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame
+        GeoDataFrame containing gdf to analyse
+
+    Attributes
+    ----------
+    series : Series
+        Series containing resulting values
+    gdf : GeoDataFrame
+        original GeoDataFrame
+
+    Examples
+    --------
+    >>> buildings_df['swr'] = momepy.SharedWalls(buildings_df).series
+
+    See also
+    --------
+    SharedWallsRatio
+    """
+
+    def __init__(self, gdf):
+        self.gdf = gdf
+
+        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
+        left = gdf.geometry.take(inp).reset_index(drop=True)
+        right = gdf.geometry.take(res).reset_index(drop=True)
+        intersections = left.intersection(right).length
+        results = intersections.groupby(inp).sum().reset_index(
+            drop=True
+        ) - gdf.geometry.length.reset_index(drop=True)
+        results.index = gdf.index
+
+        self.series = results
+
+
+class SharedWallsRatio(SharedWalls):
     """
     Calculate shared walls ratio of adjacent elements (typically buildings)
 
@@ -122,8 +170,7 @@ class SharedWallsRatio:
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing gdf to analyse
-    unique_id : (deprecated)
-    perimeters : str, list, np.array, pd.Series (default None)
+    perimeters : str, list, np.array, pd.Series (default None, optional)
         the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value
 
     Attributes
@@ -140,15 +187,14 @@ class SharedWallsRatio:
     >>> buildings_df['swr'] = momepy.SharedWallsRatio(buildings_df).series
     >>> buildings_df['swr'][10]
     0.3424804411228673
+
+    See also
+    --------
+    SharedWalls
     """
 
-    def __init__(self, gdf, unique_id=None, perimeters=None):
-        if unique_id is not None:
-            warnings.warn(
-                "unique_id is deprecated and will be removed in v0.4.", FutureWarning,
-            )
-
-        self.gdf = gdf
+    def __init__(self, gdf, perimeters=None):
+        super(SharedWallsRatio, self).__init__(gdf)
 
         if perimeters is None:
             self.perimeters = gdf.geometry.length
@@ -157,17 +203,7 @@ class SharedWallsRatio:
         else:
             self.perimeters = perimeters
 
-        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
-        left = gdf.geometry.take(inp).reset_index(drop=True)
-        right = gdf.geometry.take(res).reset_index(drop=True)
-        intersections = left.intersection(right).length
-        results = (
-            intersections.groupby(inp).sum().reset_index(drop=True)
-            - self.perimeters.reset_index(drop=True)
-        ) / self.perimeters.reset_index(drop=True)
-        results.index = gdf.index
-
-        self.series = results
+        self.series = self.series / self.perimeters
 
 
 class StreetAlignment:
