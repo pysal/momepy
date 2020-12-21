@@ -773,9 +773,6 @@ class Percentiles:
     """
     Calculates the percentiles of values within neighbours defined in ``spatial_weights``.
 
-    .. math::
-
-
     Parameters
     ----------
     gdf : GeoDataFrame
@@ -792,13 +789,15 @@ class Percentiles:
         This optional parameter specifies the interpolation method to
         use when the desired percentile lies between two data points
         ``i < j``:
-        * 'linear': ``i + (j - i) * fraction``, where ``fraction``
-          is the fractional part of the index surrounded by ``i``
-          and ``j``.
-        * 'lower': ``i``.
-        * 'higher': ``j``.
-        * 'nearest': ``i`` or ``j``, whichever is nearest.
-        * 'midpoint': ``(i + j) / 2``.
+
+        * ``'linear'``
+        * ``'lower'``
+        * ``'higher'``
+        * ``'nearest'``
+        * ``'midpoint'``
+
+        See the documentation of ``numpy.percentile`` for details.
+   
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
 
@@ -818,7 +817,7 @@ class Percentiles:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['cluster_unique'] = mm.Percentiles(tessellation_df, 'cluster', sw, 'uID').series
+    >>> tessellation_df['cluster_unique'] = mm.Percentiles(tessellation_df, 'cluster', sw, 'uID').frame
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
     """
 
