@@ -4,7 +4,7 @@ import geopandas as gpd
 import momepy as mm
 import numpy as np
 from pytest import approx
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, MultiLineString
 
 from momepy.shape import _circle_area
 
@@ -214,6 +214,10 @@ class TestShape:
         )
         check = euclidean / self.df_streets.geometry[0].length
         assert self.df_streets["lin"][0] == approx(check, rel=1e-6)
+
+        self.df_streets.loc[len(self.df_streets)] = MultiLineString(
+            [[(0, 0), (-1, 1)], [(10, 10), (11, 11)]]
+        )
 
     def test_CompactnessWeightedAxis(self):
         self.df_buildings["cwa"] = mm.CompactnessWeightedAxis(self.df_buildings).series
