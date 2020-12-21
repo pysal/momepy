@@ -1144,7 +1144,7 @@ class Linearity:
     .. math::
         \\frac{l_{euclidean}}{l_{segment}}
 
-    where `l` is the length of the LineString.
+    where `l` is the length of the LineString. MultiLineString returns ``np.nan``.
 
     Adapted from :cite:`araldi2019`.
 
@@ -1174,6 +1174,8 @@ class Linearity:
 
         euclidean = gdf.geometry.apply(
             lambda geom: self._dist(geom.coords[0], geom.coords[-1])
+            if geom.type == "LineString"
+            else np.nan
         )
         self.series = euclidean / gdf.geometry.length
 
