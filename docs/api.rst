@@ -77,6 +77,7 @@ spatial distribution
   NeighboringStreetOrientationDeviation
   Neighbors
   Orientation
+  SharedWalls
   SharedWallsRatio
   StreetAlignment
 

@@ -33,6 +33,15 @@ class TestDistribution:
         assert self.df_streets["orient"][0] == pytest.approx(check)
 
     @pytest.mark.skipif(not GPD_08, reason="requires geopandas > 0.7")
+    def test_SharedWalls(self):
+        self.df_buildings["swr"] = mm.SharedWalls(self.df_buildings).series
+        nonconsecutive = self.df_buildings.drop(2)
+        result = mm.SharedWalls(nonconsecutive).series
+        check = 39.395484381507075
+        assert self.df_buildings["swr"][10] == check
+        assert result[10] == check
+
+    @pytest.mark.skipif(not GPD_08, reason="requires geopandas > 0.7")
     def test_SharedWallsRatio(self):
         self.df_buildings["swr"] = mm.SharedWallsRatio(self.df_buildings).series
         self.df_buildings["swr_array"] = mm.SharedWallsRatio(
@@ -44,8 +53,6 @@ class TestDistribution:
         assert self.df_buildings["swr"][10] == check
         assert self.df_buildings["swr_array"][10] == check
         assert result[10] == check
-        with pytest.warns(FutureWarning):
-            mm.SharedWallsRatio(self.df_buildings, "uID")
 
     def test_StreetAlignment(self):
         self.df_buildings["orient"] = orient = mm.Orientation(self.df_buildings).series
