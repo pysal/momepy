@@ -192,7 +192,7 @@ def remove_false_nodes(gdf):
     Returns
     -------
     gdf : GeoDataFrame, GeoSeries
-    
+
     See also
     --------
     momepy.extend_lines
@@ -343,7 +343,7 @@ class CheckTessellationInput:
     have to be fixed prior Tessellation. Features which will split will cause issues
     only sometimes, so
     should be checked and fixed if necessary. Features which will collapse could
-    be ignored, but they will have to excluded from next steps of 
+    be ignored, but they will have to excluded from next steps of
     tessellation-based analysis.
 
     Parameters
@@ -570,7 +570,7 @@ def close_gaps(gdf, tolerance):
     Returns
     -------
     GeoSeries
-    
+
     See also
     --------
     momepy.extend_lines
@@ -609,7 +609,7 @@ def close_gaps(gdf, tolerance):
 
 
 def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
-    """ Extends lines from gdf to istelf or target within a set tolerance
+    """Extends lines from gdf to istelf or target within a set tolerance
 
     Extends unjoined ends of LineString segments to join with other segments or
     target. If ``target`` is passed, extend lines to target. Otherwise extend
@@ -619,7 +619,7 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     with ``barrier``. If they intersect, extended line is not returned. This
     can be useful if you don't want to extend street network segments through
     buildings.
-    
+
     Parameters
     ----------
     gdf : GeoDataFrame
@@ -628,19 +628,19 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
         tolerance in snapping (by how much could be each segment
         extended).
     target : GeoDataFrame, GeoSeries
-        target geometry to which ``gdf`` gets extended. Has to be 
+        target geometry to which ``gdf`` gets extended. Has to be
         (Multi)LineString geometry.
     barrier : GeoDataFrame, GeoSeries
         extended line is not used if it intersects barrier
     extension : float
         by how much to extend line beyond the snapped geometry. Useful
         when creating enclosures to avoid floating point imprecision.
-    
+
     Returns
     -------
     GeoDataFrame
         GeoDataFrame of with extended geometry
-    
+
     See also
     --------
     momepy.close_gaps
