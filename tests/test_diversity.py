@@ -7,14 +7,9 @@ from pytest import approx
 
 from distutils.version import LooseVersion
 
-try:
-    import mapclassify
+import mapclassify
 
-    MC_21 = str(mapclassify.__version__) < LooseVersion("2.1.0")
-except ImportError:
-    import pysal
-
-    MC_21 = str(pysal.__version__) < LooseVersion("2.1.0")
+MC_240 = str(mapclassify.__version__) == LooseVersion("2.4.0")
 
 
 class TestDiversity:
@@ -67,7 +62,7 @@ class TestDiversity:
             .any()
         )
 
-    @pytest.mark.skipif(MC_21, reason="requires mapclassify < 2.1")
+    @pytest.mark.skipif(MC_240, reason="Bug in mapclassify 2.4.0")
     def test_Simpson(self):
         ht_sw = mm.Simpson(self.df_tessellation, "area", self.sw, "uID").series
         assert ht_sw[0] == 0.385
@@ -133,6 +128,7 @@ class TestDiversity:
             .any()
         )
 
+    @pytest.mark.skipif(MC_240, reason="Bug in mapclassify 2.4.0")
     def test_Shannon(self):
         ht_sw = mm.Shannon(self.df_tessellation, "area", self.sw, "uID").series
         assert ht_sw[0] == 1.094056456831614

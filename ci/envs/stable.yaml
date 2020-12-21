@@ -10,8 +10,9 @@ dependencies:
   - pytest
   - pytest-cov
   - codecov
-  - pysal
+  - mapclassify=2.3.0
   - osmnx
   - black=19.10b0
   - pygeos
   - dask
+  - inequality
