@@ -278,7 +278,8 @@ class BlocksCount:
     """
     Calculates the weighted number of blocks
 
-    Number of blocks within neighbours defined in ``spatial_weights``.
+    Number of blocks within neighbours defined in ``spatial_weights`` divided by the area
+    you have covered by the neighbours.
 
     .. math::
 
