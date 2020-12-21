@@ -287,12 +287,16 @@ def limit_range(vals, rng):
     array
         limited array
     """
+    vals = np.asarray(vals)
     if len(vals) > 2:
         rng = sorted(rng)
-        lower = np.percentile(vals, rng[0], interpolation="nearest")
-        higher = np.percentile(vals, rng[1], interpolation="nearest")
-        limited = [x for x in vals if x >= lower and x <= higher]
-        return np.array(limited)
+        if np.isnan(vals).any():
+            lower = np.nanpercentile(vals, rng[0], interpolation="nearest")
+            higher = np.nanpercentile(vals, rng[1], interpolation="nearest")
+        else:
+            lower = np.percentile(vals, rng[0], interpolation="nearest")
+            higher = np.percentile(vals, rng[1], interpolation="nearest")
+        return vals[(lower <= vals) & (vals <= higher)]
     return vals
 
 
