@@ -17,3 +17,4 @@ This section covers:
    enclosed
    blocks
    links
+   preprocessing
