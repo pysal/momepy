@@ -36,6 +36,38 @@ class TestUtils:
         with pytest.raises(ValueError):
             mm.gdf_to_nx(self.df_streets, approach="nonexistent")
 
+        nx = mm.gdf_to_nx(self.df_streets, multigraph=False)
+        assert isinstance(nx, networkx.Graph)
+        assert nx.number_of_nodes() == 29
+        assert nx.number_of_edges() == 35
+
+        nx = mm.gdf_to_nx(self.df_streets, multigraph=False, directed=True)
+        assert isinstance(nx, networkx.DiGraph)
+        assert nx.number_of_nodes() == 29
+        assert nx.number_of_edges() == 35
+
+        nx = mm.gdf_to_nx(self.df_streets, directed=True)
+        assert isinstance(nx, networkx.MultiDiGraph)
+        assert nx.number_of_nodes() == 29
+        assert nx.number_of_edges() == 35
+
+        dual = mm.gdf_to_nx(self.df_streets, approach="dual", angles=False)
+        assert (
+            dual.edges[
+                (1603499.42326969, 6464328.7520580515),
+                (1603510.1061735682, 6464204.555117119),
+                0,
+            ]
+            == {}
+        )
+
+        dual = mm.gdf_to_nx(self.df_streets, approach="dual", angle="ang")
+        assert dual.edges[
+            (1603499.42326969, 6464328.7520580515),
+            (1603510.1061735682, 6464204.555117119),
+            0,
+        ] == {"ang": 1.0963654487814474}
+
     def test_nx_to_gdf(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)
