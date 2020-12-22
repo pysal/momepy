@@ -87,6 +87,9 @@ class TestUtils:
             (1603510.1061735682, 6464204.555117119),
         ] == {"angle": 1.0963654487814474}
 
+        with pytest.raises(ValueError):
+            mm.gdf_to_nx(self.df_streets, approach="dual", directed=True)
+
     def test_nx_to_gdf(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)
