@@ -1,13 +1,14 @@
 Changelog
 =========
 
-Version 0.4.0 (TBD)
--------------------
+Version 0.4.0 (December 26, 2020)
+---------------------------------
 
 Requirements:
 
 - momepy now requires GeoPandas 0.8 or newer
 - momepy now requires pygeos
+- momepy now (optionally) requires mapclassify 2.4.2 or newer
 
 API changes:
 
@@ -15,7 +16,31 @@ API changes:
 
 Enhancements:
 
-- New performant algorithm ``remove_false_nodes`` to remove nodes of a degree 2 of a LineString network.
+- New performant algorithm ``remove_false_nodes`` to remove nodes of a degree 2 of a LineString network. (#204)
+- Faster ``CircularCompactness`` (#205)
+- pygeos-based ``Tessellation`` (#207)
+- New class ``Percentiles`` (#209)
+- Various speedups (#209)
+- New ``enclosures`` function (#211)
+- Enclosed tessellation option in ``Tessellation`` (#212)
+- Preprocessing module (#214)
+- Preprocessing function to ``close_gaps`` of LineString geoemtry (#215)
+- Preprocessing function to ``extend_lines`` (#217)
+- ratio-based network links (#218)
+- vectorize ``StreetProfile`` (#219)
+- capture MutliLineString in ``Linearity`` (#236)
+- support MultiPolygons (#234)
+- handle NaNs in ``limit_range`` (#235)
+- ``SharedWalls`` length (#238)
+- refactor ``Blocks`` using overlay and libpysal (#237)
+- more options in converting to networkx graphs in ``gdf_to_nx`` (#240)
+- use mapclassify.classify in ``Simpson`` and ``Shannon`` (#241)
+
+Bug fixes:
+
+- fix nearest neighbor in ``get_network_ratio`` (#224)
+- ``Tessellation`` error when geom collapsed (#226)
+- ``Blocks`` empty difference (#230)
 
 
 Version 0.3.0 (July 29, 2020)
