@@ -5,12 +5,6 @@ import pytest
 from momepy import sw_high
 from pytest import approx
 
-from distutils.version import LooseVersion
-
-import mapclassify
-
-MC_240 = str(mapclassify.__version__) == LooseVersion("2.4.0")
-
 
 class TestDiversity:
     def setup_method(self):
@@ -62,7 +56,6 @@ class TestDiversity:
             .any()
         )
 
-    @pytest.mark.skipif(MC_240, reason="Bug in mapclassify 2.4.0")
     def test_Simpson(self):
         ht_sw = mm.Simpson(self.df_tessellation, "area", self.sw, "uID").series
         assert ht_sw[0] == 0.385
@@ -128,7 +121,6 @@ class TestDiversity:
             .any()
         )
 
-    @pytest.mark.skipif(MC_240, reason="Bug in mapclassify 2.4.0")
     def test_Shannon(self):
         ht_sw = mm.Shannon(self.df_tessellation, "area", self.sw, "uID").series
         assert ht_sw[0] == 1.094056456831614

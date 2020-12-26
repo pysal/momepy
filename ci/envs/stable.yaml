@@ -10,7 +10,7 @@ dependencies:
   - pytest
   - pytest-cov
   - codecov
-  - mapclassify=2.3.0
+  - mapclassify=2.4.2
   - osmnx
   - black=19.10b0
   - pygeos

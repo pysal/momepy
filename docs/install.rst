@@ -90,7 +90,7 @@ Required dependencies:
 
 Some functions also depend on additional packages, which are optional:
 
-- `mapclassify`_ (>= 2.1.1)
+- `mapclassify`_ (>= 2.4.2)
 - `inequality`_
 
 or

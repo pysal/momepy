@@ -287,19 +287,9 @@ class Simpson:
     ):
         if not categorical:
             try:
-                import mapclassify.classifiers as classifiers
+                from mapclassify import classify
             except ImportError:
-                raise ImportError("The 'mapclassify' package is required")
-
-            schemes = {}
-            for classifier in classifiers.CLASSIFIERS:
-                schemes[classifier.lower()] = getattr(classifiers, classifier)
-            binning = binning.lower()
-            if binning not in schemes:
-                raise ValueError(
-                    "Invalid binning. Binning must be in the"
-                    " set: %r" % schemes.keys()
-                )
+                raise ImportError("The 'mapclassify >= 2.4.2` package is required.")
 
         self.gdf = gdf
         self.sw = spatial_weights
@@ -324,7 +314,7 @@ class Simpson:
             categories = data.unique()
 
         if not categorical:
-            self.bins = schemes[binning](data, **classification_kwds).bins
+            self.bins = classify(data, scheme=binning, **classification_kwds).bins
         else:
             self.bins = categories
 
@@ -580,19 +570,9 @@ class Shannon:
     ):
         if not categorical:
             try:
-                import mapclassify.classifiers as classifiers
+                from mapclassify import classify
             except ImportError:
-                raise ImportError("The 'mapclassify' package is required")
-
-            schemes = {}
-            for classifier in classifiers.CLASSIFIERS:
-                schemes[classifier.lower()] = getattr(classifiers, classifier)
-            binning = binning.lower()
-            if binning not in schemes:
-                raise ValueError(
-                    "Invalid binning. Binning must be in the"
-                    " set: %r" % schemes.keys()
-                )
+                raise ImportError("The 'mapclassify >= 2.4.2` package is required.")
 
         self.gdf = gdf
         self.sw = spatial_weights
@@ -615,7 +595,7 @@ class Shannon:
             categories = data.unique()
 
         if not categorical:
-            self.bins = schemes[binning](data, **classification_kwds).bins
+            self.bins = classify(data, scheme=binning, **classification_kwds).bins
         else:
             self.bins = categories
 
