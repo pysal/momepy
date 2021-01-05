@@ -445,7 +445,7 @@ class Tessellation:
 
         if use_dask:
             if n_chunks is None:
-                n_chunks = cpu_count()
+                n_chunks = cpu_count() - 1 if cpu_count() > 1 else 1
             # initialize dask.series
             ds = dd.from_array(splits, chunksize=len(splits) // n_chunks)
             # generate enclosed tessellation using dask
