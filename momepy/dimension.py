@@ -639,7 +639,7 @@ class StreetProfile:
         if do_heights:
             self.h = pd.Series(heights_list, index=left.index)
             self.hd = pd.Series(heights_deviations_list, index=left.index)
-            self.p = self.h / self.w
+            self.p = self.h / self.w.replace(0, np.nan)  # replace to avoid np.inf
 
     # http://wikicode.wikidot.com/get-angle-of-line-between-two-points
     # https://glenbambrick.com/tag/perpendicular/

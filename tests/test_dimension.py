@@ -1,11 +1,12 @@
 import geopandas as gpd
 import momepy as mm
+import pandas as pd
 import numpy as np
 import pytest
 from momepy import sw_high
 from momepy.shape import _make_circle
 from pytest import approx
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, LineString, Point
 
 
 class TestDimensions:
@@ -214,6 +215,21 @@ class TestDimensions:
         assert results3.w[0] == 47.9039130128257
         assert results3.wd[0] == 0.026104885468705645
         assert results3.o[0] == 0.9423076923076923
+
+        # avoid infinity
+        blg = gpd.GeoDataFrame(
+            dict(height=[2, 5]),
+            geometry=[
+                Point(0, 0).buffer(10, cap_style=3),
+                Point(30, 0).buffer(10, cap_style=3),
+            ],
+        )
+        lines = gpd.GeoDataFrame(
+            geometry=[LineString([(-8, -8), (8, 8)]), LineString([(15, -10), (15, 10)])]
+        )
+        assert mm.StreetProfile(lines, blg, "height", 2).p.equals(
+            pd.Series([np.nan, 0.35])
+        )
 
     def test_WeightedCharacter(self):
         sw = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
