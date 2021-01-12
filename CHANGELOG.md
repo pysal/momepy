@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 0.4.1 (January 12, 2021)
+------------------------------
+
+- fixed bug in the automatic selection of number of dask chunks in enclosed tessellation
+- fixed infinity issue in ``StreetProfile`` (#249)
+- fixed issue changing the original dataframe in ``DistanceBand`` (#250)
+
+
 Version 0.4.0 (December 26, 2020)
 ---------------------------------
 
