@@ -55,6 +55,31 @@ installing using pip only::
 
     pip install momepy
 
+
+Using Docker
+------------
+
+You can also use `Dockerfile <https://github.com/martinfleis/momepy/tree/master/environments>`_ 
+to build minimal a environment for momepy, or 
+get the official image from Docker Hub::
+
+    docker pull martinfleis/momepy:<version>
+
+For example::
+
+    docker pull martinfleis/momepy:0.4
+
+Note that images are available from version 0.4. 
+
+See more in the 
+`ReadMe <https://github.com/martinfleis/momepy/blob/master/environments/Readme.md>`_
+
+If you need the full stack of geospatial Python libraries, use `darribas/gds_env <https://darribas.org/gds_env/>`_
+which provides the updated platform for Geographic Data Science (including momepy)::
+
+    docker pull darribas/gds_py
+
+
 Install from the repository
 ---------------------------
 
@@ -83,7 +108,7 @@ Dependencies
 
 Required dependencies:
 
-- `geopandas`_
+- `geopandas`_ (>= 0.8.0)
 - `libpysal`_ (>= 4.1.0)
 - `networkx`_
 - `tqdm`_
@@ -93,10 +118,6 @@ Some functions also depend on additional packages, which are optional:
 
 - `mapclassify`_ (>= 2.4.2)
 - `inequality`_
-
-or
-
-- `pysal`_ (contains both inequality and mapclassify)
 
 
 .. _geopandas: https://geopandas.org/
