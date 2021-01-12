@@ -45,5 +45,5 @@ class TestWeights:
 
         db_cent_false = mm.DistanceBand(self.df_buildings, 100, centroid=False)
         assert sorted(db_cent_false.neighbors[0]) == sorted(
-            [125, 133, 114, 134, 113, 121]
+            [111, 112, 115, 130, 125, 133, 114, 120, 134, 113, 121]
         )
