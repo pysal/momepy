@@ -6,8 +6,6 @@ import numpy as np
 import pytest
 from libpysal.weights import Queen
 
-GPD_08 = str(gpd.__version__) >= LooseVersion("0.8.0")
-
 
 class TestDistribution:
     def setup_method(self):
@@ -32,7 +30,6 @@ class TestDistribution:
         check = 40.7607
         assert self.df_streets["orient"][0] == pytest.approx(check)
 
-    @pytest.mark.skipif(not GPD_08, reason="requires geopandas > 0.7")
     def test_SharedWalls(self):
         self.df_buildings["swr"] = mm.SharedWalls(self.df_buildings).series
         nonconsecutive = self.df_buildings.drop(2)
@@ -41,7 +38,6 @@ class TestDistribution:
         assert self.df_buildings["swr"][10] == check
         assert result[10] == check
 
-    @pytest.mark.skipif(not GPD_08, reason="requires geopandas > 0.7")
     def test_SharedWallsRatio(self):
         self.df_buildings["swr"] = mm.SharedWallsRatio(self.df_buildings).series
         self.df_buildings["swr_array"] = mm.SharedWallsRatio(
@@ -154,7 +150,6 @@ class TestDistribution:
             .any()
         )
 
-    @pytest.mark.skipif(not GPD_08, reason="requires geopandas > 0.7")
     def test_NeighboringStreetOrientationDeviation(self):
         self.df_streets["dev"] = mm.NeighboringStreetOrientationDeviation(
             self.df_streets
