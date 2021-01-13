@@ -629,12 +629,18 @@ class StreetProfile:
                 heights_deviations_list.append(h.std())
 
         self.w = pd.Series(widths, index=left.index)
-        self.wd = pd.Series(deviations, index=left.index)
-        self.o = pd.Series(openness, index=left.index)
+        self.wd = pd.Series(deviations, index=left.index).fillna(
+            0
+        )  # fill for empty intersections
+        self.o = pd.Series(openness, index=left.index).fillna(1)
 
         if do_heights:
-            self.h = pd.Series(heights_list, index=left.index)
-            self.hd = pd.Series(heights_deviations_list, index=left.index)
+            self.h = pd.Series(heights_list, index=left.index).fillna(
+                0
+            )  # fill for empty intersections
+            self.hd = pd.Series(heights_deviations_list, index=left.index).fillna(
+                0
+            )  # fill for empty intersections
             self.p = self.h / self.w.replace(0, np.nan)  # replace to avoid np.inf
 
     # http://wikicode.wikidot.com/get-angle-of-line-between-two-points
