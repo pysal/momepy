@@ -295,7 +295,7 @@ class Tessellation:
         geoms - array of pygeos lines
         """
         # interpolate lines to represent them as points for Voronoi
-        points = np.empty((0, 2))
+        points = []
         ids = []
 
         if pygeos.get_type_id(geoms[0]) not in [1, 2, 5]:
@@ -309,8 +309,10 @@ class Tessellation:
                     line,
                     np.linspace(0.1, length - 0.1, num=int((length - 0.1) // distance)),
                 )  # .1 offset to keep a gap between two segments
-                points = np.append(points, pygeos.get_coordinates(pts), axis=0)
+                points.append(pygeos.get_coordinates(pts))
                 ids += [ix] * len(pts)
+
+        points = np.vstack(points)
 
         return points, ids
 
