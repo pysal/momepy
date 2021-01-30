@@ -208,29 +208,55 @@ class Tessellation:
                 "Pass `limit` for morphological tessellation or `enclosures` "
                 "for enclosed tessellation."
             )
+
+        gdf = gdf.copy()
+
         if enclosures is not None:
+
+            enclosures = enclosures.copy()
+
+            bounds = enclosures.total_bounds
+            centre_x = (bounds[0] + bounds[2]) / 2
+            centre_y = (bounds[1] + bounds[3]) / 2
+
+            gdf.geometry = gdf.geometry.translate(xoff=-centre_x, yoff=-centre_y)
+            enclosures.geometry = enclosures.geometry.translate(
+                xoff=-centre_x, yoff=-centre_y
+            )
+
             self.tessellation = self._enclosed_tessellation(
                 gdf, enclosures, unique_id, enclosure_id, threshold, use_dask, n_chunks,
             )
         else:
+            if isinstance(limit, (gpd.GeoSeries, gpd.GeoDataFrame)):
+                limit = limit.unary_union
+            if isinstance(limit, BaseGeometry):
+                limit = pygeos.from_shapely(limit)
+
+            bounds = pygeos.bounds(limit)
+            centre_x = (bounds[0] + bounds[2]) / 2
+            centre_y = (bounds[1] + bounds[3]) / 2
+            gdf.geometry = gdf.geometry.translate(xoff=-centre_x, yoff=-centre_y)
+
+            # add convex hull buffered large distance to eliminate infinity issues
+            limit = (
+                gpd.GeoSeries(limit, crs=gdf.crs)
+                .translate(xoff=-centre_x, yoff=-centre_y)
+                .values.data[0]
+            )
+
             self.tessellation = self._morphological_tessellation(
                 gdf, unique_id, limit, shrink, segment, verbose
             )
 
+        self.tessellation["geometry"] = self.tessellation["geometry"].translate(
+            xoff=centre_x, yoff=centre_y
+        )
+
     def _morphological_tessellation(
         self, gdf, unique_id, limit, shrink, segment, verbose, check=True
     ):
-        objects = gdf.copy()
-
-        if isinstance(limit, (gpd.GeoSeries, gpd.GeoDataFrame)):
-            limit = limit.unary_union
-        if isinstance(limit, BaseGeometry):
-            limit = pygeos.from_shapely(limit)
-
-        bounds = pygeos.bounds(limit)
-        centre_x = (bounds[0] + bounds[2]) / 2
-        centre_y = (bounds[1] + bounds[3]) / 2
-        objects.geometry = objects.geometry.translate(xoff=-centre_x, yoff=-centre_y)
+        objects = gdf
 
         if shrink != 0:
             print("Inward offset...") if verbose else None
@@ -247,18 +273,13 @@ class Tessellation:
             objects.geometry.values.data, distance=segment, index=objects.index
         )
 
-        # add convex hull buffered large distance to eliminate infinity issues
-        series = gpd.GeoSeries(limit, crs=gdf.crs).translate(
-            xoff=-centre_x, yoff=-centre_y
-        )
+        bounds = pygeos.bounds(limit)
         width = bounds[2] - bounds[0]
         leng = bounds[3] - bounds[1]
-        hull = series.geometry[[0]].buffer(2 * width if width > leng else 2 * leng)
-        # pygeos bug fix
-        if (hull.type == "MultiPolygon").any():
-            hull = hull.explode()
+        hull = pygeos.buffer(limit, 2 * width if width > leng else 2 * leng)
+
         hull_p, hull_ix = self._dense_point_array(
-            hull.values.data, distance=pygeos.length(limit) / 100, index=hull.index
+            [hull], distance=pygeos.length(hull) / 100, index=[0]
         )
         points = np.append(points, hull_p, axis=0)
         ids = ids + ([-1] * len(hull_ix))
@@ -274,11 +295,9 @@ class Tessellation:
             by=unique_id, as_index=False
         )
 
-        morphological_tessellation = gpd.clip(morphological_tessellation, series)
-
-        morphological_tessellation["geometry"] = morphological_tessellation[
-            "geometry"
-        ].translate(xoff=centre_x, yoff=centre_y)
+        morphological_tessellation = gpd.clip(
+            morphological_tessellation, gpd.GeoSeries(limit, crs=gdf.crs)
+        )
 
         if check:
             self._check_result(morphological_tessellation, gdf, unique_id=unique_id)
