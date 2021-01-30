@@ -110,7 +110,7 @@ def preprocess(
                         shares = {}
                         for n in row.neighbors:
                             shares[n] = row.geometry.intersection(
-                                blg.at[n, "geometry"]
+                                blg.at[n, blg.geometry.name]
                             ).length
                         maximal = max(shares.items(), key=operator.itemgetter(1))[0]
                         uid = blg.loc[maximal].mm_uid
@@ -136,7 +136,7 @@ def preprocess(
                         shares = {}
                         for n in row.neighbors:
                             shares[n] = row.geometry.intersection(
-                                blg.at[n, "geometry"]
+                                blg.at[n, blg.geometry.name]
                             ).length
                         maximal = max(shares.items(), key=operator.itemgetter(1))[0]
                         uid = blg.loc[maximal].mm_uid
@@ -150,7 +150,7 @@ def preprocess(
             if islands:
                 if row.n_count == 1:
                     shared = row.geometry.intersection(
-                        blg.at[row.neighbors[0], "geometry"]
+                        blg.at[row.neighbors[0], blg.geometry.name]
                     ).length
                     if shared == row.geometry.exterior.length:
                         uid = blg.iloc[row.neighbors[0]].mm_uid
@@ -174,7 +174,9 @@ def preprocess(
                         geoms.append(blg[blg["mm_uid"] == j].iloc[0].geometry)
                         blg.drop(blg[blg["mm_uid"] == j].index[0], inplace=True)
                 new_geom = shapely.ops.unary_union(geoms)
-                blg.loc[blg.loc[blg["mm_uid"] == key].index[0], "geometry"] = new_geom
+                blg.loc[
+                    blg.loc[blg["mm_uid"] == key].index[0], blg.geometry.name
+                ] = new_geom
 
         blg.drop(delete, inplace=True)
     return blg[buildings.columns]
@@ -530,14 +532,14 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
                 if series:
                     geoms.loc[idx] = linestring
                 else:
-                    geoms.loc[idx, "geometry"] = linestring
+                    geoms.loc[idx, geoms.geometry.name] = linestring
                 idx += 1
             elif linestring.type == "MultiLineString":
                 for g in linestring.geoms:
                     if series:
                         geoms.loc[idx] = g
                     else:
-                        geoms.loc[idx, "geometry"] = g
+                        geoms.loc[idx, geoms.geometry.name] = g
                     idx += 1
 
             geoms = geoms.drop(matches.index)

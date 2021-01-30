@@ -181,7 +181,7 @@ class Count:
 
         count = collections.Counter(right[right_id])
         df = pd.DataFrame.from_dict(count, orient="index", columns=["mm_count"])
-        joined = left[[left_id, "geometry"]].join(df["mm_count"], on=left_id)
+        joined = left[[left_id, left.geometry.name]].join(df["mm_count"], on=left_id)
         joined.loc[joined["mm_count"].isna(), "mm_count"] = 0
 
         if weighted:
