@@ -54,10 +54,7 @@ def buffered_limit(gdf, buffer=100):
     shapely.geometry.polygon.Polygon
 
     """
-    study_area = gdf.copy()
-    study_area["geometry"] = study_area.buffer(buffer)
-    built_up = study_area.geometry.unary_union
-    return built_up
+    return gdf.buffer(buffer).unary_union
 
 
 class Tessellation:
@@ -233,14 +230,12 @@ class Tessellation:
         bounds = pygeos.bounds(limit)
         centre_x = (bounds[0] + bounds[2]) / 2
         centre_y = (bounds[1] + bounds[3]) / 2
-        objects["geometry"] = objects["geometry"].translate(
-            xoff=-centre_x, yoff=-centre_y
-        )
+        objects.geometry = objects.geometry.translate(xoff=-centre_x, yoff=-centre_y)
 
         if shrink != 0:
             print("Inward offset...") if verbose else None
             mask = objects.type.isin(["Polygon", "MultiPolygon"])
-            objects.loc[mask, "geometry"] = objects[mask].buffer(
+            objects.loc[mask, objects.geometry.name] = objects[mask].buffer(
                 -shrink, cap_style=2, join_style=2
             )
 
@@ -608,19 +603,22 @@ class Blocks:
         W = libpysal.weights.Queen.from_dataframe(cut, silence_warnings=True)
         cut["component"] = W.component_labels
         buildings_c = buildings.copy()
-        buildings_c["geometry"] = buildings_c.representative_point()  # make points
+        buildings_c.geometry = buildings_c.representative_point()  # make points
         centroids_tempID = gpd.sjoin(
-            buildings_c, cut[["geometry", "component"]], how="left", op="intersects"
+            buildings_c,
+            cut[[cut.geometry.name, "component"]],
+            how="left",
+            op="intersects",
         )
-        cells_copy = tessellation[[unique_id, "geometry"]].merge(
+        cells_copy = tessellation[[unique_id, tessellation.geometry.name]].merge(
             centroids_tempID[[unique_id, "component"]], on=unique_id, how="left"
         )
         blocks = cells_copy.dissolve(by="component").explode().reset_index(drop=True)
         blocks[id_name] = range(len(blocks))
-        blocks["geometry"] = gpd.GeoSeries(
+        blocks[blocks.geometry.name] = gpd.GeoSeries(
             pygeos.polygons(blocks.exterior.values.data), crs=blocks.crs
         )
-        blocks = blocks[[id_name, "geometry"]]
+        blocks = blocks[[id_name, blocks.geometry.name]]
 
         centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks, how="left", op="intersects")
         bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
@@ -693,7 +691,7 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
     print("Generating centroids...") if verbose else None
     buildings_c = left.copy()
 
-    buildings_c["geometry"] = buildings_c.centroid  # make centroids
+    buildings_c[buildings_c.geometry.name] = buildings_c.centroid  # make centroids
 
     print("Generating rtree...") if verbose else None
     idx = right.sindex
