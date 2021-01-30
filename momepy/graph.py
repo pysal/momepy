@@ -84,7 +84,8 @@ def meshedness(graph, radius=5, name="meshedness", distance=None, verbose=True):
     .. math::
         \\alpha=\\frac{e-v+1}{2 v-5}
 
-    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
+    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of
+    nodes in subgraph.
 
     Adapted from :cite:`feliciotti2018`.
 
@@ -198,8 +199,8 @@ def cds_length(
     verbose=True,
 ):
     """
-    Calculates length of cul-de-sacs for subgraph around each node if radius is set, or for
-    whole graph, if ``radius=None``.
+    Calculates length of cul-de-sacs for subgraph around each node if radius is set,
+    or for whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in distance
@@ -347,8 +348,8 @@ def proportion(
     verbose=True,
 ):
     """
-    Calculates the proportion of intersection types for subgraph around each node if radius is set, or for
-    whole graph, if ``radius=None``.
+    Calculates the proportion of intersection types for subgraph around each node if
+    radius is set, or for whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in ``distance``
@@ -385,11 +386,12 @@ def proportion(
 
     Examples
     --------
-    >>> network_graph = mm.proportion(network_graph, three='threeway', four='fourway', dead='deadends')
+    >>> network_graph = mm.proportion(network_graph, three='threeway', four='fourway', dead='deadends')  # noqa
     """
     if not three and not four and not dead:
         raise ValueError(
-            "Nothing to calculate. Define names for at least one proportion to be calculated: three, four, dead."
+            "Nothing to calculate. Define names for at least one proportion to be "
+            "calculated."
         )
     netx = graph.copy()
 
@@ -431,8 +433,8 @@ def _cyclomatic(graph):
 
 def cyclomatic(graph, radius=5, name="cyclomatic", distance=None, verbose=True):
     """
-    Calculates cyclomatic complexity for subgraph around each node if radius is set, or for
-    whole graph, if ``radius=None``.
+    Calculates cyclomatic complexity for subgraph around each node if radius is set, or
+    for whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in ``distance``
@@ -441,7 +443,8 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None, verbose=True):
     .. math::
         \\alpha=e-v+1
 
-    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
+    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of
+    nodes in subgraph.
 
     Adapted from :cite:`bourdic2012`.
 
@@ -511,7 +514,8 @@ def edge_node_ratio(
     .. math::
         \\alpha=e/v
 
-    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
+    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of
+    nodes in subgraph.
 
     Adapted from :cite:`dibble2017`.
 
@@ -571,8 +575,8 @@ def _gamma(graph):
 
 def gamma(graph, radius=5, name="gamma", distance=None, verbose=True):
     """
-    Calculates connectivity gamma index for subgraph around each node if radius is set, or for
-    whole graph, if ``radius=None``.
+    Calculates connectivity gamma index for subgraph around each node if radius is set,
+    or for whole graph, if ``radius=None``.
 
     Subgraph is generated around each node within set radius. If ``distance=None``,
     radius will define topological distance, otherwise it uses values in ``distance``
@@ -581,7 +585,8 @@ def gamma(graph, radius=5, name="gamma", distance=None, verbose=True):
     .. math::
         \\alpha=\\frac{e}{3(v-2)}
 
-    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.
+    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of
+    nodes in subgraph.
 
     Adapted from :cite:`dibble2017`.
 
@@ -793,11 +798,13 @@ def local_closeness_centrality(
 
     Examples
     --------
-    >>> network_graph = mm.local_closeness_centrality(network_graph, radius=400, distance='edge_length')
+    >>> network_graph = mm.local_closeness_centrality(network_graph,
+    ...                                               radius=400,
+    ...                                               distance='edge_length')
 
     """
     warnings.warn(
-        "local_closeness_centrality() is deprecated and will be removed in momepy 0.4.0. "
+        "local_closeness_centrality() is deprecated and will be removed in momepy 0.5. "
         "Use closeness_centrality() instead.",
         FutureWarning,
     )
@@ -894,7 +901,8 @@ def betweenness_centrality(
     """
     Calculates the shortest-path betweenness centrality for nodes.
 
-    Wrapper around ``networkx.betweenness_centrality`` or ``networkx.edge_betweenness_centrality``.
+    Wrapper around ``networkx.betweenness_centrality`` or
+    ``networkx.edge_betweenness_centrality``.
 
     Betweenness centrality of a node `v` is the sum of the
     fraction of all-pairs shortest paths that pass through `v`
@@ -945,7 +953,8 @@ def betweenness_centrality(
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
     **kwargs
-        kwargs for ``networkx.betweenness_centrality`` or ``networkx.edge_betweenness_centrality``
+        kwargs for ``networkx.betweenness_centrality`` or
+        ``networkx.edge_betweenness_centrality``
 
     Returns
     -------
@@ -1060,12 +1069,14 @@ def local_betweenness_centrality(
 
     Examples
     --------
-    >>> network_graph = mm.local_betweenness_centrality(network_graph, radius=800, distance='edge_length')
+    >>> network_graph = mm.local_betweenness_centrality(network_graph,
+    ...                                                 radius=800,
+    ...                                                 distance='edge_length')
 
     """
     warnings.warn(
-        "local_betweenness_centrality() is deprecated and will be removed in momepy 0.4.0. "
-        "Use betweenness_centrality() instead.",
+        "local_betweenness_centrality() is deprecated and will be removed"
+        " in momepy 0.5. Use betweenness_centrality() instead.",
         FutureWarning,
     )
 
@@ -1127,10 +1138,11 @@ def straightness_centrality(
     Calculates the straightness centrality for nodes.
 
     .. math::
-        C_{S}(i)=\\frac{1}{n-1} \\sum_{j \\in V, j \\neq i} \\frac{d_{i j}^{E u}}{d_{i j}}
+        C_{S}(i)=\\frac{1}{n-1} \\sum_{j \\in V, j \\neq i} \\frac{d_{i j}^{E u}}
+        {d_{i j}}
 
-    where :math:`\\mathrm{d}^{\\mathrm{E} \\mathrm{u}}_{\\mathrm{ij}}` is the Euclidean distance
-    between nodes `i` and `j` along a straight line.
+    where :math:`\\mathrm{d}^{\\mathrm{E} \\mathrm{u}}_{\\mathrm{ij}}` is the
+    Euclidean distance between nodes `i` and `j` along a straight line.
 
     Adapted from :cite:`porta2006`.
 
@@ -1192,10 +1204,11 @@ def local_straightness_centrality(
     attribute.
 
     .. math::
-        C_{S}(i)=\\frac{1}{n-1} \\sum_{j \\in V, j \\neq i} \\frac{d_{i j}^{E u}}{d_{i j}}
+        C_{S}(i)=\\frac{1}{n-1} \\sum_{j \\in V, j \\neq i} \\frac{d_{i j}^{E u}}
+        {d_{i j}}
 
-    where :math:`\\mathrm{d}^{\\mathrm{E} \\mathrm{u}}_{\\mathrm{ij}}` is the Euclidean distance
-    between nodes `i` and `j` along a straight line.
+    where :math:`\\mathrm{d}^{\\mathrm{E} \\mathrm{u}}_{\\mathrm{ij}}` is
+    the Euclidean distance between nodes `i` and `j` along a straight line.
 
 
     Parameters
@@ -1223,12 +1236,12 @@ def local_straightness_centrality(
 
     Examples
     --------
-    >>> network_graph = mm.local_straightness_centrality(network_graph, radius=400, distance='edge_length')
+    >>> network_graph = mm.local_straightness_centrality(network_graph, radius=400, distance='edge_length')  # noqa
 
     """
     warnings.warn(
-        "local_straightness_centrality() is deprecated and will be removed in momepy 0.4.0. "
-        "Use straightness_centrality() instead.",
+        "local_straightness_centrality() is deprecated and will be removed in "
+        " momepy 0.5. Use straightness_centrality() instead.",
         FutureWarning,
     )
 
@@ -1279,7 +1292,8 @@ def subgraph(
     cds_length : bool, default True
         Calculate cul-de-sac length (True/False)
     mode : str (defualt 'sum')
-        if ``'sum'``, calculate total cds_length, if ``'mean'`` calculate mean cds_length
+        if ``'sum'``, calculate total cds_length, if ``'mean'`` calculate mean
+        cds_length
     degree : str
         name of attribute of node degree (:py:func:`momepy.node_degree`)
     length : str, default `mm_len`

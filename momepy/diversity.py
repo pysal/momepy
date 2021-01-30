@@ -35,7 +35,8 @@ class Range:
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored character value.
     spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str
@@ -68,7 +69,11 @@ class Range:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_IQR_3steps'] = mm.Range(tessellation_df, 'area', sw, 'uID', rng=(25, 75)).series
+    >>> tessellation_df['area_IQR_3steps'] = mm.Range(tessellation_df,
+    ...                                               'area',
+    ...                                               sw,
+    ...                                               'uID',
+    ...                                               rng=(25, 75)).series
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
 
 
@@ -115,20 +120,23 @@ class Range:
 
 class Theil:
     """
-    Calculates the Theil measure of inequality of values within neighbours defined in ``spatial_weights``.
+    Calculates the Theil measure of inequality of values within neighbours defined in
+    ``spatial_weights``.
 
     Uses ``inequality.theil.Theil`` under the hood. Requires '`inequality`' package.
 
     .. math::
 
-        T = \sum_{i=1}^n \left( \\frac{y_i}{\sum_{i=1}^n y_i} \ln \left[ N \\frac{y_i}{\sum_{i=1}^n y_i}\\right] \\right)
+        T = \sum_{i=1}^n \left( \\frac{y_i}{\sum_{i=1}^n y_i} \ln \left[ N \\frac{y_i}
+        {\sum_{i=1}^n y_i}\\right] \\right)
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored character value.
     spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str
@@ -157,7 +165,10 @@ class Theil:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Theil'] = mm.Theil(tessellation_df, 'area', sw, 'uID').series
+    >>> tessellation_df['area_Theil'] = mm.Theil(tessellation_df,
+    ...                                          'area',
+    ...                                          sw,
+    ...                                          'uID').series
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
     """
 
@@ -203,9 +214,11 @@ class Theil:
 
 class Simpson:
     """
-    Calculates the Simpson\'s diversity index of values within neighbours defined in ``spatial_weights``.
+    Calculates the Simpson\'s diversity index of values within neighbours defined in
+    ``spatial_weights``.
 
-    Uses ``mapclassify.classifiers`` under the hood for binning. Requires ``mapclassify>=.2.1.0`` dependency.
+    Uses ``mapclassify.classifiers`` under the hood for binning. Requires
+    ``mapclassify>=.2.1.0`` dependency.
 
     .. math::
 
@@ -218,10 +231,11 @@ class Simpson:
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored character value.
     spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
-        based on objects.
+        spatial weights matrix - If None, Queen contiguity matrix of set order will be
+        calculated based on objects.
     unique_id : str
         name of the column with unique id used as ``spatial_weights`` index
     binning : str (default 'HeadTailBreaks')
@@ -263,7 +277,10 @@ class Simpson:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Simpson'] = mm.Simpson(tessellation_df, 'area', sw, 'uID').series
+    >>> tessellation_df['area_Simpson'] = mm.Simpson(tessellation_df,
+    ...                                              'area',
+    ...                                              sw,
+    ...                                              'uID').series
     100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
 
     See also
@@ -373,7 +390,7 @@ def simpson_diversity(data, bins=None, categorical=False, categories=None):
 
     See also
     --------
-    momepy.Simpson : Calculates the Simpson\'s diversity index of values within neighbours
+    momepy.Simpson : Calculates the Simpson\'s diversity index
     """
     if not categorical:
         try:
@@ -403,7 +420,8 @@ def simpson_diversity(data, bins=None, categorical=False, categories=None):
 
 class Gini:
     """
-    Calculates the Gini index of values within neighbours defined in ``spatial_weights``.
+    Calculates the Gini index of values within neighbours defined in
+    ``spatial_weights``.
 
     Uses ``inequality.gini.Gini`` under the hood. Requires '`inequality`' package.
 
@@ -414,7 +432,8 @@ class Gini:
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored character value.
     spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str
@@ -443,7 +462,10 @@ class Gini:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Gini'] = mm.Gini(tessellation_df, 'area', sw, 'uID').series
+    >>> tessellation_df['area_Gini'] = mm.Gini(tessellation_df,
+    ...                                        'area',
+    ...                                        sw,
+    ...                                        'uID').series
     100%|██████████| 144/144 [00:00<00:00, 597.37it/s]
     """
 
@@ -498,9 +520,11 @@ class Gini:
 
 class Shannon:
     """
-    Calculates the Shannon index of values within neighbours defined in ``spatial_weights``.
+    Calculates the Shannon index of values within neighbours defined in
+    ``spatial_weights``.
 
-    Uses ``mapclassify.classifiers`` under the hood for binning. Requires ``mapclassify>=.2.1.0`` dependency.
+    Uses ``mapclassify.classifiers`` under the hood for binning.
+    Requires ``mapclassify>=.2.1.0`` dependency.
 
     .. math::
 
@@ -511,10 +535,11 @@ class Shannon:
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        is stored character value.
     spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
-        based on objects.
+        spatial weights matrix - If None, Queen contiguity matrix of set order
+        will be calculated based on objects.
     unique_id : str
         name of the column with unique id used as ``spatial_weights`` index
     binning : str
@@ -552,7 +577,10 @@ class Shannon:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['area_Shannon'] = mm.Shannon(tessellation_df, 'area', sw, 'uID').series
+    >>> tessellation_df['area_Shannon'] = mm.Shannon(tessellation_df,
+    ...                                              'area',
+    ...                                              sw,
+    ...                                              'uID').series
     100%|██████████| 144/144 [00:00<00:00, 455.83it/s]
     """
 
@@ -649,9 +677,9 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
 
     See also
     --------
-    momepy.Shannon : Calculates the Shannon's diversity index of values within neighbours
-    momepy.Simpson : Calculates the Simpson's diversity index of values within neighbours
-    momepy.simpson_diversity : Calculates the Simpson's diversity index of data
+    momepy.Shannon : Calculates the Shannon's diversity index
+    momepy.Simpson : Calculates the Simpson's diversity index
+    momepy.simpson_diversity : Calculates the Simpson's diversity index
     """
     from math import log as ln
 
@@ -683,7 +711,8 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
 
 class Unique:
     """
-    Calculates the number of unique values within neighbours defined in ``spatial_weights``.
+    Calculates the number of unique values within neighbours defined in
+    ``spatial_weights``.
 
     .. math::
 
@@ -693,7 +722,8 @@ class Unique:
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        is stored character value.
     spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str
@@ -717,7 +747,10 @@ class Unique:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['cluster_unique'] = mm.Unique(tessellation_df, 'cluster', sw, 'uID').series
+    >>> tessellation_df['cluster_unique'] = mm.Unique(tessellation_df,
+    ...                                              'cluster',
+    ...                                              sw,
+    ...                                              'uID').series
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
     """
 
@@ -751,14 +784,16 @@ class Unique:
 
 class Percentiles:
     """
-    Calculates the percentiles of values within neighbours defined in ``spatial_weights``.
+    Calculates the percentiles of values within neighbours defined in
+    ``spatial_weights``.
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series``
+        where is stored character value.
     spatial_weights : libpysal.weights
         spatial weights matrix
     unique_id : str
@@ -777,7 +812,7 @@ class Percentiles:
         * ``'midpoint'``
 
         See the documentation of ``numpy.percentile`` for details.
-   
+
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
 
@@ -797,7 +832,10 @@ class Percentiles:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['cluster_unique'] = mm.Percentiles(tessellation_df, 'cluster', sw, 'uID').frame
+    >>> percentiles_df = mm.Percentiles(tessellation_df,
+    ...                                 'area',
+    ...                                 sw,
+    ...                                 'uID').frame
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
     """
 

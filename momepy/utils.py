@@ -155,7 +155,8 @@ def gdf_to_nx(
     length : str, default 'mm_len'
         name of attribute of segment length (geographical) which will be saved to graph
     multigraph : bool, default True
-        create ``MultiGraph`` of ``Graph`` (potentially directed). ``MutliGraph`` allows multiple
+        create ``MultiGraph`` of ``Graph`` (potentially directed). ``MutliGraph``
+        allows multiple
         edges between any pair of nodes, which is a common case in street networks.
     directed : bool, default False
         create directed graph (``DiGraph`` or ``MultiDiGraph``). Directionality follows
@@ -164,8 +165,8 @@ def gdf_to_nx(
         capture angles between LineStrings as an attribute of a dual graph. Ignored if
         ``approach="primal"``.
     length : str, default 'angle'
-        name of attribute of angle between LineStrings which will be saved to graph. Ignored if
-        ``approach="primal"``.
+        name of attribute of angle between LineStrings which will be saved to graph.
+        Ignored if ``approach="primal"``.
 
     Returns
     -------
@@ -190,21 +191,21 @@ def gdf_to_nx(
     2  LINESTRING (1603607.303 6464181.853, 1603592.8...
     3  LINESTRING (1603678.970 6464477.215, 1603675.6...
     4  LINESTRING (1603537.194 6464558.112, 1603557.6...
-    
+
     Primal graph:
 
     >>> G = momepy.gdf_to_nx(df)
     >>> G
     <networkx.classes.multigraph.MultiGraph object at 0x7f8cf90fad50>
-    
+
     >>> G_directed = momepy.gdf_to_nx(df, directed=True)
     >>> G_directed
     <networkx.classes.multidigraph.MultiDiGraph object at 0x7f8cf90f56d0>
-    
+
     >>> G_digraph = momepy.gdf_to_nx(df, multigraph=False, directed=True)
     >>> G_digraph
     <networkx.classes.digraph.DiGraph object at 0x7f8cf9150c10>
-    
+
     >>> G_graph = momepy.gdf_to_nx(df, multigraph=False, directed=False)
     >>> G_graph
     <networkx.classes.graph.Graph object at 0x7f8cf90facd0>
@@ -269,25 +270,27 @@ def _points_to_gdf(net):
     return gdf_nodes
 
 
-def _lines_to_gdf(net, lines, points, nodeID):
+def _lines_to_gdf(net, points, nodeID):
     """
     Generate linestring gdf from edges.
     Helper for nx_to_gdf.
     """
     starts, ends, edge_data = zip(*net.edges(data=True))
-    if lines is True:
+    gdf_edges = gpd.GeoDataFrame(list(edge_data))
+
+    if points is True:
         node_start = []
         node_end = []
         for s in starts:
             node_start.append(net.nodes[s][nodeID])
         for e in ends:
             node_end.append(net.nodes[e][nodeID])
-    gdf_edges = gpd.GeoDataFrame(list(edge_data))
-    if points is True:
         gdf_edges["node_start"] = node_start
         gdf_edges["node_end"] = node_end
+
     if "crs" in net.graph.keys():
         gdf_edges.crs = net.graph["crs"]
+
     return gdf_edges
 
 
@@ -304,7 +307,7 @@ def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
             W.transform = "b"
 
     if lines is True:
-        gdf_edges = _lines_to_gdf(net, lines, points, nodeID)
+        gdf_edges = _lines_to_gdf(net, points, nodeID)
 
     if points is True and lines is True:
         if spatial_weights is True:
@@ -377,9 +380,9 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
     0       1  POINT (1603585.640 6464428.774)
     1       2  POINT (1603413.206 6464228.730)
     >>> lines.head(2)
-                                                geometry      mm_len  node_start  node_end
-    0  LINESTRING (1603585.640 6464428.774, 1603413.2...  264.103950           1         2
-    1  LINESTRING (1603561.740 6464494.467, 1603564.6...   70.020202           1         9
+                         geometry      mm_len  node_start  node_end
+    0  LINESTRING (1603585.640...  264.103950           1         2
+    1  LINESTRING (1603561.740...   70.020202           1         9
 
     Storing relationship between points/nodes as libpysal W object:
 
@@ -405,7 +408,8 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
             return _dual_to_gdf(net)
         else:
             raise ValueError(
-                f"Approach {net.graph['approach']} is not supported. Use 'primal' or 'dual'."
+                f"Approach {net.graph['approach']} is not supported. "
+                "Use 'primal' or 'dual'."
             )
 
     if not primal:

@@ -124,14 +124,6 @@ class TestElements:
 
         assert not ids.isna().any()
 
-    def test__split_lines(self):
-        large = mm.buffered_limit(self.df_buildings, 100)
-        dense = mm.elements._split_lines(large, 100)
-        small = mm.buffered_limit(self.df_buildings, 30)
-        dense2 = mm.elements._split_lines(small, 100)
-        assert len(dense) == 53
-        assert len(dense2) == 51
-
     def test_enclosures(self):
         basic = mm.enclosures(self.df_streets)
         assert len(basic) == 7

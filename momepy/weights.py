@@ -88,7 +88,8 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True
     Generate spatial weights based on Queen or Rook contiguity of order k.
 
     Adjacent are all features within <= k steps. Pass either ``gdf`` or ``weights``.
-    If both are passed, ``weights`` is used. If ``weights`` are passed, ``contiguity`` is
+    If both are passed, ``weights`` is used.
+    If ``weights`` are passed, ``contiguity`` is
     ignored and high order spatial weights based on ``weights`` are computed.
 
     Parameters
@@ -96,7 +97,8 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True
     k : int
         order of contiguity
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse. Index has to be consecutive range ``0:x``.
+        GeoDataFrame containing objects to analyse. Index has to be
+        consecutive range ``0:x``.
         Otherwise, spatial weights will not match objects.
     weights : libpysal.weights
         libpysal.weights of order 1
