@@ -2,7 +2,7 @@ Changelog
 =========
 
 Version 0.4.1 (January 12, 2021)
-------------------------------
+--------------------------------
 
 - fixed bug in the automatic selection of number of dask chunks in enclosed tessellation
 - fixed infinity issue in ``StreetProfile`` (#249)

@@ -46,10 +46,12 @@ class FormFactor:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     volumes : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored volume value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored volume value.
         (To calculate volume you can use :py:func:`momepy.volume`)
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -69,7 +71,8 @@ class FormFactor:
     >>> buildings_df.formfactor[0]
     1.9385988170288635
 
-    >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, momepy.volume(buildings_df, 'height').volume).series
+    >>> volume = momepy.Volume(buildings_df, 'height').series
+    >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, volume).series
     >>> buildings_df.formfactor[0]
     1.9385988170288635
 
@@ -110,10 +113,12 @@ class FractalDimension:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value. If set to ``None``, function will calculate perimeters
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored perimeter value. If set to ``None``, function will calculate perimeters
         during the process without saving them separately.
 
     Attributes
@@ -129,7 +134,9 @@ class FractalDimension:
 
     Examples
     --------
-    >>> buildings_df['fractal'] = momepy.FractalDimension(buildings_df, 'area', 'peri').series
+    >>> buildings_df['fractal'] = momepy.FractalDimension(buildings_df,
+    ...                                                   'area',
+    ...                                                   'peri').series
     >>> buildings_df.fractal[0]
     1.0726778567038908
     """
@@ -172,11 +179,14 @@ class VolumeFacadeRatio:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     heights : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored height value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored height value
     volumes : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored volume value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored volume value
     perimeters : , list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored perimeter value
 
 
     Attributes
@@ -241,12 +251,16 @@ class VolumeFacadeRatio:
 # along with this program (see COPYING.txt and COPYING.LESSER.txt).
 # If not, see <http://www.gnu.org/licenses/>.
 
-# Data conventions: A point is a pair of floats (x, y). A circle is a triple of floats (center x, center y, radius).
+# Data conventions: A point is a pair of floats (x, y).
+# A circle is a triple of floats (center x, center y, radius).
 
-# Returns the smallest circle that encloses all the given points. Runs in expected O(n) time, randomized.
+# Returns the smallest circle that encloses all the given points.
+# Runs in expected O(n) time, randomized.
 # Input: A sequence of pairs of floats or ints, e.g. [(0,5), (3.1,-2.7)].
+
 # Output: A triple of floats representing a circle.
-# Note: If 0 points are given, None is returned. If 1 point is given, a circle of radius 0 is returned.
+# Note: If 0 points are given, None is returned. If 1 point is given,
+# a circle of radius 0 is returned.
 #
 # Initially: No boundary points known
 
@@ -465,10 +479,12 @@ class SquareCompactness:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value. If set to ``None``, function will calculate perimeters
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored perimeter value. If set to ``None``, function will calculate perimeters
         during the process without saving them separately.
 
     Attributes
@@ -526,7 +542,8 @@ class Convexity:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -573,10 +590,12 @@ class CourtyardIndex:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     courtyard_areas : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored area value
         (To calculate volume you can use :py:class:`momepy.CourtyardArea`)
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -592,12 +611,10 @@ class CourtyardIndex:
 
     Examples
     --------
-    >>> buildings_df['courtyard_index'] = momepy.CourtyardIndex(buildings, 'courtyard_area', 'area').series
+    >>> buildings_df['courtyard_index'] = momepy.CourtyardIndex(buildings,
+    ...                                                         'courtyard_area',
+    ...                                                         'area').series
     >>> buildings_df.courtyard_index[80]
-    0.16605915738643523
-
-    >>> buildings_df['courtyard_index2'] = momepy.CourtyardIndex(buildings_df, momepy.CourtyardArea(buildings_df).series).series
-    >>> buildings_df.courtyard_index2[80]
     0.16605915738643523
     """
 
@@ -632,7 +649,8 @@ class Rectangularity:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -646,9 +664,9 @@ class Rectangularity:
 
     Examples
     --------
-    >>> buildings_df['rectangularity'] = momepy.Rectangularity(buildings_df, 'area').series
+    >>> buildings_df['rect'] = momepy.Rectangularity(buildings_df, 'area').series
     100%|██████████| 144/144 [00:00<00:00, 866.62it/s]
-    >>> buildings_df.rectangularity[0]
+    >>> buildings_df.rect[0]
     0.6942676157646379
     """
 
@@ -680,9 +698,11 @@ class ShapeIndex:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     longest_axis : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored longest axis value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored longest axis value
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -698,7 +718,9 @@ class ShapeIndex:
 
     Examples
     --------
-    >>> buildings_df['shape_index'] = momepy.ShapeIndex(buildings_df, longest_axis='long_ax', areas='area').series
+    >>> buildings_df['shape_index'] = momepy.ShapeIndex(buildings_df,
+    ...                                                 longest_axis='long_ax',
+    ...                                                 areas='area').series
     100%|██████████| 144/144 [00:00<00:00, 5558.33it/s]
     >>> buildings_df['shape_index'][0]
     0.7564029493781987
@@ -850,7 +872,8 @@ class Squareness:
     """
     Calculates squareness of each object in given GeoDataFrame.
 
-    Uses only external shape (``shapely.geometry.exterior``), courtyards are not included.
+    Uses only external shape (``shapely.geometry.exterior``), courtyards are not
+    included.
 
     .. math::
         \\mu=\\frac{\\sum_{i=1}^{N} d_{i}}{N}
@@ -947,7 +970,8 @@ class EquivalentRectangularIndex:
     Calculates equivalent rectangular index of each object in given GeoDataFrame.
 
     .. math::
-        \\sqrt{{area} \\over \\textit{area of bounding rectangle}} * {\\textit{perimeter of bounding rectangle} \\over {perimeter}}
+        \\sqrt{{area} \\over \\textit{area of bounding rectangle}} *
+        {\\textit{perimeter of bounding rectangle} \\over {perimeter}}
 
     Based on :cite:`basaraner2017`.
 
@@ -956,10 +980,12 @@ class EquivalentRectangularIndex:
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value. If set to ``None``, function will calculate perimeters
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored perimeter value. If set to ``None``, function will calculate perimeters
         during the process without saving them separately.
 
     Attributes
@@ -975,7 +1001,9 @@ class EquivalentRectangularIndex:
 
     Examples
     --------
-    >>> buildings_df['eri'] = momepy.EquivalentRectangularIndex(buildings_df, 'area', 'peri').series
+    >>> buildings_df['eri'] = momepy.EquivalentRectangularIndex(buildings_df,
+    ...                                                         'area',
+    ...                                                         'peri').series
     >>> buildings_df['eri'][0]
     0.7879229963118455
     """
@@ -1008,10 +1036,12 @@ class EquivalentRectangularIndex:
 
 class Elongation:
     """
-    Calculates elongation of object seen as elongation of its minimum bounding rectangle.
+    Calculates elongation of object seen as elongation of
+    its minimum bounding rectangle.
 
     .. math::
-        {{p - \\sqrt{p^2 - 16a}} \\over {4}} \\over {{{p} \\over {2}} - {{p - \\sqrt{p^2 - 16a}} \\over {4}}}
+        {{p - \\sqrt{p^2 - 16a}} \\over {4}} \\over
+        {{{p} \\over {2}} - {{p - \\sqrt{p^2 - 16a}} \\over {4}}}
 
     where `a` is the area of the object and `p` its perimeter.
 
@@ -1067,7 +1097,8 @@ class CentroidCorners:
     Calculates mean distance centroid - corners and st. deviation.
 
     .. math::
-        \\overline{x}=\\frac{1}{n}\\left(\\sum_{i=1}^{n} dist_{i}\\right);\\space \\mathrm{SD}=\\sqrt{\\frac{\\sum|x-\\overline{x}|^{2}}{n}}
+        \\overline{x}=\\frac{1}{n}\\left(\\sum_{i=1}^{n} dist_{i}\\right);
+        \\space \\mathrm{SD}=\\sqrt{\\frac{\\sum|x-\\overline{x}|^{2}}{n}}
 
     Adapted from :cite:`schirmer2015` and :cite:`cimburova2017`.
 
@@ -1231,20 +1262,24 @@ class CompactnessWeightedAxis:
     Initially designed for blocks.
 
     .. math::
-        d_{i} \\times\\left(\\frac{4}{\\pi}-\\frac{16 (area_{i})}{perimeter_{i}^{2}}\\right)
+        d_{i} \\times\\left(\\frac{4}{\\pi}-\\frac{16 (area_{i})}
+        {perimeter_{i}^{2}}\\right)
 
     Parameters
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to ``None``, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored perimeter value. If set to ``None``, function will calculate perimeters
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored perimeter value. If set to ``None``, function will calculate perimeters
         during the process without saving them separately.
     longest_axis : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored longest axis length value. If set to ``None``, function will calculate it
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
+        stored longest axis length value. If set to ``None``, function will calculate it
         during the process without saving them separately.
 
     Attributes

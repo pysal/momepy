@@ -1,5 +1,3 @@
-from distutils.version import LooseVersion
-
 import geopandas as gpd
 import momepy as mm
 import numpy as np

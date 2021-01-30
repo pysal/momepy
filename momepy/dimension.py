@@ -52,7 +52,8 @@ class Area:
 
     Examples
     --------
-    >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='buildings')
+    >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'),
+    ...                           layer='buildings')
     >>> buildings['area'] = momepy.Area(buildings).series
     >>> buildings.area[0]
     728.5574947044363
@@ -86,7 +87,8 @@ class Perimeter:
 
     Examples
     --------
-    >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='buildings')
+    >>> buildings = gpd.read_file(momepy.datasets.get_path('bubenec'),
+    ...                           layer='buildings')
     >>> buildings['perimeter'] = momepy.Perimeter(buildings).series
     >>> buildings.perimeter[0]
     137.18630991119903
@@ -109,9 +111,11 @@ class Volume:
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     heights : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored height value
+        the name of the dataframe column, ``np.array``, or ``pd.Series``
+        where is stored height value
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series``
+        where is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -134,7 +138,8 @@ class Volume:
     >>> buildings.volume[0]
     7285.5749470443625
 
-    >>> buildings['volume'] = momepy.Volume(buildings, heights='height_col', areas='area_col').series
+    >>> buildings['volume'] = momepy.Volume(buildings, heights='height_col',
+    ...                                     areas='area_col').series
     >>> buildings.volume[0]
     7285.5749470443625
     """
@@ -160,7 +165,7 @@ class Volume:
 
         except KeyError:
             raise KeyError(
-                "ERROR: Column not found. Define heights and areas or set areas to None."
+                "Column not found. Define heights and areas or set areas to None."
             )
 
 
@@ -179,9 +184,11 @@ class FloorArea:
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     heights : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored height value
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        is stored height value
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored area value. If set to None, function will calculate areas
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        is stored area value. If set to None, function will calculate areas
         during the process without saving them separately.
 
     Attributes
@@ -197,13 +204,15 @@ class FloorArea:
 
     Examples
     --------
-    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col').series
+    >>> buildings['floor_area'] = momepy.FloorArea(buildings,
+    ...                                            heights='height_col').series
     Calculating floor areas...
     Floor areas calculated.
     >>> buildings.floor_area[0]
     2185.672484113309
 
-    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col', areas='area_col').series
+    >>> buildings['floor_area'] = momepy.FloorArea(buildings, heights='height_col',
+    ...                                            areas='area_col').series
     >>> buildings.floor_area[0]
     2185.672484113309
     """
@@ -229,7 +238,7 @@ class FloorArea:
 
         except KeyError:
             raise KeyError(
-                "ERROR: Column not found. Define heights and areas or set areas to None."
+                "Column not found. Define heights and areas or set areas to None."
             )
 
 
@@ -340,7 +349,8 @@ class AverageCharacter:
     gdf : GeoDataFrame
         GeoDataFrame containing morphological tessellation
     values : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is stored character value.
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        is stored character value.
     unique_id : str
         name of the column with unique id used as ``spatial_weights`` index.
     spatial_weights : libpysal.weights
@@ -380,8 +390,14 @@ class AverageCharacter:
 
     Examples
     --------
-    >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True, ids='uID')
-    >>> tessellation['mean_area'] = momepy.AverageCharacter(tessellation, values='area', spatial_weights=sw, unique_id='uID').mean
+    >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation,
+    ...                                                   threshold=100,
+    ...                                                   silence_warnings=True,
+    ...                                                   ids='uID')
+    >>> tessellation['mean_area'] = momepy.AverageCharacter(tessellation,
+    ...                                                     values='area',
+    ...                                                     spatial_weights=sw,
+    ...                                                     unique_id='uID').mean
     100%|██████████| 144/144 [00:00<00:00, 1433.32it/s]
     >>> tessellation.mean_area[0]
     4823.1334436678835
@@ -502,11 +518,14 @@ class StreetProfile:
     o : Series
         Series containing street profile openness values
     h : Series
-        Series containing street profile heights values. Returned only when heights is set.
+        Series containing street profile heights values.
+        Returned only when heights is set.
     hd : Series
-        Series containing street profile heights standard deviation values. Returned only when heights is set.
+        Series containing street profile heights standard deviation values.
+        Returned only when heights is set.
     p : Series
-        Series containing street profile height/width ratio values. Returned only when heights is set.
+        Series containing street profile height/width ratio values.
+        Returned only when heights is set.
     left : GeoDataFrame
         original left GeoDataFrame
     right : GeoDataFrame
@@ -520,10 +539,10 @@ class StreetProfile:
 
     Examples
     --------
-    >>> street_profile = momepy.StreetProfile(streets_df, buildings_df, heights='height')
+    >>> street_prof = momepy.StreetProfile(streets_df, buildings_df, heights='height')
     100%|██████████| 33/33 [00:02<00:00, 15.66it/s]
-    >>> streets_df['width'] = street_profile.w
-    >>> streets_df['deviations'] = street_profile.wd
+    >>> streets_df['width'] = street_prof.w
+    >>> streets_df['deviations'] = street_prof.wd
     """
 
     def __init__(
@@ -681,7 +700,8 @@ class WeightedCharacter:
     """
     Calculates the weighted character
 
-    Character weighted by the area of the objects within ``k`` topological steps defined in ``spatial_weights``.
+    Character weighted by the area of the objects within neighbors defined
+    in ``spatial_weights``.
 
     .. math::
         \\frac{\\sum_{i=1}^{n} {character_{i} * area_{i}}}{\\sum_{i=1}^{n} area_{i}}
@@ -693,14 +713,16 @@ class WeightedCharacter:
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
     values : str, list, np.array, pd.Series
-        the name of the gdf dataframe column, ``np.array``, or ``pd.Series`` where is stored character to be weighted
+        the name of the gdf dataframe column, ``np.array``, or ``pd.Series`` where
+        is stored character to be weighted
     spatial_weights : libpysal.weights
-        spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated
-        based on left.
+        spatial weights matrix - If None, Queen contiguity matrix of set order will
+        be calculated based on left.
     unique_id : str
         name of the column with unique id used as ``spatial_weights`` index.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the left dataframe column, ``np.array``, or ``pd.Series`` where is stored area value
+        the name of the left dataframe column, ``np.array``, or ``pd.Series``
+        where is stored area value
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
 
@@ -722,9 +744,13 @@ class WeightedCharacter:
 
     Examples
     --------
-    >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation_df, threshold=100, silence_warnings=True)
-    >>> buildings_df['w_height_100'] = momepy.WeightedCharacter(buildings_df, values='height', spatial_weights=sw,
-                                                                 unique_id='uID').series
+    >>> sw = libpysal.weights.DistanceBand.from_dataframe(tessellation_df,
+    ...                                                   threshold=100,
+    ...                                                   silence_warnings=True)
+    >>> buildings_df['w_height_100'] = momepy.WeightedCharacter(buildings_df,
+    ...                                                         values='height',
+    ...                                                         spatial_weights=sw,
+    ...                                                         unique_id='uID').series
     100%|██████████| 144/144 [00:00<00:00, 361.60it/s]
     """
 
@@ -801,7 +827,7 @@ class CoveredArea:
     Examples
     --------
     >>> sw = momepy.sw_high(k=3, gdf=tessellation_df, ids='uID')
-    >>> tessellation_df['covered3steps'] = mm.CoveredArea(tessellation_df, sw, 'uID').series
+    >>> tessellation_df['covered'] = mm.CoveredArea(tessellation_df, sw, 'uID').series
     100%|██████████| 144/144 [00:00<00:00, 549.15it/s]
 
     """
@@ -888,9 +914,8 @@ class PerimeterWall:
                 comp = spatial_weights.component_labels[i]
                 to_join = components[components == comp].index
                 joined = geom.iloc[to_join]
-                dissolved = joined.buffer(
-                    0.01
-                ).unary_union  # buffer to avoid multipolygons where buildings touch by corners only
+                # buffer to avoid multipolygons where buildings touch by corners only
+                dissolved = joined.buffer(0.01).unary_union
                 for b in to_join:
                     walls[b] = dissolved.exterior.length
 
@@ -905,8 +930,9 @@ class SegmentsLength:
     Calculate the cummulative and/or mean length of segments.
 
     Length of segments within set topological distance from each of them.
-    Reached topological distance should be captured by ``spatial_weights``. If ``mean=False`` it
-    will compute sum of length, if ``mean=True`` it will compute sum and mean.
+    Reached topological distance should be captured by ``spatial_weights``.
+    If ``mean=False`` it will compute sum of length, if ``mean=True``
+    it will compute sum and mean.
 
     Parameters
     ----------
@@ -914,7 +940,8 @@ class SegmentsLength:
         GeoDataFrame containing streets (edges) to analyse
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on streets (note: spatial_weights should be based on index, not unique ID).
+        based on streets (note: spatial_weights should be based on index,
+        not unique ID).
     mean : boolean, optional
         If mean=False it will compute sum of length, if mean=True it will compute
         sum and mean

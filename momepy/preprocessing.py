@@ -209,6 +209,7 @@ def remove_false_nodes(gdf):
         geom = df.geometry.values.data
     else:
         geom = gdf
+        df = gpd.GeoSeries(gdf)
 
     # extract array of coordinates and number per geometry
     coords = pygeos.get_coordinates(geom)
@@ -482,7 +483,7 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
     streets = gdf.reset_index(drop=True).explode().reset_index(drop=True)
     if isinstance(streets, gpd.GeoDataFrame):
         series = False
-    elif isinstance(streets, gpd.GeoSeries):
+    else:
         series = True
 
     sindex = streets.sindex

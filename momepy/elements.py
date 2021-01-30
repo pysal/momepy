@@ -8,9 +8,7 @@ import libpysal
 import numpy as np
 import pygeos
 import pandas as pd
-import shapely
 from scipy.spatial import Voronoi
-from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
 from tqdm import tqdm
@@ -106,8 +104,8 @@ class Tessellation:
     enclosures : GeoDataFrame (default None)
         Enclosures geometry. Can  be generated using :func:`momepy.enclosures`.
     enclosure_id : str (default 'eID')
-        name of the enclosure_id containing unique identifer for each row in ``enclosures``.
-        Applies only if ``enclosures`` are passed.
+        name of the enclosure_id containing unique identifer for each row in
+        ``enclosures``. Applies only if ``enclosures`` are passed.
     threshold : float (default 0.05)
         The minimum threshold for a building to be considered within an enclosure.
         Threshold is a ratio of building area which needs to be within an enclosure to
@@ -356,7 +354,7 @@ class Tessellation:
 
     def _check_result(self, tesselation, orig_gdf, unique_id):
         """
-        Check whether result of tessellation matches buildings and contains only Polygons.
+        Check whether result matches buildings and contains only Polygons.
         """
         # check against input layer
         ids_original = list(orig_gdf[unique_id])
@@ -366,10 +364,9 @@ class Tessellation:
 
             self.collapsed = set(ids_original).difference(ids_generated)
             warnings.warn(
-                "Tessellation does not fully match buildings. {len} element(s) collapsed "
-                "during generation - unique_id: {i}".format(
-                    len=len(self.collapsed), i=self.collapsed
-                )
+                f"Tessellation does not fully match buildings. "
+                f"{len(self.collapsed)} element(s) collapsed "
+                f"during generation - unique_id: {self.collapsed}"
             )
 
         # check MultiPolygons - usually caused by error in input geometry
@@ -380,8 +377,8 @@ class Tessellation:
             import warnings
 
             warnings.warn(
-                "Tessellation contains MultiPolygon elements. Initial objects should be edited. "
-                "unique_id of affected elements: {}".format(list(self.multipolygons))
+                "Tessellation contains MultiPolygon elements. Initial objects should "
+                f"be edited. unique_id of affected elements: {list(self.multipolygons)}"
             )
 
     def _enclosed_tessellation(
@@ -396,28 +393,29 @@ class Tessellation:
         **kwargs,
     ):
         """Enclosed tessellation
-        Generate enclosed tessellation based on barriers defining enclosures and buildings
-        footprints.
+        Generate enclosed tessellation based on barriers defining enclosures and
+        building footprints.
 
         Parameters
         ----------
         buildings : GeoDataFrame
-            GeoDataFrame containing building footprints. Expects (Multi)Polygon geometry.
+            GeoDataFrame containing building footprints. Expects (Multi)Polygon
+            geometry.
         enclosures : GeoDataFrame
             Enclosures geometry. Can  be generated using :func:`momepy.enclosures`.
         unique_id : str
             name of the column with unique id of buildings gdf
         threshold : float (default 0.05)
             The minimum threshold for a building to be considered within an enclosure.
-            Threshold is a ratio of building area which needs to be within an enclosure to
-            inlude it in the tessellation of that enclosure. Resolves sliver geometry
+            Threshold is a ratio of building area which needs to be within an enclosure
+            to inlude it in the tessellation of that enclosure. Resolves sliver geometry
             issues.
         use_dask : bool (default True)
             Use parallelised algorithm based on ``dask.dataframe``. Requires dask.
         n_chunks : None
-            Number of chunks to be used in parallelization. Ideal is one chunk per thread.
-            Applies only if ``enclosures`` are passed. Defualt automatically uses
-            n == dask.system.cpu_count.
+            Number of chunks to be used in parallelization. Ideal is one chunk per
+            thread. Applies only if ``enclosures`` are passed. Defualt automatically
+            uses n == dask.system.cpu_count.
         **kwargs
             Keyword arguments passed to Tessellation algorithm (as ``shrink``
             or ``segment``).
@@ -459,7 +457,6 @@ class Tessellation:
                     "dask.dataframe could not be imported. Setting `use_dask=False`."
                 )
 
-        if use_dask:
             if n_chunks is None:
                 n_chunks = cpu_count() - 1 if cpu_count() > 1 else 1
             # initialize dask.series
@@ -553,7 +550,8 @@ class Blocks:
     id_name : str
         name of the unique blocks id column to be generated
     unique_id : str
-        name of the column with unique id. If there is none, it could be generated by :func:`momepy.unique_id`.
+        name of the column with unique id. If there is none, it could be generated
+        by :func:`momepy.unique_id`.
         This should be the same for cells and buildings, id's should match.
 
     Attributes
@@ -577,7 +575,7 @@ class Blocks:
 
     Examples
     --------
-    >>> blocks_generate = mm.Blocks(tessellation_df, streets_df, buildings_df, 'bID', 'uID')
+    >>> blocks = mm.Blocks(tessellation_df, streets_df, buildings_df, 'bID', 'uID')
     Buffering streets...
     Generating spatial index...
     Difference...
@@ -591,7 +589,7 @@ class Blocks:
     Multipart to singlepart...
     Attribute join (buildings)...
     Attribute join (tesselation)...
-    >>> blocks_generate.blocks.head()
+    >>> blocks.blocks.head()
         bID	geometry
     0	1.0	POLYGON ((1603560.078648818 6464202.366899694,...
     1	2.0	POLYGON ((1603457.225976106 6464299.454696888,...
@@ -937,39 +935,6 @@ def get_network_ratio(df, edges, initial_buffer=500):
     result["edgeID_values"] = ratios.apply(lambda d: list(d.values()))
     result.index = df.index
     return result
-
-
-def _split_lines(polygon, distance):
-    """Split polygon into GeoSeries of lines no longer than `distance`."""
-    list_points = []
-    current_dist = distance  # set the current distance to place the point
-
-    # TODO: use pygeos interpolate
-    boundary = polygon.boundary  # make shapely MultiLineString object
-    if boundary.type == "LineString":
-        line_length = boundary.length  # get the total length of the line
-        while (
-            current_dist < line_length
-        ):  # while the current cumulative distance is less than the total length of the line
-            list_points.append(
-                boundary.interpolate(current_dist)
-            )  # use interpolate and increase the current distance
-            current_dist += distance
-    elif boundary.type == "MultiLineString":
-        for ls in boundary:
-            line_length = ls.length  # get the total length of the line
-            while (
-                current_dist < line_length
-            ):  # while the current cumulative distance is less than the total length of the line
-                list_points.append(
-                    ls.interpolate(current_dist)
-                )  # use interpolate and increase the current distance
-                current_dist += distance
-
-    cutted = shapely.ops.split(
-        boundary, shapely.geometry.MultiPoint(list_points).buffer(0.001)
-    )
-    return cutted
 
 
 def enclosures(
