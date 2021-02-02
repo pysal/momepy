@@ -271,10 +271,11 @@ class Tessellation:
             objects.geometry.values.data, distance=segment, index=objects.index
         )
 
-        bounds = pygeos.bounds(limit)
+        hull = pygeos.convex_hull(limit)
+        bounds = pygeos.bounds(hull)
         width = bounds[2] - bounds[0]
         leng = bounds[3] - bounds[1]
-        hull = pygeos.buffer(limit, 2 * width if width > leng else 2 * leng)
+        hull = pygeos.buffer(hull, 2 * width if width > leng else 2 * leng)
 
         hull_p, hull_ix = self._dense_point_array(
             [hull], distance=pygeos.length(hull) / 100, index=[0]
