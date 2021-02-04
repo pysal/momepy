@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Version 0.4.2 (February 4, 2021)
+--------------------------------
+
+Bug fix release:
+
+- BUG: resolve nans in StreetProfile (#251)
+- REGR: fix slowdown in tessellation (#256)
+- BUG: avoid string "geometry" (#257)
+- PERF: move translation in Tessellation (#259)
+- REGR: use convex_hull to mitigate infinity (#260)
+
+
 Version 0.4.1 (January 12, 2021)
 --------------------------------
 
