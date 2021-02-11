@@ -156,4 +156,5 @@ class TestElements:
         links = mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
 
         assert links.edgeID_values.apply(lambda x: sum(x)).sum() == len(enclosed_tess)
-        assert links.loc[149, "edgeID_keys"] == [13, 30, 27, 29, 28]
+        m = enclosed_tess["uID"] == 110
+        assert sorted(links[m].iloc[0]["edgeID_keys"]) == [0, 34]
