@@ -121,44 +121,49 @@ def svf(pt, bld, theta, R, height_col):
         pt_h = pt[height_col]
     else:
         pt_h = 0
-        
-    lines = drawLines(pt['geometry'], theta, R)  # Cutting lines of geopandas dataframe
     
     bld_clip = bldAtPt(pt['geometry'], bld, R)
-    bld_clip = bld_clip.explode()
-    # Convert to linestrings for point intersections
-    bld_clip_lines = gpd.GeoDataFrame(bld_clip[height_col], geometry = 
-                                          bld_clip.exterior, columns = [height_col])    
     
-    s = 0
-    # In each direction search high points and compute area
-    # Loop over all cutting lines in all direction
-    for _, l in lines.itertuples():
-        columns_data = []
-        geoms = []   
-        # Loop over all shapes in a buffer
-        for _, h, b in bld_clip_lines.itertuples():
-            intersect = l.intersection(b)
-            # In each direction, all points sampled from buildings
-            if intersect:
-                if type(intersect) == Point:
-                    columns_data.append(zenith((h-pt_h)*3,dist(intersect, pt['geometry'])))
-                    geoms.append(intersect)
-                else:
-                    for p in intersect:
+    if len(bld_clip)>0:  # If building presents in the buffer
+        bld_clip = bld_clip.explode()
+        # Convert to linestrings for point intersections
+        bld_clip_lines = gpd.GeoDataFrame(bld_clip[height_col], geometry = 
+                                              bld_clip.exterior, columns = [height_col])  
+        
+        lines = drawLines(pt['geometry'], theta, R)  # Cutting lines of geopandas dataframe
+        
+        s = 0
+        # In each direction search high points and compute area
+        # Loop over all cutting lines in all direction
+        for _, l in lines.itertuples():
+            columns_data = []
+            geoms = []   
+            # Loop over all shapes in a buffer
+            for _, h, b in bld_clip_lines.itertuples():
+                intersect = l.intersection(b)
+                # In each direction, all points sampled from buildings
+                if intersect:
+                    if type(intersect) == Point:
                         columns_data.append(zenith((h-pt_h)*3,dist(intersect, pt['geometry'])))
-                        geoms.append(p)
-        all_intersection = gpd.GeoDataFrame(columns_data, geometry=geoms,
-                                            columns=['zenith'])
+                        geoms.append(intersect)
+                    else:
+                        for p in intersect:
+                            columns_data.append(zenith((h-pt_h)*3,dist(intersect, pt['geometry'])))
+                            geoms.append(p)
+            all_intersection = gpd.GeoDataFrame(columns_data, geometry=geoms,
+                                                columns=['zenith'])
+            
+            # Pick highest point's zenith and compute area in the direction
+            zen_max = all_intersection['zenith'].max()
+            if not np.isnan(zen_max):
+                s_delta = shaded(R, zen_max, theta)
+                s += s_delta
+            
+        # SVF
+        view_fac = 1 - s/(2*math.pi*R**2)
         
-        # Pick highest point's zenith and compute area in the direction
-        zen_max = all_intersection['zenith'].max()
-        if not np.isnan(zen_max):
-            s_delta = shaded(R, zen_max, theta)
-            s += s_delta
-        
-    # SVF
-    view_fac = 1 - s/(2*math.pi*R**2)
+    else:
+        view_fac = 1
     
     return view_fac
             
