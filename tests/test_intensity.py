@@ -76,7 +76,7 @@ class TestIntensity:
         assert (car_sel.index == self.df_tessellation.iloc[10:20].index).all()
         self.blocks["area"] = self.blocks.geometry.area
         car_block = mm.AreaRatio(self.blocks, self.df_buildings, "area", "area", "bID")
-        assert car_block.series.mean() == 0.2761974319698012
+        assert car_block.series.mean() == approx(0.27619743, rel=1e-8)
 
     def test_Count(self):
         eib = mm.Count(self.blocks, self.df_buildings, "bID", "bID").series
@@ -87,10 +87,10 @@ class TestIntensity:
             self.df_streets, self.df_buildings, "nID", "nID", weighted=True
         ).series
         check_eib = [13, 14, 8, 26, 24, 17, 23, 19]
-        check_weib = 0.00040170607189453996
+        check_weib = approx(0.00040170607189453996)
         assert eib.tolist() == check_eib
         assert weib.mean() == check_weib
-        assert weis.mean() == 0.020524232642849215
+        assert weis.mean() == approx(0.020524232642849215)
 
     def test_Courtyards(self):
         courtyards = mm.Courtyards(self.df_buildings, "bID").series
