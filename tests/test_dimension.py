@@ -269,7 +269,7 @@ class TestDimensions:
         wall = mm.PerimeterWall(self.df_buildings).series
         wall_sw = mm.PerimeterWall(self.df_buildings, sw).series
         assert wall[0] == wall_sw[0]
-        assert wall[0] == 137.2106961418436
+        assert wall[0] == approx(137.210, rel=1e-3)
 
     def test_SegmentsLength(self):
         absol = mm.SegmentsLength(self.df_streets).sum
