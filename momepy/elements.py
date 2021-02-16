@@ -458,6 +458,7 @@ class Tessellation:
                     "dask.dataframe could not be imported. Setting `use_dask=False`."
                 )
 
+        if use_dask:
             if n_chunks is None:
                 n_chunks = cpu_count() - 1 if cpu_count() > 1 else 1
             # initialize dask.series
