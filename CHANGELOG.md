@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 0.4.3 (February 16, 2021)
+---------------------------------
+
+Small bug fix:
+
+- BUG: UnboundLocalError: local variable 'cpu_count' referenced before assignment (#266)
+
+
 Version 0.4.2 (February 4, 2021)
 --------------------------------
 
