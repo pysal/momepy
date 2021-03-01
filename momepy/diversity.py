@@ -87,7 +87,7 @@ class Range:
         unique_id,
         rng=(0, 100),
         verbose=True,
-        **kwargs
+        **kwargs,
     ):
         self.gdf = gdf
         self.sw = spatial_weights
@@ -300,7 +300,7 @@ class Simpson:
         categorical=False,
         categories=None,
         verbose=True,
-        **classification_kwds
+        **classification_kwds,
     ):
         if not categorical:
             try:
@@ -594,7 +594,7 @@ class Shannon:
         categorical=False,
         categories=None,
         verbose=True,
-        **classification_kwds
+        **classification_kwds,
     ):
         if not categorical:
             try:
@@ -790,7 +790,7 @@ class Percentiles:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing morphological tessellation
+        GeoDataFrame containing source geometry
     values : str, list, np.array, pd.Series
         the name of the dataframe column, ``np.array``, or ``pd.Series``
         where is stored character value.
@@ -815,6 +815,11 @@ class Percentiles:
 
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
+    weighted : {'linear', None} (default None)
+        Distance decay weighting. If None, each neighbor within
+        `spatial_weights` has equal weight. If `linear`, linear
+        inverse distance between centroids is used as a weight.
+
 
     Attributes
     ----------
@@ -848,6 +853,7 @@ class Percentiles:
         percentiles=[25, 50, 75],
         interpolation="midpoint",
         verbose=True,
+        weighted=None,
     ):
         self.gdf = gdf
         self.sw = spatial_weights
@@ -861,21 +867,66 @@ class Percentiles:
                 values = "mm_v"
         self.values = data[values]
 
-        data = data.set_index(unique_id)[values]
-
         results_list = []
-        for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
-                neighbours = [index]
-                neighbours += spatial_weights.neighbors[index]
 
-                values_list = data.loc[neighbours]
-                results_list.append(
-                    np.nanpercentile(
-                        values_list, percentiles, interpolation=interpolation
+        if weighted == "linear":
+            data = data.set_index(unique_id)[[values, data.geometry.name]]
+            data.geometry = data.centroid
+
+            for i, geom in tqdm(
+                data.geometry.iteritems(), total=data.shape[0], disable=not verbose
+            ):
+                if i in spatial_weights.neighbors.keys():
+                    neighbours = spatial_weights.neighbors[i]
+
+                    vicinity = data.loc[neighbours]
+                    distance = vicinity.distance(geom)
+                    distance_decay = 1 / distance
+                    vals = vicinity[values].values
+                    sorter = np.argsort(vals)
+                    vals = vals[sorter]
+                    nan_mask = np.isnan(vals)
+                    if nan_mask.all():
+                        results_list.append(np.array([np.nan] * len(percentiles)))
+                    else:
+                        sample_weight = distance_decay.values[sorter][~nan_mask]
+                        weighted_quantiles = (
+                            np.cumsum(sample_weight) - 0.5 * sample_weight
+                        )
+                        weighted_quantiles /= np.sum(sample_weight)
+                        interpolate = np.interp(
+                            [x / 100 for x in percentiles],
+                            weighted_quantiles,
+                            vals[~nan_mask],
+                        )
+                        results_list.append(interpolate)
+                else:
+                    results_list.append(np.array([np.nan] * len(percentiles)))
+
+            self.frame = pd.DataFrame(
+                results_list, columns=percentiles, index=gdf.index
+            )
+
+        elif weighted is None:
+            data = data.set_index(unique_id)[values]
+
+            for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
+                if index in spatial_weights.neighbors.keys():
+                    neighbours = [index]
+                    neighbours += spatial_weights.neighbors[index]
+
+                    values_list = data.loc[neighbours]
+                    results_list.append(
+                        np.nanpercentile(
+                            values_list, percentiles, interpolation=interpolation
+                        )
                     )
-                )
-            else:
-                results_list.append(np.nan)
+                else:
+                    results_list.append(np.nan)
 
-        self.frame = pd.DataFrame(results_list, columns=percentiles, index=gdf.index)
+            self.frame = pd.DataFrame(
+                results_list, columns=percentiles, index=gdf.index
+            )
+
+        else:
+            raise ValueError(f"'{weighted}' is not a valid option.")
