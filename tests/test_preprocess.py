@@ -22,30 +22,6 @@ class TestPreprocessing:
         processed = mm.preprocess(self.os_buildings)
         assert len(processed) == 5
 
-    def test_network_false_nodes(self):
-        test_file_path2 = mm.datasets.get_path("tests")
-        self.false_network = gpd.read_file(test_file_path2, layer="network")
-        self.false_network["vals"] = range(len(self.false_network))
-        with pytest.warns(FutureWarning):
-            fixed = mm.network_false_nodes(self.false_network)
-        assert len(fixed) == 56
-        assert isinstance(fixed, gpd.GeoDataFrame)
-        assert self.false_network.crs.equals(fixed.crs)
-        assert sorted(self.false_network.columns) == sorted(fixed.columns)
-        with pytest.warns(FutureWarning):
-            fixed_series = mm.network_false_nodes(self.false_network.geometry)
-        assert len(fixed_series) == 56
-        assert isinstance(fixed_series, gpd.GeoSeries)
-        assert self.false_network.crs.equals(fixed_series.crs)
-        with pytest.raises(TypeError):
-            mm.network_false_nodes(list())
-        multiindex = self.false_network.explode()
-        with pytest.warns(FutureWarning):
-            fixed_multiindex = mm.network_false_nodes(multiindex)
-        assert len(fixed_multiindex) == 56
-        assert isinstance(fixed, gpd.GeoDataFrame)
-        assert sorted(self.false_network.columns) == sorted(fixed.columns)
-
     def test_remove_false_nodes(self):
         test_file_path2 = mm.datasets.get_path("tests")
         self.false_network = gpd.read_file(test_file_path2, layer="network")
@@ -64,24 +40,6 @@ class TestPreprocessing:
         assert len(fixed_multiindex) == 56
         assert isinstance(fixed, gpd.GeoDataFrame)
         assert sorted(self.false_network.columns) == sorted(fixed.columns)
-
-    def test_snap_street_network_edge(self):
-        snapped = mm.snap_street_network_edge(
-            self.df_streets, self.df_buildings, 20, self.df_tessellation, 70
-        )
-        snapped_nonedge = mm.snap_street_network_edge(
-            self.df_streets, self.df_buildings, 20
-        )
-        snapped_edge = mm.snap_street_network_edge(
-            self.df_streets,
-            self.df_buildings,
-            20,
-            tolerance_edge=70,
-            edge=mm.buffered_limit(self.df_buildings, buffer=50),
-        )
-        assert sum(snapped.geometry.length) == 5980.041004739525
-        assert sum(snapped_edge.geometry.length) == 5980.718889937014
-        assert sum(snapped_nonedge.geometry.length) < 5980.041004739525
 
     def test_CheckTessellationInput(self):
         df = self.df_buildings

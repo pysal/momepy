@@ -4,7 +4,6 @@
 # connectivity.py
 # definitions of connectivity characters
 import math
-import warnings
 
 import networkx as nx
 import numpy as np
@@ -21,11 +20,8 @@ __all__ = [
     "edge_node_ratio",
     "gamma",
     "clustering",
-    "local_closeness_centrality",
     "closeness_centrality",
     "betweenness_centrality",
-    "local_betweenness_centrality",
-    "local_straightness_centrality",
     "straightness_centrality",
     "subgraph",
     "mean_nodes",
@@ -751,69 +747,6 @@ def _closeness_centrality(G, u=None, length=None, wf_improved=True, len_graph=No
     return closeness_centrality[u]
 
 
-def local_closeness_centrality(
-    graph, radius=5, name="closeness", distance=None, weight=None
-):
-    """
-    Calculates local closeness for each node based on the defined distance.
-
-    Subgraph is generated around each node within set radius. If ``distance=None``,
-    radius will define topological distance, otherwise it uses values in ``distance``
-    attribute. Based on ``networkx.closeness_centrality``.
-
-    Local closeness centrality of a node `u` is the reciprocal of the
-    average shortest path distance to `u` over all `n-1` nodes within subgraph.
-
-    .. math::
-
-        C(u) = \\frac{n - 1}{\\sum_{v=1}^{n-1} d(v, u)},
-
-    where :math:`d(v, u)` is the shortest-path distance between :math:`v` and :math:`u`,
-    and :math:`n` is the number of nodes that can reach :math:`u`.
-
-    Adapted from :cite:`porta2006`.
-
-
-    Parameters
-    ----------
-    graph : networkx.Graph
-        Graph representing street network.
-        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
-    radius: int
-        Include all neighbors of distance <= radius from n
-    name : str, optional
-        calculated attribute name
-    distance : str, optional
-        Use specified edge data key as distance.
-        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
-        measure the distance from the node n during ego_graph generation.
-    weight : str, optional
-      Use the specified edge attribute as the edge distance in shortest
-      path calculations in closeness centrality algorithm
-
-    Returns
-    -------
-    Graph
-        networkx.Graph
-
-    Examples
-    --------
-    >>> network_graph = mm.local_closeness_centrality(network_graph,
-    ...                                               radius=400,
-    ...                                               distance='edge_length')
-
-    """
-    warnings.warn(
-        "local_closeness_centrality() is deprecated and will be removed in momepy 0.5. "
-        "Use closeness_centrality() instead.",
-        FutureWarning,
-    )
-
-    return closeness_centrality(
-        graph=graph, radius=radius, name=name, distance=distance, weight=weight
-    )
-
-
 def closeness_centrality(
     graph,
     name="closeness",
@@ -1010,87 +943,6 @@ def betweenness_centrality(
     return netx
 
 
-def local_betweenness_centrality(
-    graph,
-    radius=5,
-    name="betweenness",
-    distance=None,
-    weight=None,
-    normalized=False,
-    **kwargs
-):
-    """
-    Calculates the shortest-path betweenness centrality for nodes within subgraph.
-
-    Subgraph is generated around each node within set radius. If ``distance=None``,
-    radius will define topological distance, otherwise it uses values in ``distance``
-    attribute. Based on ``networkx.betweenness_centrality``.
-
-    Betweenness centrality of a node `v` is the sum of the
-    fraction of all-pairs shortest paths that pass through `v`
-
-    .. math::
-
-       c_B(v) =\\sum_{s,t \\in V} \\frac{\\sigma(s, t|v)}{\\sigma(s, t)}
-
-    where `V` is the set of nodes, :math:`\\sigma(s, t)` is the number of
-    shortest :math:`(s, t)`-paths,  and :math:`\\sigma(s, t|v)` is the number of
-    those paths  passing through some  node `v` other than `s, t`.
-    If `s = t`, :math:`\\sigma(s, t) = 1`, and if `v` in `{s, t}``,
-    :math:`\\sigma(s, t|v) = 0`.
-
-
-    Parameters
-    ----------
-    graph : networkx.Graph
-        Graph representing street network.
-        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
-    radius: int
-        Include all neighbors of distance <= radius from n
-    name : str, optional
-        calculated attribute name
-    distance : str, optional
-        Use specified edge data key as distance.
-        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
-        measure the distance from the node n during ego_graph generation.
-    weight : str, optional
-        Use the specified edge attribute as the edge distance in shortest
-        path calculations in closeness centrality algorithm
-    normalized : bool, optional
-        If True the betweenness values are normalized by `2/((n-1)(n-2))`,
-        where n is the number of nodes in subgraph.
-    **kwargs
-        kwargs for ``networkx.betweenness_centrality_subset``
-
-    Returns
-    -------
-    Graph
-        networkx.Graph
-
-    Examples
-    --------
-    >>> network_graph = mm.local_betweenness_centrality(network_graph,
-    ...                                                 radius=800,
-    ...                                                 distance='edge_length')
-
-    """
-    warnings.warn(
-        "local_betweenness_centrality() is deprecated and will be removed"
-        " in momepy 0.5. Use betweenness_centrality() instead.",
-        FutureWarning,
-    )
-
-    return betweenness_centrality(
-        graph,
-        radius=radius,
-        name=name,
-        distance=distance,
-        weight=weight,
-        normalized=normalized,
-        **kwargs
-    )
-
-
 def _euclidean(n, m):
     """helper for straightness"""
     return math.sqrt((n[0] - m[0]) ** 2 + (n[1] - m[1]) ** 2)
@@ -1191,63 +1043,6 @@ def straightness_centrality(
         nx.set_node_attributes(netx, vals, name)
 
     return netx
-
-
-def local_straightness_centrality(
-    graph, radius=5, name="straightness", distance=None, weight="mm_len"
-):
-    """
-    Calculates local straightness for each node based on the defined distance.
-
-    Subgraph is generated around each node within set radius. If ``distance=None``,
-    radius will define topological distance, otherwise it uses values in ``distance``
-    attribute.
-
-    .. math::
-        C_{S}(i)=\\frac{1}{n-1} \\sum_{j \\in V, j \\neq i} \\frac{d_{i j}^{E u}}
-        {d_{i j}}
-
-    where :math:`\\mathrm{d}^{\\mathrm{E} \\mathrm{u}}_{\\mathrm{ij}}` is
-    the Euclidean distance between nodes `i` and `j` along a straight line.
-
-
-    Parameters
-    ----------
-    graph : networkx.Graph
-        Graph representing street network.
-        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`
-    radius: int
-        Include all neighbors of distance <= radius from n
-    name : str, optional
-        calculated attribute name
-    distance : str, optional
-        Use specified edge data key as distance.
-        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
-        measure the distance from the node n during ego_graph generation.
-    weight : str, optional
-      Use the specified edge attribute as the edge distance in shortest
-      path calculations in closeness centrality algorithm
-
-    Returns
-    -------
-    Graph
-        networkx.Graph
-
-
-    Examples
-    --------
-    >>> network_graph = mm.local_straightness_centrality(network_graph, radius=400, distance='edge_length')  # noqa
-
-    """
-    warnings.warn(
-        "local_straightness_centrality() is deprecated and will be removed in "
-        " momepy 0.5. Use straightness_centrality() instead.",
-        FutureWarning,
-    )
-
-    return straightness_centrality(
-        graph=graph, radius=radius, name=name, distance=distance, weight=weight
-    )
 
 
 def subgraph(

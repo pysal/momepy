@@ -11,16 +11,13 @@ import numpy as np
 import pandas as pd
 import pygeos
 import shapely
-from shapely.geometry import Point
 from tqdm import tqdm
 
 from .shape import CircularCompactness
 
 __all__ = [
     "preprocess",
-    "network_false_nodes",
     "remove_false_nodes",
-    "snap_street_network_edge",
     "CheckTessellationInput",
     "close_gaps",
     "extend_lines",
@@ -267,66 +264,6 @@ def remove_false_nodes(gdf):
         return df.append(final, ignore_index=True)
 
 
-def snap_street_network_edge(
-    edges,
-    buildings,
-    tolerance_street,
-    tessellation=None,
-    tolerance_edge=None,
-    edge=None,
-    verbose=True,
-):
-    """
-    Fix street network before performing :class:`momepy.Blocks`.
-
-    Extends unjoined ends of street segments to join with other segments or
-    tessellation boundary.
-
-    Parameters
-    ----------
-    edges : GeoDataFrame
-        GeoDataFrame containing street network
-    buildings : GeoDataFrame
-        GeoDataFrame containing building footprints
-    tolerance_street : float
-        tolerance in snapping to street network (by how much could be street segment
-        extended).
-    tessellation : GeoDataFrame (default None)
-        GeoDataFrame containing morphological tessellation. If edge is not passed it
-        will be used as edge.
-    tolerance_edge : float (default None)
-        tolerance in snapping to edge of tessellated area (by how much could be street
-        segment extended).
-    edge : Polygon
-        edge of area covered by morphological tessellation (same as ``limit`` in
-        :py:class:`momepy.Tessellation`)
-    verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
-
-    Returns
-    -------
-    GeoDataFrame
-        GeoDataFrame of extended street network.
-
-    """
-    import warnings
-
-    warnings.warn(
-        "snap_street_network_edge() is deprecated and will be removed in momepy 0.5.0. "
-        "Use extend_lines() instead.",
-        FutureWarning,
-    )
-
-    df = extend_lines(edges, tolerance_street, barrier=buildings)
-    if edge is None and tessellation is not None:
-        edge = tessellation.unary_union.boundary
-    if edge is not None:
-        df = extend_lines(
-            df, tolerance_edge, barrier=buildings, target=gpd.GeoSeries([edge])
-        )
-    return df
-
-
 class CheckTessellationInput:
     """
     Check input data for :class:`Tessellation` for potential errors.
@@ -444,118 +381,6 @@ class CheckTessellationInput:
             "Split features      : {1}\n"
             "Overlapping features: {2}".format(collapsed, split_count, overlapping_c)
         )
-
-
-def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
-    """
-    Check topology of street network and eliminate nodes of degree 2 by joining
-    affected edges.
-
-    Parameters
-    ----------
-    gdf : GeoDataFrame, GeoSeries
-        GeoDataFrame  or GeoSeries containing edge representation of street network.
-    tolerance : float
-        nodes within a tolerance are seen as identical (floating point precision fix)
-    precision : int
-        rounding parameter in estimating uniqueness of two points based on their
-        coordinates
-    verbose : bool
-        if True, shows progress bars in loops
-
-    Returns
-    -------
-    gdf : GeoDataFrame, GeoSeries
-    """
-    import warnings
-
-    warnings.warn(
-        "network_false_nodes() is deprecated and will be removed in momepy 0.5.0. "
-        "Use remove_false_nodes() instead.",
-        FutureWarning,
-    )
-
-    if not isinstance(gdf, (gpd.GeoSeries, gpd.GeoDataFrame)):
-        raise TypeError(
-            "'gdf' should be GeoDataFrame or GeoSeries, got {}".format(type(gdf))
-        )
-    # double reset_index due to geopandas issue in explode
-    streets = gdf.reset_index(drop=True).explode().reset_index(drop=True)
-    if isinstance(streets, gpd.GeoDataFrame):
-        series = False
-    else:
-        series = True
-
-    sindex = streets.sindex
-
-    false_xy = []
-    for line in tqdm(
-        streets.geometry,
-        total=streets.shape[0],
-        desc="Identifying false points",
-        disable=not verbose,
-    ):
-        l_coords = list(line.coords)
-        start = Point(l_coords[0]).buffer(tolerance)
-        end = Point(l_coords[-1]).buffer(tolerance)
-
-        real_first_matches = sindex.query(start, predicate="intersects")
-        real_second_matches = sindex.query(end, predicate="intersects")
-
-        if len(real_first_matches) == 2:
-            false_xy.append(
-                (round(l_coords[0][0], precision), round(l_coords[0][1], precision))
-            )
-        if len(real_second_matches) == 2:
-            false_xy.append(
-                (round(l_coords[-1][0], precision), round(l_coords[-1][1], precision))
-            )
-
-    false_unique = list(set(false_xy))
-    x, y = zip(*false_unique)
-    points = gpd.points_from_xy(x, y).buffer(tolerance)
-
-    geoms = streets
-    idx = max(geoms.index) + 1
-
-    for x, y, point in tqdm(
-        zip(x, y, points), desc="Merging segments", total=len(x), disable=not verbose
-    ):
-
-        predic = geoms.sindex.query(point, predicate="intersects")
-        matches = geoms.iloc[predic].geometry
-
-        try:
-            snap = shapely.ops.snap(matches.iloc[0], matches.iloc[1], tolerance,)
-            multiline = snap.union(matches.iloc[1])
-            linestring = shapely.ops.linemerge(multiline)
-            if linestring.type == "LineString":
-                if series:
-                    geoms.loc[idx] = linestring
-                else:
-                    geoms.loc[idx, geoms.geometry.name] = linestring
-                idx += 1
-            elif linestring.type == "MultiLineString":
-                for g in linestring.geoms:
-                    if series:
-                        geoms.loc[idx] = g
-                    else:
-                        geoms.loc[idx, geoms.geometry.name] = g
-                    idx += 1
-
-            geoms = geoms.drop(matches.index)
-        except (IndexError, ValueError):
-
-            warnings.warn(
-                "An exception during merging occured. "
-                f"Lines at point [{x}, {y}] were not merged."
-            )
-
-    streets = geoms.explode().reset_index(drop=True)
-    if series:
-        streets.crs = gdf.crs
-        return streets
-    return streets
 
 
 def close_gaps(gdf, tolerance):
