@@ -179,3 +179,30 @@ class TestDiversity:
             self.df_tessellation, list(range(8)) * 18, self.sw, "uID"
         ).frame
         assert np.all(perc.loc[0].values == np.array([1.0, 3.5, 6.0]))
+
+        perc = mm.Percentiles(
+            self.df_tessellation, "area", self.sw, "uID", percentiles=[30, 70]
+        ).frame
+        assert np.all(
+            perc.loc[0].values - np.array([1218.98841575, 3951.35531166]) < 0.00001
+        )
+
+        perc = mm.Percentiles(
+            self.df_tessellation, "area", self.sw, "uID", weighted="linear",
+        ).frame
+        assert np.all(
+            perc.loc[0].values - np.array([997.8086922, 2598.84036762, 4107.14201011])
+            < 0.00001
+        )
+
+        perc = mm.Percentiles(
+            self.df_tessellation,
+            "area",
+            self.sw,
+            "uID",
+            percentiles=[30, 70],
+            weighted="linear",
+        ).frame
+        assert np.all(
+            perc.loc[0].values - np.array([1211.83227008, 3839.99083097]) < 0.00001
+        )
