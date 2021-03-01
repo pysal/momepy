@@ -93,11 +93,9 @@ class TestIntensity:
         assert weis.mean() == approx(0.020524232642849215)
 
     def test_Courtyards(self):
-        courtyards = mm.Courtyards(self.df_buildings, "bID").series
+        courtyards = mm.Courtyards(self.df_buildings).series
         sw = Queen.from_dataframe(self.df_buildings)
-        courtyards_wm = mm.Courtyards(
-            self.df_buildings, self.df_buildings.bID, sw
-        ).series
+        courtyards_wm = mm.Courtyards(self.df_buildings, sw).series
         check = 0.6805555555555556
         assert courtyards.mean() == check
         assert courtyards_wm.mean() == check

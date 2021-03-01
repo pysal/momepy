@@ -222,7 +222,6 @@ class Courtyards:
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects to analyse
-    block_id : (deprecated)
     spatial_weights : libpysal.weights, optional
         spatial weights matrix - If None, Queen contiguity matrix will be calculated
         based on objects. It is to denote adjacent buildings
@@ -245,11 +244,7 @@ class Courtyards:
     Calculating spatial weights...
     """
 
-    def __init__(self, gdf, block_id=None, spatial_weights=None, verbose=True):
-        if block_id is not None:
-            warnings.warn(
-                "block_id is deprecated and will be removed in v0.4.", FutureWarning,
-            )
+    def __init__(self, gdf, spatial_weights=None, verbose=True):
         self.gdf = gdf
 
         results_list = []
