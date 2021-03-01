@@ -87,7 +87,7 @@ class Range:
         unique_id,
         rng=(0, 100),
         verbose=True,
-        **kwargs
+        **kwargs,
     ):
         self.gdf = gdf
         self.sw = spatial_weights
@@ -300,7 +300,7 @@ class Simpson:
         categorical=False,
         categories=None,
         verbose=True,
-        **classification_kwds
+        **classification_kwds,
     ):
         if not categorical:
             try:
@@ -594,7 +594,7 @@ class Shannon:
         categorical=False,
         categories=None,
         verbose=True,
-        **classification_kwds
+        **classification_kwds,
     ):
         if not categorical:
             try:
@@ -900,6 +900,8 @@ class Percentiles:
                             vals[~nan_mask],
                         )
                         results_list.append(interpolate)
+                else:
+                    results_list.append(np.array([np.nan] * len(percentiles)))
 
             self.frame = pd.DataFrame(
                 results_list, columns=percentiles, index=gdf.index
@@ -927,4 +929,4 @@ class Percentiles:
             )
 
         else:
-            raise ValueError()
+            raise ValueError(f"'{weighted}' is not a valid option.")

@@ -206,3 +206,8 @@ class TestDiversity:
         assert np.all(
             perc.loc[0].values - np.array([1211.83227008, 3839.99083097]) < 0.00001
         )
+
+        with pytest.raises(ValueError, match="'nonsense' is not a valid"):
+            mm.Percentiles(
+                self.df_tessellation, "area", self.sw, "uID", weighted="nonsense",
+            )
