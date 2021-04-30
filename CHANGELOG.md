@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 0.4.4 (April 30, 2021)
+---------------------------------
+
+Small bug fix affecting `nx_to_gdf` and `NodeDensity`.
+
+- BUG: node ID doesn't match ID in weights (#274)
+
+
 Version 0.4.3 (February 16, 2021)
 ---------------------------------
 
