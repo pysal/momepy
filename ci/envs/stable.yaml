@@ -10,8 +10,7 @@ dependencies:
   - pytest
   - pytest-cov
   - codecov
-  - mapclassify=2.4.2
+  - mapclassify
   - osmnx
-  - black=19.10b0
   - pygeos
   - inequality
