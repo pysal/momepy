@@ -595,7 +595,8 @@ def _extend_line(coords, target, tolerance, snap=True):
     """
     if snap:
         extrapolation = _get_extrapolated_line(
-            coords[-4:] if len(coords.shape) == 1 else coords[-2:].flatten(), tolerance,
+            coords[-4:] if len(coords.shape) == 1 else coords[-2:].flatten(),
+            tolerance,
         )
         int_idx = target.sindex.query(extrapolation, predicate="intersects")
         intersection = pygeos.intersection(
