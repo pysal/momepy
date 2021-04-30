@@ -62,7 +62,7 @@ Examples
                                right_areas='area', unique_id='uID')
    tessellation['CAR'] = coverage.series
 
-.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/example1.png
+.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/example1.png
    :alt: Coverage Area Ratio
 
    Coverage Area Ratio
@@ -74,7 +74,7 @@ Examples
                                  unique_id='uID')
    tessellation['area_simpson'] = area_simpson.series
 
-.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/diversity_22_0.png
+.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/diversity_22_0.png
    :alt: Local Simpson's diversity of area
 
    Local Simpson's diversity of area
@@ -83,7 +83,7 @@ Examples
 
    G = momepy.straightness_centrality(G)
 
-.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/centrality_27_0.png
+.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/centrality_27_0.png
    :alt: Straightness centrality
 
    Straightness centrality
@@ -126,7 +126,7 @@ All discussion will then take place on GitHub to keep the development of momepy
 transparent.
 
 If you decide to contribute to the codebase, ensure that you are using an
-up-to-date ``master`` branch. The latest development version will always be there,
+up-to-date ``main`` branch. The latest development version will always be there,
 including the documentation (powered by ``sphinx``).
 
 Details are available in the :doc:`contributing guide <contributing>`.

@@ -59,8 +59,8 @@ installing using pip only::
 Using Docker
 ------------
 
-You can also use `Dockerfile <https://github.com/martinfleis/momepy/tree/master/environments>`_ 
-to build minimal a environment for momepy, or 
+You can also use `Dockerfile <https://github.com/martinfleis/momepy/tree/main/environments>`_
+to build minimal a environment for momepy, or
 get the official image from Docker Hub::
 
     docker pull martinfleis/momepy:<version>
@@ -69,10 +69,10 @@ For example::
 
     docker pull martinfleis/momepy:0.4
 
-Note that images are available from version 0.4. 
+Note that images are available from version 0.4.
 
-See more in the 
-`ReadMe <https://github.com/martinfleis/momepy/blob/master/environments/Readme.md>`_
+See more in the
+`ReadMe <https://github.com/martinfleis/momepy/blob/main/environments/Readme.md>`_
 
 If you need the full stack of geospatial Python libraries, use `darribas/gds_env <https://darribas.org/gds_env/>`_
 which provides the updated platform for Geographic Data Science (including momepy)::

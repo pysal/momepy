@@ -1,9 +1,9 @@
 # momepy
 [![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Actions Status](https://github.com/martinfleis/momepy/workflows/Tests/badge.svg)](https://github.com/martinfleis/momepy/actions?query=workflow%3ATests)
-[![codecov](https://codecov.io/gh/martinfleis/momepy/branch/master/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
+[![codecov](https://codecov.io/gh/martinfleis/momepy/branch/main/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
 
 
-<img src="https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/logo.png" width="50%">
+<img src="https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/logo.png" width="50%">
 
 ## Introduction
 Momepy is a library for quantitative analysis of urban form - urban morphometrics. It is built on top of [GeoPandas](http://geopandas.org), [PySAL](http://pysal.org) and [networkX](http://networkx.github.io).
@@ -42,7 +42,7 @@ coverage = momepy.AreaRatio(tessellation, buildings, left_areas=tessellation.are
 tessellation['CAR'] = coverage.series
 ```
 
-![Coverage Area Ratio](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/example1.png)
+![Coverage Area Ratio](https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/example1.png)
 
 ```py
 area_simpson = momepy.Simpson(tessellation, values='area',
@@ -51,13 +51,13 @@ area_simpson = momepy.Simpson(tessellation, values='area',
 tessellation['area_simpson'] = area_simpson.series
 ```
 
-![Local Simpson's diversity of area](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/diversity_22_0.png)
+![Local Simpson's diversity of area](https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/diversity_22_0.png)
 
 ```py
 G = momepy.straightness_centrality(G)
 ```
 
-![Straightness centrality](https://raw.githubusercontent.com/martinfleis/momepy/master/docs/_static/centrality_27_0.png)
+![Straightness centrality](https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/centrality_27_0.png)
 
 
 ## How to cite
@@ -95,7 +95,7 @@ Contributions of any kind to momepy are more than welcome. That does not mean ne
 
 All contributions should go through our GitHub repository. Bug reports, ideas or even questions should be raised by opening an issue on the GitHub tracker. Suggestions for changes in code or documentation should be submitted as a pull request. However, if you are not sure what to do, feel free to open an issue. All discussion will then take place on GitHub to keep the development of momepy transparent.
 
-If you decide to contribute to the codebase, ensure that you are using an up-to-date `master` branch. The latest development version will always be there, including the documentation (powered by `sphinx`).
+If you decide to contribute to the codebase, ensure that you are using an up-to-date `main` branch. The latest development version will always be there, including the documentation (powered by `sphinx`).
 
 Details are available in the [documentation](https://docs.momepy.org/).
 

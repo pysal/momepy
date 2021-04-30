@@ -16,7 +16,7 @@ All discussion will then take place on GitHub to keep the development of
 momepy transparent.
 
 If you decide to contribute to the codebase, ensure that you are using an
-up-to-date `master` branch. The latest development version will always be there,
+up-to-date `main` branch. The latest development version will always be there,
 including the documentation (powered by `sphinx`_).
 
 
@@ -51,7 +51,7 @@ want to use command line, you can fork momepy repository using following::
 This creates the directory momepy-yourname and connects your repository to
 the upstream (main project) momepy repository.
 
-Then simply create a new branch of master branch.
+Then simply create a new branch of main branch.
 
 
 2. Create a development environment

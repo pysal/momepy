@@ -272,5 +272,5 @@ def linkcode_resolve(domain, info):
         filename = "momepy/%s#L%d-L%d" % find_source()
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
-    tag = "master" if "+" in release else ("v" + release)
+    tag = "main" if "+" in release else ("v" + release)
     return "https://github.com/martinfleis/momepy/blob/%s/%s" % (tag, filename)
