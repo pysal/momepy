@@ -188,7 +188,11 @@ class TestDiversity:
         )
 
         perc = mm.Percentiles(
-            self.df_tessellation, "area", self.sw, "uID", weighted="linear",
+            self.df_tessellation,
+            "area",
+            self.sw,
+            "uID",
+            weighted="linear",
         ).frame
         assert np.all(
             perc.loc[0].values - np.array([997.8086922, 2598.84036762, 4107.14201011])
@@ -209,5 +213,9 @@ class TestDiversity:
 
         with pytest.raises(ValueError, match="'nonsense' is not a valid"):
             mm.Percentiles(
-                self.df_tessellation, "area", self.sw, "uID", weighted="nonsense",
+                self.df_tessellation,
+                "area",
+                self.sw,
+                "uID",
+                weighted="nonsense",
             )

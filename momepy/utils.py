@@ -417,10 +417,9 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
 
         warnings.warn("Approach is not set. Defaulting to 'primal'.")
 
-    nid = 1
-    for n in net:
+    for nid, n in enumerate(net):
         net.nodes[n][nodeID] = nid
-        nid += 1
+
     return _primal_to_gdf(
         net, points=points, lines=lines, spatial_weights=spatial_weights, nodeID=nodeID
     )

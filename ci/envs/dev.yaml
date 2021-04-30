@@ -12,7 +12,6 @@ dependencies:
   - codecov
   - pip
   - osmnx
-  - black=19.10b0
   - nose
   - inequality
   - pygeos

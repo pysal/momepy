@@ -60,5 +60,8 @@ class TimeIntensity:
 
     def time_Density(self):
         mm.Density(
-            self.df_tessellation, self.df_buildings["fl_area"], self.sw3, "uID",
+            self.df_tessellation,
+            self.df_buildings["fl_area"],
+            self.sw3,
+            "uID",
         )

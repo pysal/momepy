@@ -9,7 +9,16 @@ on:
     - cron: "0 0 * * 1,4"
 
 jobs:
+  Linting:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: pre-commit/action@v2.0.0
+
   Test:
+    needs: Linting
     name: ${{ matrix.os }}, ${{ matrix.env }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -57,10 +66,5 @@ jobs:
         if: contains(matrix.env, 'latest.yaml') && contains(matrix.os, 'ubuntu')
         run: |
           ci/envs/test_user_guide.sh
-
-      - name: Black
-        shell: bash -l {0}
-        run: |
-          black --check .
 
       - uses: codecov/codecov-action@v1
