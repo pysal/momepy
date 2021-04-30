@@ -223,7 +223,13 @@ class Tessellation:
             )
 
             self.tessellation = self._enclosed_tessellation(
-                gdf, enclosures, unique_id, enclosure_id, threshold, use_dask, n_chunks,
+                gdf,
+                enclosures,
+                unique_id,
+                enclosure_id,
+                threshold,
+                use_dask,
+                n_chunks,
             )
         else:
             if isinstance(limit, (gpd.GeoSeries, gpd.GeoDataFrame)):

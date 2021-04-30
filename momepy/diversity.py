@@ -399,7 +399,7 @@ def simpson_diversity(data, bins=None, categorical=False, categories=None):
             raise ImportError("The 'mapclassify' package is required")
 
     def p(n, N):
-        """ Relative abundance """
+        """Relative abundance"""
         if n == 0:
             return 0
         return float(n) / N
@@ -690,7 +690,7 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
             raise ImportError("The 'mapclassify' package is required")
 
     def p(n, N):
-        """ Relative abundance """
+        """Relative abundance"""
         if n == 0:
             return 0
         return (float(n) / N) * ln(float(n) / N)

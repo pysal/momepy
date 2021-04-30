@@ -118,3 +118,4 @@ run/
 .vscode
 .asv
 dask-worker-space
+.DS_Store

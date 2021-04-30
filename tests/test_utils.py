@@ -62,11 +62,14 @@ class TestUtils:
         )
 
         dual = mm.gdf_to_nx(self.df_streets, approach="dual", angle="ang")
-        assert dual.edges[
-            (1603499.42326969, 6464328.7520580515),
-            (1603510.1061735682, 6464204.555117119),
-            0,
-        ] == {"ang": 1.0963654487814474}
+        assert (
+            dual.edges[
+                (1603499.42326969, 6464328.7520580515),
+                (1603510.1061735682, 6464204.555117119),
+                0,
+            ]
+            == {"ang": 1.0963654487814474}
+        )
 
         dual = mm.gdf_to_nx(
             self.df_streets, approach="dual", angles=False, multigraph=False
@@ -82,10 +85,13 @@ class TestUtils:
 
         dual = mm.gdf_to_nx(self.df_streets, approach="dual", multigraph=False)
         assert isinstance(nx, networkx.Graph)
-        assert dual.edges[
-            (1603499.42326969, 6464328.7520580515),
-            (1603510.1061735682, 6464204.555117119),
-        ] == {"angle": 1.0963654487814474}
+        assert (
+            dual.edges[
+                (1603499.42326969, 6464328.7520580515),
+                (1603510.1061735682, 6464204.555117119),
+            ]
+            == {"angle": 1.0963654487814474}
+        )
 
         with pytest.raises(ValueError):
             mm.gdf_to_nx(self.df_streets, approach="dual", directed=True)

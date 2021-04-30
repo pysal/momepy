@@ -526,7 +526,11 @@ def network_false_nodes(gdf, tolerance=0.1, precision=3, verbose=True):
         matches = geoms.iloc[predic].geometry
 
         try:
-            snap = shapely.ops.snap(matches.iloc[0], matches.iloc[1], tolerance,)
+            snap = shapely.ops.snap(
+                matches.iloc[0],
+                matches.iloc[1],
+                tolerance,
+            )
             multiline = snap.union(matches.iloc[1])
             linestring = shapely.ops.linemerge(multiline)
             if linestring.type == "LineString":
@@ -770,7 +774,8 @@ def _extend_line(coords, target, tolerance, snap=True):
     """
     if snap:
         extrapolation = _get_extrapolated_line(
-            coords[-4:] if len(coords.shape) == 1 else coords[-2:].flatten(), tolerance,
+            coords[-4:] if len(coords.shape) == 1 else coords[-2:].flatten(),
+            tolerance,
         )
         int_idx = target.sindex.query(extrapolation, predicate="intersects")
         intersection = pygeos.intersection(
