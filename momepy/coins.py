@@ -1,4 +1,3 @@
-<<<<<<< HEAD:PythonTool/200330_NetworkContinuityMultiprocessing_PT_Rework_Final.py
 """
 This Python script generates strokes from the line type ESRI shapefiles, mainly roads.
 
@@ -7,7 +6,7 @@ Date: 04 January 2020
 Version: 0.3
 
 The script is a supplementary material to the full length article:
-
+3
 Title:
 An open-source tool to extract natural continuity and hierarchy of urban street networks
 
@@ -497,7 +496,7 @@ if __name__ == '__main__':
         minutes = math.floor((t2-t1) / 60)
         seconds = (t2 - t1) % 60
         print("Processing complete in %d minutes %.2f seconds." % (minutes, seconds))
-=======
+
 """
 This Python script generates strokes from the line type ESRI shapefiles, mainly roads.
 
@@ -995,4 +994,3 @@ if __name__ == '__main__':
         minutes = math.floor((t2-t1) / 60)
         seconds = (t2 - t1) % 60
         print("Processing complete in %d minutes %.2f seconds." % (minutes, seconds))
->>>>>>> 48c9093b4a70a65818eff62c8f969361aac6fe9a:PythonTool/200227_NetworkContinuityMultiprocessing_PT_Rework_Final.py
