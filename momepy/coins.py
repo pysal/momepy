@@ -40,7 +40,7 @@ import pandas as pd
 def main():
 
     ## get graph from osmnx
-    G = ox.load_graphml('/Users/andresmorfin/Desktop/momepy_coins/gis_data/osmnx_networks/small_processed_graph.graphml')
+    G = ox.load_graphml('processed_graph.graphml')
 
     ## convert graph to geodataframe
     edges_gdf = ox.graph_to_gdfs(ox.get_undirected(G), nodes=False, edges=True, node_geometry=False, fill_edge_geometry=True) 
@@ -110,14 +110,6 @@ def listToTuple(line):
         line[a] = tuple(line[a])
     return(tuple(line))
 """
-This function rounds up the coordinates of the input
-raw shapefile. The decimal places up to which round
-up is expected can be changed from here.
-"""
-def roundCoordinates(edge, decimal=4):
-    x, y = edge
-    return(round(x, decimal), round(y, decimal))
-"""
 The below function takes a line as an input and splits
 it at every point.
 """
@@ -125,7 +117,7 @@ def listToPairs(inList):
     outList = []
     index = 0
     for index in range(0,len(inList)-1):
-        tempList = [list(roundCoordinates(inList[index])), list(roundCoordinates(inList[index+1]))]
+        tempList = [list(inList[index]), list(inList[index+1])]
         outList.append(tempList)
     return(outList)
 
@@ -317,21 +309,10 @@ class line():
         #Iterate through the lines and split the edges
         for line in self.lines:
             for part in listToPairs(line):
-                
-                # get coordinates of line_segment
-                coord1 = part[0]
-                coord2 = part[1]
-
-                # difference between points
-                res_1 = coord1[0] - coord2[0]
-                res_2 = coord1[1] - coord2[1]
-
-                # Only go into loop if no zero length line segment
-                if not (res_1 == 0 and res_2 == 0):
-                    outLine.append([part, computeOrientation(part), list(), list(), list(), list(), list(), list()])
-                    # Merge the coordinates as string, this will help in finding adjacent edges in the function below
-                    self.tempArray.append([n, '%.4f_%.4f'%(part[0][0], part[0][1]), '%.4f_%.4f'%(part[1][0], part[1][1])])
-                    n += 1
+                outLine.append([part, computeOrientation(part), list(), list(), list(), list(), list(), list()])
+                # Merge the coordinates as string, this will help in finding adjacent edges in the function below
+                self.tempArray.append([n, f'{part[0][0]}_{part[0][1]}', f'{part[1][0]}_{part[1][1]}'])
+                n += 1
 
         self.split = outLine
 
