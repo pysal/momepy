@@ -2,11 +2,11 @@
 This Python script generates strokes from the line type ESRI shapefiles, mainly roads.
 
 Author: Pratyush Tripathy
-Date: 04 January 2020
-Version: 0.3
+Date: 29 February 2020
+Version: 0.2
 
 The script is a supplementary material to the full length article:
-3
+
 Title:
 An open-source tool to extract natural continuity and hierarchy of urban street networks
 
@@ -16,10 +16,74 @@ Environment and Planning B: Urban Analytics and City Science
 Authors:
 Pratyush Tripathy, Pooja Rao, Krishnachandran Balakrishnan, Teja Malladi
 
+Citation:
+Tripathy, P., Rao, P., Balakrishnan, K., & Malladi, T. (2020). An open-source tool to extract natural continuity and hierarchy of urban street networks. Environment and Planning B: Urban Analytics and City Science. https://doi.org/10.1177%2F2399808320967680
+
 GitHub repository:
 https://github.com/PratyushTripathy/NetworkContinuity
 
+Adapted for momepy by: Andres Morfin
 """
+
+import os, sys, math, time, multiprocessing
+from functools import partial
+from jinja2.nodes import Mul
+import numpy as np
+import shapefile as shp
+import osmnx as ox
+from shapely.geometry import Point, LineString, MultiLineString
+from shapely import ops
+import geopandas as gpd
+import pandas as pd
+
+
+def main():
+
+    ## get graph from osmnx
+    G = ox.load_graphml('/Users/andresmorfin/Desktop/momepy_coins/gis_data/osmnx_networks/small_processed_graph.graphml')
+
+    ## convert graph to geodataframe
+    edges_gdf = ox.graph_to_gdfs(ox.get_undirected(G), nodes=False, edges=True, node_geometry=False, fill_edge_geometry=True) 
+
+    # If you wish to processone file only, change the name in the line below
+    t1 = time.time()
+
+    #Read Shapefile
+    myStreet = line(edges_gdf)
+    #Split lines
+    _ = myStreet.splitLines()
+    #Create unique ID
+    _ = myStreet.uniqueID()
+    #Compute connectivity table
+    myStreet.getLinks()
+    #Find best link at every point for both lines
+    myStreet.bestLink()
+    #Cross check best links
+    #Enter the angle threshold for connectivity here
+    myStreet.crossCheckLinks(angleThreshold=0)
+    #Merge finalised links
+    myStreet.mergeLines()
+    
+    #Export lines
+    #If you wish to export the premerge file,
+    #otherwise, feel free to comment the line below (None exports default name)
+    edges_premerge = myStreet.create_gdf_premerge()
+
+    #Exporting the strokes (None exports default name)
+    edges_strokes = myStreet.create_gdf_strokes()
+    
+    # export to geopackage for GIS
+    edges_premerge = stringify_nonnumeric_cols(edges_premerge)
+    edges_premerge.to_file("output.gpkg", driver="GPKG")
+    edges_strokes = stringify_nonnumeric_cols(edges_strokes)
+    edges_strokes.to_file("output_strokes.gpkg", driver="GPKG")
+
+    
+    t2 = time.time()
+    
+    minutes = math.floor((t2-t1) / 60)
+    seconds = (t2 - t1) % 60
+    print("Processing complete in %d minutes %.2f seconds." % (minutes, seconds))
 
 ########################################################################################
 ########################################################################################
@@ -27,11 +91,6 @@ https://github.com/PratyushTripathy/NetworkContinuity
 #####   SCROLL DOWN TO THE LOWER EXTREME OF THE SCRIPT TO CHANGE INPUT FILE NAME   #####
 ########################################################################################
 ########################################################################################
-
-import os, sys, math, time, multiprocessing
-from functools import partial
-import numpy as np
-import shapefile as shp
 
 #Set recurrsion depth limit to avoid error at a later stage
 sys.setrecursionlimit(10000)
@@ -246,22 +305,9 @@ def mergeLinesMultiprocessing(n, total, uniqueDict):
         
 
 class line():
-    def __init__(self, inFile):
-        self.name, self.ext = os.path.splitext(inFile)
-        self.sf = shp.Reader(inFile)
-        self.shape = self.sf.shapes()
-        self.getProjection()
-        self.getLines()
-        
-    def getProjection(self):
-        with open(self.name+".prj", "r") as stream:
-            self.projection = stream.read()
-            return(self.projection)
-
-    def getLines(self):
-        self.lines = []
-        for parts in self.shape:
-            self.lines.append(parts.points)
+    def __init__(self, edges_gdf):
+        self.gdfProjection = edges_gdf.crs
+        self.lines = [list(value[1].coords) for value in edges_gdf['geometry'].iteritems()]
 
     def splitLines(self):
         outLine = []
@@ -271,10 +317,22 @@ class line():
         #Iterate through the lines and split the edges
         for line in self.lines:
             for part in listToPairs(line):
-                outLine.append([part, computeOrientation(part), list(), list(), list(), list(), list(), list()])
-                # Merge the coordinates as string, this will help in finding adjacent edges in the function below
-                self.tempArray.append([n, '%.4f_%.4f'%(part[0][0], part[0][1]), '%.4f_%.4f'%(part[1][0], part[1][1])])
-                n += 1
+                
+                # get coordinates of line_segment
+                coord1 = part[0]
+                coord2 = part[1]
+
+                # difference between points
+                res_1 = coord1[0] - coord2[0]
+                res_2 = coord1[1] - coord2[1]
+
+                # Only go into loop if no zero length line segment
+                if not (res_1 == 0 and res_2 == 0):
+                    outLine.append([part, computeOrientation(part), list(), list(), list(), list(), list(), list()])
+                    # Merge the coordinates as string, this will help in finding adjacent edges in the function below
+                    self.tempArray.append([n, '%.4f_%.4f'%(part[0][0], part[0][1]), '%.4f_%.4f'%(part[1][0], part[1][1])])
+                    n += 1
+
         self.split = outLine
 
     def uniqueID(self):
@@ -413,86 +471,97 @@ class line():
         self.merged = dict(enumerate(self.merged))
         print('>'*50 + ' [%d/%d] '%(len(self.unique),len(self.unique)) + '100%' + '\n', end='\r')
         
+#Export geodataframes
+    def create_gdf_premerge(self):
+        # create empty list to fill out
+        myList = []
         
-        
-#Export requires 3 brackets, all in list form,
-#Whereas it reads in 3 brackets, inner one as tuple
-    def exportPreMerge(self, outFile=None, unique = True):
-        if outFile == None:
-            outFile = "%s_%s_pythonScriptHierarchy.shp" % (time.strftime('%Y%m%d')[2:], self.name)
-        with shp.Writer(outFile) as w:
-            fields = ['UniqueID', 'Orientation', 'linksP1', 'linksP2', 'bestP1', 'bestP2', 'P1Final', 'P2Final']
-            for f in fields:
-                w.field(f, 'C')
-            for parts in range(0,len(self.unique)):
-                lineList = tupleToList(self.unique[parts][0])
-                w.line([lineList])
-                w.record(parts, self.unique[parts][1], self.unique[parts][2], self.unique[parts][3], self.unique[parts][4], self.unique[parts][5], self.unique[parts][6], self.unique[parts][7])
-        self.setProjection(outFile)
-    
-    def exportStrokes(self, outFile=None):
-        if outFile == None:
-            outFile = "%s_%s_pythonScriptHierarchy.shp" % (time.strftime('%Y%m%d')[2:], self.name)
-        with shp.Writer(outFile) as w:
-            fields = ['ID', 'nSegments']
-            for field in fields:
-                w.field(field, 'C')
+        for parts in range(0,len(self.unique)):
+            # get all segment points and make line
+            lineList = tupleToList(self.unique[parts][0])
+            geom_line = LineString([Point(lineList[0]), Point(lineList[1])])
             
-            for a in self.merged:
-                w.record(a, len(self.merged[a]))
-                linelist = tupleToList(list(self.merged[a]))
-                w.line(linelist)
-        self.setProjection(outFile)
+            # get other values for premerged
+            UniqueID = parts 
+            Orientation = self.unique[parts][1]
+            linksP1 = self.unique[parts][2]
+            linksP2 = self.unique[parts][3]
+            bestP1 = self.unique[parts][4]
+            bestP2 = self.unique[parts][5]
+            P1Final = self.unique[parts][6]
+            P2Final = self.unique[parts][7]
+            
+            # append list
+            myList.append([UniqueID, Orientation, linksP1, linksP2, bestP1, bestP2, P1Final, P2Final, geom_line])
 
-    def setProjection(self, outFile):
-        outName, ext = os.path.splitext(outFile)
-        with open(outName + ".prj", "w") as stream:
-            stream.write(self.projection)
+        edge_gdf = gpd.GeoDataFrame(myList, columns=['UniqueID','Orientation','linksP1','linksP2','bestP1','bestP2','P1Final','P2Final', 'geometry'], crs=self.gdfProjection)
+        
+        return edge_gdf
+
+    def create_gdf_strokes(self):
+
+        # create empty list to fill 
+        myList = []
+        
+        # loop through merged geometry
+        for a in self.merged:
+
+            # get all segment points and make line strings
+            linelist = tupleToList(list(self.merged[a]))
+            list_lines_segments = []
+
+            for b in linelist:
+                list_lines_segments.append(LineString(b))      
+            
+            # merge seperate segments
+            geom_multi_line = ops.linemerge(MultiLineString(list_lines_segments))
+
+            # get other values for gdf
+            ID_value = a 
+            nSegments = len(self.merged[a])
+
+            # append list
+            myList.append([ID_value, nSegments, geom_multi_line])
+
+        edge_gdf = gpd.GeoDataFrame(myList, columns=['ID_value', 'nSegments', 'geometry'], crs=self.gdfProjection)
+        
+        return edge_gdf
+
 
 
 #######################################################
 #######################################################
 ################   ALGORITHM ENDS HERE    #############
-#####   PLEASE PROVIDE THE INPUT FILE DIRECTORY   #####
 #######################################################
 #######################################################
-#Set the path to input shapefile/shapefiles 
-myDir = r"E:\StreetHierarchy\Cities_OSMNX_Boundary\Chennai\edges"
-os.chdir(myDir)
+#######################################################
 
-import glob
+def stringify_nonnumeric_cols(gdf):
+    """
+    Code taken from osmnx
+    
+    Make every non-numeric GeoDataFrame column (besides geometry) a string.
+
+    This allows proper serializing via Fiona of GeoDataFrames with mixed types
+    such as strings and ints in the same column.
+
+    Parameters
+    ----------
+    gdf : geopandas.GeoDataFrame
+        gdf to stringify non-numeric columns of
+
+    Returns
+    -------
+    gdf : geopandas.GeoDataFrame
+        gdf with non-numeric columns stringified
+    """
+    # stringify every non-numeric column other than geometry column
+    for col in (c for c in gdf.columns if not c == "geometry"):
+        if not pd.api.types.is_numeric_dtype(gdf[col]):
+            gdf[col] = gdf[col].fillna("").astype(str)
+
+    return gdf
+
 
 if __name__ == '__main__':
-    # If you wish to processone file only, change the name in the line below
-    for file in glob.glob("*.shp"):
-        t1 = time.time()
-
-        print('Processing file..\n%s\n' % (file))
-        name, ext = os.path.splitext(file)
-        #Read Shapefile
-        myStreet = line(file)
-        #Split lines
-        tempArray = myStreet.splitLines()
-        #Create unique ID
-        iterations = myStreet.uniqueID()
-        #Compute connectivity table
-        myStreet.getLinks()
-        #Find best link at every point for both lines
-        myStreet.bestLink()
-        #Cross check best links
-        #Enter the angle threshold for connectivity here
-        myStreet.crossCheckLinks(angleThreshold=0)
-        #Merge finalised links
-        myStreet.mergeLines()
-        #Export lines
-        #If you wish to export the premerge file,
-        #otherwise, feel free to comment the line below (None exports default name)
-        myStreet.exportPreMerge(outFile=None)
-        #Exporting the strokes (None exports default name)
-        myStreet.exportStrokes(outFile=None)
-        
-        t2 = time.time()
-        
-        minutes = math.floor((t2-t1) / 60)
-        seconds = (t2 - t1) % 60
-        print("Processing complete in %d minutes %.2f seconds." % (minutes, seconds))
+    main()
