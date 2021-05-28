@@ -42,7 +42,6 @@ def main():
 
     ## convert graph to geodataframe
     edges_gdf = ox.graph_to_gdfs(ox.get_undirected(G), nodes=False, edges=True, node_geometry=False, fill_edge_geometry=True) 
-    edges_gdf.to_csv('original.csv')
 
     # If you wish to processone file only, change the name in the line below
     t1 = time.time()
