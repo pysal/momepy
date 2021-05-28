@@ -1,5 +1,5 @@
 """
-This Python script generates strokes from the line type ESRI shapefiles, mainly roads.
+This Python script generates strokes from edge geodataframes, mainly roads.
 
 Author: Pratyush Tripathy
 Date: 29 February 2020
@@ -22,14 +22,12 @@ Tripathy, P., Rao, P., Balakrishnan, K., & Malladi, T. (2020). An open-source to
 GitHub repository:
 https://github.com/PratyushTripathy/NetworkContinuity
 
-Adapted for momepy by: Andres Morfin
+Adapted for momepy by: Andres Morfin, Niki Patrinopoulou, and Ioannis Daramouskas
 """
 
-import os, sys, math, time, multiprocessing
+import sys, math, time, multiprocessing
 from functools import partial
-from jinja2.nodes import Mul
 import numpy as np
-import shapefile as shp
 import osmnx as ox
 from shapely.geometry import Point, LineString, MultiLineString
 from shapely import ops
@@ -44,11 +42,12 @@ def main():
 
     ## convert graph to geodataframe
     edges_gdf = ox.graph_to_gdfs(ox.get_undirected(G), nodes=False, edges=True, node_geometry=False, fill_edge_geometry=True) 
+    edges_gdf.to_csv('original.csv')
 
     # If you wish to processone file only, change the name in the line below
     t1 = time.time()
 
-    #Read Shapefile
+    #Read gdf
     myStreet = line(edges_gdf)
     #Split lines
     _ = myStreet.splitLines()
@@ -71,12 +70,18 @@ def main():
 
     #Exporting the strokes (None exports default name)
     edges_strokes = myStreet.create_gdf_strokes()
-    
+
+    #Add stroke attribute to original dataframe
+    edges_gdf = myStreet.add_gdf_stroke_attributes()
+
     # export to geopackage for GIS
     edges_premerge = stringify_nonnumeric_cols(edges_premerge)
-    edges_premerge.to_file("output.gpkg", driver="GPKG")
+    edges_premerge.to_file("large_output.gpkg", driver="GPKG")
     edges_strokes = stringify_nonnumeric_cols(edges_strokes)
-    edges_strokes.to_file("output_strokes.gpkg", driver="GPKG")
+    edges_strokes.to_file("large_output_strokes.gpkg", driver="GPKG")
+    edges_gdf = stringify_nonnumeric_cols(edges_gdf)
+    edges_gdf.to_file("fun_strokes.gpkg", driver="GPKG")
+
 
     
     t2 = time.time()
@@ -96,8 +101,8 @@ def main():
 sys.setrecursionlimit(10000)
 
 """
-The imported shapefile lines comes as tuple, whereas
-the export requires list, this finction converts tuple
+The imported edge_gdf lines comes as tuple, whereas
+the export requires list, this function converts tuple
 inside lines to list
 """
 def tupleToList(line):
@@ -299,6 +304,8 @@ def mergeLinesMultiprocessing(n, total, uniqueDict):
 class line():
     def __init__(self, edges_gdf):
         self.gdfProjection = edges_gdf.crs
+        self.uv_index =  edges_gdf.index.tolist()
+        self.edges_gdf = edges_gdf
         self.lines = [list(value[1].coords) for value in edges_gdf['geometry'].iteritems()]
 
     def splitLines(self):
@@ -307,12 +314,14 @@ class line():
         self.tempArray = []
         n = 0
         #Iterate through the lines and split the edges
-        for line in self.lines:
+        idx = 0
+        for line in self.lines: 
             for part in listToPairs(line):
-                outLine.append([part, computeOrientation(part), list(), list(), list(), list(), list(), list()])
+                outLine.append([part, computeOrientation(part), list(), list(), list(), list(), list(), list(), self.uv_index[idx]])
                 # Merge the coordinates as string, this will help in finding adjacent edges in the function below
                 self.tempArray.append([n, f'{part[0][0]}_{part[0][1]}', f'{part[1][0]}_{part[1][1]}'])
                 n += 1
+            idx += 1
 
         self.split = outLine
 
@@ -434,6 +443,7 @@ class line():
         print('Merging Lines...')
         self.mergingList = list()
         self.merged = list()
+        self.edge_idx = list()
 
         iterations = [n for n in range(0,len(self.unique))]
         
@@ -448,11 +458,15 @@ class line():
             if not tempList in self.mergingList:
                 self.mergingList.append(tempList)
                 self.merged.append({listToTuple(self.unique[key][0]) for key in tempList})
-
+                
+                # assign stroke number to edge from argument
+                self.edge_idx.append({self.unique[key][8] for key in tempList})
+            
         self.merged = dict(enumerate(self.merged))
+        self.edge_idx = dict(enumerate(self.edge_idx))
         print('>'*50 + ' [%d/%d] '%(len(self.unique),len(self.unique)) + '100%' + '\n', end='\r')
         
-#Export geodataframes
+#Export geodataframes, 3 options
     def create_gdf_premerge(self):
         # create empty list to fill out
         myList = []
@@ -507,6 +521,23 @@ class line():
         edge_gdf = gpd.GeoDataFrame(myList, columns=['ID_value', 'nSegments', 'geometry'], crs=self.gdfProjection)
         
         return edge_gdf
+
+    def add_gdf_stroke_attributes(self):
+
+        # Invert self.edge_idx to get a dictionary where the key is the original edge index and the value is the group
+        inv_edges = {value: key for key in self.edge_idx for value in self.edge_idx[key]}
+
+        # create empty list that will contain attributes of stroke
+        stroke_group = list()
+
+        for edge in self.uv_index:
+            stroke_group.append(inv_edges[edge])
+
+        # create new attribute with stroke group
+        self.edges_gdf['stroke_group'] = stroke_group
+
+        return self.edges_gdf
+        
 
 
 
