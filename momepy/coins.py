@@ -32,6 +32,7 @@ import numpy as np
 from shapely.geometry import Point, LineString, MultiLineString
 from shapely import ops
 import geopandas as gpd
+import pandas as pd
 
 class COINS:
     
@@ -46,31 +47,30 @@ class COINS:
     angle_threshold : int, float (default 0)
         the angle threshold for COINS algorithm. Segments will only be considered 
         a part of the same street if deflection angle is above the threshold.
-    out_gdf : string (default "stroke_attribute")
-        the desired output GeoDataFrame. 
-        -"stroke_attribute" returns the original GeoDataFrame with stroke group 
-          as a new attribute.
-        -"stroke_gdf" returns a new GeoDataFrame with strokes as the edges.
-          Refer to COINS paper for more details.
-        -"premerge" returns a new GeoDataFrame prior to performing merging
-          algorithm. Refer to COINS paper for more details
 
     Returns
     ----------
-    edge_gdf_new : GeoDataFrame
-        output GeoDataFrame based on "out_gdf"
+    - series containing the stroke_group.
+    - new GeoDataFrame prior to performing merging. Refer to COINS paper for more details.
+    - new GeoDataFrame after merging. Refer to COINS paper for more details.
 
     Examples
     --------
-    >>> strokes_gdf = momepy.COINS(edge_gdf, out_gdf="stroke_gdf").new_gdf
 
-    >>> streets['stroke_group'] = coins.COINS(streets, out_gdf='stroke_attribute').stroke_group
+    >>> coins = momepy.COINS(streets)
+
+    >>> premerge = coins.premerge() 
+
+    >>> stroke_gdf = coins.stroke_gdf()  
+
+    >>> stroke_attr = coins.stroke_attribute() 
     
     """
 
-    def __init__(self, edge_gdf, angle_threshold=0, out_gdf='stroke_attribute'):
+    def __init__(self, edge_gdf, angle_threshold=0):
         self.edge_gdf = edge_gdf
         self.gdfProjection = self.edge_gdf.crs
+        self.already_merged = False
 
         # Get indices of original gdf
         self.uv_index =  self.edge_gdf.index.tolist()
@@ -93,25 +93,18 @@ class COINS:
         # Cross check best links and enter angle threshold for connectivity
         self.crossCheckLinks(angle_threshold)
 
-        if out_gdf == 'premerge':
-                                            
-            # create new gdf before stroke merging
-            self.new_gdf = self.create_gdf_premerge()
-        
-        else:
+    def premerge(self):
+        return self.create_gdf_premerge()
 
-            # Merge lines into strokes
+    def stroke_gdf(self):
+        if not self.already_merged: 
             self.mergeLines()
+        return self.create_gdf_strokes()
 
-            if out_gdf == 'stroke_gdf':
-                
-                # create new gdf with stoke groups
-                self.new_gdf = self.create_gdf_strokes()
-            
-            elif out_gdf == 'stroke_attribute':
-                
-                # Add stroke attribute to original dataframe
-                self.stroke_group = self.add_gdf_stroke_attributes()
+    def stroke_attribute(self):
+        if not self.already_merged:
+            self.mergeLines()
+        return self.add_gdf_stroke_attributes()
 
     def splitLines(self):
         outLine = []
@@ -268,6 +261,7 @@ class COINS:
             
         self.merged = dict(enumerate(self.merged))
         self.edge_idx = dict(enumerate(self.edge_idx))
+        self.already_merged = True
         print('>'*50 + ' [%d/%d] '%(len(self.unique),len(self.unique)) + '100%' + '\n', end='\r')
         
     #Export geodataframes, 3 options
@@ -339,7 +333,7 @@ class COINS:
         for edge in self.uv_index:
             stroke_group.append(inv_edges[edge])
         
-        return stroke_group
+        return pd.Series(stroke_group, index=self.edge_gdf.index)
 
 #Set recurrsion depth limit to avoid error at a later stage
 sys.setrecursionlimit(10000)
