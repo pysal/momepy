@@ -33,13 +33,11 @@ from shapely.geometry import Point, LineString, MultiLineString
 from shapely import ops
 import geopandas as gpd
 
-def COINS(edge_gdf, angle_threshold=0, out_gdf='stroke_attribute'):
-
+class COINS:
+    
     """
     Calculates natural continuity and hierarchy of street networks in given GeoDataFrame.
     with COINS algorithm. Creates 'strokes', refer to journal paper for more details.
-
-    Adapted from ---------.
 
     Parameters
     ----------
@@ -52,7 +50,7 @@ def COINS(edge_gdf, angle_threshold=0, out_gdf='stroke_attribute'):
         the desired output GeoDataFrame. 
         -"stroke_attribute" returns the original GeoDataFrame with stroke group 
           as a new attribute.
-        -"strokes" returns a new GeoDataFrame with strokes as the edges.
+        -"stroke_gdf" returns a new GeoDataFrame with strokes as the edges.
           Refer to COINS paper for more details.
         -"premerge" returns a new GeoDataFrame prior to performing merging
           algorithm. Refer to COINS paper for more details
@@ -64,64 +62,13 @@ def COINS(edge_gdf, angle_threshold=0, out_gdf='stroke_attribute'):
 
     Examples
     --------
-    >>> strokes_gdf = momepy.COINS(edge_gdf, out_gdf="strokes")
+    >>> strokes_gdf = momepy.COINS(edge_gdf, out_gdf="stroke_gdf").new_gdf
+
+    >>> streets['stroke_group'] = coins.COINS(streets, out_gdf='stroke_attribute').stroke_group
     
     """
 
-    # Start time
-    t1 = time.time()
-
-    # Process edge geodataframe
-    myStreet = line(edge_gdf)
-
-    # Split edges into individual line segements
-    myStreet.splitLines()
-
-    # Create unique id for each indivdual line segment
-    myStreet.uniqueID()
-
-    # Compute edge connectivity table
-    myStreet.getLinks()
-
-    # Find best link at every point for both lines
-    myStreet.bestLink()
-
-    # Cross check best links and enter angle threshold for connectivity
-    myStreet.crossCheckLinks(angle_threshold)
-
-    if out_gdf == 'premerge':
-
-        # Export pre merged edges
-        edge_gdf_new = myStreet.create_gdf_premerge()
-
-    elif out_gdf == 'strokes':
-
-        # Merge lines into strokes
-        myStreet.mergeLines()
-
-        # Export edges with strokes
-        edge_gdf_new = myStreet.create_gdf_strokes()
-
-    elif out_gdf == 'stroke_attribute':
-        
-        # Merge lines into strokes
-        myStreet.mergeLines()
-
-        # Add stroke attribute to original dataframe
-        edge_gdf_new = myStreet.add_gdf_stroke_attributes()
-    
-    # End time
-    t2 = time.time()
-    
-    minutes = math.floor((t2-t1) / 60)
-    seconds = (t2 - t1) % 60
-    print("Processing complete in %d minutes %.2f seconds." % (minutes, seconds))
-
-    return edge_gdf_new
-
-class line:
-
-    def __init__(self, edge_gdf):
+    def __init__(self, edge_gdf, angle_threshold=0, out_gdf='stroke_attribute'):
         self.edge_gdf = edge_gdf
         self.gdfProjection = self.edge_gdf.crs
 
@@ -131,9 +78,43 @@ class line:
         # Get line segments from edge gdf
         self.lines = [list(value[1].coords) for value in edge_gdf['geometry'].iteritems()]
 
+        # split edges into line segments
+        self.splitLines()
+
+        # create unique_id for each individual line segment
+        self.uniqueID()
+
+        # Compute edge connectivity table
+        self.getLinks()
+
+        # Find best link at every point for both lines
+        self.bestLink()
+
+        # Cross check best links and enter angle threshold for connectivity
+        self.crossCheckLinks(angle_threshold)
+
+        if out_gdf == 'premerge':
+                                            
+            # create new gdf before stroke merging
+            self.new_gdf = self.create_gdf_premerge()
+        
+        else:
+
+            # Merge lines into strokes
+            self.mergeLines()
+
+            if out_gdf == 'stroke_gdf':
+                
+                # create new gdf with stoke groups
+                self.new_gdf = self.create_gdf_strokes()
+            
+            elif out_gdf == 'stroke_attribute':
+                
+                # Add stroke attribute to original dataframe
+                self.stroke_group = self.add_gdf_stroke_attributes()
+
     def splitLines(self):
         outLine = []
-        tempLine = []
         self.tempArray = []
         n = 0
         #Iterate through the lines and split the edges
@@ -313,7 +294,8 @@ class line:
             myList.append([UniqueID, Orientation, linksP1, linksP2, bestP1, bestP2, P1Final, P2Final, geom_line])
 
         edge_gdf = gpd.GeoDataFrame(myList, columns=['UniqueID','Orientation','linksP1','linksP2','bestP1','bestP2','P1Final','P2Final', 'geometry'], crs=self.gdfProjection)
-        
+        edge_gdf.set_index('UniqueID', inplace=True)
+
         return edge_gdf
 
     def create_gdf_strokes(self):
@@ -342,6 +324,7 @@ class line:
             myList.append([ID_value, nSegments, geom_multi_line])
 
         edge_gdf = gpd.GeoDataFrame(myList, columns=['stroke_group', 'nSegments', 'geometry'], crs=self.gdfProjection)
+        edge_gdf.set_index('stroke_group', inplace=True)
         
         return edge_gdf
 
@@ -355,18 +338,8 @@ class line:
 
         for edge in self.uv_index:
             stroke_group.append(inv_edges[edge])
-
-        # create new attribute with stroke group
-        self.edge_gdf['stroke_group'] = stroke_group
-
-        return self.edge_gdf
-
-########################################################################################
-########################################################################################
-#################   PLEASE DO NOT EDIT THE BELOW PART OF THE CODE    ###################
-#####   SCROLL DOWN TO THE LOWER EXTREME OF THE SCRIPT TO CHANGE INPUT FILE NAME   #####
-########################################################################################
-########################################################################################
+        
+        return stroke_group
 
 #Set recurrsion depth limit to avoid error at a later stage
 sys.setrecursionlimit(10000)
