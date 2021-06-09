@@ -26,7 +26,7 @@ Adapted for momepy by: Andres Morfin, Niki Patrinopoulou, and Ioannis Daramouska
 Date: May 29, 2021
 """
 
-import sys, math, time, multiprocessing
+import math, multiprocessing
 from functools import partial
 import numpy as np
 from shapely.geometry import Point, LineString, MultiLineString
@@ -128,7 +128,6 @@ class COINS:
         self.unique = dict(enumerate(self.split))
 
     def getLinks(self):
-        global result
         print("Finding adjacent segments...")
 
         self.tempArray = np.array(self.tempArray, dtype=object)
@@ -137,12 +136,12 @@ class COINS:
         
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
         constantParameterFunction = partial(_getLinksMultiprocessing, total=len(self.unique), tempArray=self.tempArray)
-        result = pool.map(constantParameterFunction, iterations)
+        self.result = pool.map(constantParameterFunction, iterations)
         pool.close()
         pool.join()
         iterations = None
 
-        for a in result:
+        for a in self.result:
             n = a[0]
             self.unique[n][2] = a[1]
             self.unique[n][3] = a[2]
@@ -186,7 +185,6 @@ class COINS:
                 self.unique[edge][5] = 'DeadEnd'
 
     def crossCheckLinks(self, angleThreshold):
-        global edge, bestP1, bestP2
         print("Cross-checking and finalising the links...")
         for edge in range(0,len(self.unique)):
             # Printing the progress bar
@@ -246,12 +244,12 @@ class COINS:
         
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
         constantParameterFunction = partial(_mergeLinesMultiprocessing, total=len(self.unique), uniqueDict=self.unique)
-        result = pool.map(constantParameterFunction, iterations)
+        self.result = pool.map(constantParameterFunction, iterations)
         pool.close()
         pool.join()
         iterations = None
 
-        for tempList in result:
+        for tempList in self.result:
             if not tempList in self.mergingList:
                 self.mergingList.append(tempList)
                 self.merged.append({_listToTuple(self.unique[key][0]) for key in tempList})
@@ -334,9 +332,6 @@ class COINS:
             stroke_group.append(inv_edges[edge])
         
         return pd.Series(stroke_group, index=self.edge_gdf.index)
-
-#Set recurrsion depth limit to avoid error at a later stage
-sys.setrecursionlimit(10000)
 
 """
 The imported shapefile lines comes as tuple, whereas
