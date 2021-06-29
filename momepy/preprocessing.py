@@ -437,7 +437,7 @@ def close_gaps(gdf, tolerance):
 
 
 def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
-    """Extends lines from gdf to istelf or target within a set tolerance
+    """Extends lines from gdf to itself or target within a set tolerance
 
     Extends unjoined ends of LineString segments to join with other segments or
     target. If ``target`` is passed, extend lines to target. Otherwise extend
