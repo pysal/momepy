@@ -44,8 +44,8 @@ Additional modules (``elements`` and ``utils``) cover functions
 generating new morphological elements (like morphological tessellation)
 or links between them. For details, please refer to the :doc:`API <../api>`.
 
-Majority of functions used within ``momepy`` is not limited to one type
-of morphological elements. However, the whole package is built with a
+The majority of functions used within ``momepy`` are not limited to one type
+of morphological element. However, the whole package is built with a
 specific set of elements in mind, based on the research done at the
 University of Strathclyde by the `Urban Design Studies Unit`_. This is
 true especially for morphological tessellation, partitioning of space
@@ -55,7 +55,7 @@ like the adjacency, for the other. More information on tessellation is
 in dedicated :doc:`section <elements/tessellation>` of this guide.
 
 Generally, we can work with any kind of morphological element which fits
-selected function, there is no restriction. Sometimes, where
+the selected function, there is no restriction. Sometimes, where
 documentation refers to buildings, other elements like blocks can be
 used as well as long as the principle remains the same.
 

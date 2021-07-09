@@ -23,7 +23,7 @@ including the documentation (powered by `sphinx`_).
 Eight Steps for Contributing
 ----------------------------
 
-There are seven basic steps to contributing to momepy:
+There are eight basic steps to contributing to momepy:
 
 1. Fork the momepy git repository
 2. Create a development environment
