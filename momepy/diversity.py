@@ -728,6 +728,8 @@ class Unique:
         spatial weights matrix
     unique_id : str
         name of the column with unique id used as ``spatial_weights`` index
+    dropna : bool (default True)
+        Don’t include NaN in the counts of unique values.
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
 
@@ -754,7 +756,9 @@ class Unique:
     100%|██████████| 144/144 [00:00<00:00, 722.50it/s]
     """
 
-    def __init__(self, gdf, values, spatial_weights, unique_id, verbose=True):
+    def __init__(
+        self, gdf, values, spatial_weights, unique_id, dropna=True, verbose=True
+    ):
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -775,7 +779,7 @@ class Unique:
                 neighbours += spatial_weights.neighbors[index]
 
                 values_list = data.loc[neighbours]
-                results_list.append(len(values_list.unique()))
+                results_list.append(values_list.nunique(dropna=dropna))
             else:
                 results_list.append(np.nan)
 
