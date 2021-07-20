@@ -32,6 +32,9 @@ from shapely.geometry import Point, LineString, MultiLineString
 from shapely import ops
 import geopandas as gpd
 import pandas as pd
+from tqdm.auto import tqdm
+from numba import jit
+import collections
 
 
 class COINS:
@@ -81,16 +84,16 @@ class COINS:
         # split edges into line segments
         self.splitLines()
 
-        # create unique_id for each individual line segment
+        # # create unique_id for each individual line segment
         self.uniqueID()
 
-        # Compute edge connectivity table
+        # # Compute edge connectivity table
         self.getLinks()
 
-        # Find best link at every point for both lines
+        # # Find best link at every point for both lines
         self.bestLink()
 
-        # Cross check best links and enter angle threshold for connectivity
+        # # Cross check best links and enter angle threshold for connectivity
         self.crossCheckLinks(angle_threshold)
 
     def premerge(self):
@@ -142,13 +145,33 @@ class COINS:
         self.unique = dict(enumerate(self.split))
 
     def getLinks(self):
-        print("Finding adjacent segments...")
-
         self.tempArray = np.array(self.tempArray, dtype=object)
 
-        self.result = [
-            _getLinksMultiprocessing(n, self.tempArray) for n in range(len(self.unique))
-        ]
+        items = collections.defaultdict(set)
+        for i, vertex in enumerate(self.tempArray[:, 1]):
+            items[vertex].add(i)
+        for i, vertex in enumerate(self.tempArray[:, 2]):
+            items[vertex].add(i)
+
+        p1 = []
+        for i, vertex in enumerate(self.tempArray[:, 1]):
+            item = list(items[vertex])
+            try:
+                item.remove(i)
+            except:
+                pass
+            p1.append(item)
+
+        p2 = []
+        for i, vertex in enumerate(self.tempArray[:, 2]):
+            item = list(items[vertex])
+            try:
+                item.remove(i)
+            except:
+                pass
+            p2.append(item)
+
+        self.result = list(zip(range(len(p1)), p1, p2))
 
         for a in self.result:
             n = a[0]
