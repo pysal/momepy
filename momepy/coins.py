@@ -17,7 +17,9 @@ Authors:
 Pratyush Tripathy, Pooja Rao, Krishnachandran Balakrishnan, Teja Malladi
 
 Citation:
-Tripathy, P., Rao, P., Balakrishnan, K., & Malladi, T. (2020). An open-source tool to extract natural continuity and hierarchy of urban street networks. Environment and Planning B: Urban Analytics and City Science. https://doi.org/10.1177%2F2399808320967680
+Tripathy, P., Rao, P., Balakrishnan, K., & Malladi, T. (2020). An open-source tool to
+extract natural continuity and hierarchy of urban street networks. Environment and
+Planning B: Urban Analytics and City Science. https://doi.org/10.1177%2F2399808320967680
 
 GitHub repository:
 https://github.com/PratyushTripathy/NetworkContinuity
@@ -32,29 +34,28 @@ from shapely.geometry import Point, LineString, MultiLineString
 from shapely import ops
 import geopandas as gpd
 import pandas as pd
-from tqdm.auto import tqdm
-from numba import jit
 import collections
 
 
 class COINS:
 
     """
-    Calculates natural continuity and hierarchy of street networks in given GeoDataFrame.
-    with COINS algorithm. Creates 'strokes', refer to journal paper for more details.
+    Calculates natural continuity and hierarchy of street networks in given
+    GeoDataFrame. with COINS algorithm. Creates 'strokes', refer to journal paper for
+    more details.
 
     Parameters
     ----------
-    edge_gdf : GeoDataFrame
-        GeoDataFrame containing edge geometry of street network
-    angle_threshold : int, float (default 0)
-        the angle threshold for COINS algorithm. Segments will only be considered
-        a part of the same street if deflection angle is above the threshold.
+    edge_gdf : GeoDataFrame GeoDataFrame containing edge geometry of street network
+        angle_threshold : int, float (default 0) the angle threshold for COINS
+        algorithm. Segments will only be considered a part of the same street if
+        deflection angle is above the threshold.
 
     Returns
     ----------
     - series containing the stroke_group.
-    - new GeoDataFrame prior to performing merging. Refer to COINS paper for more details.
+    - new GeoDataFrame prior to performing merging. Refer to COINS paper for more
+      details.
     - new GeoDataFrame after merging. Refer to COINS paper for more details.
 
     Examples
@@ -130,7 +131,8 @@ class COINS:
                         self.uv_index[idx],
                     ]
                 )
-                # Merge the coordinates as string, this will help in finding adjacent edges in the function below
+                # Merge the coordinates as string, this will help in finding adjacent
+                # edges in the function below
                 self.tempArray.append(
                     [n, f"{part[0][0]}_{part[0][1]}", f"{part[1][0]}_{part[1][1]}"]
                 )
@@ -156,19 +158,23 @@ class COINS:
         p1 = []
         for i, vertex in enumerate(self.tempArray[:, 1]):
             item = list(items[vertex])
+
             try:
                 item.remove(i)
-            except:
+            except ValueError:
                 pass
+
             p1.append(item)
 
         p2 = []
         for i, vertex in enumerate(self.tempArray[:, 2]):
             item = list(items[vertex])
+
             try:
                 item.remove(i)
-            except:
+            except ValueError:
                 pass
+
             p2.append(item)
 
         self.result = list(zip(range(len(p1)), p1, p2))
@@ -185,9 +191,10 @@ class COINS:
             p2AngleSet = []
 
             """
-            Instead of computing the angle between the two segments twice, the method calculates
-            it once and stores in the dictionary for both the keys. So that it does not calculate
-            the second time because the key is already present in the dictionary.
+            Instead of computing the angle between the two segments twice, the method
+            calculates it once and stores in the dictionary for both the keys. So that
+            it does not calculate the second time because the key is already present in
+            the dictionary.
             """
             for link1 in self.unique[edge][2]:
                 self.anglePairs["%d_%d" % (edge, link1)] = _angleBetweenTwoLines(
@@ -202,9 +209,10 @@ class COINS:
                 p2AngleSet.append(self.anglePairs["%d_%d" % (edge, link2)])
 
             """
-            Among the adjacent segments deflection angle values, check for the maximum value
-            at both the ends. The segment with the maximum angle is stored in the attributes
-            to be cross-checked later for before finalising the segments at both the ends.
+            Among the adjacent segments deflection angle values, check for the maximum
+            value at both the ends. The segment with the maximum angle is stored in the
+            attributes to be cross-checked later for before finalising the segments at
+            both the ends.
             """
             if len(p1AngleSet) != 0:
                 val1, idx1 = max((val, idx) for (idx, val) in enumerate(p1AngleSet))
@@ -219,29 +227,13 @@ class COINS:
                 self.unique[edge][5] = "DeadEnd"
 
     def crossCheckLinks(self, angleThreshold):
-        print("Cross-checking and finalising the links...")
         for edge in range(0, len(self.unique)):
-            # Printing the progress bar
-            if edge % 1000 == 0:
-                """
-                Dividing by two to have 50 progress steps
-                Subtracting from 50, and not hundred to have less progress steps
-                """
-                currentProgress = math.floor(100 * edge / len(self.unique) / 2)
-                remainingProgress = 50 - currentProgress
-                print(
-                    ">" * currentProgress
-                    + "-" * remainingProgress
-                    + " [%d/%d] " % (edge, len(self.unique))
-                    + "%d%%" % (currentProgress * 2),
-                    end="\r",
-                )
 
             bestP1 = self.unique[edge][4][0]
             bestP2 = self.unique[edge][5][0]
 
             if (
-                type(bestP1) == type(1)
+                isinstance(bestP1, int)
                 and edge in [self.unique[bestP1][4][0], self.unique[bestP1][5][0]]
                 and self.anglePairs["%d_%d" % (edge, bestP1)] > angleThreshold
             ):
@@ -250,7 +242,7 @@ class COINS:
                 self.unique[edge][6] = "LineBreak"
 
             if (
-                type(bestP2) == type(1)
+                isinstance(bestP2, int)
                 and edge in [self.unique[bestP2][4][0], self.unique[bestP2][5][0]]
                 and self.anglePairs["%d_%d" % (edge, bestP2)] > angleThreshold
             ):
@@ -258,16 +250,11 @@ class COINS:
             else:
                 self.unique[edge][7] = "LineBreak"
 
-        print(
-            ">" * 50 + " [%d/%d] " % (edge + 1, len(self.unique)) + "100%" + "\n",
-            end="\r",
-        )
-
     def addLine(self, edge, parent=None, child="Undefined"):
         if child == "Undefined":
             self.mainEdge = len(self.merged)
-        if not edge in self.assignedList:
-            if parent == None:
+        if edge not in self.assignedList:
+            if parent is None:
                 currentid = len(self.merged)
                 self.merged[currentid] = set()
             else:
@@ -282,7 +269,6 @@ class COINS:
                 self.addLine(link2, parent=edge, child=self.mainEdge)
 
     def mergeLines(self):
-        print("Merging Lines...")
         self.mergingList = list()
         self.merged = list()
         self.edge_idx = list()
@@ -292,7 +278,7 @@ class COINS:
         ]
 
         for tempList in self.result:
-            if not tempList in self.mergingList:
+            if tempList not in self.mergingList:
                 self.mergingList.append(tempList)
                 self.merged.append(
                     {_listToTuple(self.unique[key][0]) for key in tempList}
@@ -395,7 +381,8 @@ class COINS:
 
     def add_gdf_stroke_attributes(self):
 
-        # Invert self.edge_idx to get a dictionary where the key is the original edge index and the value is the group
+        # Invert self.edge_idx to get a dictionary where the key is the original edge
+        # index and the value is the group
         inv_edges = {
             value: key for key in self.edge_idx for value in self.edge_idx[key]
         }
@@ -527,10 +514,10 @@ def _angleBetweenTwoLines(line1, line2):
     l1orien = _computeOrientation(line1)
     l2orien = _computeOrientation(line2)
     """
-    If both lines have same orientation, return 180
-    If one of the lines is zero, exception for that
-    If both the lines are on same side of the horizontal plane, calculate 180-(sumOfOrientation)
-    If both the lines are on same side of the vertical plane, calculate pointSetAngle
+    If both lines have same orientation, return 180 If one of the lines is zero,
+    exception for that If both the lines are on same side of the horizontal plane,
+    calculate 180-(sumOfOrientation) If both the lines are on same side of the vertical
+    plane, calculate pointSetAngle
     """
     if l1orien == l2orien:
         angle = 180
@@ -583,7 +570,8 @@ def _getLinksMultiprocessing(n, tempArray):
     mask1 = tempArray[:, 0][~(mask1 == 0)]
     mask2 = tempArray[:, 0][~(mask2 == 0)]
 
-    # Links (excluding the segment itself) at both the ends are converted to list and added to the 'unique' attribute
+    # Links (excluding the segment itself) at both the ends are converted to list and
+    # added to the 'unique' attribute
     return (n, list(mask1[mask1 != n]), list(mask2[mask2 != n]))
 
 
@@ -595,13 +583,13 @@ def _mergeLinesMultiprocessing(n, uniqueDict):
 
     while True:
         if (
-            type(uniqueDict[currentEdge1][6]) == type(1)
+            isinstance(uniqueDict[currentEdge1][6], int)
             and uniqueDict[currentEdge1][6] not in outlist
         ):
             currentEdge1 = uniqueDict[currentEdge1][6]
             outlist.add(currentEdge1)
         elif (
-            type(uniqueDict[currentEdge1][7]) == type(1)
+            isinstance(uniqueDict[currentEdge1][7], int)
             and uniqueDict[currentEdge1][7] not in outlist
         ):
             currentEdge1 = uniqueDict[currentEdge1][7]
@@ -611,13 +599,13 @@ def _mergeLinesMultiprocessing(n, uniqueDict):
     currentEdge1 = n
     while True:
         if (
-            type(uniqueDict[currentEdge1][7]) == type(1)
+            isinstance(uniqueDict[currentEdge1][7], int)
             and uniqueDict[currentEdge1][7] not in outlist
         ):
             currentEdge1 = uniqueDict[currentEdge1][7]
             outlist.add(currentEdge1)
         elif (
-            type(uniqueDict[currentEdge1][6]) == type(1)
+            isinstance(uniqueDict[currentEdge1][6], int)
             and uniqueDict[currentEdge1][6] not in outlist
         ):
             currentEdge1 = uniqueDict[currentEdge1][6]
