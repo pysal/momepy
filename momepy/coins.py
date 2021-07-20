@@ -26,8 +26,7 @@ Adapted for momepy by: Andres Morfin, Niki Patrinopoulou, and Ioannis Daramouska
 Date: May 29, 2021
 """
 
-import math, multiprocessing
-from functools import partial
+import math
 import numpy as np
 from shapely.geometry import Point, LineString, MultiLineString
 from shapely import ops
@@ -147,29 +146,14 @@ class COINS:
 
         self.tempArray = np.array(self.tempArray, dtype=object)
 
-        iterations = [n for n in range(0, len(self.unique))]
-
-        pool = multiprocessing.Pool(multiprocessing.cpu_count())
-        constantParameterFunction = partial(
-            _getLinksMultiprocessing, total=len(self.unique), tempArray=self.tempArray
-        )
-        self.result = pool.map(constantParameterFunction, iterations)
-        pool.close()
-        pool.join()
-        iterations = None
+        self.result = [
+            _getLinksMultiprocessing(n, self.tempArray) for n in range(len(self.unique))
+        ]
 
         for a in self.result:
             n = a[0]
             self.unique[n][2] = a[1]
             self.unique[n][3] = a[2]
-
-        print(
-            ">" * 50
-            + " [%d/%d] " % (len(self.unique), len(self.unique))
-            + "100%"
-            + "\n",
-            end="\r",
-        )
 
     def bestLink(self):
         self.anglePairs = dict()
@@ -280,16 +264,9 @@ class COINS:
         self.merged = list()
         self.edge_idx = list()
 
-        iterations = [n for n in range(0, len(self.unique))]
-
-        pool = multiprocessing.Pool(multiprocessing.cpu_count())
-        constantParameterFunction = partial(
-            _mergeLinesMultiprocessing, total=len(self.unique), uniqueDict=self.unique
-        )
-        self.result = pool.map(constantParameterFunction, iterations)
-        pool.close()
-        pool.join()
-        iterations = None
+        self.result = [
+            _mergeLinesMultiprocessing(n, self.unique) for n in range(len(self.unique))
+        ]
 
         for tempList in self.result:
             if not tempList in self.mergingList:
@@ -304,13 +281,6 @@ class COINS:
         self.merged = dict(enumerate(self.merged))
         self.edge_idx = dict(enumerate(self.edge_idx))
         self.already_merged = True
-        print(
-            ">" * 50
-            + " [%d/%d] " % (len(self.unique), len(self.unique))
-            + "100%"
-            + "\n",
-            end="\r",
-        )
 
     # Export geodataframes, 3 options
     def create_gdf_premerge(self):
@@ -575,23 +545,7 @@ def _angleBetweenTwoLines(line1, line2):
     return angle
 
 
-def _getLinksMultiprocessing(n, total, tempArray):
-    # Printing the progress bar
-    if n % 1000 == 0:
-        """
-        Dividing by two to have 50 progress steps
-        Subtracting from 50, and not hundred to have less progress steps
-        """
-        currentProgress = math.floor(100 * n / total / 2)
-        remainingProgress = 50 - currentProgress
-        print(
-            ">" * currentProgress
-            + "-" * remainingProgress
-            + " [%d/%d] " % (n, total)
-            + "%d%%" % (currentProgress * 2),
-            end="\r",
-        )
-
+def _getLinksMultiprocessing(n, tempArray):
     # Create mask for adjacent edges as endpoint 1
     m1 = tempArray[:, 1] == tempArray[n, 1]
     m2 = tempArray[:, 2] == tempArray[n, 1]
@@ -610,23 +564,7 @@ def _getLinksMultiprocessing(n, total, tempArray):
     return (n, list(mask1[mask1 != n]), list(mask2[mask2 != n]))
 
 
-def _mergeLinesMultiprocessing(n, total, uniqueDict):
-    # Printing the progress bar
-    if n % 1000 == 0:
-        """
-        Dividing by two to have 50 progress steps
-        Subtracting from 50, and not hundred to have less progress steps
-        """
-        currentProgress = math.floor(100 * n / total / 2)
-        remainingProgress = 50 - currentProgress
-        print(
-            ">" * currentProgress
-            + "-" * remainingProgress
-            + " [%d/%d] " % (n, total)
-            + "%d%%" % (currentProgress * 2),
-            end="\r",
-        )
-
+def _mergeLinesMultiprocessing(n, uniqueDict):
     outlist = set()
     currentEdge1 = n
 
