@@ -5,32 +5,13 @@ Author: Pratyush Tripathy
 Date: 29 February 2020
 Version: 0.2
 
-The script is a supplementary material to the full length article:
-
-Title:
-An open-source tool to extract natural continuity and hierarchy of urban street networks
-
-Journal:
-Environment and Planning B: Urban Analytics and City Science
-
-Authors:
-Pratyush Tripathy, Pooja Rao, Krishnachandran Balakrishnan, Teja Malladi
-
-Citation:
-Tripathy, P., Rao, P., Balakrishnan, K., & Malladi, T. (2020). An open-source tool to
-extract natural continuity and hierarchy of urban street networks. Environment and
-Planning B: Urban Analytics and City Science. https://doi.org/10.1177%2F2399808320967680
-
-GitHub repository:
-https://github.com/PratyushTripathy/NetworkContinuity
-
 Adapted for momepy by: Andres Morfin, Niki Patrinopoulou, and Ioannis Daramouskas
 Date: May 29, 2021
 """
 
 import math
 import numpy as np
-from shapely.geometry import Point, LineString, MultiLineString
+from shapely.geometry import LineString, MultiLineString
 from shapely import ops
 import geopandas as gpd
 import pandas as pd
@@ -44,84 +25,111 @@ class COINS:
     GeoDataFrame. with COINS algorithm. Creates 'strokes', refer to journal paper for
     more details.
 
+    For details on the algorithms refer to the original paper:
+
+    `Tripathy, P., Rao, P., Balakrishnan, K., & Malladi, T. (2020). An open-source tool
+    to extract natural continuity and hierarchy of urban street networks. Environment
+    and Planning B: Urban Analytics and City Science.`
+    https://doi.org/10.1177%2F2399808320967680
+
+    This is a reimplementation of the original script from
+    https://github.com/PratyushTripathy/NetworkContinuity
+
+    ``COINS`` can return individual segments with all information (``.premerge()``),
+    final stroke geometry (``.stroke_gdf()``) or a pandas Series encoding stroke groups
+    onto the original input geometry (``.stroke_attribute()``).
+
     Parameters
     ----------
-    edge_gdf : GeoDataFrame GeoDataFrame containing edge geometry of street network
-        angle_threshold : int, float (default 0) the angle threshold for COINS
-        algorithm. Segments will only be considered a part of the same street if
+    edge_gdf : GeoDataFrame
+        GeoDataFrame containing edge geometry of street network. edge_gdf should
+        ideally not contain MultiLineStrings.
+    angle_threshold : int, float (default 0)
+        the angle threshold for the COINS algorithm.
+        Segments will only be considered a part of the same street if the
         deflection angle is above the threshold.
-
-    Returns
-    ----------
-    - series containing the stroke_group.
-    - new GeoDataFrame prior to performing merging. Refer to COINS paper for more
-      details.
-    - new GeoDataFrame after merging. Refer to COINS paper for more details.
 
     Examples
     --------
 
+    Initialise COINS class. This step will already compute the topology.
+
     >>> coins = momepy.COINS(streets)
 
-    >>> premerge = coins.premerge()
+    To get final stroke geometry:
 
     >>> stroke_gdf = coins.stroke_gdf()
 
+    To get a Series encoding stroke groups:
+
     >>> stroke_attr = coins.stroke_attribute()
 
+    To get individual segments with all information:
+
+    >>> premerge = coins.premerge()
     """
 
     def __init__(self, edge_gdf, angle_threshold=0):
         self.edge_gdf = edge_gdf
-        self.gdfProjection = self.edge_gdf.crs
+        self.gdf_projection = self.edge_gdf.crs
         self.already_merged = False
 
-        # Get indices of original gdf
+        # get indices of original gdf
         self.uv_index = self.edge_gdf.index.tolist()
 
-        # Get line segments from edge gdf
+        # get line segments from edge gdf
         self.lines = [list(value[1].coords) for value in edge_gdf.geometry.iteritems()]
 
         # split edges into line segments
-        self.splitLines()
+        self._split_lines()
 
         # # create unique_id for each individual line segment
-        self.uniqueID()
+        self._unique_id()
 
-        # # Compute edge connectivity table
-        self.getLinks()
+        # # compute edge connectivity table
+        self._get_links()
 
-        # # Find best link at every point for both lines
-        self.bestLink()
+        # # find best link at every point for both lines
+        self._best_link()
 
-        # # Cross check best links and enter angle threshold for connectivity
-        self.crossCheckLinks(angle_threshold)
+        # # cross check best links and enter angle threshold for connectivity
+        self._cross_check_links(angle_threshold)
 
     def premerge(self):
-        return self.create_gdf_premerge()
+        """
+        Returns a GeoDataFrame containing the individual segments with all underlying
+        information.
+        """
+        return self._create_gdf_premerge()
 
     def stroke_gdf(self):
+        """
+        Returns a GeoDataFrame containing merged final stroke geometry.
+        """
         if not self.already_merged:
-            self.mergeLines()
-        return self.create_gdf_strokes()
+            self._merge_lines()
+        return self._create_gdf_strokes()
 
     def stroke_attribute(self):
+        """
+        Returns a pandas Series encoding stroke groups onto the original input geometry.
+        """
         if not self.already_merged:
-            self.mergeLines()
-        return self.add_gdf_stroke_attributes()
+            self._merge_lines()
+        return self._add_gdf_stroke_attributes()
 
-    def splitLines(self):
-        outLine = []
-        self.tempArray = []
+    def _split_lines(self):
+        out_line = []
+        self.temp_array = []
         n = 0
         # Iterate through the lines and split the edges
         idx = 0
         for line in self.lines:
-            for part in _listToPairs(line):
-                outLine.append(
+            for part in _list_to_pairs(line):
+                out_line.append(
                     [
                         part,
-                        _computeOrientation(part),
+                        _compute_orientation(part),
                         list(),
                         list(),
                         list(),
@@ -131,32 +139,32 @@ class COINS:
                         self.uv_index[idx],
                     ]
                 )
-                # Merge the coordinates as string, this will help in finding adjacent
+                # merge the coordinates as string, this will help in finding adjacent
                 # edges in the function below
-                self.tempArray.append(
+                self.temp_array.append(
                     [n, f"{part[0][0]}_{part[0][1]}", f"{part[1][0]}_{part[1][1]}"]
                 )
                 n += 1
             idx += 1
 
-        self.split = outLine
+        self.split = out_line
 
-    def uniqueID(self):
+    def _unique_id(self):
         # Loop through split lines, assign unique ID and
         # store inside a list along with the connectivity dictionary
         self.unique = dict(enumerate(self.split))
 
-    def getLinks(self):
-        self.tempArray = np.array(self.tempArray, dtype=object)
+    def _get_links(self):
+        self.temp_array = np.array(self.temp_array, dtype=object)
 
         items = collections.defaultdict(set)
-        for i, vertex in enumerate(self.tempArray[:, 1]):
+        for i, vertex in enumerate(self.temp_array[:, 1]):
             items[vertex].add(i)
-        for i, vertex in enumerate(self.tempArray[:, 2]):
+        for i, vertex in enumerate(self.temp_array[:, 2]):
             items[vertex].add(i)
 
         p1 = []
-        for i, vertex in enumerate(self.tempArray[:, 1]):
+        for i, vertex in enumerate(self.temp_array[:, 1]):
             item = list(items[vertex])
 
             try:
@@ -167,7 +175,7 @@ class COINS:
             p1.append(item)
 
         p2 = []
-        for i, vertex in enumerate(self.tempArray[:, 2]):
+        for i, vertex in enumerate(self.temp_array[:, 2]):
             item = list(items[vertex])
 
             try:
@@ -184,11 +192,11 @@ class COINS:
             self.unique[n][2] = a[1]
             self.unique[n][3] = a[2]
 
-    def bestLink(self):
-        self.anglePairs = dict()
+    def _best_link(self):
+        self.angle_pairs = dict()
         for edge in range(0, len(self.unique)):
-            p1AngleSet = []
-            p2AngleSet = []
+            p1_angle_set = []
+            p2_angle_set = []
 
             """
             Instead of computing the angle between the two segments twice, the method
@@ -197,16 +205,16 @@ class COINS:
             the dictionary.
             """
             for link1 in self.unique[edge][2]:
-                self.anglePairs["%d_%d" % (edge, link1)] = _angleBetweenTwoLines(
+                self.angle_pairs["%d_%d" % (edge, link1)] = _angle_between_two_lines(
                     self.unique[edge][0], self.unique[link1][0]
                 )
-                p1AngleSet.append(self.anglePairs["%d_%d" % (edge, link1)])
+                p1_angle_set.append(self.angle_pairs["%d_%d" % (edge, link1)])
 
             for link2 in self.unique[edge][3]:
-                self.anglePairs["%d_%d" % (edge, link2)] = _angleBetweenTwoLines(
+                self.angle_pairs["%d_%d" % (edge, link2)] = _angle_between_two_lines(
                     self.unique[edge][0], self.unique[link2][0]
                 )
-                p2AngleSet.append(self.anglePairs["%d_%d" % (edge, link2)])
+                p2_angle_set.append(self.angle_pairs["%d_%d" % (edge, link2)])
 
             """
             Among the adjacent segments deflection angle values, check for the maximum
@@ -214,147 +222,147 @@ class COINS:
             attributes to be cross-checked later for before finalising the segments at
             both the ends.
             """
-            if len(p1AngleSet) != 0:
-                val1, idx1 = max((val, idx) for (idx, val) in enumerate(p1AngleSet))
+            if len(p1_angle_set) != 0:
+                val1, idx1 = max((val, idx) for (idx, val) in enumerate(p1_angle_set))
                 self.unique[edge][4] = self.unique[edge][2][idx1], val1
             else:
-                self.unique[edge][4] = "DeadEnd"
+                self.unique[edge][4] = "dead_end"
 
-            if len(p2AngleSet) != 0:
-                val2, idx2 = max((val, idx) for (idx, val) in enumerate(p2AngleSet))
+            if len(p2_angle_set) != 0:
+                val2, idx2 = max((val, idx) for (idx, val) in enumerate(p2_angle_set))
                 self.unique[edge][5] = self.unique[edge][3][idx2], val2
             else:
-                self.unique[edge][5] = "DeadEnd"
+                self.unique[edge][5] = "dead_end"
 
-    def crossCheckLinks(self, angleThreshold):
+    def _cross_check_links(self, angle_threshold):
         for edge in range(0, len(self.unique)):
 
-            bestP1 = self.unique[edge][4][0]
-            bestP2 = self.unique[edge][5][0]
+            best_p1 = self.unique[edge][4][0]
+            best_p2 = self.unique[edge][5][0]
 
             if (
-                isinstance(bestP1, int)
-                and edge in [self.unique[bestP1][4][0], self.unique[bestP1][5][0]]
-                and self.anglePairs["%d_%d" % (edge, bestP1)] > angleThreshold
+                isinstance(best_p1, int)
+                and edge in [self.unique[best_p1][4][0], self.unique[best_p1][5][0]]
+                and self.angle_pairs["%d_%d" % (edge, best_p1)] > angle_threshold
             ):
-                self.unique[edge][6] = bestP1
+                self.unique[edge][6] = best_p1
             else:
-                self.unique[edge][6] = "LineBreak"
+                self.unique[edge][6] = "line_break"
 
             if (
-                isinstance(bestP2, int)
-                and edge in [self.unique[bestP2][4][0], self.unique[bestP2][5][0]]
-                and self.anglePairs["%d_%d" % (edge, bestP2)] > angleThreshold
+                isinstance(best_p2, int)
+                and edge in [self.unique[best_p2][4][0], self.unique[best_p2][5][0]]
+                and self.angle_pairs["%d_%d" % (edge, best_p2)] > angle_threshold
             ):
-                self.unique[edge][7] = bestP2
+                self.unique[edge][7] = best_p2
             else:
-                self.unique[edge][7] = "LineBreak"
+                self.unique[edge][7] = "line_break"
 
-    def addLine(self, edge, parent=None, child="Undefined"):
-        if child == "Undefined":
-            self.mainEdge = len(self.merged)
-        if edge not in self.assignedList:
+    def _add_line(self, edge, parent=None, child="undefined"):
+        if child == "undefined":
+            self.main_edge = len(self.merged)
+        if edge not in self.assigned_list:
             if parent is None:
                 currentid = len(self.merged)
                 self.merged[currentid] = set()
             else:
-                currentid = self.mainEdge
-            self.merged[currentid].add(_listToTuple(self.unique[edge][0]))
-            self.assignedList.append(edge)
+                currentid = self.main_edge
+            self.merged[currentid].add(_list_to_tuple(self.unique[edge][0]))
+            self.assigned_list.append(edge)
             link1 = self.unique[edge][6]
             link2 = self.unique[edge][7]
             if type(1) == type(link1):
-                self.addLine(link1, parent=edge, child=self.mainEdge)
+                self._add_line(link1, parent=edge, child=self.main_edge)
             if type(1) == type(link2):
-                self.addLine(link2, parent=edge, child=self.mainEdge)
+                self._add_line(link2, parent=edge, child=self.main_edge)
 
-    def mergeLines(self):
-        self.mergingList = list()
+    def _merge_lines(self):
+        self.merging_list = list()
         self.merged = list()
         self.edge_idx = list()
 
         self.result = [
-            _mergeLinesMultiprocessing(n, self.unique) for n in range(len(self.unique))
+            _merge_lines_loop(n, self.unique) for n in range(len(self.unique))
         ]
 
-        for tempList in self.result:
-            if tempList not in self.mergingList:
-                self.mergingList.append(tempList)
+        for temp_list in self.result:
+            if temp_list not in self.merging_list:
+                self.merging_list.append(temp_list)
                 self.merged.append(
-                    {_listToTuple(self.unique[key][0]) for key in tempList}
+                    {_list_to_tuple(self.unique[key][0]) for key in temp_list}
                 )
 
                 # assign stroke number to edge from argument
-                self.edge_idx.append({self.unique[key][8] for key in tempList})
+                self.edge_idx.append({self.unique[key][8] for key in temp_list})
 
         self.merged = dict(enumerate(self.merged))
         self.edge_idx = dict(enumerate(self.edge_idx))
         self.already_merged = True
 
     # Export geodataframes, 3 options
-    def create_gdf_premerge(self):
+    def _create_gdf_premerge(self):
         # create empty list to fill out
-        myList = []
+        my_list = []
 
         for parts in range(0, len(self.unique)):
             # get all segment points and make line
-            lineList = _tupleToList(self.unique[parts][0])
-            geom_line = LineString([Point(lineList[0]), Point(lineList[1])])
+            line_list = _tuple_to_list(self.unique[parts][0])
+            geom_line = LineString([(line_list[0]), (line_list[1])])
 
             # get other values for premerged
-            UniqueID = parts
-            Orientation = self.unique[parts][1]
-            linksP1 = self.unique[parts][2]
-            linksP2 = self.unique[parts][3]
-            bestP1 = self.unique[parts][4]
-            bestP2 = self.unique[parts][5]
-            P1Final = self.unique[parts][6]
-            P2Final = self.unique[parts][7]
+            _unique_id = parts
+            orientation = self.unique[parts][1]
+            links_p1 = self.unique[parts][2]
+            links_p2 = self.unique[parts][3]
+            best_p1 = self.unique[parts][4]
+            best_p2 = self.unique[parts][5]
+            p1_final = self.unique[parts][6]
+            p2_final = self.unique[parts][7]
 
             # append list
-            myList.append(
+            my_list.append(
                 [
-                    UniqueID,
-                    Orientation,
-                    linksP1,
-                    linksP2,
-                    bestP1,
-                    bestP2,
-                    P1Final,
-                    P2Final,
+                    _unique_id,
+                    orientation,
+                    links_p1,
+                    links_p2,
+                    best_p1,
+                    best_p2,
+                    p1_final,
+                    p2_final,
                     geom_line,
                 ]
             )
 
         edge_gdf = gpd.GeoDataFrame(
-            myList,
+            my_list,
             columns=[
-                "UniqueID",
-                "Orientation",
-                "linksP1",
-                "linksP2",
-                "bestP1",
-                "bestP2",
-                "P1Final",
-                "P2Final",
+                "_unique_id",
+                "orientation",
+                "links_p1",
+                "links_p2",
+                "best_p1",
+                "best_p2",
+                "p1_final",
+                "p2_final",
                 "geometry",
             ],
-            crs=self.gdfProjection,
+            crs=self.gdf_projection,
         )
-        edge_gdf.set_index("UniqueID", inplace=True)
+        edge_gdf.set_index("_unique_id", inplace=True)
 
         return edge_gdf
 
-    def create_gdf_strokes(self):
+    def _create_gdf_strokes(self):
 
         # create empty list to fill
-        myList = []
+        my_list = []
 
         # loop through merged geometry
         for a in self.merged:
 
             # get all segment points and make line strings
-            linelist = _tupleToList(list(self.merged[a]))
+            linelist = _tuple_to_list(list(self.merged[a]))
             list_lines_segments = []
 
             for b in linelist:
@@ -364,22 +372,22 @@ class COINS:
             geom_multi_line = ops.linemerge(MultiLineString(list_lines_segments))
 
             # get other values for gdf
-            ID_value = a
-            nSegments = len(self.merged[a])
+            id_value = a
+            n_segments = len(self.merged[a])
 
             # append list
-            myList.append([ID_value, nSegments, geom_multi_line])
+            my_list.append([id_value, n_segments, geom_multi_line])
 
         edge_gdf = gpd.GeoDataFrame(
-            myList,
-            columns=["stroke_group", "nSegments", "geometry"],
-            crs=self.gdfProjection,
+            my_list,
+            columns=["stroke_group", "n_segments", "geometry"],
+            crs=self.gdf_projection,
         )
         edge_gdf.set_index("stroke_group", inplace=True)
 
         return edge_gdf
 
-    def add_gdf_stroke_attributes(self):
+    def _add_gdf_stroke_attributes(self):
 
         # Invert self.edge_idx to get a dictionary where the key is the original edge
         # index and the value is the group
@@ -403,13 +411,13 @@ inside lines to list
 """
 
 
-def _tupleToList(line):
+def _tuple_to_list(line):
     for a in range(0, len(line)):
         line[a] = list(line[a])
     return line
 
 
-def _listToTuple(line):
+def _list_to_tuple(line):
     for a in range(0, len(line)):
         line[a] = tuple(line[a])
     return tuple(line)
@@ -421,13 +429,13 @@ it at every point.
 """
 
 
-def _listToPairs(inList):
-    outList = []
+def _list_to_pairs(in_list):
+    out_list = []
     index = 0
-    for index in range(0, len(inList) - 1):
-        tempList = [list(inList[index]), list(inList[index + 1])]
-        outList.append(tempList)
-    return outList
+    for index in range(0, len(in_list) - 1):
+        temp_list = [list(in_list[index]), list(in_list[index + 1])]
+        out_list.append(temp_list)
+    return out_list
 
 
 """
@@ -435,7 +443,7 @@ The function below calculates the angle between two points in space.
 """
 
 
-def _computeAngle(point1, point2):
+def _compute_angle(point1, point2):
     height = abs(point2[1] - point1[1])
     base = abs(point2[0] - point1[0])
     angle = round(math.degrees(math.atan(height / base)), 3)
@@ -449,7 +457,7 @@ Point2.
 """
 
 
-def _computeOrientation(line):
+def _compute_orientation(line):
     point1 = line[1]
     point2 = line[0]
     """
@@ -460,15 +468,15 @@ def _computeOrientation(line):
     if ((point2[0] > point1[0]) and (point2[1] < point1[1])) or (
         (point2[0] < point1[0]) and (point2[1] > point1[1])
     ):
-        return -_computeAngle(point1, point2)
-    # If the latitudes are same, the line is horizontal
+        return -_compute_angle(point1, point2)
+    # if the latitudes are same, the line is horizontal
     elif point2[1] == point1[1]:
         return 0
-    # If the longitudes are same, the line is vertical
+    # if the longitudes are same, the line is vertical
     elif point2[0] == point1[0]:
         return 90
     else:
-        return _computeAngle(point1, point2)
+        return _compute_angle(point1, point2)
 
 
 """
@@ -477,9 +485,9 @@ two given set of points.
 """
 
 
-def _pointsSetAngle(line1, line2):
-    l1orien = _computeOrientation(line1)
-    l2orien = _computeOrientation(line2)
+def _points_set_angle(line1, line2):
+    l1orien = _compute_orientation(line1)
+    l2orien = _compute_orientation(line2)
     if ((l1orien > 0) and (l2orien < 0)) or ((l1orien < 0) and (l2orien > 0)):
         return abs(l1orien) + abs(l2orien)
     elif ((l1orien > 0) and (l2orien > 0)) or ((l1orien < 0) and (l2orien < 0)):
@@ -496,7 +504,7 @@ def _pointsSetAngle(line1, line2):
             return 180 - abs(l2orien)
         else:
             return 180 - (
-                abs(_computeOrientation(line1)) + abs(_computeOrientation(line2))
+                abs(_compute_orientation(line1)) + abs(_compute_orientation(line2))
             )
     elif l1orien == l2orien:
         return 180
@@ -508,11 +516,11 @@ two line segments.
 """
 
 
-def _angleBetweenTwoLines(line1, line2):
+def _angle_between_two_lines(line1, line2):
     l1p1, l1p2 = line1
     l2p1, l2p2 = line2
-    l1orien = _computeOrientation(line1)
-    l2orien = _computeOrientation(line2)
+    l1orien = _compute_orientation(line1)
+    l2orien = _compute_orientation(line2)
     """
     If both lines have same orientation, return 180 If one of the lines is zero,
     exception for that If both the lines are on same side of the horizontal plane,
@@ -522,7 +530,7 @@ def _angleBetweenTwoLines(line1, line2):
     if l1orien == l2orien:
         angle = 180
     elif (l1orien == 0) or (l2orien == 0):
-        angle = _pointsSetAngle(line1, line2)
+        angle = _points_set_angle(line1, line2)
 
     elif l1p1 == l2p1:
         if ((l1p1[1] > l1p2[1]) and (l1p1[1] > l2p2[1])) or (
@@ -530,86 +538,67 @@ def _angleBetweenTwoLines(line1, line2):
         ):
             angle = 180 - (abs(l1orien) + abs(l2orien))
         else:
-            angle = _pointsSetAngle([l1p1, l1p2], [l2p1, l2p2])
+            angle = _points_set_angle([l1p1, l1p2], [l2p1, l2p2])
     elif l1p1 == l2p2:
         if ((l1p1[1] > l2p1[1]) and (l1p1[1] > l1p2[1])) or (
             (l1p1[1] < l2p1[1]) and (l1p1[1] < l1p2[1])
         ):
             angle = 180 - (abs(l1orien) + abs(l2orien))
         else:
-            angle = _pointsSetAngle([l1p1, l1p2], [l2p2, l2p1])
+            angle = _points_set_angle([l1p1, l1p2], [l2p2, l2p1])
     elif l1p2 == l2p1:
         if ((l1p2[1] > l1p1[1]) and (l1p2[1] > l2p2[1])) or (
             (l1p2[1] < l1p1[1]) and (l1p2[1] < l2p2[1])
         ):
             angle = 180 - (abs(l1orien) + abs(l2orien))
         else:
-            angle = _pointsSetAngle([l1p2, l1p1], [l2p1, l2p2])
+            angle = _points_set_angle([l1p2, l1p1], [l2p1, l2p2])
     elif l1p2 == l2p2:
         if ((l1p2[1] > l1p1[1]) and (l1p2[1] > l2p1[1])) or (
             (l1p2[1] < l1p1[1]) and (l1p2[1] < l2p1[1])
         ):
             angle = 180 - (abs(l1orien) + abs(l2orien))
         else:
-            angle = _pointsSetAngle([l1p2, l1p1], [l2p2, l2p1])
+            angle = _points_set_angle([l1p2, l1p1], [l2p2, l2p1])
     return angle
 
 
-def _getLinksMultiprocessing(n, tempArray):
-    # Create mask for adjacent edges as endpoint 1
-    m1 = tempArray[:, 1] == tempArray[n, 1]
-    m2 = tempArray[:, 2] == tempArray[n, 1]
-    mask1 = m1 + m2
-
-    # Create mask for adjacent edges as endpoint 2
-    m1 = tempArray[:, 1] == tempArray[n, 2]
-    m2 = tempArray[:, 2] == tempArray[n, 2]
-    mask2 = m1 + m2
-
-    # Use the tempArray to extract only the uniqueIDs of the adjacent edges at both ends
-    mask1 = tempArray[:, 0][~(mask1 == 0)]
-    mask2 = tempArray[:, 0][~(mask2 == 0)]
-
-    # Links (excluding the segment itself) at both the ends are converted to list and
-    # added to the 'unique' attribute
-    return (n, list(mask1[mask1 != n]), list(mask2[mask2 != n]))
-
-
-def _mergeLinesMultiprocessing(n, uniqueDict):
+def _merge_lines_loop(n, unique_dict):
     outlist = set()
-    currentEdge1 = n
+    current_edge1 = n
 
-    outlist.add(currentEdge1)
+    outlist.add(current_edge1)
 
     while True:
         if (
-            isinstance(uniqueDict[currentEdge1][6], int)
-            and uniqueDict[currentEdge1][6] not in outlist
+            isinstance(unique_dict[current_edge1][6], int)
+            and unique_dict[current_edge1][6] not in outlist
         ):
-            currentEdge1 = uniqueDict[currentEdge1][6]
-            outlist.add(currentEdge1)
+            current_edge1 = unique_dict[current_edge1][6]
+            outlist.add(current_edge1)
         elif (
-            isinstance(uniqueDict[currentEdge1][7], int)
-            and uniqueDict[currentEdge1][7] not in outlist
+            isinstance(unique_dict[current_edge1][7], int)
+            and unique_dict[current_edge1][7] not in outlist
         ):
-            currentEdge1 = uniqueDict[currentEdge1][7]
-            outlist.add(currentEdge1)
+            current_edge1 = unique_dict[current_edge1][7]
+            outlist.add(current_edge1)
         else:
             break
-    currentEdge1 = n
+
+    current_edge1 = n
     while True:
         if (
-            isinstance(uniqueDict[currentEdge1][7], int)
-            and uniqueDict[currentEdge1][7] not in outlist
+            isinstance(unique_dict[current_edge1][7], int)
+            and unique_dict[current_edge1][7] not in outlist
         ):
-            currentEdge1 = uniqueDict[currentEdge1][7]
-            outlist.add(currentEdge1)
+            current_edge1 = unique_dict[current_edge1][7]
+            outlist.add(current_edge1)
         elif (
-            isinstance(uniqueDict[currentEdge1][6], int)
-            and uniqueDict[currentEdge1][6] not in outlist
+            isinstance(unique_dict[current_edge1][6], int)
+            and unique_dict[current_edge1][6] not in outlist
         ):
-            currentEdge1 = uniqueDict[currentEdge1][6]
-            outlist.add(currentEdge1)
+            current_edge1 = unique_dict[current_edge1][6]
+            outlist.add(current_edge1)
         else:
             break
 

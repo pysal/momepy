@@ -16,6 +16,7 @@ elements
 
    Blocks
    buffered_limit
+   COINS
    enclosures
    get_network_id
    get_network_ratio
