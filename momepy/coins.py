@@ -162,21 +162,14 @@ class COINS:
         for i, vertex in enumerate(self.temp_array[:, 1]):
             item = list(items[vertex])
 
-            try:
-                item.remove(i)
-            except ValueError:
-                pass
-
+            item.remove(i)
             p1.append(item)
 
         p2 = []
         for i, vertex in enumerate(self.temp_array[:, 2]):
             item = list(items[vertex])
 
-            try:
-                item.remove(i)
-            except ValueError:
-                pass
+            item.remove(i)
 
             p2.append(item)
 
@@ -252,24 +245,6 @@ class COINS:
                 self.unique[edge][7] = best_p2
             else:
                 self.unique[edge][7] = "line_break"
-
-    def _add_line(self, edge, parent=None, child="undefined"):
-        if child == "undefined":
-            self.main_edge = len(self.merged)
-        if edge not in self.assigned_list:
-            if parent is None:
-                currentid = len(self.merged)
-                self.merged[currentid] = set()
-            else:
-                currentid = self.main_edge
-            self.merged[currentid].add(_list_to_tuple(self.unique[edge][0]))
-            self.assigned_list.append(edge)
-            link1 = self.unique[edge][6]
-            link2 = self.unique[edge][7]
-            if type(1) == type(link1):
-                self._add_line(link1, parent=edge, child=self.main_edge)
-            if type(1) == type(link2):
-                self._add_line(link2, parent=edge, child=self.main_edge)
 
     def _merge_lines(self):
         self.merging_list = list()
@@ -470,8 +445,7 @@ def _compute_orientation(line):
     # if the longitudes are same, the line is vertical
     elif point2[0] == point1[0]:
         return 90
-    else:
-        return _compute_angle(point1, point2)
+    return _compute_angle(point1, point2)
 
 
 """
