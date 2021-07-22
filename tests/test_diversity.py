@@ -169,6 +169,13 @@ class TestDiversity:
         assert un.isna().any()
         assert un[5] == 8
 
+        self.df_tessellation.loc[0, "cat"] = np.nan
+        un = mm.Unique(self.df_tessellation, "cat", self.sw, "uID", dropna=False).series
+        assert un[0] == 9
+
+        un = mm.Unique(self.df_tessellation, "cat", self.sw, "uID", dropna=True).series
+        assert un[0] == 8
+
     def test_Percentile(self):
         perc = mm.Percentiles(self.df_tessellation, "area", self.sw, "uID").frame
         assert np.all(
