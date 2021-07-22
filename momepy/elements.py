@@ -743,7 +743,7 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
         else:
             result.append(nid)
 
-    series = pd.Series(result)
+    series = pd.Series(result, index=left.index)
 
     if series.isnull().any():
         import warnings

@@ -323,6 +323,7 @@ class StreetAlignment:
         )
 
         self.series = np.abs(merged[orientations] - merged["_orientation"])
+        self.series.index = left.index
 
 
 class CellAlignment:
