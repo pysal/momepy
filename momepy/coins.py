@@ -32,7 +32,7 @@ class COINS:
     https://doi.org/10.1177%2F2399808320967680
 
     This is a reimplementation of the original script from
-    https://github.com/PratyushTripathy/NetworkContinuity
+    https://github.com/PratyushTripathy/COINS
 
     ``COINS`` can return final stroke geometry (``.stroke_gdf()``) or a pandas
     Series encoding stroke groups onto the original input geometry
