@@ -93,3 +93,24 @@ class TestCOINS:
         )
 
         assert_series_equal(result, expected)
+
+    def test_premerge(self):
+        coins = mm.COINS(self.gdf)
+        result = coins._premerge()
+
+        assert result.shape == (89, 8)
+        expected_columns = pd.Index(
+            [
+                "orientation",
+                "links_p1",
+                "links_p2",
+                "best_p1",
+                "best_p2",
+                "p1_final",
+                "p2_final",
+                "geometry",
+            ]
+        )
+        assert_index_equal(result.columns, expected_columns)
+
+        assert not result.isna().any().any()
