@@ -22,8 +22,7 @@ class COINS:
 
     """
     Calculates natural continuity and hierarchy of street networks in given
-    GeoDataFrame. with COINS algorithm. Creates 'strokes', refer to journal paper for
-    more details.
+    GeoDataFrame using COINS algorithm.
 
     For details on the algorithms refer to the original paper:
 
@@ -35,9 +34,9 @@ class COINS:
     This is a reimplementation of the original script from
     https://github.com/PratyushTripathy/NetworkContinuity
 
-    ``COINS`` can return individual segments with all information (``.premerge()``),
-    final stroke geometry (``.stroke_gdf()``) or a pandas Series encoding stroke groups
-    onto the original input geometry (``.stroke_attribute()``).
+    ``COINS`` can return final stroke geometry (``.stroke_gdf()``) or a pandas
+    Series encoding stroke groups onto the original input geometry
+    (``.stroke_attribute()``).
 
     Parameters
     ----------
@@ -63,10 +62,6 @@ class COINS:
     To get a Series encoding stroke groups:
 
     >>> stroke_attr = coins.stroke_attribute()
-
-    To get individual segments with all information:
-
-    >>> premerge = coins.premerge()
     """
 
     def __init__(self, edge_gdf, angle_threshold=0):
@@ -95,10 +90,10 @@ class COINS:
         # # cross check best links and enter angle threshold for connectivity
         self._cross_check_links(angle_threshold)
 
-    def premerge(self):
+    def _premerge(self):
         """
         Returns a GeoDataFrame containing the individual segments with all underlying
-        information.
+        information. The result is useful for debugging purposes.
         """
         return self._create_gdf_premerge()
 
