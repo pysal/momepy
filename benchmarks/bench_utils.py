@@ -42,10 +42,5 @@ class TimeUtils:
     def time_remove_false_nodes(self):
         mm.remove_false_nodes(self.false_network)
 
-    def time_snap_street_network_edge(self):
-        mm.snap_street_network_edge(
-            self.df_streets, self.df_buildings, 20, self.df_tessellation, 70
-        )
-
     def time_CheckTessellationInput(self):
         mm.CheckTessellationInput(self.df_buildings)
