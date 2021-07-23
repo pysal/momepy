@@ -24,12 +24,7 @@ class COINS:
     Calculates natural continuity and hierarchy of street networks in given
     GeoDataFrame using COINS algorithm.
 
-    For details on the algorithms refer to the original paper:
-
-    `Tripathy, P., Rao, P., Balakrishnan, K., & Malladi, T. (2020). An open-source tool
-    to extract natural continuity and hierarchy of urban street networks. Environment
-    and Planning B: Urban Analytics and City Science.`
-    https://doi.org/10.1177%2F2399808320967680
+    For details on the algorithms refer to the original paper :cite:`tripathy2020open`.
 
     This is a reimplementation of the original script from
     https://github.com/PratyushTripathy/COINS
