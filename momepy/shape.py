@@ -10,7 +10,7 @@ import random
 import numpy as np
 import pandas as pd
 from shapely.geometry import Point
-from tqdm import tqdm  # progress bar
+from tqdm.auto import tqdm  # progress bar
 
 __all__ = [
     "FormFactor",

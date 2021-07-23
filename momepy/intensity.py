@@ -9,7 +9,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm  # progress bar
+from tqdm.auto import tqdm  # progress bar
 
 __all__ = [
     "AreaRatio",
