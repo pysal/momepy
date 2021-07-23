@@ -109,6 +109,7 @@ pygments_style = "sphinx"
 
 # path to bib file with references
 bibtex_bibfiles = ["_static/references.bib"]
+bibtex_reference_style = "author_year"
 
 # -- Options for HTML output -------------------------------------------------
 
