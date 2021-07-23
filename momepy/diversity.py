@@ -7,7 +7,7 @@
 import numpy as np
 import pandas as pd
 import scipy as sp
-from tqdm import tqdm  # progress bar
+from tqdm.auto import tqdm  # progress bar
 
 __all__ = [
     "Range",

@@ -2,7 +2,7 @@
 
 echo "Testing User Guide"
 
-python -m ipykernel install --user --name mmp_guide
+python -m ipykernel install --user --name geo_dev
 
 mkdir docs/user_guide/output
 

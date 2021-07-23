@@ -7,7 +7,7 @@ import math
 
 import networkx as nx
 import numpy as np
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 __all__ = [
     "node_degree",

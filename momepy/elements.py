@@ -11,7 +11,7 @@ import pandas as pd
 from scipy.spatial import Voronoi
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 # TODO: this should not be needed with shapely 2.0
 from geopandas._vectorized import _pygeos_to_shapely
@@ -713,12 +713,10 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
         right["mm_nid"] = network_id
         network_id = "mm_nid"
 
-    print("Generating centroids...") if verbose else None
     buildings_c = left.copy()
 
     buildings_c[buildings_c.geometry.name] = buildings_c.centroid  # make centroids
 
-    print("Generating rtree...") if verbose else None
     idx = right.sindex
 
     # TODO: use sjoin nearest once done

@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import pygeos
 import scipy as sp
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from .shape import _circle_radius
 

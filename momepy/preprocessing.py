@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pygeos
 import shapely
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from .shape import CircularCompactness
 
