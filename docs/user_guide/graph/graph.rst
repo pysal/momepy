@@ -15,3 +15,4 @@ This section covers:
    convert
    network
    centrality
+   coins
