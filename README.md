@@ -25,7 +25,7 @@ Momepy aims to provide a wide range of tools for a systematic and exhaustive ana
 Comments, suggestions, feedback, and contributions, as well as bug reports, are very welcome.
 
 ## Getting Started
-Quick and easy [getting started guide](https://guide.momepy.org/getting_started.html) is part of the [User Guide](https://guide.momepy.org/getting_started.html).
+Quick and easy [getting started guide](http://docs.momepy.org/en/stable/user_guide/getting_started.html) is part of the [User Guide](http://docs.momepy.org/en/stable/user_guide/intro.html).
 
 
 ## Documentation
