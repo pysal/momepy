@@ -31,8 +31,6 @@ Quick and easy [getting started guide](http://docs.momepy.org/en/stable/user_gui
 ## Documentation
 Documentation of `momepy` is available at [docs.momepy.org](https://docs.momepy.org/).
 
-## User Guide
-User guide with examples of `momepy` usage is available at [guide.momepy.org](https://guide.momepy.org/).
 
 ## Examples
 
