@@ -974,7 +974,8 @@ def enclosures(
     enclosure_id : str (default 'eID')
         name of the enclosure_id (to be created).
     clip : bool (default False)
-        if True, the enclosures will be clipped to the extent of the limit (if given)
+        if True, the enclosures will be clipped to the extent of the limit (if given).
+        Requires ``limit`` composed of Polygon or MultiPolygon geometries.
 
     Returns
     -------
@@ -987,13 +988,10 @@ def enclosures(
 
     """
     if limit is not None:
-        if not limit.geom_type.isin(["Polygon", "MultiPolygon"]).all():
-            raise TypeError(
-                "`limit` expects a GeoDataFrame or GeoSeries with Polygon or "
-                "MultiPolygon geometry."
-            )
-        else:
+        if limit.geom_type.isin(["Polygon", "MultiPolygon"]).any():
             limit_b = limit.boundary
+        else:
+            limit_b = limit
         barriers = pd.concat([primary_barriers.geometry, limit_b.geometry])
     else:
         barriers = primary_barriers
@@ -1051,7 +1049,11 @@ def enclosures(
         )
 
     if clip and limit is not None:
-
+        if not limit.geom_type.isin(["Polygon", "MultiPolygon"]).all():
+            raise TypeError(
+                "`limit` requires a GeoDataFrame or GeoSeries with Polygon or "
+                "MultiPolygon geometry to be used with clip=True."
+            )
         return gpd.clip(final_enclosures, limit)
 
     return final_enclosures
