@@ -981,9 +981,14 @@ def enclosures(
 
     """
     if limit is not None:
-        if limit.geom_type.isin(["Polygon", "MultiPolygon"]).any():
-            limit = limit.boundary
-        barriers = pd.concat([primary_barriers.geometry, limit.geometry])
+        if not limit.geom_type.isin(["Polygon", "MultiPolygon"]).all():
+            raise TypeError(
+                "`limit` expects a GeoDataFrame or GeoSeries with Polygon or "
+                "MultiPolygon geometry."
+            )
+        else:
+            limit_b = limit.boundary
+        barriers = pd.concat([primary_barriers.geometry, limit_b.geometry])
     else:
         barriers = primary_barriers
     unioned = barriers.unary_union
@@ -1030,8 +1035,17 @@ def enclosures(
             .reset_index(drop=True)
         ).set_crs(primary_barriers.crs)
 
-        return gpd.GeoDataFrame(
+        final_enclosures = gpd.GeoDataFrame(
             {enclosure_id: range(len(final_enclosures))}, geometry=final_enclosures
         )
 
-    return gpd.GeoDataFrame({enclosure_id: range(len(enclosures))}, geometry=enclosures)
+    else:
+        final_enclosures = gpd.GeoDataFrame(
+            {enclosure_id: range(len(enclosures))}, geometry=enclosures
+        )
+
+    if limit is not None:
+
+        return gpd.clip(final_enclosures, limit)
+
+    return final_enclosures
