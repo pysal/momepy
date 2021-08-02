@@ -944,7 +944,11 @@ def get_network_ratio(df, edges, initial_buffer=500):
 
 
 def enclosures(
-    primary_barriers, limit=None, additional_barriers=None, enclosure_id="eID"
+    primary_barriers,
+    limit=None,
+    additional_barriers=None,
+    enclosure_id="eID",
+    clip=False,
 ):
     """
     Generate enclosures based on passed barriers.
@@ -969,6 +973,8 @@ def enclosures(
         (Multi)LineString geometry is expected.
     enclosure_id : str (default 'eID')
         name of the enclosure_id (to be created).
+    clip : bool (default False)
+        if True, the enclosures will be clipped to the extent of the limit (if given)
 
     Returns
     -------
@@ -1044,7 +1050,7 @@ def enclosures(
             {enclosure_id: range(len(enclosures))}, geometry=enclosures
         )
 
-    if limit is not None:
+    if clip and limit is not None:
 
         return gpd.clip(final_enclosures, limit)
 
