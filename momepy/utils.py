@@ -164,7 +164,7 @@ def gdf_to_nx(
     angles : bool, default True
         capture angles between LineStrings as an attribute of a dual graph. Ignored if
         ``approach="primal"``.
-    length : str, default 'angle'
+    angle : str, default 'angle'
         name of attribute of angle between LineStrings which will be saved to graph.
         Ignored if ``approach="primal"``.
 
