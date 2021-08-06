@@ -974,8 +974,8 @@ def enclosures(
     enclosure_id : str (default 'eID')
         name of the enclosure_id (to be created).
     clip : bool (default False)
-        if True, the enclosures will be clipped to the extent of the limit (if given).
-        Requires ``limit`` composed of Polygon or MultiPolygon geometries.
+        if True, returns enclosures with representative point within the limit
+        (if given). Requires ``limit`` composed of Polygon or MultiPolygon geometries.
 
     Returns
     -------
@@ -1054,6 +1054,10 @@ def enclosures(
                 "`limit` requires a GeoDataFrame or GeoSeries with Polygon or "
                 "MultiPolygon geometry to be used with clip=True."
             )
-        return gpd.clip(final_enclosures, limit)
+        _, encl_index = final_enclosures.representative_point().sindex.query_bulk(
+            limit.geometry, predicate="contains"
+        )
+        keep = np.unique(encl_index)
+        return final_enclosures.iloc[keep]
 
     return final_enclosures
