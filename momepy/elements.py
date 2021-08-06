@@ -442,6 +442,7 @@ class Tessellation:
 
         """
         enclosures = enclosures.reset_index(drop=True)
+        enclosures["position"] = range(len(enclosures))
 
         # determine which polygons should be split
         inp, res = buildings.sindex.query_bulk(
@@ -497,7 +498,7 @@ class Tessellation:
 
         # finalise the result
         clean_blocks = enclosures.drop(splits)
-        clean_blocks.loc[single, "uID"] = clean_blocks.loc[single][enclosure_id].apply(
+        clean_blocks.loc[single, "uID"] = clean_blocks.loc[single, "position"].apply(
             lambda ix: buildings.iloc[res[inp == ix][0]][unique_id]
         )
         tessellation = pd.concat(new)
@@ -520,7 +521,7 @@ class Tessellation:
         within = blg[
             pygeos.area(pygeos.intersection(blg.geometry.values.data, poly))
             > (pygeos.area(blg.geometry.values.data) * threshold)
-        ]
+        ].copy()
         if len(within) > 1:
             tess = self._morphological_tessellation(
                 within,

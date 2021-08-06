@@ -1,6 +1,8 @@
 import geopandas as gpd
 import momepy as mm
 import numpy as np
+from random import shuffle
+
 import pytest
 
 from shapely.geometry import Polygon, MultiPoint, LineString
@@ -54,11 +56,15 @@ class TestElements:
                 self.df_buildings, "uID", limit=self.limit, enclosures=self.enclosures
             )
 
-        enc1_loop = mm.Tessellation(
-            self.df_buildings, "uID", enclosures=self.enclosures, use_dask=False
-        ).tessellation
-        assert len(enc1) == 155
-        assert isinstance(enc1, gpd.GeoDataFrame)
+        # non-standard enclosure ids
+        encl = self.enclosures.copy()
+        ids = list(range(len(encl) * 2))
+        shuffle(ids)
+        encl["eID"] = ids[: len(encl)]
+        encl.index = ids[: len(encl)]
+        enc = mm.Tessellation(self.df_buildings, "uID", enclosures=encl).tessellation
+        assert len(enc) == 155
+        assert isinstance(enc, gpd.GeoDataFrame)
 
         # erroneous geometry
         df = self.df_buildings
