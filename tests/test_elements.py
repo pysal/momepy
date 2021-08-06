@@ -153,6 +153,11 @@ class TestElements:
                 self.df_streets, gpd.GeoSeries([self.limit]), additional_barrier
             )
 
+        # test clip
+        limit = self.df_streets.unary_union.convex_hull.buffer(-100)
+        encl = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([limit]), clip=True)
+        assert len(encl) == 18
+
     def test_get_network_ratio(self):
         convex_hull = self.df_streets.unary_union.convex_hull
         enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
