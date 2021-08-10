@@ -6,4 +6,4 @@ nbsphinx
 ipython
 myst-parser
 sphinx_copybutton
-sphinx==4.0.2
+sphinx
