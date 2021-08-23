@@ -454,7 +454,7 @@ class Tessellation:
 
         if use_dask:
             try:
-                import dask.dataframe as dd
+                import dask.bag as db
                 from dask.system import cpu_count
             except ImportError:
                 use_dask = False
@@ -468,18 +468,18 @@ class Tessellation:
         if use_dask:
             if n_chunks is None:
                 n_chunks = cpu_count() - 1 if cpu_count() > 1 else 1
-            # initialize dask.series
-            ds = dd.from_array(splits, chunksize=len(splits) // n_chunks)
+            # initialize dask.bag
+            bag = db.from_sequence(splits, npartitions=n_chunks)
             # generate enclosed tessellation using dask
-            new = (
-                ds.apply(
-                    self._tess,
-                    meta=(None, "object"),
-                    args=(enclosures, buildings, inp, res, threshold, unique_id),
-                )
-                .compute()
-                .to_list()
-            )
+            new = bag.map(
+                self._tess,
+                enclosures,
+                buildings,
+                inp,
+                res,
+                threshold,
+                unique_id,
+            ).compute()
 
         else:
             new = [
