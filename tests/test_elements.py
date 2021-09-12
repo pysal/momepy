@@ -142,9 +142,13 @@ class TestElements:
         assert len(basic) == 7
         assert isinstance(basic, gpd.GeoDataFrame)
 
-        limited = mm.enclosures(self.df_streets, gpd.GeoSeries([self.limit]))
+        limited = mm.enclosures(self.df_streets, self.limit)
         assert len(limited) == 20
         assert isinstance(limited, gpd.GeoDataFrame)
+
+        limited2 = mm.enclosures(self.df_streets, gpd.GeoSeries([self.limit]))
+        assert len(limited2) == 20
+        assert isinstance(limited2, gpd.GeoDataFrame)
 
         b = self.limit.bounds
         additional_barrier = gpd.GeoSeries([LineString([(b[0], b[1]), (b[2], b[3])])])

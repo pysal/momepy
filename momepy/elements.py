@@ -506,7 +506,9 @@ class Tessellation:
         )
         tessellation = pd.concat(new)
 
-        return tessellation.append(clean_blocks).reset_index(drop=True)
+        return tessellation.append(clean_blocks.drop(columns="position")).reset_index(
+            drop=True
+        )
 
     def _tess(
         self,
@@ -966,8 +968,9 @@ def enclosures(
     primary_barriers : GeoDataFrame, GeoSeries
         GeoDataFrame or GeoSeries containing primary barriers.
         (Multi)LineString geometry is expected.
-    limit : GeoDataFrame, GeoSeries (default None)
-        GeoDataFrame or GeoSeries containing external limit of enclosures,
+    limit : GeoDataFrame, GeoSeries, shapely geometry (default None)
+        GeoDataFrame, GeoSeries or shapely geometry containing external limit
+        of enclosures,
         i.e. the area which gets partitioned. If None is passed,
         the internal area of ``primary_barriers`` will be used.
     additional_barriers : GeoDataFrame
@@ -990,6 +993,8 @@ def enclosures(
 
     """
     if limit is not None:
+        if isinstance(limit, BaseGeometry):
+            limit = gpd.GeoSeries([limit])
         if limit.geom_type.isin(["Polygon", "MultiPolygon"]).any():
             limit_b = limit.boundary
         else:
