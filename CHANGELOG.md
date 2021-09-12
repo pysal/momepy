@@ -1,6 +1,29 @@
 Changelog
 =========
 
+Version 0.5.0 (September 12, 2021)
+----------------------------------
+
+Enhancements:
+
+- COINS algorithm for analysis of continuity of street networks (#248, #276)
+- ENH: distance decay in Percentiles (#269)
+- ENH: add dropna keyword to Unique (#280)
+- ENH: catch geographic CRS in Tessellation (#298)
+- ENH: support shapely polygon as enclosures limit (#299)
+
+Bug fixes:
+
+- BUG/DOC: adapt to mutliindex + remove preprocess (#281)
+- BUG: Tessellation error on non-standard enclosures (#291)
+- BUG: properly clip enclosures by limit (#288)
+
+Other:
+
+- DEP: remove deprecated functions and args (#268)
+- PERF: use dask.bag in Tessellation (#296)
+
+
 Version 0.4.4 (April 30, 2021)
 ---------------------------------
 
