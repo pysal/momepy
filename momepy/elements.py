@@ -5,6 +5,7 @@
 # generating derived elements (street edge, block)
 import geopandas as gpd
 import libpysal
+import warnings
 import numpy as np
 import pygeos
 import pandas as pd
@@ -200,6 +201,13 @@ class Tessellation:
         self.segment = segment
         self.enclosure_id = enclosure_id
 
+        if gdf.crs and gdf.crs.is_geographic:
+            raise ValueError(
+                "Geometry is in a geographic CRS. "
+                "Use 'GeoDataFrame.to_crs()' to re-project geometries to a "
+                "projected CRS before using Tessellation.\n",
+            )
+
         if limit is not None and enclosures is not None:
             raise ValueError(
                 "Both `limit` and `enclosures` cannot be passed together. "
@@ -367,7 +375,6 @@ class Tessellation:
         ids_original = list(orig_gdf[unique_id])
         ids_generated = list(tesselation[unique_id])
         if len(ids_original) != len(ids_generated):
-            import warnings
 
             self.collapsed = set(ids_original).difference(ids_generated)
             warnings.warn(
@@ -381,8 +388,6 @@ class Tessellation:
             unique_id
         ]
         if len(self.multipolygons) > 0:
-            import warnings
-
             warnings.warn(
                 "Tessellation contains MultiPolygon elements. Initial objects should "
                 f"be edited. unique_id of affected elements: {list(self.multipolygons)}"
@@ -458,8 +463,6 @@ class Tessellation:
                 from dask.system import cpu_count
             except ImportError:
                 use_dask = False
-
-                import warnings
 
                 warnings.warn(
                     "dask.dataframe could not be imported. Setting `use_dask=False`."
@@ -745,8 +748,6 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
     series = pd.Series(result, index=left.index)
 
     if series.isnull().any():
-        import warnings
-
         warnings.warn(
             "Some objects were not attached to the network. "
             "Set larger min_size. {} affected elements".format(sum(series.isnull()))
