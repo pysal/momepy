@@ -33,6 +33,7 @@ class TestElements:
         ).tessellation
         assert len(bands) == len(self.df_streets)
 
+    def test_enclosed_tess(self):
         #  test_enclosed_tessellation
         enc1 = mm.Tessellation(
             self.df_buildings, "uID", enclosures=self.enclosures
@@ -51,11 +52,13 @@ class TestElements:
 
         assert_geodataframe_equal(enc1, enc1_loop)
 
-        with pytest.raises(ValueError):
+    def test_limit_enclosures_combo_error(self):
+        with pytest.raises(ValueError, match="Both `limit` and `enclosures` cannot"):
             mm.Tessellation(
                 self.df_buildings, "uID", limit=self.limit, enclosures=self.enclosures
             )
 
+    def test_custom_enclosure_id(self):
         # non-standard enclosure ids
         encl = self.enclosures.copy()
         ids = list(range(len(encl) * 2))
@@ -66,7 +69,7 @@ class TestElements:
         assert len(enc) == 155
         assert isinstance(enc, gpd.GeoDataFrame)
 
-        # erroneous geometry
+    def test_erroroneous_geom(self):
         df = self.df_buildings
         b = df.total_bounds
         x = np.mean([b[0], b[2]])
@@ -79,6 +82,10 @@ class TestElements:
         tess = mm.Tessellation(df, "uID", self.limit)
         assert tess.collapsed == {145}
         assert len(tess.multipolygons) == 3
+
+    def test_crs_error(self):
+        with pytest.raises(ValueError, match="Geometry is in a geographic CRS"):
+            mm.Tessellation(self.df_buildings.to_crs(4326), "uID", self.limit)
 
     def test_Blocks(self):
         blocks = mm.Blocks(
