@@ -11,6 +11,7 @@ from .utils import *
 from .weights import *
 from .preprocessing import *
 from .coins import *
+from .sndi import *
 
 __author__ = "Martin Fleischmann"
 __author_email__ = "martin@martinfleischmann.net"
