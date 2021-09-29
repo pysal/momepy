@@ -18,8 +18,8 @@ Step 2: calculate all metrics
     a) merge all degree-2 edges (DONE! Thanks to momepy magic)
     b) calculate nodal degree metrics (DONE!)
     c) calculate circuity metrics
-    d) calculate bridge metrics (TODO: get length. Adapt to multigraphs)
-    e) calculate non-cycle metrics (TODO: get length. Adapt to multigraphs)
+    d) calculate bridge metrics (TODO: Adapt to multigraphs)
+    e) calculate non-cycle metrics (TODO: Adapt to multigraphs)
     f) calculate sinuosity metrics
 
 Step 3: calculate SNDI
@@ -162,17 +162,39 @@ def SNDi(street_graph):
     # get total number of edges
     N_edges = lines.shape[0]
 
-    # get fraction of edge dead ends (I think number of node dead ends is equal to number of edge dead ends?)
-    N_dead_ends = np.count_nonzero(array_deg == 1)
-    frc_edge_dead_ends = N_dead_ends/N_edges
-    
-    # get number/fraction of bridges TODO: only working with Graph and not Multigraphs. Subtract number of dead-ends
+    # create dictionary to assign edge attributes. Make everything a cycle to start
+    edge_dendricity = dict([(tuple(edge),'C') for edge in street_graph.edges()])
+
+    # get bridges
     bridges = list(nx.bridges(street_graph))
+    
+    # Assign B value to bridge edges
+    for edge in bridges:
+        edge_dendricity[tuple(edge)]='B'
+
+    # find degree 1 nodes for dead ends
+    deg_1_nodes = [node for node, attr in street_graph.nodes(data=True) if attr['degree']==1]
+
+    # Assign D value to dead end edges
+    for node in deg_1_nodes:
+        edge = list(street_graph.edges(node))[0]
+        edge_dendricity[tuple(edge)]='D'
+
+    # get fraction of edge dead ends
+    N_dead_ends = len(deg_1_nodes)
+    frc_edge_dead_ends = N_dead_ends/N_edges
+
+    # get number/fraction of bridges TODO: only working with Graph and not Multigraphs. Subtract number of dead-ends
     N_bridges = len(bridges) - N_dead_ends
     frc_edge_bridges = N_bridges/N_edges
 
     # get number/fraction of self loops TODO: only working with Graph and not Multigraphs
     self_loops = list(nx.selfloop_edges(street_graph))
+
+    # Assign B value to bridge edges
+    for edge in self_loops:
+        edge_dendricity[tuple(edge)]='S'
+
     N_self_loops = len(self_loops)
     frc_edge_self_loops = N_self_loops/N_edges
 
@@ -180,4 +202,35 @@ def SNDi(street_graph):
     N_cycles = N_edges - N_dead_ends - N_bridges - N_self_loops
     frc_edge_cylces = N_cycles/N_edges
     frc_edge_non_cycles = 1 - frc_edge_cylces
+
+    # set dendricity attributes to graph
+    nx.set_edge_attributes(street_graph, edge_dendricity, 'dendricity')
+
+    # convert back to gdf for edges
+    lines = nx_to_gdf(street_graph, points=False)
+
+    # length of all edges
+    total_length = np.sum(lines.geometry.length)
+
+    # length of cycles
+    cycle_length = np.sum(lines[lines['dendricity']=='C'].geometry.length)
+    frc_length_cycle = cycle_length/total_length
+
+    # length of self loops
+    self_loop_length = np.sum(lines[lines['dendricity']=='S'].geometry.length)
+    frc_length_self_loops = self_loop_length/total_length
+
+    # length of dead ends
+    dead_ends_length = np.sum(lines[lines['dendricity']=='D'].geometry.length)
+    frc_length_dead_ends = dead_ends_length/total_length
+
+    # length of bridges
+    bridges_length = np.sum(lines[lines['dendricity']=='B'].geometry.length)
+    frc_length_bridges = bridges_length/total_length
+
+    # get cycle/non-cycle lenghs
+    frc_length_non_cycle = frc_length_self_loops + frc_length_dead_ends + frc_length_bridges
+
+    # TEST this should always equal 1 :frc_length_non_cycle + frc_length_cycle
+
 
