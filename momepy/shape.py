@@ -1224,6 +1224,8 @@ class Linearity:
     ----------
     gdf : GeoDataFrame
         GeoDataFrame containing objects
+    aggregate: bool (default False)
+        if True create an attribute containing the aggregated linearity
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
 
@@ -1233,15 +1235,26 @@ class Linearity:
         Series containing mean distance values.
     gdf : GeoDataFrame
         original GeoDataFrame
+    aggregated: Float
+        Aggregated linearity
 
     Examples
     --------
+    To get a Series encoding linearity:
+
     >>> streets_df['linearity'] = momepy.Linearity(streets_df).series
     >>> streets_df['linearity'][0]
     1.0
+
+    To get aggregatd linearity:
+
+    >>> aggregated_linearity = momepy.Linearity(streets_df, aggregated=True).aggregated
+    >>> aggregated_linearity
+    1.0
+
     """
 
-    def __init__(self, gdf, verbose=True):
+    def __init__(self, gdf, aggregate=False, verbose=True):
         self.gdf = gdf
 
         euclidean = gdf.geometry.apply(
@@ -1250,6 +1263,9 @@ class Linearity:
             else np.nan
         )
         self.series = euclidean / gdf.geometry.length
+        
+        if aggregate:
+            self.aggregated = np.sum(euclidean) / np.sum(gdf.geometry.length)
 
     def _dist(self, a, b):
         return math.hypot(b[0] - a[0], b[1] - a[1])

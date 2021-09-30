@@ -15,12 +15,12 @@ TODO:
 Step 1: copy over hardcoded values (DONE!)
 
 Step 2: calculate all metrics
-    a) merge all degree-2 edges (DONE! Thanks to momepy magic)
+    a) merge all degree-2 edges (DONE!)
     b) calculate nodal degree metrics (DONE!)
     c) calculate circuity metrics
     d) calculate bridge metrics (TODO: Adapt to multigraphs)
     e) calculate non-cycle metrics (TODO: Adapt to multigraphs)
-    f) calculate sinuosity metrics
+    f) calculate sinuosity metrics (DONE!)
 
 Step 3: calculate SNDI
 '''
@@ -29,6 +29,7 @@ Step 3: calculate SNDI
 from networkx.classes.function import edges
 from networkx.generators import line
 import numpy as np
+import math
 from shapely import ops
 from shapely.geometry import MultiLineString
 import geopandas as gpd
@@ -38,6 +39,7 @@ import networkx as nx
 from .utils import nx_to_gdf, gdf_to_nx
 from .graph import mean_node_degree, node_degree
 from .preprocessing import remove_false_nodes
+from .shape import Linearity
     
 
 def SNDi(street_graph):
@@ -233,4 +235,15 @@ def SNDi(street_graph):
 
     # TEST this should always equal 1 :frc_length_non_cycle + frc_length_cycle
 
+    '''
+    PART 5
+    calculate sinuosity
+    '''
+    # sinuosity is quite similar to mm.linearity. It is just the inverse of it and summed
+    sinuosity = 1 / Linearity(lines, aggregate=True).aggregated
 
+
+    '''
+    PART 6
+    calculate circuity metrics
+    '''
