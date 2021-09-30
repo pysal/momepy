@@ -35,6 +35,7 @@ from shapely.geometry import MultiLineString
 import geopandas as gpd
 import pandas as pd
 import networkx as nx
+import libpysal
 
 from .utils import nx_to_gdf, gdf_to_nx
 from .graph import mean_node_degree, node_degree
@@ -247,3 +248,12 @@ def SNDi(street_graph):
     PART 6
     calculate circuity metrics
     '''
+    # get node list
+    node_list = street_graph.nodes
+    
+    # get shortest path distance matrix from all nodes to all nodes
+    path_dist_matrix = nx.floyd_warshall_numpy(street_graph, nodelist=node_list, weight='mm_len')
+
+    # euclidean distance matrix from node to node
+    node_array = np.asarray(node_list)
+    eucl_dist_matrix = libpysal.cg.distance_matrix(np.asarray(node_list), p=2.0)
