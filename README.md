@@ -1,9 +1,9 @@
 # momepy
-[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Actions Status](https://github.com/martinfleis/momepy/workflows/Tests/badge.svg)](https://github.com/martinfleis/momepy/actions?query=workflow%3ATests)
-[![codecov](https://codecov.io/gh/martinfleis/momepy/branch/main/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
+[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Actions Status](https://github.com/pysal/momepy/workflows/Tests/badge.svg)](https://github.com/pysal/momepy/actions?query=workflow%3ATests)
+[![codecov](https://codecov.io/gh/pysal/momepy/branch/main/graph/badge.svg?token=VNn0WR5JWT)](https://codecov.io/gh/pysal/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/pysal/momepy/badge)](https://www.codefactor.io/repository/github/pysal/momepy) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
 
 
-<img src="https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/logo.png" width="50%">
+<img src="https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/logo.png" width="50%">
 
 ## Introduction
 Momepy is a library for quantitative analysis of urban form - urban morphometrics. It is built on top of [GeoPandas](http://geopandas.org), [PySAL](http://pysal.org) and [networkX](http://networkx.github.io).
@@ -40,7 +40,7 @@ coverage = momepy.AreaRatio(tessellation, buildings, left_areas=tessellation.are
 tessellation['CAR'] = coverage.series
 ```
 
-![Coverage Area Ratio](https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/example1.png)
+![Coverage Area Ratio](https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/example1.png)
 
 ```py
 area_simpson = momepy.Simpson(tessellation, values='area',
@@ -49,13 +49,13 @@ area_simpson = momepy.Simpson(tessellation, values='area',
 tessellation['area_simpson'] = area_simpson.series
 ```
 
-![Local Simpson's diversity of area](https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/diversity_22_0.png)
+![Local Simpson's diversity of area](https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/diversity_22_0.png)
 
 ```py
 G = momepy.straightness_centrality(G)
 ```
 
-![Straightness centrality](https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/centrality_27_0.png)
+![Straightness centrality](https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/centrality_27_0.png)
 
 
 ## How to cite
