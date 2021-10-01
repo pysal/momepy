@@ -245,14 +245,13 @@ def SNDi(street_graph):
     '''
     # get node list
     node_list = street_graph.nodes
-    
-    # get shortest path distance matrix from all nodes to all nodes (TODO: THIS IS BOTTLENECK)
-    path_dist_matrix = nx.floyd_warshall_numpy(street_graph, nodelist=node_list, weight='mm_len')
-    path_dist_matrix[path_dist_matrix == np.Inf] = 0
-    np.max(path_dist_matrix)
 
     # euclidean distance matrix from node to node
     eucl_dist_matrix = libpysal.cg.distance_matrix(np.asarray(node_list), p=2.0)
+
+    # get shortest path distance matrix from all nodes to all nodes (TODO: THIS IS BOTTLENECK)
+    path_dist_matrix = nx.floyd_warshall_numpy(street_graph, nodelist=node_list, weight='mm_len')
+    path_dist_matrix[path_dist_matrix == np.Inf] = 0
 
     # 0-500 meter circuity
     eucl_0_500 = eucl_dist_matrix.copy()
