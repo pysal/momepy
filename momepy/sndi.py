@@ -25,13 +25,9 @@ Step 2: calculate all metrics
 Step 3: calculate SNDI
 '''
 
-
-from networkx.classes.function import edges
-from networkx.generators import line
 import numpy as np
+from numpy import Inf
 import math
-from shapely import ops
-from shapely.geometry import MultiLineString
 import geopandas as gpd
 import pandas as pd
 import networkx as nx
@@ -243,7 +239,6 @@ def SNDi(street_graph):
     # sinuosity is quite similar to mm.linearity. It is just the inverse of it and summed
     log_sinuosity = np.log(1 / Linearity(lines, aggregate=True).aggregated)
 
-
     '''
     PART 6
     calculate circuity metrics
@@ -253,6 +248,8 @@ def SNDi(street_graph):
     
     # get shortest path distance matrix from all nodes to all nodes (TODO: THIS IS BOTTLENECK)
     path_dist_matrix = nx.floyd_warshall_numpy(street_graph, nodelist=node_list, weight='mm_len')
+    path_dist_matrix[path_dist_matrix == np.Inf] = 0
+    np.max(path_dist_matrix)
 
     # euclidean distance matrix from node to node
     eucl_dist_matrix = libpysal.cg.distance_matrix(np.asarray(node_list), p=2.0)
@@ -266,10 +263,8 @@ def SNDi(street_graph):
     eucl_0_500_sum = np.sum(eucl_0_500[bool_0_500])
     path_0_500_sum = np.sum(path_0_500[bool_0_500])
 
+    # replace all infinite with zero
     if round(eucl_0_500_sum, 2):
-        print(f' Euclidiean sum for 0-500 {eucl_0_500_sum}')
-        print(f' Path sum for 0-500 {path_0_500_sum}')
-
         circuity_0_500 = path_0_500_sum/eucl_0_500_sum
         log_circuity_0_500 = np.log(circuity_0_500)
     else:
@@ -286,8 +281,6 @@ def SNDi(street_graph):
     path_500_1000_sum = np.sum(path_500_1000[bool_500_1000])
 
     if round(eucl_500_1000_sum, 2):
-        print(f' Euclidiean sum for 500-1000 {eucl_500_1000_sum}')
-        print(f' Path sum for 500-1000 {path_500_1000_sum}')
         circuity_500_1000 = path_500_1000_sum/eucl_500_1000_sum
         log_circuity_500_1000 = np.log(circuity_500_1000)
     else:
@@ -304,9 +297,6 @@ def SNDi(street_graph):
     path_1000_1500_sum = np.sum(path_1000_1500[bool_1000_1500])
 
     if round(eucl_1000_1500_sum, 2):
-        print(f' Euclidiean sum for 1000-1500 {eucl_1000_1500_sum}')
-        print(f' Path sum for 1000-1500 {path_1000_1500_sum}')
-
         circuity_1000_1500 = path_1000_1500_sum/eucl_1000_1500_sum
         log_circuity_1000_1500 = np.log(circuity_1000_1500)
     else:
@@ -323,9 +313,6 @@ def SNDi(street_graph):
     path_1500_2000_sum = np.sum(path_1500_2000[bool_1500_2000])
     
     if round(eucl_1500_2000_sum, 2):
-        print(f' Euclidiean sum for 1500-2000 {eucl_1500_2000_sum}')
-        print(f' Path sum for 1500-2000 {path_1500_2000_sum}')
-
         circuity_1500_2000 = path_1500_2000_sum/eucl_1500_2000_sum
         log_circuity_1500_2000 = np.log(circuity_1500_2000)
     else:
@@ -342,9 +329,6 @@ def SNDi(street_graph):
     path_2000_2500_sum = np.sum(path_2000_2500[bool_2000_2500])
 
     if round(eucl_2000_2500_sum, 2):
-        print(f' Euclidiean sum for 2000-2500 {eucl_2000_2500_sum}')
-        print(f' Path sum for 2000-2500 {path_2000_2500_sum}')
-
         circuity_2000_2500 = path_2000_2500_sum/eucl_2000_2500_sum
         log_circuity_2000_2500 = np.log(circuity_2000_2500)
     else:
@@ -361,8 +345,6 @@ def SNDi(street_graph):
     path_2500_3000_sum = np.sum(path_2500_3000[bool_2500_3000])
 
     if eucl_2500_3000_sum:
-        print(f' Euclidiean sum for 2500-3000 {eucl_2500_3000_sum}')
-        print(f' Path sum for 2500-3000 {path_2500_3000_sum}')
         circuity_2500_3000 = path_2500_3000_sum/eucl_2500_3000_sum
         log_circuity_2500_3000 = np.log(circuity_2500_3000)
     else:
