@@ -6,7 +6,10 @@
 <img src="https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/logo.png" width="50%">
 
 ## Introduction
-Momepy is a library for quantitative analysis of urban form - urban morphometrics. It is built on top of [GeoPandas](http://geopandas.org), [PySAL](http://pysal.org) and [networkX](http://networkx.github.io).
+Momepy is a library for quantitative analysis of urban form - urban morphometrics. It is
+part of [PySAL (Python Spatial Analysis Library)](http://pysal.org) and is built on top
+of [GeoPandas](http://geopandas.org), other [PySAL](http://pysal.org) modules and
+[networkX](http://networkx.github.io).
 
 > *momepy* stands for Morphological Measuring in Python
 
@@ -102,7 +105,7 @@ If you have a question regarding momepy, feel free to open an issue on GitHub. E
 
 ## Acknowledgements
 
-Initial release of momepy was a result of a research of [Urban Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with University of Strathclyde in Glasgow, UK. Further development was supported by [Geographic Data Science Lab](https://www.liverpool.ac.uk/geographic-data-science/) of the University of Liverpool wihtin [Urban Grammar AI](https://urbangrammarai.github.io) research project.
+Initial release of momepy was a result of a research of [Urban Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with University of Strathclyde in Glasgow, UK. Further development was supported by [Geographic Data Science Lab](https://www.liverpool.ac.uk/geographic-data-science/) of the University of Liverpool wihtin [Urban Grammar AI](https://urbangrammarai.xyz) research project.
 
 ---
 Copyright (c) 2018- Martin Fleischmann

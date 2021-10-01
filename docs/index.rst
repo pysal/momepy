@@ -10,7 +10,8 @@ Introduction
 ------------
 
 Momepy is a library for quantitative analysis of urban form - urban
-morphometrics. It is built on top of `GeoPandas`_, `PySAL`_ and
+morphometrics. It is part of `PySAL (Python Spatial Analysis Library)`_
+and is built on top of `GeoPandas`_, other `PySAL`_ modules and
 `networkX`_.
 
     *momepy* stands for Morphological Measuring in Python
@@ -166,9 +167,10 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+.. _PySAL (Python Spatial Analysis Library): http://pysal.org
 .. _GeoPandas: http://geopandas.org
 .. _PySAL: http://pysal.org
 .. _networkX: http://networkx.github.io
 .. _Urban Design Studies Unit (UDSU): http://udsu-strath.com
 .. _Geographic Data Science Lab: https://www.liverpool.ac.uk/geographic-data-science/
-.. _Urban Grammar AI: https://urbangrammarai.github.io
+.. _Urban Grammar AI: https://urbangrammarai.xyz
