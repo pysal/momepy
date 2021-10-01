@@ -149,7 +149,7 @@ def SNDi(street_graph):
 
     # fraction of degree 1 or 3
     frc_node_deg_1_3 = frc_node_deg_1 + frc_node_deg_3
-
+    
     # get fraction of dead ends (I think number of node dead ends is equal to number of edge dead ends?)
     N_node_dead_ends = np.count_nonzero(array_deg == 1)
     frc_node_dead_ends = N_node_dead_ends/array_deg.size
@@ -241,7 +241,7 @@ def SNDi(street_graph):
     calculate sinuosity
     '''
     # sinuosity is quite similar to mm.linearity. It is just the inverse of it and summed
-    sinuosity = 1 / Linearity(lines, aggregate=True).aggregated
+    log_sinuosity = np.log(1 / Linearity(lines, aggregate=True).aggregated)
 
 
     '''
@@ -251,9 +251,206 @@ def SNDi(street_graph):
     # get node list
     node_list = street_graph.nodes
     
+    # get shortest path distance matrix from all nodes to all nodes (TODO: THIS IS BOTTLENECK)
+    path_dist_matrix = nx.floyd_warshall_numpy(street_graph, nodelist=node_list, weight='mm_len')
+
+    # euclidean distance matrix from node to node
+    eucl_dist_matrix = libpysal.cg.distance_matrix(np.asarray(node_list), p=2.0)
+
+    # 0-500 meter circuity
+    eucl_0_500 = eucl_dist_matrix.copy()
+    path_0_500 = path_dist_matrix.copy()
+
+    bool_0_500 = np.array(np.where(eucl_0_500 <= 500, 1, 0), dtype=bool)
+    
+    eucl_0_500_sum = np.sum(eucl_0_500[bool_0_500])
+    path_0_500_sum = np.sum(path_0_500[bool_0_500])
+
+    if round(eucl_0_500_sum, 2):
+        print(f' Euclidiean sum for 0-500 {eucl_0_500_sum}')
+        print(f' Path sum for 0-500 {path_0_500_sum}')
+
+        circuity_0_500 = path_0_500_sum/eucl_0_500_sum
+        log_circuity_0_500 = np.log(circuity_0_500)
+    else:
+        log_circuity_0_500 = 0
+        print('WARNING: No nodes within 0-500 meters of each other')
+
+    # 500-1000 meter circuity
+    eucl_500_1000 = eucl_dist_matrix.copy()
+    path_500_1000 = path_dist_matrix.copy()
+
+    bool_500_1000 = np.array(np.where((eucl_500_1000 > 500) & (eucl_500_1000 <= 1000), 1, 0), dtype=bool)
+    
+    eucl_500_1000_sum = np.sum(eucl_500_1000[bool_500_1000])
+    path_500_1000_sum = np.sum(path_500_1000[bool_500_1000])
+
+    if round(eucl_500_1000_sum, 2):
+        print(f' Euclidiean sum for 500-1000 {eucl_500_1000_sum}')
+        print(f' Path sum for 500-1000 {path_500_1000_sum}')
+        circuity_500_1000 = path_500_1000_sum/eucl_500_1000_sum
+        log_circuity_500_1000 = np.log(circuity_500_1000)
+    else:
+        log_circuity_500_1000 = 0
+        print('WARNING: No nodes within 500-1000 meters of each other')
+
+    # 1000-1500 meter circuity
+    eucl_1000_1500 = eucl_dist_matrix.copy()
+    path_1000_1500 = path_dist_matrix.copy()
+
+    bool_1000_1500 = np.array(np.where((eucl_1000_1500 > 1000) & (eucl_1000_1500 <= 1500), 1, 0), dtype=bool)
+    
+    eucl_1000_1500_sum = np.sum(eucl_1000_1500[bool_1000_1500])
+    path_1000_1500_sum = np.sum(path_1000_1500[bool_1000_1500])
+
+    if round(eucl_1000_1500_sum, 2):
+        print(f' Euclidiean sum for 1000-1500 {eucl_1000_1500_sum}')
+        print(f' Path sum for 1000-1500 {path_1000_1500_sum}')
+
+        circuity_1000_1500 = path_1000_1500_sum/eucl_1000_1500_sum
+        log_circuity_1000_1500 = np.log(circuity_1000_1500)
+    else:
+        log_circuity_1000_1500 = 0
+        print('WARNING: No nodes within 1000-1500 meters of each other')
+
+    # 1500-2000 meter circuity
+    eucl_1500_2000 = eucl_dist_matrix.copy()
+    path_1500_2000 = path_dist_matrix.copy()
+
+    bool_1500_2000 = np.array(np.where((eucl_1500_2000 > 1500) & (eucl_1500_2000 <= 2000), 1, 0), dtype=bool)
+    
+    eucl_1500_2000_sum = np.sum(eucl_1500_2000[bool_1500_2000])
+    path_1500_2000_sum = np.sum(path_1500_2000[bool_1500_2000])
+    
+    if round(eucl_1500_2000_sum, 2):
+        print(f' Euclidiean sum for 1500-2000 {eucl_1500_2000_sum}')
+        print(f' Path sum for 1500-2000 {path_1500_2000_sum}')
+
+        circuity_1500_2000 = path_1500_2000_sum/eucl_1500_2000_sum
+        log_circuity_1500_2000 = np.log(circuity_1500_2000)
+    else:
+        log_circuity_1500_2000 = 0
+        print('WARNING: No nodes within 1500-2000 meters of each other')
+
+    # 2000-2500 meter circuity
+    eucl_2000_2500 = eucl_dist_matrix.copy()
+    path_2000_2500 = path_dist_matrix.copy()
+
+    bool_2000_2500 = np.array(np.where((eucl_2000_2500 > 2000) & (eucl_2000_2500 <= 2500), 1, 0), dtype=bool)
+    
+    eucl_2000_2500_sum = np.sum(eucl_2000_2500[bool_2000_2500])
+    path_2000_2500_sum = np.sum(path_2000_2500[bool_2000_2500])
+
+    if round(eucl_2000_2500_sum, 2):
+        print(f' Euclidiean sum for 2000-2500 {eucl_2000_2500_sum}')
+        print(f' Path sum for 2000-2500 {path_2000_2500_sum}')
+
+        circuity_2000_2500 = path_2000_2500_sum/eucl_2000_2500_sum
+        log_circuity_2000_2500 = np.log(circuity_2000_2500)
+    else:
+        log_circuity_2000_2500 = 0
+        print('WARNING: No nodes within 2000-2500 meters of each other')
+    
+    # 2500-3000 meter circuity
+    eucl_2500_3000 = eucl_dist_matrix.copy()
+    path_2500_3000 = path_dist_matrix.copy()
+
+    bool_2500_3000 = np.array(np.where((eucl_2500_3000 > 2500) & (eucl_2500_3000 <= 3000), 1, 0), dtype=bool)
+    
+    eucl_2500_3000_sum = np.sum(eucl_2500_3000[bool_2500_3000])
+    path_2500_3000_sum = np.sum(path_2500_3000[bool_2500_3000])
+
+    if eucl_2500_3000_sum:
+        print(f' Euclidiean sum for 2500-3000 {eucl_2500_3000_sum}')
+        print(f' Path sum for 2500-3000 {path_2500_3000_sum}')
+        circuity_2500_3000 = path_2500_3000_sum/eucl_2500_3000_sum
+        log_circuity_2500_3000 = np.log(circuity_2500_3000)
+    else:
+        log_circuity_2500_3000 = 0
+        print('WARNING: No nodes within 2500-3000 meters of each other')
+
+    '''
+    PART 7
+    calculate PCA1
+    '''
+    PCA1_1 = pca1_nodal_degree*(neg_mean_nodal_degree - mean_nodal_degree)/std_nodal_degree
+    PCA1_2 = pca1_frc_dead_ends*(frc_node_dead_ends - mean_frc_dead_ends)/std_frc_dead_ends
+    PCA1_3 = pca1_log_circuity_1*(log_circuity_0_500 - mean_log_circuity_1)/std_log_circuity_1
+    PCA1_4 = pca1_log_circuity_2*(log_circuity_500_1000 - mean_log_circuity_2)/std_log_circuity_2
+    PCA1_5 = pca1_log_circuity_3*(log_circuity_1000_1500 - mean_log_circuity_3)/std_log_circuity_3
+    PCA1_6 = pca1_log_circuity_4*(log_circuity_1500_2000 - mean_log_circuity_4)/std_log_circuity_4
+    PCA1_7 = pca1_log_circuity_5*(log_circuity_2000_2500 - mean_log_circuity_5)/std_log_circuity_5
+    PCA1_8 = pca1_log_circuity_6*(log_circuity_2500_3000 - mean_log_circuity_6)/std_log_circuity_6
+    PCA1_9 = pca1_frc_bridges_length*(frc_length_bridges - mean_frc_bridges_length)/std_frc_bridges_length
+    PCA1_10 = pca1_frc_bridges_N*(frc_edge_bridges - mean_frc_bridges_N)/std_frc_bridges_N
+    PCA1_11 = pca1_frc_non_cycle_length*(frc_length_non_cycle - mean_frc_non_cycle_length)/std_frc_non_cycle_length
+    PCA1_12 = pca1_frc_non_cycle_N*(frc_edge_non_cycles - mean_frc_non_cycle_N)/std_frc_non_cycle_N
+    PCA1_13 = pca1_log_sinuosity*(log_sinuosity - mean_log_sinuosity)/std_log_sinuosity
+
+    PCA1 = PCA1_1 + PCA1_2 + PCA1_3 + PCA1_4 + PCA1_5 + PCA1_6 + PCA1_7 + PCA1_8 + PCA1_9 + PCA1_10 + PCA1_11 + PCA1_12 + PCA1_13
+    '''
+    PART 8
+    calculate SNDi
+    '''
+
+    SNDi = PCA1 + 3.0
+
+    print(f'Mean nodal degree (-) is: {neg_mean_nodal_degree}')
+    print('-------------------------------------------------')
+    print(f'Fraction of node dead ends is: {frc_node_dead_ends}')
+    print('-------------------------------------------------')
+    print(f'Fraction of bridges length is: {frc_length_bridges}')
+    print('-------------------------------------------------')
+    print(f'Fraction of bridges N edges is: {frc_edge_bridges}')
+    print('-------------------------------------------------')
+    print(f'Fraction of non-cylce length is: {frc_length_non_cycle}')
+    print('-------------------------------------------------')
+    print(f'Fraction of bridges N edges is: {frc_edge_non_cycles}')
+    print('-------------------------------------------------')
+    print(f'Log of sinuosity is: {log_sinuosity}')
+    print('-------------------------------------------------')
+    print(f'Log of circuity 0-500 is: {log_circuity_0_500}')
+    print('-------------------------------------------------')
+    print(f'Log of circuity 500-1000 is: {log_circuity_500_1000}')
+    print('-------------------------------------------------')
+    print(f'Log of circuity 1000-1500 is: {log_circuity_1000_1500}')
+    print('-------------------------------------------------')
+    print(f'Log of circuity 1500-2000 is: {log_circuity_1500_2000}')
+    print('-------------------------------------------------')
+    print(f'Log of circuity 2000-2500 is: {log_circuity_2000_2500}')
+    print('-------------------------------------------------')
+    print(f'Log of circuity 2500-3000 is: {log_circuity_2500_3000}')
+    return SNDi
+
+
+def circuity(street_graph, distance_band=[]):
+
+    # get node list
+    node_list = street_graph.nodes
+    
     # get shortest path distance matrix from all nodes to all nodes
     path_dist_matrix = nx.floyd_warshall_numpy(street_graph, nodelist=node_list, weight='mm_len')
 
     # euclidean distance matrix from node to node
-    node_array = np.asarray(node_list)
     eucl_dist_matrix = libpysal.cg.distance_matrix(np.asarray(node_list), p=2.0)
+
+    # get circuity for band
+    circuity = circuity_band(path_dist_matrix, eucl_dist_matrix, distance_band)
+
+    return circuity
+
+
+def circuity_band(path_dist_matrix, eucl_dist_matrix, band=[0, 500]):
+
+    # Make copies
+    eucl_dist_band = eucl_dist_matrix.copy()
+    path_dist_band = path_dist_matrix.copy()
+
+    # get boolean array within using euclidean  
+    bool_band = np.array(np.where((eucl_dist_band > band[0]) & (eucl_dist_band <= band[1]), 1, 0), dtype=bool)
+
+    # get only values within eucldidean and sum
+    circuity_band = np.sum(path_dist_band[bool_band])/np.sum(eucl_dist_band[bool_band])
+    
+    return circuity_band
+
