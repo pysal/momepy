@@ -27,6 +27,8 @@ Momepy aims to provide a wide range of tools for a systematic and exhaustive ana
 
 Comments, suggestions, feedback, and contributions, as well as bug reports, are very welcome.
 
+The package is currently maintained by @martinfleis and @jGaboardi.
+
 ## Getting Started
 Quick and easy [getting started guide](http://docs.momepy.org/en/stable/user_guide/getting_started.html) is part of the [User Guide](http://docs.momepy.org/en/stable/user_guide/intro.html).
 

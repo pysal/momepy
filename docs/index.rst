@@ -37,6 +37,8 @@ elements, while focused on building footprints and street networks.
 Comments, suggestions, feedback, and contributions, as well as bug
 reports, are very welcome.
 
+The package is currently maintained by `@martinfleis`_ and `@jGaboardi`_.
+
 https://github.com/pysal/momepy
 
 Install
@@ -174,3 +176,5 @@ Indices and tables
 .. _Urban Design Studies Unit (UDSU): http://udsu-strath.com
 .. _Geographic Data Science Lab: https://www.liverpool.ac.uk/geographic-data-science/
 .. _Urban Grammar AI: https://urbangrammarai.xyz
+.. _@martinfleis: http://github.org/martinfleis
+.. _@jGaboardi: http://github.org/jGaboardi
