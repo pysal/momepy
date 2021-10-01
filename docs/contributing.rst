@@ -46,7 +46,7 @@ want to use command line, you can fork momepy repository using following::
 
     git clone git@github.com:your-user-name/momepy.git momepy-yourname
     cd momepy-yourname
-    git remote add upstream git://github.com/martinfleis/momepy.git
+    git remote add upstream git://github.com/pysal/momepy.git
 
 This creates the directory momepy-yourname and connects your repository to
 the upstream (main project) momepy repository.

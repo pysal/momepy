@@ -1,10 +1,10 @@
 # momepy container
 
-`momepy` is a library for quantitative analysis of urban form - urban morphometrics - built on top of GeoPandas, PySAL and networkX. This container provides the minimal environment needed to run momepy. 
+`momepy` is a library for quantitative analysis of urban form - urban morphometrics - built on top of GeoPandas, PySAL and networkX. This container provides the minimal environment needed to run momepy.
 
 Documentation: http://docs.momepy.org/en/stable/
 
-Source code: https://github.com/martinfleis/momepy
+Source code: https://github.com/pysal/momepy
 
 Docker repository: https://hub.docker.com/repository/docker/martinfleis/momepy
 

@@ -125,7 +125,7 @@ html_theme = "pydata_sphinx_theme"
 # documentation.
 #
 html_theme_options = {
-    "github_url": "https://github.com/martinfleis/momepy",
+    "github_url": "https://github.com/pysal/momepy",
     "twitter_url": "https://twitter.com/martinfleis",
     "google_analytics_id": "UA-6190355-13",
 }
@@ -247,9 +247,9 @@ nbsphinx_prolog = r"""
     .. note::
 
         | This page was generated from `{{ docname }}`__.
-        | Interactive online version: :raw-html:`<a href="https://mybinder.org/v2/gh/martinfleis/momepy/master?urlpath=lab/tree/docs/{{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
+        | Interactive online version: :raw-html:`<a href="https://mybinder.org/v2/gh/pysal/momepy/master?urlpath=lab/tree/docs/{{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
 
-        __ https://github.com/martinfleis/momepy/blob/master/docs/{{ docname }}
+        __ https://github.com/pysal/momepy/blob/master/docs/{{ docname }}
 """
 
 
@@ -275,4 +275,4 @@ def linkcode_resolve(domain, info):
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
     tag = "main" if "+" in release else ("v" + release)
-    return "https://github.com/martinfleis/momepy/blob/%s/%s" % (tag, filename)
+    return "https://github.com/pysal/momepy/blob/%s/%s" % (tag, filename)

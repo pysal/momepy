@@ -36,7 +36,7 @@ elements, while focused on building footprints and street networks.
 Comments, suggestions, feedback, and contributions, as well as bug
 reports, are very welcome.
 
-https://github.com/martinfleis/momepy
+https://github.com/pysal/momepy
 
 Install
 -------
@@ -62,7 +62,7 @@ Examples
                                right_areas='area', unique_id='uID')
    tessellation['CAR'] = coverage.series
 
-.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/example1.png
+.. figure:: https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/example1.png
    :alt: Coverage Area Ratio
 
    Coverage Area Ratio
@@ -74,7 +74,7 @@ Examples
                                  unique_id='uID')
    tessellation['area_simpson'] = area_simpson.series
 
-.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/diversity_22_0.png
+.. figure:: https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/diversity_22_0.png
    :alt: Local Simpson's diversity of area
 
    Local Simpson's diversity of area
@@ -83,7 +83,7 @@ Examples
 
    G = momepy.straightness_centrality(G)
 
-.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/centrality_27_0.png
+.. figure:: https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/centrality_27_0.png
    :alt: Straightness centrality
 
    Straightness centrality
