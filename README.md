@@ -1,12 +1,15 @@
 # momepy
-[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Actions Status](https://github.com/martinfleis/momepy/workflows/Tests/badge.svg)](https://github.com/martinfleis/momepy/actions?query=workflow%3ATests)
-[![codecov](https://codecov.io/gh/martinfleis/momepy/branch/main/graph/badge.svg)](https://codecov.io/gh/martinfleis/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/martinfleis/momepy/badge)](https://www.codefactor.io/repository/github/martinfleis/momepy) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
+[![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Actions Status](https://github.com/pysal/momepy/workflows/Tests/badge.svg)](https://github.com/pysal/momepy/actions?query=workflow%3ATests)
+[![codecov](https://codecov.io/gh/pysal/momepy/branch/main/graph/badge.svg?token=VNn0WR5JWT)](https://codecov.io/gh/pysal/momepy) [![CodeFactor](https://www.codefactor.io/repository/github/pysal/momepy/badge)](https://www.codefactor.io/repository/github/pysal/momepy) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
 
 
-<img src="https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/logo.png" width="50%">
+<img src="https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/logo.png" width="50%">
 
 ## Introduction
-Momepy is a library for quantitative analysis of urban form - urban morphometrics. It is built on top of [GeoPandas](http://geopandas.org), [PySAL](http://pysal.org) and [networkX](http://networkx.github.io).
+Momepy is a library for quantitative analysis of urban form - urban morphometrics. It is
+part of [PySAL (Python Spatial Analysis Library)](http://pysal.org) and is built on top
+of [GeoPandas](http://geopandas.org), other [PySAL](http://pysal.org) modules and
+[networkX](http://networkx.github.io).
 
 > *momepy* stands for Morphological Measuring in Python
 
@@ -24,6 +27,8 @@ Momepy aims to provide a wide range of tools for a systematic and exhaustive ana
 
 Comments, suggestions, feedback, and contributions, as well as bug reports, are very welcome.
 
+The package is currently maintained by @martinfleis and @jGaboardi.
+
 ## Getting Started
 Quick and easy [getting started guide](http://docs.momepy.org/en/stable/user_guide/getting_started.html) is part of the [User Guide](http://docs.momepy.org/en/stable/user_guide/intro.html).
 
@@ -40,7 +45,7 @@ coverage = momepy.AreaRatio(tessellation, buildings, left_areas=tessellation.are
 tessellation['CAR'] = coverage.series
 ```
 
-![Coverage Area Ratio](https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/example1.png)
+![Coverage Area Ratio](https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/example1.png)
 
 ```py
 area_simpson = momepy.Simpson(tessellation, values='area',
@@ -49,13 +54,13 @@ area_simpson = momepy.Simpson(tessellation, values='area',
 tessellation['area_simpson'] = area_simpson.series
 ```
 
-![Local Simpson's diversity of area](https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/diversity_22_0.png)
+![Local Simpson's diversity of area](https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/diversity_22_0.png)
 
 ```py
 G = momepy.straightness_centrality(G)
 ```
 
-![Straightness centrality](https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/centrality_27_0.png)
+![Straightness centrality](https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/centrality_27_0.png)
 
 
 ## How to cite
@@ -102,7 +107,7 @@ If you have a question regarding momepy, feel free to open an issue on GitHub. E
 
 ## Acknowledgements
 
-Initial release of momepy was a result of a research of [Urban Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with University of Strathclyde in Glasgow, UK. Further development was supported by [Geographic Data Science Lab](https://www.liverpool.ac.uk/geographic-data-science/) of the University of Liverpool wihtin [Urban Grammar AI](https://urbangrammarai.github.io) research project.
+Initial release of momepy was a result of a research of [Urban Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with University of Strathclyde in Glasgow, UK. Further development was supported by [Geographic Data Science Lab](https://www.liverpool.ac.uk/geographic-data-science/) of the University of Liverpool wihtin [Urban Grammar AI](https://urbangrammarai.xyz) research project.
 
 ---
 Copyright (c) 2018- Martin Fleischmann

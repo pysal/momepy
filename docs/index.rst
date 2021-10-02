@@ -10,7 +10,8 @@ Introduction
 ------------
 
 Momepy is a library for quantitative analysis of urban form - urban
-morphometrics. It is built on top of `GeoPandas`_, `PySAL`_ and
+morphometrics. It is part of `PySAL (Python Spatial Analysis Library)`_
+and is built on top of `GeoPandas`_, other `PySAL`_ modules and
 `networkX`_.
 
     *momepy* stands for Morphological Measuring in Python
@@ -36,7 +37,9 @@ elements, while focused on building footprints and street networks.
 Comments, suggestions, feedback, and contributions, as well as bug
 reports, are very welcome.
 
-https://github.com/martinfleis/momepy
+The package is currently maintained by `@martinfleis`_ and `@jGaboardi`_.
+
+https://github.com/pysal/momepy
 
 Install
 -------
@@ -62,7 +65,7 @@ Examples
                                right_areas='area', unique_id='uID')
    tessellation['CAR'] = coverage.series
 
-.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/example1.png
+.. figure:: https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/example1.png
    :alt: Coverage Area Ratio
 
    Coverage Area Ratio
@@ -74,7 +77,7 @@ Examples
                                  unique_id='uID')
    tessellation['area_simpson'] = area_simpson.series
 
-.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/diversity_22_0.png
+.. figure:: https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/diversity_22_0.png
    :alt: Local Simpson's diversity of area
 
    Local Simpson's diversity of area
@@ -83,7 +86,7 @@ Examples
 
    G = momepy.straightness_centrality(G)
 
-.. figure:: https://raw.githubusercontent.com/martinfleis/momepy/main/docs/_static/centrality_27_0.png
+.. figure:: https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/centrality_27_0.png
    :alt: Straightness centrality
 
    Straightness centrality
@@ -166,9 +169,12 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+.. _PySAL (Python Spatial Analysis Library): http://pysal.org
 .. _GeoPandas: http://geopandas.org
 .. _PySAL: http://pysal.org
 .. _networkX: http://networkx.github.io
 .. _Urban Design Studies Unit (UDSU): http://udsu-strath.com
 .. _Geographic Data Science Lab: https://www.liverpool.ac.uk/geographic-data-science/
-.. _Urban Grammar AI: https://urbangrammarai.github.io
+.. _Urban Grammar AI: https://urbangrammarai.xyz
+.. _@martinfleis: http://github.org/martinfleis
+.. _@jGaboardi: http://github.org/jGaboardi
