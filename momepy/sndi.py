@@ -37,7 +37,8 @@ from .utils import nx_to_gdf, gdf_to_nx
 from .graph import mean_node_degree, node_degree
 from .preprocessing import remove_false_nodes
 from .shape import Linearity
-    
+
+import time
 
 def SNDi(street_graph):
 
@@ -242,6 +243,7 @@ def SNDi(street_graph):
     '''
     PART 6
     calculate circuity metrics
+    TODO: jsut need one function
     '''
     # get node list
     node_list = street_graph.nodes
@@ -249,9 +251,13 @@ def SNDi(street_graph):
     # euclidean distance matrix from node to node
     eucl_dist_matrix = libpysal.cg.distance_matrix(np.asarray(node_list), p=2.0)
 
+    # set anything farher away than 3km to zero
+    eucl_dist_matrix[eucl_dist_matrix > 3000] = 0.0
+
     # get shortest path distance matrix from all nodes to all nodes (TODO: THIS IS BOTTLENECK)
-    path_dist_matrix = nx.floyd_warshall_numpy(street_graph, nodelist=node_list, weight='mm_len')
-    path_dist_matrix[path_dist_matrix == np.Inf] = 0
+    df = pd.DataFrame.from_dict(dict(nx.all_pairs_dijkstra_path_length(street_graph, weight='mm_len')))
+    path_dist_matrix = df.reindex(index=node_list, columns=node_list).to_numpy()
+    path_dist_matrix = np.nan_to_num(path_dist_matrix, posinf=0, neginf=0)
 
     # 0-500 meter circuity
     eucl_0_500 = eucl_dist_matrix.copy()
@@ -262,7 +268,7 @@ def SNDi(street_graph):
     eucl_0_500_sum = np.sum(eucl_0_500[bool_0_500])
     path_0_500_sum = np.sum(path_0_500[bool_0_500])
 
-    # replace all infinite with zero
+    # replace all infinity with zero
     if round(eucl_0_500_sum, 2):
         circuity_0_500 = path_0_500_sum/eucl_0_500_sum
         log_circuity_0_500 = np.log(circuity_0_500)
