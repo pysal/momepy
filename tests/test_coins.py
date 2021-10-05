@@ -44,9 +44,7 @@ class TestCOINS:
             ],
             index=expected_index,
         )
-        assert_series_equal(
-            result.length, expected, check_less_precise=6, check_exact=False
-        )
+        assert_series_equal(result.length, expected, atol=0.0001, check_exact=False)
 
     def test_stroke_attribute(self):
         coins = mm.COINS(self.gdf)

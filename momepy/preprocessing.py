@@ -4,6 +4,8 @@
 import collections
 import math
 import operator
+from distutils.version import LooseVersion
+import warnings
 
 import geopandas as gpd
 import libpysal
@@ -22,6 +24,8 @@ __all__ = [
     "close_gaps",
     "extend_lines",
 ]
+
+GPD_10 = str(gpd.__version__) >= LooseVersion("0.10")
 
 
 def preprocess(
@@ -70,8 +74,11 @@ def preprocess(
         GeoDataFrame containing preprocessed geometry
     """
     blg = buildings.copy()
-    blg = blg.explode()
-    blg.reset_index(drop=True, inplace=True)
+    if GPD_10:
+        blg = blg.explode(ignore_index=True)
+    else:
+        blg = blg.explode()
+        blg.reset_index(drop=True, inplace=True)
     for loop in range(0, loops):
         print("Loop", loop + 1, f"out of {loops}.") if verbose else None
         blg.reset_index(inplace=True, drop=True)
@@ -199,8 +206,11 @@ def remove_false_nodes(gdf):
     """
     if isinstance(gdf, (gpd.GeoDataFrame, gpd.GeoSeries)):
         # explode to avoid MultiLineStrings
-        # double reset index due to the bug in GeoPandas explode
-        df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
+        # reset index due to the bug in GeoPandas explode
+        if GPD_10:
+            df = gdf.reset_index(drop=True).explode(ignore_index=True)
+        else:
+            df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
 
         # get underlying pygeos geometry
         geom = df.geometry.values.data
@@ -255,7 +265,10 @@ def remove_false_nodes(gdf):
 
         # remove incorrect geometries and append fixed versions
         df = df.drop(merge)
-        final = gpd.GeoSeries(new).explode().reset_index(drop=True)
+        if GPD_10:
+            final = gpd.GeoSeries(new).explode(ignore_index=True)
+        else:
+            final = gpd.GeoSeries(new).explode().reset_index(drop=True)
         if isinstance(gdf, gpd.GeoDataFrame):
             return df.append(
                 gpd.GeoDataFrame({df.geometry.name: final}, geometry=df.geometry.name),
@@ -348,7 +361,9 @@ class CheckTessellationInput:
 
         if overlap:
             shrink = shrink.reset_index(drop=True)
-            shrink = shrink[~(shrink.is_empty | shrink.geometry.isna())]
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", "GeoSeries.isna", UserWarning)
+                shrink = shrink[~(shrink.is_empty | shrink.geometry.isna())]
             sindex = shrink.sindex
             hits = shrink.bounds.apply(
                 lambda row: list(sindex.intersection(row)), axis=1
@@ -476,8 +491,11 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
 
     """
     # explode to avoid MultiLineStrings
-    # double reset index due to the bug in GeoPandas explode
-    df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
+    # reset index due to the bug in GeoPandas explode
+    if GPD_10:
+        df = gdf.reset_index(drop=True).explode(ignore_index=True)
+    else:
+        df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
 
     if target is None:
         target = df
