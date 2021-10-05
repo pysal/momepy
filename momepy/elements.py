@@ -3,6 +3,8 @@
 
 # elements.py
 # generating derived elements (street edge, block)
+from distutils.version import LooseVersion
+
 import geopandas as gpd
 import libpysal
 import warnings
@@ -26,6 +28,8 @@ __all__ = [
     "enclosures",
     "get_network_ratio",
 ]
+
+GPD_10 = str(gpd.__version__) >= LooseVersion("0.10")
 
 
 def buffered_limit(gdf, buffer=100):
@@ -276,8 +280,10 @@ class Tessellation:
             objects.loc[mask, objects.geometry.name] = objects[mask].buffer(
                 -shrink, cap_style=2, join_style=2
             )
-
-        objects = objects.reset_index(drop=True).explode()
+        if GPD_10:
+            objects = objects.reset_index(drop=True).explode(ignore_index=True)
+        else:
+            objects = objects.reset_index(drop=True).explode(ignore_index=True)
         objects = objects.set_index(unique_id)
 
         print("Generating input point array...") if verbose else None
@@ -629,29 +635,54 @@ class Blocks:
             tessellation,
             gpd.GeoDataFrame(geometry=edges.buffer(0.001)),
             how="difference",
-        ).explode()
+        )
+        if GPD_10:
+            cut = cut.explode(ignore_index=True)
+        else:
+            cut = cut.explode()
 
         W = libpysal.weights.Queen.from_dataframe(cut, silence_warnings=True)
         cut["component"] = W.component_labels
         buildings_c = buildings.copy()
         buildings_c.geometry = buildings_c.representative_point()  # make points
-        centroids_tempID = gpd.sjoin(
-            buildings_c,
-            cut[[cut.geometry.name, "component"]],
-            how="left",
-            op="intersects",
-        )
+        if GPD_10:
+            centroids_tempID = gpd.sjoin(
+                buildings_c,
+                cut[[cut.geometry.name, "component"]],
+                how="left",
+                predicate="intersects",
+            )
+        else:
+            centroids_tempID = gpd.sjoin(
+                buildings_c,
+                cut[[cut.geometry.name, "component"]],
+                how="left",
+                op="intersects",
+            )
+
         cells_copy = tessellation[[unique_id, tessellation.geometry.name]].merge(
             centroids_tempID[[unique_id, "component"]], on=unique_id, how="left"
         )
-        blocks = cells_copy.dissolve(by="component").explode().reset_index(drop=True)
+        if GPD_10:
+            blocks = cells_copy.dissolve(by="component").explode(ignore_index=True)
+        else:
+            blocks = (
+                cells_copy.dissolve(by="component").explode().reset_index(drop=True)
+            )
         blocks[id_name] = range(len(blocks))
         blocks[blocks.geometry.name] = gpd.GeoSeries(
             pygeos.polygons(blocks.exterior.values.data), crs=blocks.crs
         )
         blocks = blocks[[id_name, blocks.geometry.name]]
 
-        centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks, how="left", op="intersects")
+        if GPD_10:
+            centroids_w_bl_ID2 = gpd.sjoin(
+                buildings_c, blocks, how="left", predicate="intersects"
+            )
+        else:
+            centroids_w_bl_ID2 = gpd.sjoin(
+                buildings_c, blocks, how="left", op="intersects"
+            )
         bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
 
         buildings_m = buildings[[unique_id]].merge(
@@ -815,47 +846,54 @@ def get_node_id(
         nodes["mm_noid"] = node_id
         node_id = "mm_noid"
 
-    results_list = []
-    if edge_id is not None:
-        edges = edges.set_index(edge_id)
-        centroids = objects.centroid
-        for eid, centroid in tqdm(
-            zip(objects[edge_id], centroids),
-            total=objects.shape[0],
-            disable=not verbose,
-        ):
-            if np.isnan(eid):
-                results_list.append(np.nan)
-            else:
-                edge = edges.loc[eid]
+    with warnings.catch_warnings():
+        # https://github.com/pygeos/pygeos/issues/404
+        warnings.filterwarnings(
+            "ignore",
+            category=RuntimeWarning,
+            message="overflow encountered in distance",
+        )
+        results_list = []
+        if edge_id is not None:
+            edges = edges.set_index(edge_id)
+            centroids = objects.centroid
+            for eid, centroid in tqdm(
+                zip(objects[edge_id], centroids),
+                total=objects.shape[0],
+                disable=not verbose,
+            ):
+                if np.isnan(eid):
+                    results_list.append(np.nan)
+                else:
+                    edge = edges.loc[eid]
+                    startID = edge.node_start
+                    start = nodes.loc[startID].geometry
+                    sd = centroid.distance(start)
+                    endID = edge.node_end
+                    end = nodes.loc[endID].geometry
+                    ed = centroid.distance(end)
+                    if sd > ed:
+                        results_list.append(endID)
+                    else:
+                        results_list.append(startID)
+
+        elif edge_keys is not None and edge_values is not None:
+            for edge_i, edge_r, geom in tqdm(
+                zip(objects[edge_keys], objects[edge_values], objects.geometry),
+                total=objects.shape[0],
+                disable=not verbose,
+            ):
+                edge = edges.iloc[edge_i[edge_r.index(max(edge_r))]]
                 startID = edge.node_start
                 start = nodes.loc[startID].geometry
-                sd = centroid.distance(start)
+                sd = geom.distance(start)
                 endID = edge.node_end
                 end = nodes.loc[endID].geometry
-                ed = centroid.distance(end)
+                ed = geom.distance(end)
                 if sd > ed:
                     results_list.append(endID)
                 else:
                     results_list.append(startID)
-
-    elif edge_keys is not None and edge_values is not None:
-        for edge_i, edge_r, geom in tqdm(
-            zip(objects[edge_keys], objects[edge_values], objects.geometry),
-            total=objects.shape[0],
-            disable=not verbose,
-        ):
-            edge = edges.iloc[edge_i[edge_r.index(max(edge_r))]]
-            startID = edge.node_start
-            start = nodes.loc[startID].geometry
-            sd = geom.distance(start)
-            endID = edge.node_end
-            end = nodes.loc[endID].geometry
-            ed = geom.distance(end)
-            if sd > ed:
-                results_list.append(endID)
-            else:
-                results_list.append(startID)
 
     series = pd.Series(results_list, index=objects.index)
     return series
@@ -930,13 +968,21 @@ def get_network_ratio(df, edges, initial_buffer=500):
     nans = df.index.difference(edge_dicts.index)
     buffered = df.iloc[nans].buffer(initial_buffer)
     additional = []
-    for orig, geom in zip(df.iloc[nans].geometry, buffered.geometry):
-        query = edges.sindex.query(geom, predicate="intersects")
-        b = initial_buffer
-        while query.size == 0:
-            query = edges.sindex.query(geom.buffer(b), predicate="intersects")
-            b += initial_buffer
-        additional.append({edges.iloc[query].distance(orig).idxmin(): 1})
+
+    with warnings.catch_warnings():
+        # https://github.com/pygeos/pygeos/issues/404
+        warnings.filterwarnings(
+            "ignore",
+            category=RuntimeWarning,
+            message="overflow encountered in distance",
+        )
+        for orig, geom in zip(df.iloc[nans].geometry, buffered.geometry):
+            query = edges.sindex.query(geom, predicate="intersects")
+            b = initial_buffer
+            while query.size == 0:
+                query = edges.sindex.query(geom.buffer(b), predicate="intersects")
+                b += initial_buffer
+            additional.append({edges.iloc[query].distance(orig).idxmin(): 1})
 
     additional = pd.Series(additional, index=nans)
     ratios = pd.concat([edge_dicts, additional]).sort_index()
@@ -1031,11 +1077,9 @@ def enclosures(
             union = pygeos.union_all(
                 np.append(crossing_ins, pygeos.boundary(poly))
             )  # union
-            polygons = np.array(
-                list(polygonize(_pygeos_to_shapely(union)))
-            )  # polygonize
+            polygons = pygeos.get_parts(pygeos.polygonize([union]))  # polygonize
             within = pygeos.covered_by(
-                pygeos.from_shapely(polygons), buf
+                polygons, buf
             )  # keep only those within original polygon
             new += list(polygons[within])
 

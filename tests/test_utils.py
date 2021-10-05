@@ -130,7 +130,9 @@ class TestUtils:
             attributes = dict(zip(list(self.df_streets.columns), data))
             G.add_edge(first, last, key=key, **attributes)
             key += 1
-        nodes, edges = mm.nx_to_gdf(G)
+
+        with pytest.warns(UserWarning, match="Approach is not set"):
+            nodes, edges = mm.nx_to_gdf(G)
         assert len(nodes) == 29
         assert len(edges) == 35
 
@@ -147,7 +149,8 @@ class TestUtils:
     def test_nx_to_gdf_osmnx(self):
         # osmnx compatibility
         G = ox.graph_from_place("Preborov, Czechia", network_type="drive")
-        pts, lines = mm.nx_to_gdf(G)
+        with pytest.warns(UserWarning, match="Approach is not set"):
+            pts, lines = mm.nx_to_gdf(G)
         assert len(pts) == 7
         assert len(lines) == 16
 

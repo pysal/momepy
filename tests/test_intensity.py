@@ -94,7 +94,7 @@ class TestIntensity:
 
     def test_Courtyards(self):
         courtyards = mm.Courtyards(self.df_buildings).series
-        sw = Queen.from_dataframe(self.df_buildings)
+        sw = Queen.from_dataframe(self.df_buildings, silence_warnings=True)
         courtyards_wm = mm.Courtyards(self.df_buildings, sw).series
         check = 0.6805555555555556
         assert courtyards.mean() == check
