@@ -26,7 +26,7 @@ setup(
     description="Urban Morphology Measuring Toolkit",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    license="MIT",
+    license="BSD",
     author="Martin Fleischmann",
     author_email="martin@martinfleischmann.net",
     keywords=["urban morphology", "urban morphometrics", "tessellation"],
@@ -35,7 +35,7 @@ setup(
     package_data={"momepy": data_files},
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: GIS",
