@@ -252,12 +252,15 @@ def SNDi(street_graph):
     eucl_dist_matrix = libpysal.cg.distance_matrix(np.asarray(node_list), p=2.0)
 
     # set anything farher away than 3km to zero
-    eucl_dist_matrix[eucl_dist_matrix > 3000] = 0.0
+    # eucl_dist_matrix[eucl_dist_matrix > 3000] = 0.0
+    bool_0_3000 = np.array(np.where(eucl_dist_matrix < 3000, 1, 0), dtype=bool)
+    eucl_dist_matrix = eucl_dist_matrix[bool_0_3000]
 
     # get shortest path distance matrix from all nodes to all nodes (TODO: THIS IS BOTTLENECK)
     df = pd.DataFrame.from_dict(dict(nx.all_pairs_dijkstra_path_length(street_graph, weight='mm_len')))
     path_dist_matrix = df.reindex(index=node_list, columns=node_list).to_numpy()
     path_dist_matrix = np.nan_to_num(path_dist_matrix, posinf=0, neginf=0)
+    path_dist_matrix = path_dist_matrix[bool_0_3000]
 
     # 0-500 meter circuity
     eucl_0_500 = eucl_dist_matrix.copy()
