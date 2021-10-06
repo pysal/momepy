@@ -16,9 +16,6 @@ from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
 from tqdm.auto import tqdm
 
-# TODO: this should not be needed with shapely 2.0
-from geopandas._vectorized import _pygeos_to_shapely
-
 __all__ = [
     "buffered_limit",
     "Tessellation",
@@ -846,54 +843,47 @@ def get_node_id(
         nodes["mm_noid"] = node_id
         node_id = "mm_noid"
 
-    with warnings.catch_warnings():
-        # https://github.com/pygeos/pygeos/issues/404
-        warnings.filterwarnings(
-            "ignore",
-            category=RuntimeWarning,
-            message="overflow encountered in distance",
-        )
-        results_list = []
-        if edge_id is not None:
-            edges = edges.set_index(edge_id)
-            centroids = objects.centroid
-            for eid, centroid in tqdm(
-                zip(objects[edge_id], centroids),
-                total=objects.shape[0],
-                disable=not verbose,
-            ):
-                if np.isnan(eid):
-                    results_list.append(np.nan)
-                else:
-                    edge = edges.loc[eid]
-                    startID = edge.node_start
-                    start = nodes.loc[startID].geometry
-                    sd = centroid.distance(start)
-                    endID = edge.node_end
-                    end = nodes.loc[endID].geometry
-                    ed = centroid.distance(end)
-                    if sd > ed:
-                        results_list.append(endID)
-                    else:
-                        results_list.append(startID)
-
-        elif edge_keys is not None and edge_values is not None:
-            for edge_i, edge_r, geom in tqdm(
-                zip(objects[edge_keys], objects[edge_values], objects.geometry),
-                total=objects.shape[0],
-                disable=not verbose,
-            ):
-                edge = edges.iloc[edge_i[edge_r.index(max(edge_r))]]
+    results_list = []
+    if edge_id is not None:
+        edges = edges.set_index(edge_id)
+        centroids = objects.centroid
+        for eid, centroid in tqdm(
+            zip(objects[edge_id], centroids),
+            total=objects.shape[0],
+            disable=not verbose,
+        ):
+            if np.isnan(eid):
+                results_list.append(np.nan)
+            else:
+                edge = edges.loc[eid]
                 startID = edge.node_start
                 start = nodes.loc[startID].geometry
-                sd = geom.distance(start)
+                sd = centroid.distance(start)
                 endID = edge.node_end
                 end = nodes.loc[endID].geometry
-                ed = geom.distance(end)
+                ed = centroid.distance(end)
                 if sd > ed:
                     results_list.append(endID)
                 else:
                     results_list.append(startID)
+
+    elif edge_keys is not None and edge_values is not None:
+        for edge_i, edge_r, geom in tqdm(
+            zip(objects[edge_keys], objects[edge_values], objects.geometry),
+            total=objects.shape[0],
+            disable=not verbose,
+        ):
+            edge = edges.iloc[edge_i[edge_r.index(max(edge_r))]]
+            startID = edge.node_start
+            start = nodes.loc[startID].geometry
+            sd = geom.distance(start)
+            endID = edge.node_end
+            end = nodes.loc[endID].geometry
+            ed = geom.distance(end)
+            if sd > ed:
+                results_list.append(endID)
+            else:
+                results_list.append(startID)
 
     series = pd.Series(results_list, index=objects.index)
     return series
@@ -969,20 +959,13 @@ def get_network_ratio(df, edges, initial_buffer=500):
     buffered = df.iloc[nans].buffer(initial_buffer)
     additional = []
 
-    with warnings.catch_warnings():
-        # https://github.com/pygeos/pygeos/issues/404
-        warnings.filterwarnings(
-            "ignore",
-            category=RuntimeWarning,
-            message="overflow encountered in distance",
-        )
-        for orig, geom in zip(df.iloc[nans].geometry, buffered.geometry):
-            query = edges.sindex.query(geom, predicate="intersects")
-            b = initial_buffer
-            while query.size == 0:
-                query = edges.sindex.query(geom.buffer(b), predicate="intersects")
-                b += initial_buffer
-            additional.append({edges.iloc[query].distance(orig).idxmin(): 1})
+    for orig, geom in zip(df.iloc[nans].geometry, buffered.geometry):
+        query = edges.sindex.query(geom, predicate="intersects")
+        b = initial_buffer
+        while query.size == 0:
+            query = edges.sindex.query(geom.buffer(b), predicate="intersects")
+            b += initial_buffer
+        additional.append({edges.iloc[query].distance(orig).idxmin(): 1})
 
     additional = pd.Series(additional, index=nans)
     ratios = pd.concat([edge_dicts, additional]).sort_index()

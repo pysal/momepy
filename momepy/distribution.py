@@ -555,28 +555,21 @@ class NeighborDistance:
 
         data = gdf.set_index(unique_id).geometry
 
-        with warnings.catch_warnings():
-            # https://github.com/pygeos/pygeos/issues/404
-            warnings.filterwarnings(
-                "ignore",
-                category=RuntimeWarning,
-                message="overflow encountered in distance",
-            )
-            # iterating over rows one by one
-            for index, geom in tqdm(
-                data.iteritems(), total=data.shape[0], disable=not verbose
-            ):
-                if geom is not None and index in spatial_weights.neighbors.keys():
-                    neighbours = spatial_weights.neighbors[index]
-                    building_neighbours = data.loc[neighbours]
-                    if len(building_neighbours) > 0:
-                        results_list.append(
-                            building_neighbours.geometry.distance(geom).mean()
-                        )
-                    else:
-                        results_list.append(np.nan)
+        # iterating over rows one by one
+        for index, geom in tqdm(
+            data.iteritems(), total=data.shape[0], disable=not verbose
+        ):
+            if geom is not None and index in spatial_weights.neighbors.keys():
+                neighbours = spatial_weights.neighbors[index]
+                building_neighbours = data.loc[neighbours]
+                if len(building_neighbours) > 0:
+                    results_list.append(
+                        building_neighbours.geometry.distance(geom).mean()
+                    )
                 else:
                     results_list.append(np.nan)
+            else:
+                results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=gdf.index)
 
@@ -656,19 +649,12 @@ class MeanInterbuildingDistance:
 
         # define adjacency list from lipysal
         adj_list = spatial_weights.to_adjlist()
-        with warnings.catch_warnings():
-            # https://github.com/pygeos/pygeos/issues/404
-            warnings.filterwarnings(
-                "ignore",
-                category=RuntimeWarning,
-                message="overflow encountered in distance",
-            )
-            adj_list["weight"] = (
-                data.loc[adj_list.focal]
-                .reset_index(drop=True)
-                .distance(data.loc[adj_list.neighbor].reset_index(drop=True))
-                .values
-            )
+        adj_list["weight"] = (
+            data.loc[adj_list.focal]
+            .reset_index(drop=True)
+            .distance(data.loc[adj_list.neighbor].reset_index(drop=True))
+            .values
+        )
 
         # generate graph
         G = nx.from_pandas_edgelist(
