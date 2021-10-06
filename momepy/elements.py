@@ -3,6 +3,8 @@
 
 # elements.py
 # generating derived elements (street edge, block)
+from distutils.version import LooseVersion
+
 import geopandas as gpd
 import libpysal
 import warnings
@@ -14,9 +16,6 @@ from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
 from tqdm.auto import tqdm
 
-# TODO: this should not be needed with shapely 2.0
-from geopandas._vectorized import _pygeos_to_shapely
-
 __all__ = [
     "buffered_limit",
     "Tessellation",
@@ -26,6 +25,8 @@ __all__ = [
     "enclosures",
     "get_network_ratio",
 ]
+
+GPD_10 = str(gpd.__version__) >= LooseVersion("0.10")
 
 
 def buffered_limit(gdf, buffer=100):
@@ -276,8 +277,10 @@ class Tessellation:
             objects.loc[mask, objects.geometry.name] = objects[mask].buffer(
                 -shrink, cap_style=2, join_style=2
             )
-
-        objects = objects.reset_index(drop=True).explode()
+        if GPD_10:
+            objects = objects.reset_index(drop=True).explode(ignore_index=True)
+        else:
+            objects = objects.reset_index(drop=True).explode(ignore_index=True)
         objects = objects.set_index(unique_id)
 
         print("Generating input point array...") if verbose else None
@@ -629,29 +632,54 @@ class Blocks:
             tessellation,
             gpd.GeoDataFrame(geometry=edges.buffer(0.001)),
             how="difference",
-        ).explode()
+        )
+        if GPD_10:
+            cut = cut.explode(ignore_index=True)
+        else:
+            cut = cut.explode()
 
         W = libpysal.weights.Queen.from_dataframe(cut, silence_warnings=True)
         cut["component"] = W.component_labels
         buildings_c = buildings.copy()
         buildings_c.geometry = buildings_c.representative_point()  # make points
-        centroids_tempID = gpd.sjoin(
-            buildings_c,
-            cut[[cut.geometry.name, "component"]],
-            how="left",
-            op="intersects",
-        )
+        if GPD_10:
+            centroids_tempID = gpd.sjoin(
+                buildings_c,
+                cut[[cut.geometry.name, "component"]],
+                how="left",
+                predicate="intersects",
+            )
+        else:
+            centroids_tempID = gpd.sjoin(
+                buildings_c,
+                cut[[cut.geometry.name, "component"]],
+                how="left",
+                op="intersects",
+            )
+
         cells_copy = tessellation[[unique_id, tessellation.geometry.name]].merge(
             centroids_tempID[[unique_id, "component"]], on=unique_id, how="left"
         )
-        blocks = cells_copy.dissolve(by="component").explode().reset_index(drop=True)
+        if GPD_10:
+            blocks = cells_copy.dissolve(by="component").explode(ignore_index=True)
+        else:
+            blocks = (
+                cells_copy.dissolve(by="component").explode().reset_index(drop=True)
+            )
         blocks[id_name] = range(len(blocks))
         blocks[blocks.geometry.name] = gpd.GeoSeries(
             pygeos.polygons(blocks.exterior.values.data), crs=blocks.crs
         )
         blocks = blocks[[id_name, blocks.geometry.name]]
 
-        centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks, how="left", op="intersects")
+        if GPD_10:
+            centroids_w_bl_ID2 = gpd.sjoin(
+                buildings_c, blocks, how="left", predicate="intersects"
+            )
+        else:
+            centroids_w_bl_ID2 = gpd.sjoin(
+                buildings_c, blocks, how="left", op="intersects"
+            )
         bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
 
         buildings_m = buildings[[unique_id]].merge(
@@ -930,6 +958,7 @@ def get_network_ratio(df, edges, initial_buffer=500):
     nans = df.index.difference(edge_dicts.index)
     buffered = df.iloc[nans].buffer(initial_buffer)
     additional = []
+
     for orig, geom in zip(df.iloc[nans].geometry, buffered.geometry):
         query = edges.sindex.query(geom, predicate="intersects")
         b = initial_buffer
@@ -1031,11 +1060,9 @@ def enclosures(
             union = pygeos.union_all(
                 np.append(crossing_ins, pygeos.boundary(poly))
             )  # union
-            polygons = np.array(
-                list(polygonize(_pygeos_to_shapely(union)))
-            )  # polygonize
+            polygons = pygeos.get_parts(pygeos.polygonize([union]))  # polygonize
             within = pygeos.covered_by(
-                pygeos.from_shapely(polygons), buf
+                polygons, buf
             )  # keep only those within original polygon
             new += list(polygons[within])
 

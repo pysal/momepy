@@ -5,6 +5,7 @@
 # definitions of spatial distribution characters
 
 import math
+import warnings
 
 import networkx as nx
 import numpy as np

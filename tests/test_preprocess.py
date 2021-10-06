@@ -1,3 +1,5 @@
+from distutils.version import LooseVersion
+
 import geopandas as gpd
 import momepy as mm
 import numpy as np
@@ -5,6 +7,8 @@ import pytest
 
 from shapely.geometry import Polygon, MultiPoint, LineString
 from shapely import affinity
+
+GPD_10 = str(gpd.__version__) >= LooseVersion("0.10")
 
 
 class TestPreprocessing:
@@ -35,7 +39,10 @@ class TestPreprocessing:
         assert len(fixed_series) == 56
         assert isinstance(fixed_series, gpd.GeoSeries)
         # assert self.false_network.crs.equals(fixed_series.crs) GeoPandas 0.8 BUG
-        multiindex = self.false_network.explode()
+        if GPD_10:
+            multiindex = self.false_network.explode(index_parts=True)
+        else:
+            multiindex = self.false_network.explode()
         fixed_multiindex = mm.remove_false_nodes(multiindex)
         assert len(fixed_multiindex) == 56
         assert isinstance(fixed, gpd.GeoDataFrame)

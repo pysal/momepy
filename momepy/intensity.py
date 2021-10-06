@@ -488,33 +488,22 @@ class Reached:
                 for nid in ids:
                     counts.append(count[nid])
                 results_list.append(sum(counts))
-            elif mode == "sum":
-                if values:
-                    results_list.append(
-                        sum(right.loc[right[right_id].isin(ids)][values])
-                    )
+            else:
+                if mode == "sum":
+                    func = sum
+                elif mode == "mean":
+                    func = np.nanmean
+                elif mode == "std":
+                    func = np.nanstd
+
+                mask = right[right_id].isin(ids)
+                if mask.any():
+                    if values:
+                        results_list.append(func(right.loc[mask][values]))
+                    else:
+                        results_list.append(func(right.loc[mask].geometry.area))
                 else:
-                    results_list.append(
-                        sum(right.loc[right[right_id].isin(ids)].geometry.area)
-                    )
-            elif mode == "mean":
-                if values:
-                    results_list.append(
-                        np.nanmean(right.loc[right[right_id].isin(ids)][values])
-                    )
-                else:
-                    results_list.append(
-                        np.nanmean(right.loc[right[right_id].isin(ids)].geometry.area)
-                    )
-            elif mode == "std":
-                if values:
-                    results_list.append(
-                        np.nanstd(right.loc[right[right_id].isin(ids)][values])
-                    )
-                else:
-                    results_list.append(
-                        np.nanstd(right.loc[right[right_id].isin(ids)].geometry.area)
-                    )
+                    results_list.append(np.nan)
 
         self.series = pd.Series(results_list, index=left.index)
 
