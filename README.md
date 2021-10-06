@@ -110,4 +110,4 @@ If you have a question regarding momepy, feel free to open an issue on GitHub. E
 Initial release of momepy was a result of a research of [Urban Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with University of Strathclyde in Glasgow, UK. Further development was supported by [Geographic Data Science Lab](https://www.liverpool.ac.uk/geographic-data-science/) of the University of Liverpool wihtin [Urban Grammar AI](https://urbangrammarai.xyz) research project.
 
 ---
-Copyright (c) 2018- Martin Fleischmann
+Copyright (c) 2018-, Martin Fleischmann and PySAL Developers
