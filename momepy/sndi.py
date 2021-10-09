@@ -252,7 +252,6 @@ def SNDi(street_graph):
     eucl_dist_matrix = libpysal.cg.distance_matrix(np.asarray(node_list), p=2.0)
 
     # set anything farher away than 3km to zero
-    # eucl_dist_matrix[eucl_dist_matrix > 3000] = 0.0
     bool_0_3000 = np.array(np.where(eucl_dist_matrix < 3000, 1, 0), dtype=bool)
     eucl_dist_matrix = eucl_dist_matrix[bool_0_3000]
 
@@ -263,97 +262,54 @@ def SNDi(street_graph):
     path_dist_matrix = path_dist_matrix[bool_0_3000]
 
     # 0-500 meter circuity
-    eucl_0_500 = eucl_dist_matrix.copy()
-    path_0_500 = path_dist_matrix.copy()
+    circuity_0_500 = circuity_band(path_dist_matrix, eucl_dist_matrix, band=[0, 500])
 
-    bool_0_500 = np.array(np.where(eucl_0_500 <= 500, 1, 0), dtype=bool)
-    
-    eucl_0_500_sum = np.sum(eucl_0_500[bool_0_500])
-    path_0_500_sum = np.sum(path_0_500[bool_0_500])
-
-    # replace all infinity with zero
-    if round(eucl_0_500_sum, 2):
-        circuity_0_500 = path_0_500_sum/eucl_0_500_sum
+    if round(circuity_0_500, 2):
         log_circuity_0_500 = np.log(circuity_0_500)
     else:
         log_circuity_0_500 = 0
         print('WARNING: No nodes within 0-500 meters of each other')
 
     # 500-1000 meter circuity
-    eucl_500_1000 = eucl_dist_matrix.copy()
-    path_500_1000 = path_dist_matrix.copy()
+    circuity_500_1000 = circuity_band(path_dist_matrix, eucl_dist_matrix, band=[500, 1000])
 
-    bool_500_1000 = np.array(np.where((eucl_500_1000 > 500) & (eucl_500_1000 <= 1000), 1, 0), dtype=bool)
-    
-    eucl_500_1000_sum = np.sum(eucl_500_1000[bool_500_1000])
-    path_500_1000_sum = np.sum(path_500_1000[bool_500_1000])
-
-    if round(eucl_500_1000_sum, 2):
-        circuity_500_1000 = path_500_1000_sum/eucl_500_1000_sum
+    if round(circuity_500_1000, 2):
         log_circuity_500_1000 = np.log(circuity_500_1000)
     else:
         log_circuity_500_1000 = 0
         print('WARNING: No nodes within 500-1000 meters of each other')
 
     # 1000-1500 meter circuity
-    eucl_1000_1500 = eucl_dist_matrix.copy()
-    path_1000_1500 = path_dist_matrix.copy()
+    circuity_1000_1500 = circuity_band(path_dist_matrix, eucl_dist_matrix, band=[1000, 1500])
 
-    bool_1000_1500 = np.array(np.where((eucl_1000_1500 > 1000) & (eucl_1000_1500 <= 1500), 1, 0), dtype=bool)
-    
-    eucl_1000_1500_sum = np.sum(eucl_1000_1500[bool_1000_1500])
-    path_1000_1500_sum = np.sum(path_1000_1500[bool_1000_1500])
-
-    if round(eucl_1000_1500_sum, 2):
-        circuity_1000_1500 = path_1000_1500_sum/eucl_1000_1500_sum
+    if round(circuity_1000_1500, 2):
         log_circuity_1000_1500 = np.log(circuity_1000_1500)
     else:
         log_circuity_1000_1500 = 0
         print('WARNING: No nodes within 1000-1500 meters of each other')
 
     # 1500-2000 meter circuity
-    eucl_1500_2000 = eucl_dist_matrix.copy()
-    path_1500_2000 = path_dist_matrix.copy()
+    circuity_1500_2000 = circuity_band(path_dist_matrix, eucl_dist_matrix, band=[1500, 2000])
 
-    bool_1500_2000 = np.array(np.where((eucl_1500_2000 > 1500) & (eucl_1500_2000 <= 2000), 1, 0), dtype=bool)
-    
-    eucl_1500_2000_sum = np.sum(eucl_1500_2000[bool_1500_2000])
-    path_1500_2000_sum = np.sum(path_1500_2000[bool_1500_2000])
-    
-    if round(eucl_1500_2000_sum, 2):
-        circuity_1500_2000 = path_1500_2000_sum/eucl_1500_2000_sum
+    if round(circuity_1500_2000, 2):
         log_circuity_1500_2000 = np.log(circuity_1500_2000)
     else:
         log_circuity_1500_2000 = 0
         print('WARNING: No nodes within 1500-2000 meters of each other')
 
     # 2000-2500 meter circuity
-    eucl_2000_2500 = eucl_dist_matrix.copy()
-    path_2000_2500 = path_dist_matrix.copy()
+    circuity_2000_2500 = circuity_band(path_dist_matrix, eucl_dist_matrix, band=[2000, 2500])
 
-    bool_2000_2500 = np.array(np.where((eucl_2000_2500 > 2000) & (eucl_2000_2500 <= 2500), 1, 0), dtype=bool)
-    
-    eucl_2000_2500_sum = np.sum(eucl_2000_2500[bool_2000_2500])
-    path_2000_2500_sum = np.sum(path_2000_2500[bool_2000_2500])
-
-    if round(eucl_2000_2500_sum, 2):
-        circuity_2000_2500 = path_2000_2500_sum/eucl_2000_2500_sum
+    if round(circuity_2000_2500, 2):
         log_circuity_2000_2500 = np.log(circuity_2000_2500)
     else:
         log_circuity_2000_2500 = 0
         print('WARNING: No nodes within 2000-2500 meters of each other')
-    
+
     # 2500-3000 meter circuity
-    eucl_2500_3000 = eucl_dist_matrix.copy()
-    path_2500_3000 = path_dist_matrix.copy()
+    circuity_2500_3000 = circuity_band(path_dist_matrix, eucl_dist_matrix, band=[2500, 3000])
 
-    bool_2500_3000 = np.array(np.where((eucl_2500_3000 > 2500) & (eucl_2500_3000 <= 3000), 1, 0), dtype=bool)
-    
-    eucl_2500_3000_sum = np.sum(eucl_2500_3000[bool_2500_3000])
-    path_2500_3000_sum = np.sum(path_2500_3000[bool_2500_3000])
-
-    if eucl_2500_3000_sum:
-        circuity_2500_3000 = path_2500_3000_sum/eucl_2500_3000_sum
+    if round(circuity_2500_3000, 2):
         log_circuity_2500_3000 = np.log(circuity_2500_3000)
     else:
         log_circuity_2500_3000 = 0
@@ -412,35 +368,21 @@ def SNDi(street_graph):
     print(f'Log of circuity 2500-3000 is: {log_circuity_2500_3000}')
     return SNDi
 
-
-def circuity(street_graph, distance_band=[]):
-
-    # get node list
-    node_list = street_graph.nodes
-    
-    # get shortest path distance matrix from all nodes to all nodes
-    path_dist_matrix = nx.floyd_warshall_numpy(street_graph, nodelist=node_list, weight='mm_len')
-
-    # euclidean distance matrix from node to node
-    eucl_dist_matrix = libpysal.cg.distance_matrix(np.asarray(node_list), p=2.0)
-
-    # get circuity for band
-    circuity = circuity_band(path_dist_matrix, eucl_dist_matrix, distance_band)
-
-    return circuity
-
-
-def circuity_band(path_dist_matrix, eucl_dist_matrix, band=[0, 500]):
-
-    # Make copies
-    eucl_dist_band = eucl_dist_matrix.copy()
-    path_dist_band = path_dist_matrix.copy()
+def circuity_band(path_dist, eucl_dist, band=[0, 500]):
 
     # get boolean array within using euclidean  
-    bool_band = np.array(np.where((eucl_dist_band > band[0]) & (eucl_dist_band <= band[1]), 1, 0), dtype=bool)
+    bool_band = np.array(np.where((eucl_dist > band[0]) & (eucl_dist <= band[1]), 1, 0), dtype=bool)
 
-    # get only values within eucldidean and sum
-    circuity_band = np.sum(path_dist_band[bool_band])/np.sum(eucl_dist_band[bool_band])
+    # select based on bool and sum
+    path_sum = np.sum(path_dist[bool_band])
+    eucl_sum = np.sum(eucl_dist[bool_band])
+
+    # replace all infinity with zero
+    if round(eucl_sum, 2):
+        circuity_band = path_sum/eucl_sum
+    else:
+        circuity_band = 0
+        print(f'WARNING: No nodes within {band[0]}-{band[1]} meters of each other')
     
     return circuity_band
 
