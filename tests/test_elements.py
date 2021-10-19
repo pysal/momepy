@@ -9,6 +9,7 @@ from shapely.geometry import Polygon, MultiPoint, LineString
 from shapely import affinity
 
 from geopandas.testing import assert_geodataframe_equal
+from pandas.testing import assert_index_equal
 
 
 class TestElements:
@@ -99,6 +100,17 @@ class TestElements:
             mm.Blocks(
                 self.df_tessellation, self.df_streets, self.df_buildings, "uID", "uID"
             )
+
+    def test_Blocks_non_default_index(self):
+        tessellation = self.df_tessellation.copy()
+        tessellation.index = tessellation.index * 3
+        buildings = self.df_buildings.copy()
+        buildings.index = buildings.index * 5
+
+        blocks = mm.Blocks(tessellation, self.df_streets, buildings, "bID", "uID")
+
+        assert_index_equal(tessellation.index, blocks.tessellation_id.index)
+        assert_index_equal(buildings.index, blocks.buildings_id.index)
 
     def test_get_network_id(self):
         buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, "nID")
