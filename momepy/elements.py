@@ -686,11 +686,13 @@ class Blocks:
             bl_ID_to_uID, on=unique_id, how="left"
         )
         self.buildings_id = buildings_m[id_name]
+        self.buildings_id.index = self.buildings.index
 
         cells_m = tessellation[[unique_id]].merge(
             bl_ID_to_uID, on=unique_id, how="left"
         )
         self.tessellation_id = cells_m[id_name]
+        self.tessellation_id.index = self.tessellation.index
 
         self.blocks = blocks
 
