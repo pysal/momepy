@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Version 0.5.1 (October 20, 2021)
+--------------------------------
+
+Small patch adjusting momepy to changes geopandas 0.10.
+
+Fixes:
+
+- BUG: non-default index dropped in Blocks id series
+- REF/TST: minimise warnings from geopandas 0.10
+
+
 Version 0.5.0 (September 12, 2021)
 ----------------------------------
 
