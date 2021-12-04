@@ -1,0 +1,21 @@
+name: test
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - geopandas
+  - libpysal
+  - networkx
+  - tqdm
+  - mapclassify
+  # testing
+  - pytest
+  - pytest-cov
+  - codecov
+  # user guide testing
+  - osmnx
+  - matplotlib
+  - jupyter
+  - inequality
+  - pygeos
+  - dask

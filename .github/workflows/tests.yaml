@@ -28,13 +28,15 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         env:
-          - ci/envs/stable.yaml
-          - ci/envs/latest.yaml
-          - ci/envs/dev.yaml
+          - ci/envs/37-minimal.yaml
+          - ci/envs/38-latest.yaml
+          - ci/envs/39-latest.yaml
+          - ci/envs/310-latest.yaml
+          - ci/envs/310-dev.yaml
         include:
-          - env: ci/envs/latest.yaml
+          - env: ci/envs/39-latest.yaml
             os: macos-latest
-          - env: ci/envs/latest.yaml
+          - env: ci/envs/39-latest.yaml
             os: windows-latest
 
     steps:
@@ -61,7 +63,7 @@ jobs:
           pytest -v --color=yes --cov-config .coveragerc --cov=momepy --cov-append --cov-report term-missing --cov-report xml tests
 
       - name: Test user guide
-        if: contains(matrix.env, 'latest.yaml') && contains(matrix.os, 'ubuntu')
+        if: contains(matrix.env, '39-latest.yaml') && contains(matrix.os, 'ubuntu')
         run: |
           ci/envs/test_user_guide.sh
 
