@@ -21,6 +21,9 @@ jobs:
     needs: Linting
     name: ${{ matrix.os }}, ${{ matrix.env }}
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -40,31 +43,26 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v2
         with:
-          auto-update-conda: true
-          auto-activate-base: false
-          activate-environment: test
           environment-file: ${{ matrix.env }}
-          channel-priority: strict
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
+          use-mamba: true
 
       - name: Install momepy
-        shell: bash -l {0}
-        run: python setup.py install
+        run: pip install .
 
       - name: Check environment
-        shell: bash -l {0}
         run: |
           conda info
           conda list
 
       - name: Test momepy
-        shell: bash -l {0}
         run: |
           pytest -v --color=yes --cov-config .coveragerc --cov=momepy --cov-append --cov-report term-missing --cov-report xml tests
 
       - name: Test user guide
-        shell: bash -l {0}
         if: contains(matrix.env, 'latest.yaml') && contains(matrix.os, 'ubuntu')
         run: |
           ci/envs/test_user_guide.sh
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
