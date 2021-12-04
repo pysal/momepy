@@ -43,8 +43,8 @@ setup(
     install_requires=[
         "geopandas>=0.8.0",
         "networkx>=2.3",
-        "libpysal>=4.1.0",
-        "tqdm>=4.25.0",
+        "libpysal>=4.2.0",
+        "tqdm>=4.27.0",
         "pygeos",
     ],
     cmdclass=versioneer.get_cmdclass(),
