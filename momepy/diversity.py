@@ -327,7 +327,7 @@ class Simpson:
         if not categorical:
             self.bins = classify(data, scheme=binning, **classification_kwds).bins
         else:
-            self.bins = categories
+            self.bins = None
 
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
@@ -363,14 +363,14 @@ def simpson_diversity(values, bins=None, categorical=False):
 
         \\lambda=\\sum_{i=1}^{R} p_{i}^{2}
 
-    Formula adapted from ``scikit-bio``.
 
     Parameters
     ----------
     values : pandas.Series
         list of values
     bins : array, optional
-        array of top edges of classification bins. Result of binnng.bins.
+        array of top edges of classification bins.
+        Should be equalt to the result of binnng.bins.
     categorical : bool (default False)
         treat values as categories (will not use ``bins``)
 
