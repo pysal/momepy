@@ -367,7 +367,7 @@ def simpson_diversity(values, bins=None, categorical=False):
 
     Parameters
     ----------
-    values : array-like
+    values : pandas.Series
         list of values
     bins : array, optional
         array of top edges of classification bins. Result of binnng.bins.
@@ -396,9 +396,9 @@ def simpson_diversity(values, bins=None, categorical=False):
         sample_bins = mc.UserDefined(values, bins)
         counts = sample_bins.counts
 
-    freqs = counts / counts.sum()
+    N = sum(counts)
 
-    return (freqs * freqs).sum()
+    return sum((n / N) ** 2 for n in counts if n != 0)
 
 
 class Gini:
