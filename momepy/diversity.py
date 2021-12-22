@@ -247,8 +247,6 @@ class Simpson:
         return Inverse Simpson index instead of Simpson index (``1 / λ``)
     categorical : bool (default False)
         treat values as categories (will not use ``binning``)
-    categories : list-like (default None)
-        list of categories. If None ``values.unique()`` is used.
     verbose : bool (default True)
         if True, shows progress bars in loops and indication of steps
     **classification_kwds : dict
@@ -315,7 +313,6 @@ class Simpson:
         self.gini_simpson = gini_simpson
         self.inverse = inverse
         self.categorical = categorical
-        self.categories = categories
         self.classification_kwds = classification_kwds
 
         data = gdf.copy()
@@ -326,9 +323,6 @@ class Simpson:
         self.values = data[values]
 
         data = data.set_index(unique_id)[values]
-
-        if not categories:
-            categories = data.unique()
 
         if not categorical:
             self.bins = classify(data, scheme=binning, **classification_kwds).bins
@@ -347,7 +341,6 @@ class Simpson:
                         values_list,
                         self.bins,
                         categorical=categorical,
-                        categories=categories,
                     )
                 )
             else:
@@ -361,7 +354,7 @@ class Simpson:
             self.series = pd.Series(results_list, index=gdf.index)
 
 
-def simpson_diversity(data, bins=None, categorical=False, categories=None):
+def simpson_diversity(values, bins=None, categorical=False):
     """
     Calculates the Simpson\'s diversity index of data. Helper function for
     :py:class:`momepy.Simpson`.
@@ -370,18 +363,16 @@ def simpson_diversity(data, bins=None, categorical=False, categories=None):
 
         \\lambda=\\sum_{i=1}^{R} p_{i}^{2}
 
-    Formula adapted from https://gist.github.com/martinjc/f227b447791df8c90568.
+    Formula adapted from ``scikit-bio``.
 
     Parameters
     ----------
-    data : GeoDataFrame
-        GeoDataFrame containing morphological tessellation
+    values : array-like
+        list of values
     bins : array, optional
         array of top edges of classification bins. Result of binnng.bins.
     categorical : bool (default False)
         treat values as categories (will not use ``bins``)
-    categories : list-like (default None)
-        list of categories
 
     Returns
     -------
@@ -398,24 +389,16 @@ def simpson_diversity(data, bins=None, categorical=False, categories=None):
         except ImportError:
             raise ImportError("The 'mapclassify' package is required")
 
-    def p(n, N):
-        """Relative abundance"""
-        if n == 0:
-            return 0
-        return float(n) / N
-
     if categorical:
-        counts = data.value_counts().to_dict()
-        for c in categories:
-            if c not in counts.keys():
-                counts[c] = 0
+        counts = values.value_counts()
+
     else:
-        sample_bins = mc.UserDefined(data, bins)
-        counts = dict(zip(bins, sample_bins.counts))
+        sample_bins = mc.UserDefined(values, bins)
+        counts = sample_bins.counts
 
-    N = sum(counts.values())
+    freqs = counts / counts.sum()
 
-    return sum(p(n, N) ** 2 for n in counts.values() if n != 0)
+    return (freqs * freqs).sum()
 
 
 class Gini:

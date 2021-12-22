@@ -99,7 +99,6 @@ class TestDiversity:
             self.sw,
             "uID",
             categorical=True,
-            categories=range(15),
         ).series
         assert cat2[0] == pytest.approx(0.15)
 
