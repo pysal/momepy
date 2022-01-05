@@ -32,7 +32,7 @@ __all__ = [
 ]
 
 
-def _form_factor(height, geometry=None, area=None, perimeter=None, volume=None):
+def _form_factor(height, geometry, area=None, perimeter=None, volume=None):
     """helper for FormFactor"""
     if area is None:
         area = geometry.area
