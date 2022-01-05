@@ -280,7 +280,7 @@ class Tessellation:
         if GPD_10:
             objects = objects.reset_index(drop=True).explode(ignore_index=True)
         else:
-            objects = objects.reset_index(drop=True).explode(ignore_index=True)
+            objects = objects.reset_index(drop=True).explode().reset_index(drop=True)
         objects = objects.set_index(unique_id)
 
         print("Generating input point array...") if verbose else None
