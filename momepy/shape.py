@@ -32,12 +32,34 @@ __all__ = [
 ]
 
 
+def _form_factor(height, geometry=None, area=None, perimeter=None, volume=None):
+    """helper for FormFactor"""
+    if area is None:
+        area = geometry.area
+    if perimeter is None:
+        perimeter = geometry.length
+    if volume is None:
+        volume = area * height
+
+    surface = (perimeter * height) + area
+    zeros = volume == 0
+    res = np.empty(len(geometry))
+    res[zeros] = np.nan
+    res[~zeros] = surface[~zeros] / (volume[~zeros] ** (2 / 3))
+    return res
+
+
 class FormFactor:
     """
     Calculates form factor of each object in given GeoDataFrame.
 
     .. math::
-        area \\over {volume^{2 \\over 3}}
+        surface \\over {volume^{2 \\over 3}}
+
+    where
+
+    .. math::
+        surface = (perimeter * height) + area
 
     Adapted from :cite:`bourdic2012`.
 
@@ -78,7 +100,11 @@ class FormFactor:
 
     """
 
-    def __init__(self, gdf, volumes, areas=None):
+    def __init__(self, gdf, volumes, areas=None, heights=None):
+        if heights is None:
+            raise ValueError("`heights` cannot be None.")
+            # TODO: this shouldn't be needed but it would be a breaking change now.
+            # remove during the functional refactor
         self.gdf = gdf
 
         gdf = gdf.copy()
@@ -92,11 +118,19 @@ class FormFactor:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        zeros = gdf[volumes] == 0
-        res = np.empty(len(gdf))
-        res[zeros] = 0
-        res[~zeros] = gdf[areas][~zeros] / (gdf[volumes][~zeros] ** (2 / 3))
-        self.series = pd.Series(res, index=gdf.index)
+
+        if isinstance(heights, str):
+            heights = gdf[heights]
+
+        self.series = pd.Series(
+            _form_factor(
+                height=np.asarray(heights),
+                geometry=gdf.geometry,
+                area=self.areas,
+                volume=self.volumes,
+            ),
+            index=gdf.index,
+        )
 
 
 class FractalDimension:

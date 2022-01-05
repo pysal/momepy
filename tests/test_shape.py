@@ -20,21 +20,19 @@ class TestShape:
         self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height").series
 
     def test_FormFactor(self):
-        self.df_buildings["ff"] = mm.FormFactor(self.df_buildings, "volume").series
-        check = (self.df_buildings.geometry[0].area) / (
-            self.df_buildings.volume[0] ** (2 / 3)
-        )
-        assert self.df_buildings["ff"][0] == check
+        self.df_buildings["ff"] = mm.FormFactor(
+            self.df_buildings, "volume", heights="height"
+        ).series
+        check = 5.4486362624193
+        assert self.df_buildings["ff"].mean() == approx(check)
 
         self.df_buildings["ff"] = mm.FormFactor(
             self.df_buildings,
             mm.Volume(self.df_buildings, "height").series,
             areas=self.df_buildings.geometry.area,
+            heights=self.df_buildings["height"],
         ).series
-        check = (self.df_buildings.geometry[0].area) / (
-            self.df_buildings.volume[0] ** (2 / 3)
-        )
-        assert self.df_buildings["ff"][0] == check
+        assert self.df_buildings["ff"].mean() == approx(check)
 
     def test_FractalDimension(self):
         self.df_buildings["fd"] = mm.FractalDimension(self.df_buildings).series
