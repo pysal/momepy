@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Version 0.5.2 (January 6, 2022)
+-------------------------------
+
+Since version 0.5.2, momepy is licensed under the BSD-3-Clause License instead
+of the MIT License, to be in line with the rest of the PySAL ecosystem.
+
+Fixes:
+
+- BUG: non-default index dropped in Blocks id series (#315)
+- BUG: fix FormFactor formula (#330)
+
+
 Version 0.5.1 (October 20, 2021)
 --------------------------------
 
