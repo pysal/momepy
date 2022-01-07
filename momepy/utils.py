@@ -7,9 +7,7 @@ import geopandas as gpd
 import libpysal
 import networkx as nx
 import numpy as np
-
 from shapely.geometry import Point
-
 
 __all__ = [
     "unique_id",

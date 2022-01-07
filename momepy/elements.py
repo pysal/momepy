@@ -3,14 +3,15 @@
 
 # elements.py
 # generating derived elements (street edge, block)
-from distutils.version import LooseVersion
+import warnings
 
 import geopandas as gpd
 import libpysal
-import warnings
 import numpy as np
-import pygeos
 import pandas as pd
+import pygeos
+
+from packaging.version import Version
 from scipy.spatial import Voronoi
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
@@ -26,7 +27,7 @@ __all__ = [
     "get_network_ratio",
 ]
 
-GPD_10 = str(gpd.__version__) >= LooseVersion("0.10")
+GPD_10 = Version(gpd.__version__) >= Version("0.10")
 
 
 def buffered_limit(gdf, buffer=100):

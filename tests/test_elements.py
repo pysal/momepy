@@ -1,15 +1,14 @@
-import geopandas as gpd
-import momepy as mm
-import numpy as np
 from random import shuffle
 
+import geopandas as gpd
+import numpy as np
 import pytest
-
-from shapely.geometry import Polygon, MultiPoint, LineString
-from shapely import affinity
-
 from geopandas.testing import assert_geodataframe_equal
 from pandas.testing import assert_index_equal
+from shapely import affinity
+from shapely.geometry import LineString, MultiPoint, Polygon
+
+import momepy as mm
 
 
 class TestElements:

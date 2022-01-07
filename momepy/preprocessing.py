@@ -4,7 +4,6 @@
 import collections
 import math
 import operator
-from distutils.version import LooseVersion
 import warnings
 
 import geopandas as gpd
@@ -13,6 +12,7 @@ import numpy as np
 import pandas as pd
 import pygeos
 import shapely
+from packaging.version import Version
 from tqdm.auto import tqdm
 
 from .shape import CircularCompactness
@@ -25,7 +25,7 @@ __all__ = [
     "extend_lines",
 ]
 
-GPD_10 = str(gpd.__version__) >= LooseVersion("0.10")
+GPD_10 = Version(gpd.__version__) >= Version("0.10")
 
 
 def preprocess(

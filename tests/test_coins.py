@@ -1,9 +1,9 @@
 import geopandas as gpd
-import momepy as mm
 import pandas as pd
-
-from pandas.testing import assert_index_equal, assert_series_equal
 import pytest
+from pandas.testing import assert_index_equal, assert_series_equal
+
+import momepy as mm
 
 
 class TestCOINS:

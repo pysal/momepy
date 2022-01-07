@@ -1,11 +1,11 @@
 import geopandas as gpd
-import momepy as mm
 import networkx
 import numpy as np
-import pytest
 import osmnx as ox
-
+import pytest
 from shapely.geometry import LineString
+
+import momepy as mm
 
 
 class TestUtils:

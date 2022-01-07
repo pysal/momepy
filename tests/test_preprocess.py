@@ -1,14 +1,13 @@
-from distutils.version import LooseVersion
-
 import geopandas as gpd
-import momepy as mm
 import numpy as np
 import pytest
-
-from shapely.geometry import Polygon, MultiPoint, LineString
+from packaging.version import Version
 from shapely import affinity
+from shapely.geometry import LineString, MultiPoint, Polygon
 
-GPD_10 = str(gpd.__version__) >= LooseVersion("0.10")
+import momepy as mm
+
+GPD_10 = Version(gpd.__version__) >= Version("0.10")
 
 
 class TestPreprocessing:

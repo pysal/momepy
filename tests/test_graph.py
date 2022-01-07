@@ -1,11 +1,11 @@
-from distutils.version import LooseVersion
-
 import geopandas as gpd
-import momepy as mm
 import networkx as nx
 import pytest
+from packaging.version import Version
 
-NX_26 = str(nx.__version__) < LooseVersion("2.6")
+import momepy as mm
+
+NX_26 = Version(nx.__version__) < Version("2.6")
 
 
 class TestGraph:

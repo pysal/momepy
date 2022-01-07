@@ -1,16 +1,16 @@
 import momepy.datasets
 
+from .coins import *
 from .dimension import *
 from .distribution import *
 from .diversity import *
 from .elements import *
 from .graph import *
 from .intensity import *
+from .preprocessing import *
 from .shape import *
 from .utils import *
 from .weights import *
-from .preprocessing import *
-from .coins import *
 
 __author__ = "Martin Fleischmann"
 __author_email__ = "martin@martinfleischmann.net"

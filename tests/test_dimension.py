@@ -1,12 +1,13 @@
 import geopandas as gpd
-import momepy as mm
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytest
+from pytest import approx
+from shapely.geometry import LineString, Point, Polygon
+
+import momepy as mm
 from momepy import sw_high
 from momepy.shape import _make_circle
-from pytest import approx
-from shapely.geometry import Polygon, LineString, Point
 
 
 class TestDimensions:
