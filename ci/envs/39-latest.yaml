@@ -8,6 +8,7 @@ dependencies:
   - networkx
   - tqdm
   - mapclassify
+  - packaging
   # testing
   - pytest
   - pytest-cov

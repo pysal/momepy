@@ -1,9 +1,10 @@
 import geopandas as gpd
-import momepy as mm
 import numpy as np
 import pytest
-from momepy import sw_high
 from pytest import approx
+
+import momepy as mm
+from momepy import sw_high
 
 
 class TestDiversity:

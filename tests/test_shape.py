@@ -1,11 +1,11 @@
 import math
 
 import geopandas as gpd
-import momepy as mm
 import numpy as np
 from pytest import approx
-from shapely.geometry import Point, Polygon, MultiLineString
+from shapely.geometry import MultiLineString, Point, Polygon
 
+import momepy as mm
 from momepy.shape import _circle_area
 
 

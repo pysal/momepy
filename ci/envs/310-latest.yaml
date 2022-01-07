@@ -14,3 +14,4 @@ dependencies:
   - osmnx
   - pygeos
   - inequality
+  - packaging

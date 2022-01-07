@@ -46,6 +46,7 @@ setup(
         "libpysal>=4.2.0",
         "tqdm>=4.27.0",
         "pygeos",
+        "packaging",
     ],
     cmdclass=versioneer.get_cmdclass(),
 )
