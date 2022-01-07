@@ -15,6 +15,7 @@ dependencies:
   - inequality
   - pygeos
   - dask
+  - packaging
   # for mapclassify
   - scikit-learn
   - pip:

@@ -1,7 +1,8 @@
 import geopandas as gpd
 import libpysal
-import momepy as mm
 import pytest
+
+import momepy as mm
 
 
 class TestWeights:

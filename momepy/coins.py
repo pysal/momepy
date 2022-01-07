@@ -9,13 +9,14 @@ Adapted for momepy by: Andres Morfin, Niki Patrinopoulou, and Ioannis Daramouska
 Date: May 29, 2021
 """
 
-import math
-import numpy as np
-from shapely.geometry import LineString, MultiLineString
-from shapely import ops
-import geopandas as gpd
-import pandas as pd
 import collections
+import math
+
+import geopandas as gpd
+import numpy as np
+import pandas as pd
+from shapely import ops
+from shapely.geometry import LineString, MultiLineString
 
 
 class COINS:

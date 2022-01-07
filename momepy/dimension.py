@@ -14,7 +14,6 @@ from tqdm.auto import tqdm
 
 from .shape import _circle_radius
 
-
 __all__ = [
     "Area",
     "Perimeter",
