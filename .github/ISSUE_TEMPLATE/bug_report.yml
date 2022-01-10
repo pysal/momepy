@@ -1,0 +1,80 @@
+name: Report a problem
+description: Problem reports are for when something behaves incorrectly, or differently from how you'd expect.
+labels: [bug]
+body:
+  - type: textarea
+    id: describe
+    attributes:
+      label: Describe the problem
+      description: |
+        Provide a short description (one or two sentences) about the problem. What did you expect to happen, and what is actually happening?
+
+        If possible, provide full tracebacks (error messages) that you've encountered.
+      placeholder: |
+        The behavior of XXX doesn't work as expected. When I do YYY, I expected ZZZ to occur, but instead WWW happens.
+
+        Here's an error message I ran into...
+
+        ```python
+        momepy.Tessellation(df)
+
+        ValueError:...
+        ```
+
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Provide information that others may use to re-produce this behavior. Provide this in a step-by-step manner so that others can follow along.
+
+        You can check [this guide](https://matthewrocklin.com/blog/work/2018/02/28/minimal-bug-reports) to learn how to craft the ideal minimal reproducible example.
+      placeholder: |
+        ```python
+        import momepy
+        import geopandas
+
+        df = geopandas.read_file(momepy.datasets.get_path("bubenec"), path="streets")
+        momepy.gdf_to_nx(df)
+        ```
+
+    validations:
+      required: true
+
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions of your packages
+      description: |
+        The version of momepy, geopandas, libpysal, and networkx you are using.
+
+        You can get the version as `momepy.__version__` or `geopandas.__version__`.
+
+      placeholder: |
+        ```
+        momepy=0.5.2
+        geopandas=0.10.2
+        libpysal=4.3.0
+        networkx=2.6.0
+        ```
+    validations:
+      required: true
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: Your operating system
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: |
+        Any additional context needed to help reproduce, understand, and resolve this issue.
+    validations:
+      required: false

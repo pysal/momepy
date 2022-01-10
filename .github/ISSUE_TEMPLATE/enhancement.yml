@@ -1,0 +1,68 @@
+name: Request an enhancement
+description: Suggest an idea for this project
+labels: [enhancement]
+body:
+  - type: textarea
+    id: describe
+    attributes:
+      label: Description / Summary
+      description: |
+        Describe the enhancement you'd like to see. Provide as much context as possible and link to related issues and/or pull requests. Include links to papers if there are relevant ones.
+        This section should contain "what" you are proposing.
+      placeholder: |
+        - I wish I were able to...
+        - It would be useful if XXX behaved in YYY way...
+        - XXX feature would be better if it would...
+    validations:
+      required: true
+
+  - type: textarea
+    id: value
+    attributes:
+      label: Value / benefit
+      description: |
+        What is the value in resolving this issue, and who will benefit from it?
+        Include any information that could help us prioritize the enhancement.
+
+      placeholder: |
+        - This would facilitate XXX which is a common use-case
+        - It's really annoying when XXX and this would fix it
+        - This would make it possible to XXX which YYY people care about.
+
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation details
+      description: |
+        Anything that will help others understand how this issue could be addressed. Where appropriate, note locations in a codebase where a change would need to be made, or other considerations that should be taken.
+        This section should contain "how" this issue should be resolved.
+
+        _If you can't think of anything then just leave this blank and we can fill it in later! This can be filled in as we understand more about an issue._
+
+      placeholder: |
+        - This change would be probably need to be over here...
+        - The best way to do this would be...
+        - There are a few ways to do this, we should choose between...
+
+    validations:
+      required: false
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks to complete
+      description: |
+        Any concrete tasks that should be completed to resolve this issue.
+        The more specific the better.
+
+        _If you can't think of anything then just leave this blank and we can fill it in later! This can be filled in as we understand more about an issue._
+
+      placeholder: |
+        - [ ] Discuss and decide on what to do...
+        - [ ] Implement partial feature A...
+
+    validations:
+      required: false
