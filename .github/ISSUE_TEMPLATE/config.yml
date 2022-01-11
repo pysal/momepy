@@ -1,0 +1,4 @@
+contact_links:
+  - name: Questions or general discussion with the community
+    url: https://github.com/pysal/momepy/discussions
+    about: Use our discussion for general conversations that aren't meant for actionable Issues.
