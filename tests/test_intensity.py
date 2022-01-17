@@ -42,8 +42,8 @@ class TestIntensity:
             right_unique_id="uID",
         ).series
         check = 0.3206556897709747
-        assert car.mean() == check
-        assert carlr.mean() == check
+        assert car.mean() == pytest.approx(check)
+        assert carlr.mean() == pytest.approx(check)
         far = mm.AreaRatio(
             self.df_tessellation,
             self.df_buildings,
@@ -189,7 +189,7 @@ class TestIntensity:
         ).series
         array = mm.NodeDensity(nodes, edges, W).series
         assert density.mean() == 0.005534125924228438
-        assert weighted.mean() == 0.010090861332429164
+        assert weighted.mean() == pytest.approx(0.010090861332429164)
         assert array.mean() == 0.01026753724860306
 
     def test_Density(self):

@@ -9,6 +9,7 @@ dependencies:
   - tqdm=4.27.0
   - pytest
   - pytest-cov
+  - pytest-xdist
   - codecov
   - mapclassify
   - osmnx
