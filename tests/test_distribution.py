@@ -154,7 +154,7 @@ class TestDistribution:
             self.df_streets
         ).series
         check = 7.527840590385933
-        assert self.df_streets["dev"].mean() == check
+        assert self.df_streets["dev"].mean() == pytest.approx(check)
 
     def test_BuildingAdjacency(self):
         sw = Queen.from_dataframe(self.df_buildings, ids="uID", silence_warnings=True)
@@ -169,7 +169,7 @@ class TestDistribution:
             self.df_buildings, unique_id="uID", spatial_weights_higher=swh
         ).series
         check = 0.2613824113909074
-        assert self.df_buildings["adj_sw"].mean() == check
+        assert self.df_buildings["adj_sw"].mean() == pytest.approx(check)
         assert self.df_buildings["adj_sw_none"].mean() == check
         swh_drop = mm.sw_high(k=3, gdf=self.df_tessellation[2:], ids="uID")
         assert (
