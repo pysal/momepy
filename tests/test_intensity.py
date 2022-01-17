@@ -43,7 +43,7 @@ class TestIntensity:
         ).series
         check = 0.3206556897709747
         assert car.mean() == pytest.approx(check)
-        assert carlr.mean() == check
+        assert carlr.mean() == pytest.approx(check)
         far = mm.AreaRatio(
             self.df_tessellation,
             self.df_buildings,

@@ -170,7 +170,7 @@ class TestDistribution:
         ).series
         check = 0.2613824113909074
         assert self.df_buildings["adj_sw"].mean() == pytest.approx(check)
-        assert self.df_buildings["adj_sw_none"].mean() == check
+        assert self.df_buildings["adj_sw_none"].mean() == pytest.approx(check)
         swh_drop = mm.sw_high(k=3, gdf=self.df_tessellation[2:], ids="uID")
         assert (
             mm.BuildingAdjacency(
