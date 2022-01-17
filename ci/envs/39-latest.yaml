@@ -12,6 +12,7 @@ dependencies:
   # testing
   - pytest
   - pytest-cov
+  - pytest-xdist
   - codecov
   # user guide testing
   - osmnx
