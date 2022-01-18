@@ -156,6 +156,7 @@ Documentation contents
    Home <self>
    install
    user_guide/intro
+   examples/index
    API reference <api>
    Contributing <contributing>
    changelog
