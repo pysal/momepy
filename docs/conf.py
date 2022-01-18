@@ -75,6 +75,7 @@ extensions = [
     "IPython.sphinxext.ipython_console_highlighting",
     "myst_parser",
     "sphinx_copybutton",
+    "sphinx_gallery.load_style",
 ]
 
 # nbsphinx do not use requirejs (breaks bootstrap)
