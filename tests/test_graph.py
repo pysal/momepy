@@ -109,7 +109,7 @@ class TestGraph:
             mm.betweenness_centrality(self.network, mode="nonexistent")
         node = 0.2413793103448276
         edge = 0.16995073891625617
-        ang_b = 0.16470588235294117
+        ang_b = 0.16134453781512606
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["betweenness"] == node
         assert (
             net2.edges[
