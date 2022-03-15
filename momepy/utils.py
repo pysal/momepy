@@ -38,18 +38,13 @@ def unique_id(objects):
 
 def _angle(a, b, c):
     """
-    Measure angle between a-b, b-c. In radians.
+    Measure angle between a-b, b-c. In degrees.
     Helper for gdf_to_nx.
+    Adapted from cityseer's implementation.
     """
-    ba = [aa - bb for aa, bb in zip(a, b)]
-    bc = [cc - bb for cc, bb in zip(c, b)]
-    nba = math.sqrt(sum((x ** 2.0 for x in ba)))
-    ba = [x / nba for x in ba]
-    nbc = math.sqrt(sum((x ** 2.0 for x in bc)))
-    bc = [x / nbc for x in bc]
-    scal = sum((aa * bb for aa, bb in zip(ba, bc)))
-    angle = math.acos(round(scal, 10))
-    return angle
+    a1 = math.degrees(math.atan2(b[1] - a[1], b[0] - a[0]))
+    a2 = math.degrees(math.atan2(c[1] - b[1], c[0] - b[0]))
+    return abs((a2 - a1 + 180) % 360 - 180)
 
 
 def _generate_primal(G, gdf_network, fields, multigraph):
