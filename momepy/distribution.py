@@ -88,24 +88,12 @@ class Orientation:
                 results_list.append(np.nan)
                 continue
 
-            if 90 > az >= 45:
-                diff = az - 45
-                az = az - 2 * diff
-            elif 135 > az >= 90:
-                diff = az - 90
-                az = az - 2 * diff
-                diff = az - 45
-                az = az - 2 * diff
-            elif 181 > az >= 135:
-                diff = az - 135
-                az = az - 2 * diff
-                diff = az - 90
-                az = az - 2 * diff
-                diff = az - 45
-                az = az - 2 * diff
             results_list.append(az)
 
-        self.series = pd.Series(results_list, index=gdf.index)
+        # get a deviation from cardinal directions
+        results = np.abs((np.array(results_list, dtype=float) + 45) % 90 - 45)
+
+        self.series = pd.Series(results, index=gdf.index)
 
 
 class SharedWalls:
