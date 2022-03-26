@@ -7,8 +7,12 @@ from geopandas.testing import assert_geodataframe_equal
 from pandas.testing import assert_index_equal
 from shapely import affinity
 from shapely.geometry import LineString, MultiPoint, Polygon
+from packaging.version import Version
 
 import momepy as mm
+
+# https://github.com/geopandas/geopandas/issues/2282
+GPD_REGR = Version("0.10.2") < Version(gpd.__version__) < Version("0.11")
 
 
 class TestElements:
@@ -120,6 +124,7 @@ class TestElements:
         buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, "nID")
         assert not buildings_id.isna().any()
 
+    @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
     def test_get_node_id(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges = mm.nx_to_gdf(nx)
