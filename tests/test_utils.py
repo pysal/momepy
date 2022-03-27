@@ -4,8 +4,12 @@ import numpy as np
 import osmnx as ox
 import pytest
 from shapely.geometry import LineString
+from packaging.version import Version
 
 import momepy as mm
+
+# https://github.com/geopandas/geopandas/issues/2282
+GPD_REGR = Version("0.10.2") < Version(gpd.__version__) < Version("0.11")
 
 
 class TestUtils:
@@ -96,6 +100,7 @@ class TestUtils:
         with pytest.raises(ValueError):
             mm.gdf_to_nx(self.df_streets, approach="dual", directed=True)
 
+    @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
     def test_nx_to_gdf(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)
