@@ -594,19 +594,6 @@ class Blocks:
     Examples
     --------
     >>> blocks = mm.Blocks(tessellation_df, streets_df, buildings_df, 'bID', 'uID')
-    Buffering streets...
-    Generating spatial index...
-    Difference...
-    Defining adjacency...
-    Defining street-based blocks...
-    Defining block ID...
-    Generating centroids...
-    Spatial join...
-    Attribute join (tesselation)...
-    Generating blocks...
-    Multipart to singlepart...
-    Attribute join (buildings)...
-    Attribute join (tesselation)...
     >>> blocks.blocks.head()
         bID	geometry
     0	1.0	POLYGON ((1603560.078648818 6464202.366899694,...
@@ -648,14 +635,14 @@ class Blocks:
                 buildings_c,
                 cut[[cut.geometry.name, "component"]],
                 how="left",
-                predicate="intersects",
+                predicate="within",
             )
         else:
             centroids_tempID = gpd.sjoin(
                 buildings_c,
                 cut[[cut.geometry.name, "component"]],
                 how="left",
-                op="intersects",
+                op="within",
             )
 
         cells_copy = tessellation[[unique_id, tessellation.geometry.name]].merge(
@@ -668,30 +655,21 @@ class Blocks:
                 cells_copy.dissolve(by="component").explode().reset_index(drop=True)
             )
         blocks[id_name] = range(len(blocks))
-        blocks[blocks.geometry.name] = gpd.GeoSeries(
-            pygeos.polygons(blocks.exterior.values.data), crs=blocks.crs
-        )
         blocks = blocks[[id_name, blocks.geometry.name]]
 
         if GPD_10:
             centroids_w_bl_ID2 = gpd.sjoin(
-                buildings_c, blocks, how="left", predicate="intersects"
+                buildings_c, blocks, how="left", predicate="within"
             )
         else:
-            centroids_w_bl_ID2 = gpd.sjoin(
-                buildings_c, blocks, how="left", op="intersects"
-            )
-        bl_ID_to_uID = centroids_w_bl_ID2[[unique_id, id_name]]
+            centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks, how="left", op="within")
 
-        buildings_m = buildings[[unique_id]].merge(
-            bl_ID_to_uID, on=unique_id, how="left"
-        )
-        self.buildings_id = buildings_m[id_name]
-        self.buildings_id.index = self.buildings.index
+        self.buildings_id = centroids_w_bl_ID2[id_name]
 
         cells_m = tessellation[[unique_id]].merge(
-            bl_ID_to_uID, on=unique_id, how="left"
+            centroids_w_bl_ID2[[unique_id, id_name]], on=unique_id, how="left"
         )
+
         self.tessellation_id = cells_m[id_name]
         self.tessellation_id.index = self.tessellation.index
 

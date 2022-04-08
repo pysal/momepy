@@ -115,6 +115,25 @@ class TestElements:
         assert_index_equal(tessellation.index, blocks.tessellation_id.index)
         assert_index_equal(buildings.index, blocks.buildings_id.index)
 
+    def test_Blocks_inner(self):
+        streets = self.df_streets.copy()
+        streets.loc[35] = (
+            self.df_buildings.geometry.iloc[141]
+            .representative_point()
+            .buffer(20)
+            .exterior
+        )
+        blocks = mm.Blocks(
+            self.df_tessellation, streets, self.df_buildings, "bID", "uID"
+        )
+        assert not blocks.tessellation_id.isna().any()
+        assert not blocks.buildings_id.isna().any()
+        assert len(blocks.blocks) == 9
+        assert (
+            len(blocks.blocks.sindex.query_bulk(blocks.blocks.geometry, "overlaps")[0])
+            == 0
+        )
+
     def test_get_network_id(self):
         buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, "nID")
         assert not buildings_id.isna().any()
