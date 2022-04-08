@@ -494,7 +494,7 @@ class CircularCompactness:
         radius = hull.apply(
             lambda g: _circle_radius(list(g.coords)) if g is not None else None
         )
-        self.series = areas / (np.pi * radius ** 2)
+        self.series = areas / (np.pi * radius**2)
 
 
 class SquareCompactness:
@@ -1107,7 +1107,7 @@ class Elongation:
         bbox = gdf.geometry.apply(lambda g: g.minimum_rotated_rectangle)
         a = bbox.area
         p = bbox.length
-        cond1 = p ** 2
+        cond1 = p**2
         cond2 = 16 * a
         bigger = cond1 >= cond2
         sqrt = np.empty(len(a))

@@ -662,9 +662,7 @@ class Blocks:
                 buildings_c, blocks, how="left", predicate="within"
             )
         else:
-            centroids_w_bl_ID2 = gpd.sjoin(
-                buildings_c, blocks, how="left", op="within"
-            )
+            centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks, how="left", op="within")
 
         self.buildings_id = centroids_w_bl_ID2[id_name]
 

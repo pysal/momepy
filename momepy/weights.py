@@ -141,7 +141,7 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True
     if k > 1:
         id_order = first_order.id_order
         w = first_order.sparse
-        wk = sum(map(lambda x: w ** x, range(2, k + 1)))
+        wk = sum(map(lambda x: w**x, range(2, k + 1)))
         rk, ck = wk.nonzero()
         sk = set(zip(rk, ck))
         sk = set([(i, j) for i, j in sk if i != j])
