@@ -18,5 +18,5 @@ coverage:
 comment:
   layout: "reach, diff, files"
   behavior: once
-  after_n_builds: 7
+  after_n_builds: 6
   require_changes: true
