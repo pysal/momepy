@@ -1,6 +1,6 @@
 codecov:
   notify:
-    after_n_builds: 7
+    after_n_builds: 6
 coverage:
   range: 50..95
   round: nearest
