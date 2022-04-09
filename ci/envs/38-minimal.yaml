@@ -3,10 +3,10 @@ channels:
   - conda-forge
 dependencies:
   - python=3.8
-  - geopandas
-  - libpysal
-  - networkx
-  - tqdm
+  - geopandas=0.8
+  - libpysal=4.2.2
+  - networkx=2.3
+  - tqdm=4.27.0
   - pytest
   - pytest-cov
   - pytest-xdist
