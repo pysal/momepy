@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 0.5.3 (April 9, 2022)
+-----------------------------
+
+Minor patch release fixing the issue with a generation blocks.
+
+- BUG: fix issue with blocks within another blocks (#351)
+
+
 Version 0.5.2 (January 6, 2022)
 -------------------------------
 
