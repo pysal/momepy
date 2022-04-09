@@ -4,8 +4,11 @@ Changelog
 Version 0.5.3 (April 9, 2022)
 -----------------------------
 
-Minor patch release fixing the issue with a generation blocks.
+Minor patch release primarily fixing an issue with momepy.Blocks and a creation of angular graphs.
 
+Fixes:
+
+- BUG: Fix angle computation in graph creation with dual approach (#347)
 - BUG: fix issue with blocks within another blocks (#351)
 
 
