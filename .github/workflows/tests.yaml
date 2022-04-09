@@ -29,15 +29,14 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         env:
-          - ci/envs/37-minimal.yaml
-          - ci/envs/38-latest.yaml
+          - ci/envs/38-minimal.yaml
           - ci/envs/39-latest.yaml
           - ci/envs/310-latest.yaml
           - ci/envs/310-dev.yaml
         include:
-          - env: ci/envs/39-latest.yaml
+          - env: ci/envs/310-latest.yaml
             os: macos-latest
-          - env: ci/envs/39-latest.yaml
+          - env: ci/envs/310-latest.yaml
             os: windows-latest
 
     steps:
