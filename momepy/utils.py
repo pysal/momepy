@@ -47,7 +47,7 @@ def _angle(a, b, c):
     return abs((a2 - a1 + 180) % 360 - 180)
 
 
-def _generate_primal(G, gdf_network, fields, multigraph):
+def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
     """
     Generate primal graph.
     Helper for gdf_to_nx.
@@ -63,6 +63,13 @@ def _generate_primal(G, gdf_network, fields, multigraph):
         if multigraph:
             G.add_edge(first, last, key=key, **attributes)
             key += 1
+
+            if oneway_column:
+                print(row)
+                oneway = bool(getattr(row, oneway_column))
+                if not oneway:
+                    G.add_edge(last, first, key=key, **attributes)
+                    key += 1
         else:
             G.add_edge(first, last, **attributes)
 
@@ -126,6 +133,7 @@ def gdf_to_nx(
     directed=False,
     angles=True,
     angle="angle",
+    oneway_column=None,
 ):
     """
     Convert LineString GeoDataFrame to networkx.MultiGraph or other Graph as per
@@ -160,6 +168,9 @@ def gdf_to_nx(
     angle : str, default 'angle'
         name of attribute of angle between LineStrings which will be saved to graph.
         Ignored if ``approach="primal"``.
+    oneway_column : str, default None
+        create an additional edge for each LineString which allows bidirectional path traversal by
+        specifying the boolean column in the GeoDataFrame.
 
     Returns
     -------
@@ -229,7 +240,10 @@ def gdf_to_nx(
     fields = list(gdf_network.columns)
 
     if approach == "primal":
-        _generate_primal(net, gdf_network, fields, multigraph)
+        if oneway_column and ((not directed) and (not multigraph)):
+            raise ValueError("Bidirectional lines are only supported for directed multigraphs.")
+
+        _generate_primal(net, gdf_network, fields, multigraph, oneway_column)
 
     elif approach == "dual":
         if directed:
