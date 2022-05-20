@@ -65,7 +65,6 @@ def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
             key += 1
 
             if oneway_column:
-                print(row)
                 oneway = bool(getattr(row, oneway_column))
                 if not oneway:
                     G.add_edge(last, first, key=key, **attributes)
@@ -241,7 +240,9 @@ def gdf_to_nx(
 
     if approach == "primal":
         if oneway_column and ((not directed) and (not multigraph)):
-            raise ValueError("Bidirectional lines are only supported for directed multigraphs.")
+            raise ValueError(
+                "Bidirectional lines are only supported for directed multigraphs."
+            )
 
         _generate_primal(net, gdf_network, fields, multigraph, oneway_column)
 
