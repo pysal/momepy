@@ -99,9 +99,6 @@ class TestUtils:
         with pytest.raises(ValueError):
             mm.gdf_to_nx(self.df_streets, approach="dual", directed=True)
 
-        
-        
-
     @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
     def test_nx_to_gdf(self):
         nx = mm.gdf_to_nx(self.df_streets)
