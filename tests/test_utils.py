@@ -60,6 +60,9 @@ class TestUtils:
         nx = mm.gdf_to_nx(self.df_streets, directed=True, oneway_column="oneway")
         assert nx.number_of_edges() == 36
 
+        with pytest.raises(ValueError):
+            mm.gdf_to_nx(self.df_streets, directed=False, oneway_column="oneway")
+
         dual = mm.gdf_to_nx(self.df_streets, approach="dual", angles=False)
         assert (
             dual.edges[

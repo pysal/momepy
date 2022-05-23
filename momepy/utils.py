@@ -169,7 +169,9 @@ def gdf_to_nx(
         Ignored if ``approach="primal"``.
     oneway_column : str, default None
         create an additional edge for each LineString which allows bidirectional path traversal by
-        specifying the boolean column in the GeoDataFrame.
+        specifying the boolean column in the GeoDataFrame. Note, that the reverse conversion
+        ``nx_to_gdf(gdf_to_nx(gdf, directed=True, oneway_column="oneway"))`` will contain
+        additional duplicated geometries.
 
     Returns
     -------
@@ -239,9 +241,9 @@ def gdf_to_nx(
     fields = list(gdf_network.columns)
 
     if approach == "primal":
-        if oneway_column and ((not directed) and (not multigraph)):
+        if oneway_column and not directed:
             raise ValueError(
-                "Bidirectional lines are only supported for directed multigraphs."
+                "Bidirectional lines are only supported for directed graphs."
             )
 
         _generate_primal(net, gdf_network, fields, multigraph, oneway_column)
