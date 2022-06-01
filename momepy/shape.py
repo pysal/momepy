@@ -75,6 +75,9 @@ class FormFactor:
         the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
         stored area value. If set to ``None``, function will calculate areas
         during the process without saving them separately.
+    heights : str, list, np.array, pd.Series (default None)
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where height
+        values are stored
 
     Attributes
     ----------
