@@ -77,7 +77,7 @@ class FormFactor:
         during the process without saving them separately.
     heights : str, list, np.array, pd.Series (default None)
         the name of the dataframe column, ``np.array``, or ``pd.Series`` where height
-        values are stored. Note that it cannot be `None`.
+        values are stored. Note that it cannot be ``None``.
 
     Attributes
     ----------
