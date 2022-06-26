@@ -190,6 +190,8 @@ def remove_false_nodes(gdf):
     """
     Clean topology of existing LineString geometry by removal of nodes of degree 2.
 
+    Returns the original gdf if there's no node of degree 2.
+
     Parameters
     ----------
     gdf : GeoDataFrame, GeoSeries, array of pygeos geometries
@@ -275,6 +277,9 @@ def remove_false_nodes(gdf):
                 ignore_index=True,
             )
         return df.append(final, ignore_index=True)
+
+    # if there's nothing to fix, return the original dataframe
+    return gdf
 
 
 class CheckTessellationInput:
