@@ -136,8 +136,8 @@ Details are available in the :doc:`contributing guide <contributing>`.
 
 Get in touch
 ------------
-If you have a question regarding momepy, feel free to open an issue on GitHub.
-Eventually, you can contact us on dev@momepy.org.
+If you have a question regarding momepy, feel free to open an
+`issue`_ or a new `discussion`_ on GitHub.
 
 Acknowledgements
 ----------------
@@ -179,3 +179,5 @@ Indices and tables
 .. _Urban Grammar AI: https://urbangrammarai.xyz
 .. _@martinfleis: http://github.org/martinfleis
 .. _@jGaboardi: http://github.org/jGaboardi
+.. _issue: https://github.com/pysal/momepy/issues/new/choose
+.. _discussion: https://github.com/pysal/momepy/discussions

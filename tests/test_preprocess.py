@@ -5,6 +5,7 @@ from packaging.version import Version
 from shapely import affinity
 from shapely.geometry import LineString, MultiPoint, Polygon
 from shapely.ops import polygonize
+from geopandas.testing import assert_geodataframe_equal
 
 import momepy as mm
 
@@ -47,6 +48,10 @@ class TestPreprocessing:
         assert len(fixed_multiindex) == 56
         assert isinstance(fixed, gpd.GeoDataFrame)
         assert sorted(self.false_network.columns) == sorted(fixed.columns)
+
+        # no node of a degree 2
+        df = self.df_streets.drop([4, 7, 17, 22])
+        assert_geodataframe_equal(df, mm.remove_false_nodes(df))
 
     def test_CheckTessellationInput(self):
         df = self.df_buildings

@@ -103,7 +103,8 @@ If you decide to contribute to the codebase, ensure that you are using an up-to-
 Details are available in the [documentation](https://docs.momepy.org/).
 
 ## Get in touch
-If you have a question regarding momepy, feel free to open an issue on GitHub. Eventually, you can contact us on [dev@momepy.org](mailto:dev@momepy.org).
+
+If you have a question regarding momepy, feel free to open an [issue](https://github.com/pysal/momepy/issues/new/choose) or a new [discussion](https://github.com/pysal/momepy/discussions) on GitHub.
 
 ## Acknowledgements
 

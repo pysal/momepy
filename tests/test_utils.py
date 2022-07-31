@@ -55,6 +55,14 @@ class TestUtils:
         assert nx.number_of_nodes() == 29
         assert nx.number_of_edges() == 35
 
+        self.df_streets["oneway"] = True
+        self.df_streets.loc[0, "oneway"] = False  # first road section is bidirectional
+        nx = mm.gdf_to_nx(self.df_streets, directed=True, oneway_column="oneway")
+        assert nx.number_of_edges() == 36
+
+        with pytest.raises(ValueError, match="Bidirectional lines"):
+            mm.gdf_to_nx(self.df_streets, directed=False, oneway_column="oneway")
+
         dual = mm.gdf_to_nx(self.df_streets, approach="dual", angles=False)
         assert (
             dual.edges[
