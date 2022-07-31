@@ -15,14 +15,12 @@ import shapely
 from packaging.version import Version
 from tqdm.auto import tqdm
 
-
 from shapely.ops import linemerge
 from shapely import geometry
 from shapely.validation import make_valid
 
 from .shape import CircularCompactness
-import .coins as COINS
-
+from .coins import COINS
 
 
 
@@ -32,6 +30,7 @@ __all__ = [
     "CheckTessellationInput",
     "close_gaps",
     "extend_lines",
+    "roundabout_simpl"
 ]
 
 GPD_10 = Version(gpd.__version__) >= Version("0.10")
@@ -817,6 +816,9 @@ def _rabs_center_points(gdf, center_type = 'centroid'):
     elif center_type == 'mean':
         # mean geometry
         ls_xy = [g.exterior.coords.xy for g in rab_plus.geometry] #extracting the points
+        
+        ls_xy = [point for polygon in multipolygon for point in polygon.exterior.coords[:-1]]
+        
         mean_pts = [geometry.Point(np.mean(xy[0]),np.mean(xy[1])) for xy in ls_xy]
         rab_plus['center_pt'] = gpd.GeoSeries( data = mean_pts, 
                                               index = rab_plus.index, 
