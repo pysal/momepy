@@ -5,6 +5,13 @@ momepy documentation
    :alt: momepy: Urban morphology measuring toolkit
    :align: center
    :width: 50%
+   :class: only-light
+
+.. image:: _static/logo_dark.png
+   :alt: momepy: Urban morphology measuring toolkit
+   :align: center
+   :width: 50%
+   :class: only-dark
 
 Introduction
 ------------

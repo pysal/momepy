@@ -1,11 +1,9 @@
 /* default colors */
 
-:root {
-    --pst-color-primary: 227, 46, 0;
-    --pst-color-active-navigation: 227, 46, 0;
-    --pst-color-h1: 11, 76, 99;
-    --pst-color-h2: 11, 76, 99;
-    --pst-color-inline-code: 227, 46, 0;
+html[data-theme="light"] {
+    --pst-color-primary: rgb(11, 76, 99);
+    --pst-color-secondary: rgb(227, 46, 0);
+    --pst-color-inline-code: rgb(227, 46, 0);
 }
 
 
@@ -26,34 +24,9 @@ div.nbinput.container div.input_area {
     box-shadow: 1px 1px 1px #d8d8d8;
 }
 
+
+/* hide warnings */
+
 div.output_area.stderr {
     display: none;
-}
-
-.highlight .kn {
-    color: #0aac18;
-}
-
-.highlight .k {
-    color: #0aac18;
-}
-
-.highlight .kc {
-    color: #0aac18;
-}
-
-.highlight .mi {
-    color: #0aac18;
-}
-
-.highlight .mf {
-    color: #0aac18;
-}
-
-.highlight .gp {
-    color: #0aac18;
-}
-
-.admonition.note {
-    border-color: #5a9ce2;
 }
