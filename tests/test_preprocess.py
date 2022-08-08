@@ -125,29 +125,37 @@ class TestPreprocessing:
         ext5 = mm.extend_lines(gdf, 2)
         assert ext5.length.sum() > gdf.length.sum()
         assert ext5.length.sum() == pytest.approx(6.2, rel=1e-3)
-        
-    def test_roundabout_simpl(self):
-        test_file_path_rabs = mm.datasets.get_path("mad_test_rabs")
-        gdf_streets = gpd.read_file(test_file_path_rabs) # lenght = 88
+
+    def test_roundabout_simplification(self):
+        test_file_path2 = mm.datasets.get_path("tests")
+        gdf_streets = gpd.read_file(
+            test_file_path_rabs, layer="test_rabs"
+        )  # lenght = 88
         plgns = polygonize(gdf_streets.geometry)
-        gdf_polys = gpd.GeoDataFrame(geometry = [g for g in plgns], crs= gdf_streets.crs)
+        gdf_polys = gpd.GeoDataFrame(geometry=[g for g in plgns], crs=gdf_streets.crs)
 
-        #test with basic params
-        check = mm.roundabout_simpl(gdf_streets, gdf_polys)
+        # test with basic params
+        check = mm.roundabout_simplification(gdf_streets)
         assert len(check) == 65
-        assert len(gdf_streets) == 88 #checking that nothing has changed
+        assert len(gdf_streets) == 88  # checking that nothing has changed
 
-        check = mm.roundabout_simpl(gdf_streets, gdf_polys, circom_threshold = 0.97)
+        check = mm.roundabout_simplification(
+            gdf_streets, gdf_polys, circom_threshold=0.97
+        )
         assert len(check) == 77
         assert len(gdf_streets) == 88
 
-        check = mm.roundabout_simpl(gdf_streets, gdf_polys, perc_area_threshold = 0.8)
+        check = mm.roundabout_simplification(
+            gdf_streets, gdf_polys, perc_area_threshold=0.8
+        )
         assert len(check) == 67
         assert len(gdf_streets) == 88
 
-        check = mm.roundabout_simpl(gdf_streets, gdf_polys, include_adjacent = False)
+        check = mm.roundabout_simplification(
+            gdf_streets, gdf_polys, include_adjacent=False
+        )
         assert len(check) == 87
         assert len(gdf_streets) == 88
 
-        #check = mm.roundabout_simpl(gdf_streets, gdf_polys, center_type = 'mean' ) # BUG !
+        # check = mm.roundabout_simpl(gdf_streets, gdf_polys, center_type = 'mean' ) # BUG !
         # assert len(check) == 65

@@ -3,7 +3,7 @@ import os
 __all__ = ["available", "get_path"]
 
 _module_path = os.path.dirname(__file__)
-available = ["bubenec", "tests", "mad_test_rabs"]
+available = ["bubenec", "tests"]
 
 
 def get_path(dataset):
