@@ -129,7 +129,7 @@ class TestPreprocessing:
     def test_roundabout_simplification(self):
         test_file_path2 = mm.datasets.get_path("tests")
         gdf_streets = gpd.read_file(
-            test_file_path_rabs, layer="test_rabs"
+            test_file_path2, layer="test_rabs"
         )  # lenght = 88
         plgns = polygonize(gdf_streets.geometry)
         gdf_polys = gpd.GeoDataFrame(geometry=[g for g in plgns], crs=gdf_streets.crs)
