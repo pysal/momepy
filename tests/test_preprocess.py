@@ -143,9 +143,7 @@ class TestPreprocessing:
         assert len(check) == 77
         assert len(gdf_streets) == 88
 
-        check = mm.roundabout_simplification(
-            gdf_streets, gdf_polys, perc_area_threshold=0.8
-        )
+        check = mm.roundabout_simplification(gdf_streets, gdf_polys, area_threshold=0.8)
         assert len(check) == 67
         assert len(gdf_streets) == 88
 

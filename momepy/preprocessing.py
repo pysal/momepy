@@ -16,7 +16,7 @@ from packaging.version import Version
 from tqdm.auto import tqdm
 
 from shapely.ops import linemerge, polygonize
-from shapely import geometry
+from shapely.geometry import Point, LineString
 
 from .shape import CircularCompactness
 from .coins import COINS
@@ -749,7 +749,7 @@ def _get_extrapolated_line(coords, tolerance, point=False):
 
 
 def _polygonize_ifnone(edges, polys):
-    if polys == None:
+    if polys is None:
         pre_polys = polygonize(edges.geometry)
         polys = gpd.GeoDataFrame(geometry=[g for g in pre_polys], crs=edges.crs)
     return polys
@@ -777,7 +777,7 @@ def _selecting_rabs_from_poly(
     area_threshold_val = gdf.area.quantile(area_threshold)
     rab = rab[rab.area < area_threshold_val]
 
-    if include_adjacent == True:
+    if include_adjacent is True:
         # calculating some parameters
         bounds = rab.geometry.bounds
         rab = pd.concat([rab, bounds], axis=1)
@@ -816,7 +816,8 @@ def _rabs_center_points(gdf, center_type="centroid"):
     From a selection of roundabouts, returns an aggregated GeoDataFrame
     per round about with extra column with center_type.
     """
-    # creating a multipolygon per RAB (as opposed to dissolving) of the entire composition of the RAB
+    # creating a multipolygon per RAB (as opposed to dissolving) of the entire
+    # composition of the RAB
     # temporary DataFrame where geometry is the array of pygeos geometries
     tmp = pd.DataFrame(gdf.copy())  # temporary hack until shapely 2.0 is out
     tmp["geometry"] = tmp.geometry.values.data
@@ -829,7 +830,8 @@ def _rabs_center_points(gdf, center_type="centroid"):
     pygeos_geoms = pygeos.make_valid(pygeos_geoms)
 
     rab_multipolygons = gpd.GeoDataFrame(pygeos_geoms, crs=gdf.crs)
-    # make_valid is transforming the multipolygons into geometry collections because of shared edges
+    # make_valid is transforming the multipolygons into geometry collections because of
+    # shared edges
 
     if center_type == "centroid":
         # geometry centroid of the actual circle
@@ -848,7 +850,8 @@ def _rabs_center_points(gdf, center_type="centroid"):
         rab_multipolygons["center_pt"] = gpd.GeoSeries(means, crs=gdf.crs)
 
     # centerpoint of minimum_bounding_circle
-    # minimun_bounding_circle() should be available in Shapely 2.0. Implementation still pending.
+    # minimun_bounding_circle() should be available in Shapely 2.0. Implementation still
+    # pending.
     # current environment has 1.8.2
 
     return rab_multipolygons
@@ -860,7 +863,8 @@ def _coins_filtering_many_incoming(incoming_many, angle_threshold=0):
     roundabout.
     """
     coins_filter_result = []
-    # For each new connection, evaluate COINS and select the group from which the new line belongs
+    # For each new connection, evaluate COINS and select the group from which the new
+    # line belongs
     # TODO ideally use the groupby object on line_wkt used earlier
     for g, x in incoming_many.groupby("line_wkt"):
         gs = gpd.GeoSeries(pd.concat([x.geometry, x.line]), crs=incoming_many.crs)
@@ -868,7 +872,8 @@ def _coins_filtering_many_incoming(incoming_many, angle_threshold=0):
         gdf.drop_duplicates(inplace=True)
 
         coins = COINS(gdf, angle_threshold=angle_threshold)
-        # coins.stroke_attribute()) # the groups here don't match the stroke_group in .stroke_gdf()
+        # coins.stroke_attribute()) # the groups here don't match the stroke_group in
+        # .stroke_gdf()
         stroke_gdf = coins.stroke_gdf()
         orig_geom_join = stroke_gdf.sjoin(
             gpd.GeoDataFrame(geometry=x.line), predicate="covers"
@@ -946,15 +951,16 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
 
 
 def _ext_lines_to_center(edges, incoming_all, idx_out):
-    """Extends the Linestrings geometrie to the centerpoint defined by _rabs_center_points.
-    Also deleted the lines that originally defined the roundabout.
+    """
+    Extends the Linestrings geometrie to the centerpoint defined by
+    _rabs_center_points. Also deleted the lines that originally defined the roundabout.
 
     Returns
     -------
     GeoDataFrame
         GeoDataFrame of with updated geometry
     """
-    ## this can most likely be vectorized with pygeos.line_merge()!! #TODO
+    # this can most likely be vectorized with pygeos.line_merge()!! #TODO
     incoming_all["geometry"] = incoming_all.apply(
         lambda row: linemerge([row.geometry, row.line]), axis=1
     )
@@ -997,27 +1003,38 @@ def roundabout_simplification(
     edges : GeoDataFrame
         GeoDataFrame containing LineString geometry of urban network
     polys : GeoDataFrame
-        GeoDataFrame containing Polygon geometry derived from polygonyzing ``edges`` GeoDataFrame.
+        GeoDataFrame containing Polygon geometry derived from polygonyzing
+        ``edges`` GeoDataFrame.
     circom_threshold : float (default 0.7)
-        Circular compactness threshold to select roundabouts from ``polys`` GeoDataFrame.
-        Polygons with a higher or equal threshold value will be considered for simplification.
+        Circular compactness threshold to select roundabouts from ``polys``
+        GeoDataFrame.
+        Polygons with a higher or equal threshold value will be considered for
+        simplification.
     area_threshold : float (default 0.85)
-        Percentile threshold value from the area of ``polys`` to leave as input geometry.
-        Polygons with a higher or equal threshold will be considered as urban blocks not considered
+        Percentile threshold value from the area of ``polys`` to leave as input
+        geometry.
+        Polygons with a higher or equal threshold will be considered as urban blocks
+        not considered
         for simplification.
     include_adjacent : boolean (default True)
         Adjacent polygons to be considered also as part of the simplification.
     center_type : string (default 'centroid')
         Method to use for converging the incoming LineStrings.
         Current list of options available : 'centroid', 'mean'.
-        - 'centroid': selects the centroid of the actual roundabout (ignoring adjacent geometries)
-        - 'mean': calculates the mean coordinates from the points of polygons (including adjacent geometries)
+        - 'centroid': selects the centroid of the actual roundabout (ignoring adjacent
+        geometries)
+        - 'mean': calculates the mean coordinates from the points of polygons (including
+         adjacent geometries)
     angle_threshold : int, float (default 0)
-        The angle threshold for the COINS algorithm. Only used when multiple incoming LineStrings
-        arrive at the same Point to the roundabout or to the adjacent polygons if set as True.
-        eg. when two 'edges' touch the roundabout at the same point, COINS algorithm will evaluate which of those
+        The angle threshold for the COINS algorithm. Only used when multiple incoming
+        LineStrings
+        arrive at the same Point to the roundabout or to the adjacent polygons if set
+        as True.
+        eg. when two 'edges' touch the roundabout at the same point, COINS algorithm
+        will evaluate which of those
         incoming lines should be extended accordinf to their deflection angle.
-        Segments will only be considered a part of the same street if the deflection angle
+        Segments will only be considered a part of the same street if the deflection
+        angle
         is above the threshold.
 
     Returns
