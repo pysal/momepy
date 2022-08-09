@@ -903,7 +903,10 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     is used to select the line to be extended further.
     """
     # selecting the lines that are touching but not covered by
-    touching = edges.sjoin(rab_multipolygons, predicate="touches")
+    if GPD_10:
+        touching = edges.sjoin(rab_multipolygons, predicate="touches")
+    else:
+        touching = edges.sjoin(rab_multipolygons, op="touches")
     idx_drop = edges.sjoin(rab_multipolygons, predicate="covered_by").index
 
     touching_idx = touching.index
