@@ -28,7 +28,7 @@ __all__ = [
     "CheckTessellationInput",
     "close_gaps",
     "extend_lines",
-    "roundabout_simpl",
+    "roundabout_simplification",
 ]
 
 GPD_10 = Version(gpd.__version__) >= Version("0.10")
