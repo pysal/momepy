@@ -153,5 +153,5 @@ class TestPreprocessing:
         assert len(check) == 87
         assert len(gdf_streets) == 88
 
-        # check = mm.roundabout_simpl(gdf_streets, gdf_polys, center_type = 'mean' ) # BUG !
-        # assert len(check) == 65
+        check = mm.roundabout_simplification(gdf_streets, gdf_polys, center_type="mean")
+        assert len(check) == 65
