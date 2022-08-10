@@ -879,12 +879,12 @@ def _coins_filtering_many_incoming(incoming_many, angle_threshold=0):
         # .stroke_gdf()
         stroke_gdf = coins.stroke_gdf()
         if GPD_10:
-            orig_geom_join = stroke_gdf.sjoin(
-                gpd.GeoDataFrame(geometry=x.line), predicate="covers"
+            orig_geom_join = gpd.sjoin(
+                stroke_gdf, gpd.GeoDataFrame(geometry=x.line), predicate="covers"
             )
         else:
-            orig_geom_join = stroke_gdf.sjoin(
-                gpd.GeoDataFrame(geometry=x.line), op="covers"
+            orig_geom_join = gpd.sjoin(
+                stroke_gdf, gpd.GeoDataFrame(geometry=x.line), op="covers"
             )
         orig_geom = gpd.GeoSeries(
             [orig_geom_join.geometry.iloc[0]], crs=incoming_many.crs
@@ -897,9 +897,9 @@ def _coins_filtering_many_incoming(incoming_many, angle_threshold=0):
         # select the the line that's covered by the joined line returned by COINS
         # one could consider using pygeos shared_paths(a, b) # TODO
         if GPD_10:
-            result_idx = gs1.sjoin(gs2, predicate="covered_by").index
+            result_idx = gpd.sjoin(gs1, gs2, predicate="covered_by").index
         else:
-            result_idx = gs1.sjoin(gs2, op="covered_by").index
+            result_idx = gpd.sjoin(gs1, gs2, op="covered_by").index
         coins_filter_result.extend(result_idx)
 
     incoming_many_reduced = incoming_many.loc[coins_filter_result]
@@ -915,14 +915,14 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     """
     # selecting the lines that are touching but not covered by
     if GPD_10:
-        touching = edges.sjoin(rab_multipolygons, predicate="touches")
+        touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
     else:
-        touching = edges.sjoin(rab_multipolygons, op="touches")
+        touching = gpd.sjoin(edges, rab_multipolygons, op="touches")
 
     if GPD_10:
-        idx_drop = edges.sjoin(rab_multipolygons, predicate="covered_by").index
+        idx_drop = gpd.sjoin(edges, rab_multipolygons, predicate="covered_by").index
     else:
-        idx_drop = edges.sjoin(rab_multipolygons, op="covered_by").index
+        idx_drop = gpd.sjoin(edges, rab_multipolygons, op="covered_by").index
 
     touching_idx = touching.index
     ls = list(set(touching_idx) - set(idx_drop))
