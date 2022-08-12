@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import math
+import warnings
 
 import geopandas as gpd
 import libpysal
 import networkx as nx
 import numpy as np
 from shapely.geometry import Point
+from shapely.geometry import LineString
 
 __all__ = [
     "unique_id",
@@ -55,6 +57,11 @@ def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
     G.graph["approach"] = "primal"
     key = 0
     for row in gdf_network.itertuples():
+
+        if (not (isinstance(row.geometry, LineString))):
+            warnings.warn(message="Geometry is not of type LineString",
+                          category=RuntimeWarning)
+
         first = row.geometry.coords[0]
         last = row.geometry.coords[-1]
 

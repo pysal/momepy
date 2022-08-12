@@ -2,8 +2,10 @@ import geopandas as gpd
 import networkx
 import numpy as np
 import osmnx as ox
+import warnings
 import pytest
 from shapely.geometry import LineString
+from shapely.geometry import Point
 from packaging.version import Version
 
 import momepy as mm
@@ -20,12 +22,18 @@ class TestUtils:
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
+        self.df_points = gpd.GeoDataFrame(
+            data=None, geometry=[Point(0, 0), Point(1, 1)])
 
     def test_dataset_missing(self):
         with pytest.raises(ValueError):
             mm.datasets.get_path("sffgkt")
 
     def test_gdf_to_nx(self):
+
+        with pytest.warns(RuntimeWarning):
+            nx = mm.gdf_to_nx(self.df_points)
+
         nx = mm.gdf_to_nx(self.df_streets)
         assert nx.number_of_nodes() == 29
         assert nx.number_of_edges() == 35
