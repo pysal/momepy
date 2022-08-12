@@ -59,8 +59,9 @@ def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
     for row in gdf_network.itertuples():
 
         if (not (isinstance(row.geometry, LineString))):
-            warnings.warn(message="Geometry is not of type LineString",
-                          category=RuntimeWarning)
+            warnings.warn(
+                message="Geometry is not of type LineString", category=RuntimeWarning
+            )
 
         first = row.geometry.coords[0]
         last = row.geometry.coords[-1]

@@ -23,7 +23,8 @@ class TestUtils:
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
         self.df_points = gpd.GeoDataFrame(
-            data=None, geometry=[Point(0, 0), Point(1, 1)])
+            data=None, geometry=[Point(0, 0), Point(1, 1)]
+        )
 
     def test_dataset_missing(self):
         with pytest.raises(ValueError):
