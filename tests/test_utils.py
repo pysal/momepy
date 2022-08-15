@@ -25,6 +25,10 @@ class TestUtils:
         self.df_points = gpd.GeoDataFrame(
             data=None, geometry=[Point(0, 0), Point(1, 1)]
         )
+        self.df_points_and_linestring = gpd.GeoDataFrame(
+            data=None,
+            geometry=[Point(0, 0), Point(1, 1), LineString([(1, 0), (0, 0), (1, 1)])],
+        )
 
     def test_dataset_missing(self):
         with pytest.raises(ValueError):
@@ -32,8 +36,13 @@ class TestUtils:
 
     def test_gdf_to_nx(self):
 
+        # nx = mm.gdf_to_nx(self.df_points)
         with pytest.warns(RuntimeWarning):
             nx = mm.gdf_to_nx(self.df_points)
+
+        # nx = mm.gdf_to_nx(self.df_points_and_linestring)
+        with pytest.warns(RuntimeWarning):
+            nx = mm.gdf_to_nx(self.df_points_and_linestring)
 
         nx = mm.gdf_to_nx(self.df_streets)
         assert nx.number_of_nodes() == 29
