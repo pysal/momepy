@@ -865,7 +865,7 @@ def _coins_filtering_many_incoming(incoming_many, angle_threshold=0):
     Used only for the cases when more than one incoming line touches the
     roundabout.
     """
-    coins_filter_result = []
+    idx_out_many_incoming = []
     # For each new connection, evaluate COINS and select the group from which the new
     # line belongs
     # TODO ideally use the groupby object on line_wkt used earlier
@@ -875,34 +875,15 @@ def _coins_filtering_many_incoming(incoming_many, angle_threshold=0):
         gdf.drop_duplicates(inplace=True)
 
         coins = COINS(gdf, angle_threshold=angle_threshold)
-        # coins.stroke_attribute()) # the groups here don't match the stroke_group in
-        # .stroke_gdf()
-        stroke_gdf = coins.stroke_gdf()
-        if GPD_10:
-            orig_geom_join = gpd.sjoin(
-                stroke_gdf, gpd.GeoDataFrame(geometry=x.line), predicate="covers"
-            )
-        else:
-            orig_geom_join = gpd.sjoin(
-                stroke_gdf, gpd.GeoDataFrame(geometry=x.line), op="covers"
-            )
-        orig_geom = gpd.GeoSeries(
-            [orig_geom_join.geometry.iloc[0]], crs=incoming_many.crs
-        )
-        gs2 = gpd.GeoDataFrame(geometry=orig_geom)
+        group_series = coins.stroke_attribute()
+        gdf["coins_group"] = group_series
+        # selecting the incoming and its extension
+        coins_group_filter = gdf.groupby("coins_group").count() == 1
+        f = gdf.coins_group.map(coins_group_filter.geometry)
+        idxs_remove = gdf[f].index
+        idx_out_many_incoming.extend(idxs_remove)
 
-        gs1 = gpd.GeoSeries(x.geometry, crs=incoming_many.crs)
-        gs1 = gpd.GeoDataFrame(geometry=gs1)
-
-        # select the the line that's covered by the joined line returned by COINS
-        # one could consider using pygeos shared_paths(a, b) # TODO
-        if GPD_10:
-            result_idx = gpd.sjoin(gs1, gs2, predicate="covered_by").index
-        else:
-            result_idx = gpd.sjoin(gs1, gs2, op="covered_by").index
-        coins_filter_result.extend(result_idx)
-
-    incoming_many_reduced = incoming_many.loc[coins_filter_result]
+    incoming_many_reduced = incoming_many.drop(idx_out_many_incoming, axis=0)
 
     return incoming_many_reduced
 
