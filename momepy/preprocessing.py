@@ -916,17 +916,15 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     # selecting the lines that are touching but not covered by
     if GPD_10:
         touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
-        edges_idx, rabs_idx = rab_multipolygons.buffer(1).sindex.query_bulk(
-            edges.geometry, predicate="within"
+        edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
+            edges.geometry, predicate="covered_by"
         )
-        idx_drop = edges.index.take(edges_idx)
     else:
         touching = gpd.sjoin(edges, rab_multipolygons, op="touches")
-        edges_idx, rabs_idx = rab_multipolygons.buffer(1).sindex.query_bulk(
-            edges.geometry, predicate="within"
+        edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
+            edges.geometry, op="covered_by"
         )
-        idx_drop = edges.index.take(edges_idx)
-
+    idx_drop = edges.index.take(edges_idx)
     touching_idx = touching.index
     ls = list(set(touching_idx) - set(idx_drop))
 
