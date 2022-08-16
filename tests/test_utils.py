@@ -4,8 +4,7 @@ import numpy as np
 import osmnx as ox
 import warnings
 import pytest
-from shapely.geometry import LineString
-from shapely.geometry import Point
+from shapely.geometry import LineString, Point
 from packaging.version import Version
 
 import momepy as mm
