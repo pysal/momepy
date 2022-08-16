@@ -2,8 +2,9 @@ import geopandas as gpd
 import networkx
 import numpy as np
 import osmnx as ox
+import warnings
 import pytest
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 from packaging.version import Version
 
 import momepy as mm
@@ -20,12 +21,33 @@ class TestUtils:
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
+        self.df_points = gpd.GeoDataFrame(
+            data=None, geometry=[Point(0, 0), Point(1, 1)]
+        )
+        self.df_points_and_linestring = gpd.GeoDataFrame(
+            data=None,
+            geometry=[Point(0, 0), Point(1, 1), LineString([(1, 0), (0, 0), (1, 1)])],
+        )
 
     def test_dataset_missing(self):
         with pytest.raises(ValueError):
             mm.datasets.get_path("sffgkt")
 
     def test_gdf_to_nx(self):
+
+        # nx = mm.gdf_to_nx(self.df_points)
+        with pytest.warns(
+            RuntimeWarning, match="The given network does not contain any LineString."
+        ):
+            nx = mm.gdf_to_nx(self.df_points)
+
+        # nx = mm.gdf_to_nx(self.df_points_and_linestring)
+        with pytest.warns(
+            RuntimeWarning,
+            match="The given network consists of multiple geometry types.",
+        ):
+            nx = mm.gdf_to_nx(self.df_points_and_linestring)
+
         nx = mm.gdf_to_nx(self.df_streets)
         assert nx.number_of_nodes() == 29
         assert nx.number_of_edges() == 35
