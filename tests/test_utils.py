@@ -37,11 +37,11 @@ class TestUtils:
     def test_gdf_to_nx(self):
 
         # nx = mm.gdf_to_nx(self.df_points)
-        with pytest.warns(RuntimeWarning):
+        with pytest.warns(RuntimeWarning, match="The given network does not contain any LineString."):
             nx = mm.gdf_to_nx(self.df_points)
 
         # nx = mm.gdf_to_nx(self.df_points_and_linestring)
-        with pytest.warns(RuntimeWarning):
+        with pytest.warns(RuntimeWarning, match="The given network consists of multiple geometry types."):
             nx = mm.gdf_to_nx(self.df_points_and_linestring)
 
         nx = mm.gdf_to_nx(self.df_streets)
