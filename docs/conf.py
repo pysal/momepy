@@ -98,7 +98,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -129,13 +129,17 @@ html_theme_options = {
     "github_url": "https://github.com/pysal/momepy",
     "twitter_url": "https://twitter.com/martinfleis",
     "google_analytics_id": "UA-6190355-13",
+    "pygment_light_style": "tango",
+    "logo": {
+        "image_light": "horizontal_logo_light.svg",
+        "image_dark": "horizontal_logo_dark.svg",
+    },
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_logo = "_static/horizontal_logo.svg"
 html_favicon = "_static/favicon.png"
 
 

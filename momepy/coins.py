@@ -66,7 +66,7 @@ class COINS:
         self.already_merged = False
 
         # get indices of original gdf
-        self.uv_index = self.edge_gdf.index.tolist()
+        self.uv_index = range(len(self.edge_gdf.index))
 
         # get line segments from edge gdf
         self.lines = [list(value[1].coords) for value in edge_gdf.geometry.iteritems()]
