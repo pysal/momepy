@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import math
+import warnings
 
 import geopandas as gpd
 import libpysal
 import networkx as nx
 import numpy as np
-from shapely.geometry import Point
+from shapely.geometry import Point, LineString
 
 __all__ = [
     "unique_id",
@@ -53,8 +54,24 @@ def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
     Helper for gdf_to_nx.
     """
     G.graph["approach"] = "primal"
+
+    msg = "%s. This can lead to unexpected behaviour. The intended usage of the conversion function is with networks made of LineStrings only."
+
+    if not "LineString" in gdf_network.geom_type.unique():
+        warnings.warn(
+            message=msg % "The given network does not contain any LineString.",
+            category=RuntimeWarning,
+        )
+
+    if len(gdf_network.geom_type.unique()) > 1:
+        warnings.warn(
+            message=msg % "The given network consists of multiple geometry types.",
+            category=RuntimeWarning,
+        )
+
     key = 0
     for row in gdf_network.itertuples():
+
         first = row.geometry.coords[0]
         last = row.geometry.coords[-1]
 
