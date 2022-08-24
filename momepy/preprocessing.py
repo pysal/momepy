@@ -767,15 +767,14 @@ def _selecting_rabs_from_poly(
     GeoDataFrames : round abouts and adjacent polygons
     """
     # calculate parameters
-    gdf = gdf.copy()
-    gdf["area"] = gdf.geometry.area
-    gdf["circom"] = CircularCompactness(gdf, "area").series
+    gdf.loc[:, "area"] = gdf.geometry.area
+    circom_serie = CircularCompactness(gdf, "area").series
 
     # selecting round about polygons based on compactness
-    rab = gdf[gdf.circom > circom_threshold]
+    rab = gdf[circom_serie > circom_threshold]
     # exclude those above the area threshold
     area_threshold_val = gdf.area.quantile(area_threshold)
-    rab = rab[rab.area < area_threshold_val]
+    rab = rab[rab["area"] < area_threshold_val]
 
     if include_adjacent is True:
         # calculating some parameters
@@ -799,7 +798,7 @@ def _selecting_rabs_from_poly(
         for i, group in rab_adj.groupby("index_right"):
             for g in group.itertuples():
                 hdist = g.geometry.hausdorff_distance(rab.loc[i].geometry)
-                rab_adj.hdist.loc[g.Index] = hdist
+                rab_adj.loc[g.Index, "hdist"] = hdist
 
         rab_plus = rab_adj[rab_adj.hdist < rab_adj.rab_diameter]
 
@@ -822,7 +821,8 @@ def _rabs_center_points(gdf, center_type="centroid"):
     # creating a multipolygon per RAB (as opposed to dissolving) of the entire
     # composition of the RAB
     # temporary DataFrame where geometry is the array of pygeos geometries
-    tmp = pd.DataFrame(gdf.copy())  # temporary hack until shapely 2.0 is out
+    # Hack until shapely 2.0 is out.
+    tmp = pd.DataFrame(gdf.copy())  # creating a copy avoids warnings
     tmp["geometry"] = tmp.geometry.values.data
 
     pygeos_geoms = (
@@ -853,9 +853,8 @@ def _rabs_center_points(gdf, center_type="centroid"):
         rab_multipolygons["center_pt"] = gpd.GeoSeries(means, crs=gdf.crs)
 
     # centerpoint of minimum_bounding_circle
-    # minimun_bounding_circle() should be available in Shapely 2.0. Implementation still
-    # pending.
-    # current environment has 1.8.2
+    # TODO
+    # minimun_bounding_circle() should be available in Shapely 2.0.
 
     return rab_multipolygons
 
@@ -952,15 +951,16 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
 
 def _ext_lines_to_center(edges, incoming_all, idx_out):
     """
-    Extends the Linestrings geometrie to the centerpoint defined by
-    _rabs_center_points. Also deleted the lines that originally defined the roundabout.
+    Extends the Linestrings geometries to the centerpoint defined by
+    _rabs_center_points. Also deletes the lines that originally defined the roundabout.
+    Creates a new column labled with the 'rab' number.
 
     Returns
     -------
     GeoDataFrame
         GeoDataFrame of with updated geometry
     """
-    # this can most likely be vectorized with pygeos.line_merge()!! #TODO
+
     incoming_all["geometry"] = incoming_all.apply(
         lambda row: linemerge([row.geometry, row.line]), axis=1
     )
@@ -968,9 +968,18 @@ def _ext_lines_to_center(edges, incoming_all, idx_out):
     # deleting the original round about edges
     new_edges = edges.drop(idx_out, axis=0)
 
+    # creating a unique label for returned gdf
+    ls = ["rab_" + x for x in incoming_all.index_right.apply(str)]
+    incoming_label = pd.Series(ls, index=incoming_all.index)
+    incoming_label = incoming_label[~incoming_label.index.duplicated(keep="first")]
+
     # mantianing the same gdf shape that the original
     incoming_all = incoming_all[edges.columns]
     new_edges = pd.concat([new_edges, incoming_all])
+
+    # adding a new column to match
+    new_edges["simpl_edge"] = np.nan
+    new_edges["simpl_edge"] = incoming_label
 
     return new_edges
 
@@ -1040,8 +1049,12 @@ def roundabout_simplification(
     Returns
     -------
     GeoDataFrame
-        GeoDataFrame with an updated geometry
+        GeoDataFrame with an updated geometry and an additional column labeling modified edges.
     """
+    assert (
+        len(edges[edges.geom_type != "LineString"]) == 0
+    ), "Only LineString geometries are allowed. Try explode() when using MultiLineString."
+
     polys = _polygonize_ifnone(edges, polys)
     rab = _selecting_rabs_from_poly(
         polys,
