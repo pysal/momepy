@@ -1051,9 +1051,10 @@ def roundabout_simplification(
     GeoDataFrame
         GeoDataFrame with an updated geometry and an additional column labeling modified edges.
     """
-    assert (
-        len(edges[edges.geom_type != "LineString"]) == 0
-    ), "Only LineString geometries are allowed. Try explode() when using MultiLineString."
+    if len(edges[edges.geom_type != "LineString"]) > 0:
+        raise TypeError(
+            "Only LineString geometries are allowed. Try using the `explode()` method to explode MultiLineStrings."
+        )
 
     polys = _polygonize_ifnone(edges, polys)
     rab = _selecting_rabs_from_poly(
