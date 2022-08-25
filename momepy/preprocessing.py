@@ -822,6 +822,7 @@ def _rabs_center_points(gdf, center_type="centroid"):
     # composition of the RAB
     # temporary DataFrame where geometry is the array of pygeos geometries
     # Hack until shapely 2.0 is out.
+    # TODO: replace pygeos with shapely 2.0
     tmp = pd.DataFrame(gdf.copy())  # creating a copy avoids warnings
     tmp["geometry"] = tmp.geometry.values.data
 
