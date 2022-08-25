@@ -969,8 +969,7 @@ def _ext_lines_to_center(edges, incoming_all, idx_out):
     new_edges = edges.drop(idx_out, axis=0)
 
     # creating a unique label for returned gdf
-    ls = ["rab_" + x for x in incoming_all.index_right.apply(str)]
-    incoming_label = pd.Series(ls, index=incoming_all.index)
+    incoming_label = "rab_" + incoming_all.index_right.astype(str)
     incoming_label = incoming_label[~incoming_label.index.duplicated(keep="first")]
 
     # mantianing the same gdf shape that the original
