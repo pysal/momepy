@@ -756,7 +756,11 @@ def _polygonize_ifnone(edges, polys):
 
 
 def _selecting_rabs_from_poly(
-    gdf, circom_threshold=0.7, area_threshold=0.85, include_adjacent=True
+    gdf,
+    area_col="area",
+    circom_threshold=0.7,
+    area_threshold=0.85,
+    include_adjacent=True,
 ):
     """
     From a GeoDataFrame of polygons, returns a GDF of polygons that are
@@ -767,16 +771,19 @@ def _selecting_rabs_from_poly(
     GeoDataFrames : round abouts and adjacent polygons
     """
     # calculate parameters
-    gdf.loc[:, "area"] = gdf.geometry.area
-    circom_serie = CircularCompactness(gdf, "area").series
-
+    # calculate parameters
+    if area_col == "area":
+        gdf.loc[:, area_col] = gdf.geometry.area
+    circom_serie = CircularCompactness(gdf, area_col).series
     # selecting round about polygons based on compactness
-    rab = gdf[circom_serie > circom_threshold]
+    mask = circom_serie > circom_threshold
+    rab = gdf[mask]
     # exclude those above the area threshold
     area_threshold_val = gdf.area.quantile(area_threshold)
-    rab = rab[rab["area"] < area_threshold_val]
+    rab = rab[rab[area_col] < area_threshold_val]
 
     if include_adjacent is True:
+
         # calculating some parameters
         bounds = rab.geometry.bounds
         rab = pd.concat([rab, bounds], axis=1)
@@ -789,11 +796,15 @@ def _selecting_rabs_from_poly(
             rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
         else:
             rab_adj = gpd.sjoin(gdf, rab, op="intersects")
-        rab_adj = rab_adj[rab_adj.area_right >= rab_adj.area_left]
+
+        area_right = area_col + "_right"
+        area_left = area_col + "_left"
+        area_mask = rab_adj[area_right] >= rab_adj[area_left]
+        rab_adj = rab_adj[area_mask]
         rab_adj.index.name = "index"
-        rab_adj["hdist"] = 0
 
         # adding a hausdorff_distance threshold
+        rab_adj["hdist"] = 0
         # TODO: (should be a way to verctorize)
         for i, group in rab_adj.groupby("index_right"):
             for g in group.itertuples():
@@ -987,6 +998,7 @@ def _ext_lines_to_center(edges, incoming_all, idx_out):
 def roundabout_simplification(
     edges,
     polys=None,
+    area_col="area",
     circom_threshold=0.7,
     area_threshold=0.85,
     include_adjacent=True,
@@ -1014,6 +1026,9 @@ def roundabout_simplification(
     polys : GeoDataFrame
         GeoDataFrame containing Polygon geometry derived from polygonyzing
         ``edges`` GeoDataFrame.
+    area_col : string
+        Column name containing area values if ``polys`` GeoDataFrame contains such
+        information. Otherwise, it will
     circom_threshold : float (default 0.7)
         Circular compactness threshold to select roundabouts from ``polys``
         GeoDataFrame.
@@ -1059,6 +1074,7 @@ def roundabout_simplification(
     polys = _polygonize_ifnone(edges, polys)
     rab = _selecting_rabs_from_poly(
         polys,
+        area_col=area_col,
         circom_threshold=circom_threshold,
         area_threshold=area_threshold,
         include_adjacent=include_adjacent,
