@@ -508,9 +508,7 @@ class Tessellation:
         clean_blocks.loc[single, "uID"] = clean_blocks.loc[single, "position"].apply(
             lambda ix: buildings.iloc[res[inp == ix][0]][unique_id]
         )
-        tessellation = pd.concat(new)
-
-        return tessellation.append(clean_blocks.drop(columns="position")).reset_index(
+        return pd.concat(new + [clean_blocks.drop(columns="position")]).reset_index(
             drop=True
         )
 
