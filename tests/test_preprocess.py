@@ -136,6 +136,7 @@ class TestPreprocessing:
         check = mm.roundabout_simplification(self.df_streets_rabs)
         assert len(check) == 65
         assert len(self.df_streets_rabs) == 88  # checking that nothing has changed
+        # with pytest.raises(TypeError): # unsure how to develop this
 
     def test_roundabout_simplification_2(self):
         check = mm.roundabout_simplification(
