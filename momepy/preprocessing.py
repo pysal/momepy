@@ -986,7 +986,6 @@ def _ext_lines_to_center(edges, incoming_all, idx_out):
     new_edges = pd.concat([new_edges, incoming_all])
 
     # adding a new column to match
-    new_edges["simpl_edge"] = np.nan
     new_edges["simpl_edge"] = incoming_label
 
     return new_edges
