@@ -1067,11 +1067,9 @@ def roundabout_simplification(
     GeoDataFrame
         GeoDataFrame with an updated geometry and an additional column labeling modified edges.
     """
-    ver_str = gpd.__version__
-    if Version(ver_str) <= Version("0.9"):
-        raise TypeError(
-            "The function needs at least GeoPandas 0.9.0. Your current version is "
-            + ver_str
+    if not GPD_09:
+        raise ImportError(
+            f"`roundabout_simplification` requires geopandas 0.9.0 or newer. Your current version is {gpd.__version__}."
         )
 
     if len(edges[edges.geom_type != "LineString"]) > 0:
