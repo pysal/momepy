@@ -761,21 +761,21 @@ def _selecting_rabs_from_poly(
     circom_threshold=0.7,
     area_threshold=0.85,
     include_adjacent=True,
+    haussdorff_dist_factor=1.5,
 ):
     """
     From a GeoDataFrame of polygons, returns a GDF of polygons that are
-    above the Circular Compaactness threshold.
+    above the Circular Compactness threshold.
 
     Return
     ________
-    GeoDataFrames : round abouts and adjacent polygons
+    GeoDataFrames : roundabouts and adjacent polygons
     """
-    # calculate parameters
     # calculate parameters
     if area_col == "area":
         gdf.loc[:, area_col] = gdf.geometry.area
     circom_serie = CircularCompactness(gdf, area_col).series
-    # selecting round about polygons based on compactness
+    # selecting roundabout polygons based on compactness
     mask = circom_serie > circom_threshold
     rab = gdf[mask]
     # exclude those above the area threshold
@@ -784,7 +784,6 @@ def _selecting_rabs_from_poly(
 
     if include_adjacent is True:
 
-        # calculating some parameters
         bounds = rab.geometry.bounds
         rab = pd.concat([rab, bounds], axis=1)
         rab["deltax"] = rab.maxx - rab.minx
@@ -805,11 +804,12 @@ def _selecting_rabs_from_poly(
 
         # adding a hausdorff_distance threshold
         rab_adj["hdist"] = 0
-        # TODO: (should be a way to verctorize)
+        # TODO: (should be a way to vectorize)
         for i, group in rab_adj.groupby("index_right"):
             for g in group.itertuples():
                 hdist = g.geometry.hausdorff_distance(rab.loc[i].geometry)
                 rab_adj.loc[g.Index, "hdist"] = hdist
+        rab_adj.loc[:, "hdist"] = rab_adj.hdist * haussdorff_dist_factor
 
         rab_plus = rab_adj[rab_adj.hdist < rab_adj.rab_diameter]
 
@@ -827,10 +827,8 @@ def _selecting_rabs_from_poly(
 def _rabs_center_points(gdf, center_type="centroid"):
     """
     From a selection of roundabouts, returns an aggregated GeoDataFrame
-    per round about with extra column with center_type.
+    per roundabout with extra column with center_type.
     """
-    # creating a multipolygon per RAB (as opposed to dissolving) of the entire
-    # composition of the RAB
     # temporary DataFrame where geometry is the array of pygeos geometries
     # Hack until shapely 2.0 is out.
     # TODO: replace pygeos with shapely 2.0
@@ -883,7 +881,7 @@ def _coins_filtering_many_incoming(incoming_many, angle_threshold=0):
     for g, x in incoming_many.groupby("line_wkt"):
         gs = gpd.GeoSeries(pd.concat([x.geometry, x.line]), crs=incoming_many.crs)
         gdf = gpd.GeoDataFrame(geometry=gs)
-        gdf.drop_duplicates(inplace=True)
+        gdf = gdf.drop_duplicates()
 
         coins = COINS(gdf, angle_threshold=angle_threshold)
         group_series = coins.stroke_attribute()
@@ -922,20 +920,20 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
 
     incoming = touching.loc[ls]
 
-    # figuring out which ends of incoming edges needs to be connected to the center_pt
+    # figuring out which ends of incoming edges need to be connected to the center_pt
     incoming["first_pt"] = incoming.geometry.apply(lambda x: Point(x.coords[0]))
-    incoming["dist_fisrt_pt"] = incoming.center_pt.distance(incoming.first_pt)
+    incoming["dist_first_pt"] = incoming.center_pt.distance(incoming.first_pt)
     incoming["last_pt"] = incoming.geometry.apply(lambda x: Point(x.coords[-1]))
     incoming["dist_last_pt"] = incoming.center_pt.distance(incoming.last_pt)
     lines = []
     for i, row in incoming.iterrows():
-        if row.dist_fisrt_pt < row.dist_last_pt:
+        if row.dist_first_pt < row.dist_last_pt:
             lines.append(LineString([row.first_pt, row.center_pt]))
         else:
             lines.append(LineString([row.last_pt, row.center_pt]))
     incoming["line"] = gpd.GeoSeries(lines, index=incoming.index, crs=edges.crs)
 
-    # checking in there are more than one incoming lines arriving to the same point
+    # checking if there are more than one incoming lines arriving to the same point
     # which would create several new lines
     incoming["line_wkt"] = incoming.line.to_wkt()
     grouped_lines = incoming.groupby(["line_wkt"])["line_wkt"]
@@ -963,28 +961,27 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
 
 def _ext_lines_to_center(edges, incoming_all, idx_out):
     """
-    Extends the Linestrings geometries to the centerpoint defined by
+    Extends the LineStrings geometries to the centerpoint defined by
     _rabs_center_points. Also deletes the lines that originally defined the roundabout.
     Creates a new column labled with the 'rab' number.
 
     Returns
     -------
     GeoDataFrame
-        GeoDataFrame of with updated geometry
+        GeoDataFrame with updated geometry
     """
 
     incoming_all["geometry"] = incoming_all.apply(
         lambda row: linemerge([row.geometry, row.line]), axis=1
     )
 
-    # deleting the original round about edges
     new_edges = edges.drop(idx_out, axis=0)
 
     # creating a unique label for returned gdf
     incoming_label = "rab_" + incoming_all.index_right.astype(str)
     incoming_label = incoming_label[~incoming_label.index.duplicated(keep="first")]
 
-    # mantianing the same gdf shape that the original
+    # maintaining the same gdf shape as the original
     incoming_all = incoming_all[edges.columns]
     new_edges = pd.concat([new_edges, incoming_all])
 
@@ -1002,6 +999,7 @@ def roundabout_simplification(
     circom_threshold=0.7,
     area_threshold=0.85,
     include_adjacent=True,
+    haussdorff_dist_factor=1.5,
     center_type="centroid",
     angle_threshold=0,
 ):
@@ -1056,7 +1054,7 @@ def roundabout_simplification(
         as True.
         eg. when two 'edges' touch the roundabout at the same point, COINS algorithm
         will evaluate which of those
-        incoming lines should be extended accordinf to their deflection angle.
+        incoming lines should be extended according to their deflection angle.
         Segments will only be considered a part of the same street if the deflection
         angle
         is above the threshold.
@@ -1078,6 +1076,7 @@ def roundabout_simplification(
         circom_threshold=circom_threshold,
         area_threshold=area_threshold,
         include_adjacent=include_adjacent,
+        haussdorff_dist_factor=haussdorff_dist_factor,
     )
     rab_multipolygons = _rabs_center_points(rab, center_type=center_type)
     incoming_all, idx_drop = _selecting_incoming_lines(
