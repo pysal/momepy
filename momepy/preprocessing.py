@@ -1014,7 +1014,8 @@ def roundabout_simplification(
     If ``include_adjacent`` is True, adjacent polygons to the actual roundabout are
     also selected for simplification if two conditions are met:
         - the area of adjacent polygons is less than the actual roundabout
-        - adjacent polygons do not extend beyond the diameter of the actual roundabout.
+        - adjacent polygons do not extend beyond a factor of the diameter of the actual
+        roundabout.
         This uses hausdorff_distance algorithm.
 
     Parameters
@@ -1040,6 +1041,10 @@ def roundabout_simplification(
         for simplification.
     include_adjacent : boolean (default True)
         Adjacent polygons to be considered also as part of the simplification.
+    haussdorff_dist_factor : float (default 1.5)
+        The factor to be applied to the haussdorff distance that determines how far
+        an adjacent polygon can stretch until it's no longer consider part of the overall
+        roundabout group. Only applyies when include_adjacent = True.
     center_type : string (default 'centroid')
         Method to use for converging the incoming LineStrings.
         Current list of options available : 'centroid', 'mean'.
