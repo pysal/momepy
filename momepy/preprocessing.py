@@ -14,6 +14,7 @@ import pygeos
 import shapely
 from packaging.version import Version
 from tqdm.auto import tqdm
+import re
 
 from shapely.ops import linemerge, polygonize
 from shapely.geometry import Point, LineString
@@ -1067,6 +1068,14 @@ def roundabout_simplification(
     GeoDataFrame
         GeoDataFrame with an updated geometry and an additional column labeling modified edges.
     """
+    ver_str = gpd.__version__
+    ver = re.search("([\d.]).([\d.]+).([\d]+)", ver_str).group(2)
+    if int(ver) < 9:
+        raise TypeError(
+            "The function needs at least GeoPandas 0.9.0. Your current version is "
+            + ver_str
+        )
+
     if len(edges[edges.geom_type != "LineString"]) > 0:
         raise TypeError(
             "Only LineString geometries are allowed. Try using the `explode()` method to explode MultiLineStrings."
