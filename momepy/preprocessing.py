@@ -32,6 +32,7 @@ __all__ = [
 ]
 
 GPD_10 = Version(gpd.__version__) >= Version("0.10")
+GPD_09 = Version(gpd.__version__) >= Version("0.9")
 
 
 def preprocess(
