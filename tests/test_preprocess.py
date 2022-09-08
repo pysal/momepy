@@ -10,6 +10,7 @@ from geopandas.testing import assert_geodataframe_equal
 import momepy as mm
 
 GPD_10 = Version(gpd.__version__) >= Version("0.10")
+GPD_09 = Version(gpd.__version__) >= Version("0.9")
 
 
 class TestPreprocessing:
@@ -133,35 +134,42 @@ class TestPreprocessing:
         assert ext5.length.sum() == pytest.approx(6.2, rel=1e-3)
 
     def test_roundabout_simplification_1(self):
-        check = mm.roundabout_simplification(self.df_streets_rabs)
-        assert len(check) == 65
-        assert len(self.df_streets_rabs) == 88  # checking that nothing has changed
-        # with pytest.raises(TypeError): # unsure how to develop this
+        if not GPD_09:
+            with pytest.raises(ImportError):
+                mm.roundabout_simplification(self.df_streets_rabs)
+        else:
+            check = mm.roundabout_simplification(self.df_streets_rabs)
+            assert len(check) == 65
+            assert len(self.df_streets_rabs) == 88  # checking that nothing has changed
 
     def test_roundabout_simplification_2(self):
-        check = mm.roundabout_simplification(
-            self.df_streets_rabs, self.df_rab_polys, circom_threshold=0.97
-        )
-        assert len(check) == 77
-        assert len(self.df_streets_rabs) == 88
+        if GPD_09:
+            check = mm.roundabout_simplification(
+                self.df_streets_rabs, self.df_rab_polys, circom_threshold=0.97
+            )
+            assert len(check) == 77
+            assert len(self.df_streets_rabs) == 88
 
     def test_roundabout_simplification_3(self):
-        check = mm.roundabout_simplification(
-            self.df_streets_rabs, self.df_rab_polys, area_threshold=0.8
-        )
-        assert len(check) == 67
-        assert len(self.df_streets_rabs) == 88
+        if GPD_09:
+            check = mm.roundabout_simplification(
+                self.df_streets_rabs, self.df_rab_polys, area_threshold=0.8
+            )
+            assert len(check) == 67
+            assert len(self.df_streets_rabs) == 88
 
     def test_roundabout_simplification_4(self):
-        check = mm.roundabout_simplification(
-            self.df_streets_rabs, self.df_rab_polys, include_adjacent=False
-        )
-        assert len(check) == 88
-        assert len(self.df_streets_rabs) == 88
+        if GPD_09:
+            check = mm.roundabout_simplification(
+                self.df_streets_rabs, self.df_rab_polys, include_adjacent=False
+            )
+            assert len(check) == 88
+            assert len(self.df_streets_rabs) == 88
 
     def test_roundabout_simplification_5(self):
-        check = mm.roundabout_simplification(
-            self.df_streets_rabs, self.df_rab_polys, center_type="mean"
-        )
-        assert len(check) == 65
-        assert len(self.df_streets_rabs) == 88
+        if GPD_09:
+            check = mm.roundabout_simplification(
+                self.df_streets_rabs, self.df_rab_polys, center_type="mean"
+            )
+            assert len(check) == 65
+            assert len(self.df_streets_rabs) == 88
