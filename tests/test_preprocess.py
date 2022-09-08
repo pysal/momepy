@@ -140,7 +140,7 @@ class TestPreprocessing:
         ):
             mm.roundabout_simplification(self.df_streets_rabs)
 
-    @pytest.mark.skipif(GPD_09, reason="requires geopandas 0.9+")
+    @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
     def test_roundabout_simplification_default(self):
         check = mm.roundabout_simplification(self.df_streets_rabs)
         assert len(check) == 65
