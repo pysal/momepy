@@ -10,6 +10,8 @@ import networkx as nx
 import numpy as np
 from shapely.geometry import Point, LineString
 
+from numpy.lib import NumpyVersion
+
 __all__ = [
     "unique_id",
     "gdf_to_nx",
@@ -453,13 +455,17 @@ def limit_range(vals, rng):
     """
     vals = np.asarray(vals)
     if len(vals) > 2:
+        if NumpyVersion(np.__version__) >= "1.22.0":
+            method = dict(method="nearest")
+        else:
+            method = dict(interpolation="nearest")
         rng = sorted(rng)
         if np.isnan(vals).any():
-            lower = np.nanpercentile(vals, rng[0], interpolation="nearest")
-            higher = np.nanpercentile(vals, rng[1], interpolation="nearest")
+            lower = np.nanpercentile(vals, rng[0], **method)
+            higher = np.nanpercentile(vals, rng[1], **method)
         else:
-            lower = np.percentile(vals, rng[0], interpolation="nearest")
-            higher = np.percentile(vals, rng[1], interpolation="nearest")
+            lower = np.percentile(vals, rng[0], **method)
+            higher = np.percentile(vals, rng[1], **method)
         return vals[(lower <= vals) & (vals <= higher)]
     return vals
 
