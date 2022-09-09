@@ -15,7 +15,12 @@ import shapely
 from packaging.version import Version
 from tqdm.auto import tqdm
 
+from shapely.ops import linemerge, polygonize
+from shapely.geometry import Point, LineString
+
 from .shape import CircularCompactness
+from .coins import COINS
+
 
 __all__ = [
     "preprocess",
@@ -23,9 +28,11 @@ __all__ = [
     "CheckTessellationInput",
     "close_gaps",
     "extend_lines",
+    "roundabout_simplification",
 ]
 
 GPD_10 = Version(gpd.__version__) >= Version("0.10")
+GPD_09 = Version(gpd.__version__) >= Version("0.9")
 
 
 def preprocess(
@@ -747,3 +754,350 @@ def _get_extrapolated_line(coords, tolerance, point=False):
     if point:
         return b
     return pygeos.linestrings([a, b])
+
+
+def _polygonize_ifnone(edges, polys):
+    if polys is None:
+        pre_polys = polygonize(edges.geometry)
+        polys = gpd.GeoDataFrame(geometry=[g for g in pre_polys], crs=edges.crs)
+    return polys
+
+
+def _selecting_rabs_from_poly(
+    gdf,
+    area_col="area",
+    circom_threshold=0.7,
+    area_threshold=0.85,
+    include_adjacent=True,
+    diameter_factor=1.5,
+):
+    """
+    From a GeoDataFrame of polygons, returns a GDF of polygons that are
+    above the Circular Compactness threshold.
+
+    Return
+    ________
+    GeoDataFrames : roundabouts and adjacent polygons
+    """
+    # calculate parameters
+    if area_col == "area":
+        gdf.loc[:, area_col] = gdf.geometry.area
+    circom_serie = CircularCompactness(gdf, area_col).series
+    # selecting roundabout polygons based on compactness
+    mask = circom_serie > circom_threshold
+    rab = gdf[mask]
+    # exclude those above the area threshold
+    area_threshold_val = gdf.area.quantile(area_threshold)
+    rab = rab[rab[area_col] < area_threshold_val]
+
+    if include_adjacent is True:
+
+        bounds = rab.geometry.bounds
+        rab = pd.concat([rab, bounds], axis=1)
+        rab["deltax"] = rab.maxx - rab.minx
+        rab["deltay"] = rab.maxy - rab.miny
+        rab["rab_diameter"] = rab[["deltax", "deltay"]].max(axis=1)
+
+        # selecting the adjacent areas that are of smaller than itself
+        if GPD_10:
+            rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
+        else:
+            rab_adj = gpd.sjoin(gdf, rab, op="intersects")
+
+        area_right = area_col + "_right"
+        area_left = area_col + "_left"
+        area_mask = rab_adj[area_right] >= rab_adj[area_left]
+        rab_adj = rab_adj[area_mask]
+        rab_adj.index.name = "index"
+
+        # adding a hausdorff_distance threshold
+        rab_adj["hdist"] = 0
+        # TODO: (should be a way to vectorize)
+        for i, group in rab_adj.groupby("index_right"):
+            for g in group.itertuples():
+                hdist = g.geometry.hausdorff_distance(rab.loc[i].geometry)
+                rab_adj.loc[g.Index, "hdist"] = hdist
+
+        rab_plus = rab_adj[rab_adj.hdist < (rab_adj.rab_diameter * diameter_factor)]
+
+    else:
+        rab["index_right"] = rab.index
+        rab_plus = rab
+
+    # only keeping relevant fields
+    geom_col = rab_plus.geometry.name
+    rab_plus = rab_plus[[geom_col, "index_right"]]
+
+    return rab_plus
+
+
+def _rabs_center_points(gdf, center_type="centroid"):
+    """
+    From a selection of roundabouts, returns an aggregated GeoDataFrame
+    per roundabout with extra column with center_type.
+    """
+    # temporary DataFrame where geometry is the array of pygeos geometries
+    # Hack until shapely 2.0 is out.
+    # TODO: replace pygeos with shapely 2.0
+    tmp = pd.DataFrame(gdf.copy())  # creating a copy avoids warnings
+    tmp["geometry"] = tmp.geometry.values.data
+
+    pygeos_geoms = (
+        tmp.groupby("index_right")
+        .geometry.apply(pygeos.multipolygons)
+        .rename("geometry")
+    )
+    pygeos_geoms = pygeos.make_valid(pygeos_geoms)
+
+    rab_multipolygons = gpd.GeoDataFrame(pygeos_geoms, crs=gdf.crs)
+    # make_valid is transforming the multipolygons into geometry collections because of
+    # shared edges
+
+    if center_type == "centroid":
+        # geometry centroid of the actual circle
+        rab_multipolygons["center_pt"] = gdf[
+            gdf.index == gdf.index_right
+        ].geometry.centroid
+
+    elif center_type == "mean":
+        coords, idxs = pygeos.get_coordinates(pygeos_geoms, return_index=True)
+        means = {}
+        for i in np.unique(idxs):
+            tmps = coords[idxs == i]
+            target_idx = rab_multipolygons.index[i]
+            means[target_idx] = Point(tmps.mean(axis=0))
+
+        rab_multipolygons["center_pt"] = gpd.GeoSeries(means, crs=gdf.crs)
+
+    # centerpoint of minimum_bounding_circle
+    # TODO
+    # minimun_bounding_circle() should be available in Shapely 2.0.
+
+    return rab_multipolygons
+
+
+def _coins_filtering_many_incoming(incoming_many, angle_threshold=0):
+    """
+    Used only for the cases when more than one incoming line touches the
+    roundabout.
+    """
+    idx_out_many_incoming = []
+    # For each new connection, evaluate COINS and select the group from which the new
+    # line belongs
+    # TODO ideally use the groupby object on line_wkt used earlier
+    for g, x in incoming_many.groupby("line_wkt"):
+        gs = gpd.GeoSeries(pd.concat([x.geometry, x.line]), crs=incoming_many.crs)
+        gdf = gpd.GeoDataFrame(geometry=gs)
+        gdf = gdf.drop_duplicates()
+
+        coins = COINS(gdf, angle_threshold=angle_threshold)
+        group_series = coins.stroke_attribute()
+        gdf["coins_group"] = group_series
+        # selecting the incoming and its extension
+        coins_group_filter = gdf.groupby("coins_group").count() == 1
+        f = gdf.coins_group.map(coins_group_filter.geometry)
+        idxs_remove = gdf[f].index
+        idx_out_many_incoming.extend(idxs_remove)
+
+    incoming_many_reduced = incoming_many.drop(idx_out_many_incoming, axis=0)
+
+    return incoming_many_reduced
+
+
+def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
+    """Selecting only the lines that are touching but not covered by
+    the ``rab_plus``.
+    If more than one LineString is incoming to ``rab_plus``, COINS algorithm
+    is used to select the line to be extended further.
+    """
+    # selecting the lines that are touching but not covered by
+    if GPD_10:
+        touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
+        edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
+            edges.geometry, predicate="covered_by"
+        )
+    else:
+        touching = gpd.sjoin(edges, rab_multipolygons, op="touches")
+        edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
+            edges.geometry, op="covered_by"
+        )
+    idx_drop = edges.index.take(edges_idx)
+    touching_idx = touching.index
+    ls = list(set(touching_idx) - set(idx_drop))
+
+    incoming = touching.loc[ls]
+
+    # figuring out which ends of incoming edges need to be connected to the center_pt
+    incoming["first_pt"] = incoming.geometry.apply(lambda x: Point(x.coords[0]))
+    incoming["dist_first_pt"] = incoming.center_pt.distance(incoming.first_pt)
+    incoming["last_pt"] = incoming.geometry.apply(lambda x: Point(x.coords[-1]))
+    incoming["dist_last_pt"] = incoming.center_pt.distance(incoming.last_pt)
+    lines = []
+    for i, row in incoming.iterrows():
+        if row.dist_first_pt < row.dist_last_pt:
+            lines.append(LineString([row.first_pt, row.center_pt]))
+        else:
+            lines.append(LineString([row.last_pt, row.center_pt]))
+    incoming["line"] = gpd.GeoSeries(lines, index=incoming.index, crs=edges.crs)
+
+    # checking if there are more than one incoming lines arriving to the same point
+    # which would create several new lines
+    incoming["line_wkt"] = incoming.line.to_wkt()
+    grouped_lines = incoming.groupby(["line_wkt"])["line_wkt"]
+    count_s = grouped_lines.count()
+
+    # separating the incoming roads that come on their own to those that come in groups
+    filter_count_one = pd.DataFrame(count_s[count_s == 1])
+    filter_count_many = pd.DataFrame(count_s[count_s > 1])
+    incoming_ones = pd.merge(
+        incoming, filter_count_one, left_on="line_wkt", right_index=True, how="inner"
+    )
+    incoming_many = pd.merge(
+        incoming, filter_count_many, left_on="line_wkt", right_index=True, how="inner"
+    )
+    incoming_many_reduced = _coins_filtering_many_incoming(
+        incoming_many, angle_threshold=angle_threshold
+    )
+
+    incoming_all = gpd.GeoDataFrame(
+        pd.concat([incoming_ones, incoming_many_reduced]), crs=edges.crs
+    )
+
+    return incoming_all, idx_drop
+
+
+def _ext_lines_to_center(edges, incoming_all, idx_out):
+    """
+    Extends the LineStrings geometries to the centerpoint defined by
+    _rabs_center_points. Also deletes the lines that originally defined the roundabout.
+    Creates a new column labled with the 'rab' number.
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with updated geometry
+    """
+
+    incoming_all["geometry"] = incoming_all.apply(
+        lambda row: linemerge([row.geometry, row.line]), axis=1
+    )
+    new_edges = edges.drop(idx_out, axis=0)
+
+    # creating a unique group label for returned gdf
+    _, inv = np.unique(incoming_all.index_right, return_inverse=True)
+    incoming_label = pd.Series(inv, index=incoming_all.index)
+    incoming_label = incoming_label[~incoming_label.index.duplicated(keep="first")]
+
+    # maintaining the same gdf shape as the original
+    incoming_all = incoming_all[edges.columns]
+    new_edges = pd.concat([new_edges, incoming_all])
+
+    # adding a new column to match
+    new_edges["simplification_group"] = incoming_label.astype("Int64")
+
+    return new_edges
+
+
+def roundabout_simplification(
+    edges,
+    polys=None,
+    area_col="area",
+    circom_threshold=0.7,
+    area_threshold=0.85,
+    include_adjacent=True,
+    diameter_factor=1.5,
+    center_type="centroid",
+    angle_threshold=0,
+):
+    """
+    Selects the roundabouts from ``polys`` to create a center point to merge all
+    incoming edges. If None is passed, the function will perform shapely polygonization.
+
+    All ``edges`` attributes are preserved and roundabouts are deleted.
+    Note that some attributes, like length, may no longer reflect the reality of newly
+    constructed geometry.
+
+    If ``include_adjacent`` is True, adjacent polygons to the actual roundabout are
+    also selected for simplification if two conditions are met:
+        - the area of adjacent polygons is less than the actual roundabout
+        - adjacent polygons do not extend beyond a factor of the diameter of the actual
+        roundabout.
+        This uses hausdorff_distance algorithm.
+
+    Parameters
+    ----------
+    edges : GeoDataFrame
+        GeoDataFrame containing LineString geometry of urban network
+    polys : GeoDataFrame
+        GeoDataFrame containing Polygon geometry derived from polygonyzing
+        ``edges`` GeoDataFrame.
+    area_col : string
+        Column name containing area values if ``polys`` GeoDataFrame contains such
+        information. Otherwise, it will
+    circom_threshold : float (default 0.7)
+        Circular compactness threshold to select roundabouts from ``polys``
+        GeoDataFrame.
+        Polygons with a higher or equal threshold value will be considered for
+        simplification.
+    area_threshold : float (default 0.85)
+        Percentile threshold value from the area of ``polys`` to leave as input
+        geometry.
+        Polygons with a higher or equal threshold will be considered as urban blocks
+        not considered
+        for simplification.
+    include_adjacent : boolean (default True)
+        Adjacent polygons to be considered also as part of the simplification.
+    diameter_factor : float (default 1.5)
+        The factor to be applied to the diameter of each roundabout that determines how far
+        an adjacent polygon can stretch until it is no longer considered part of the overall
+        roundabout group. Only applyies when include_adjacent = True.
+    center_type : string (default 'centroid')
+        Method to use for converging the incoming LineStrings.
+        Current list of options available : 'centroid', 'mean'.
+        - 'centroid': selects the centroid of the actual roundabout (ignoring adjacent
+        geometries)
+        - 'mean': calculates the mean coordinates from the points of polygons (including
+         adjacent geometries)
+    angle_threshold : int, float (default 0)
+        The angle threshold for the COINS algorithm. Only used when multiple incoming
+        LineStrings
+        arrive at the same Point to the roundabout or to the adjacent polygons if set
+        as True.
+        eg. when two 'edges' touch the roundabout at the same point, COINS algorithm
+        will evaluate which of those
+        incoming lines should be extended according to their deflection angle.
+        Segments will only be considered a part of the same street if the deflection
+        angle
+        is above the threshold.
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with an updated geometry and an additional column labeling modified edges.
+    """
+    if not GPD_09:
+        raise ImportError(
+            f"`roundabout_simplification` requires geopandas 0.9.0 or newer. Your current version is {gpd.__version__}."
+        )
+
+    if len(edges[edges.geom_type != "LineString"]) > 0:
+        raise TypeError(
+            "Only LineString geometries are allowed. Try using the `explode()` method to explode MultiLineStrings."
+        )
+
+    polys = _polygonize_ifnone(edges, polys)
+    rab = _selecting_rabs_from_poly(
+        polys,
+        area_col=area_col,
+        circom_threshold=circom_threshold,
+        area_threshold=area_threshold,
+        include_adjacent=include_adjacent,
+        diameter_factor=diameter_factor,
+    )
+    rab_multipolygons = _rabs_center_points(rab, center_type=center_type)
+    incoming_all, idx_drop = _selecting_incoming_lines(
+        rab_multipolygons, edges, angle_threshold=angle_threshold
+    )
+    output = _ext_lines_to_center(edges, incoming_all, idx_drop)
+
+    return output
