@@ -1046,10 +1046,9 @@ def enclosures(
             new += list(polygons[within])
 
         final_enclosures = (
-            gpd.GeoSeries(enclosures)
-            .drop(unique)
-            .append(gpd.GeoSeries(new))
-            .reset_index(drop=True)
+            pd.concat(
+                [gpd.GeoSeries(enclosures).drop(unique), gpd.GeoSeries(new)]
+            ).reset_index(drop=True)
         ).set_crs(primary_barriers.crs)
 
         final_enclosures = gpd.GeoDataFrame(
