@@ -1,7 +1,7 @@
 matplotlib
 sphinxcontrib.bibtex
 numpydoc
-pydata_sphinx_theme
+pydata_sphinx_theme<0.10
 nbsphinx
 ipython
 myst-parser
