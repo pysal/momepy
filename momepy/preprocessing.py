@@ -974,11 +974,11 @@ def _ext_lines_to_center(edges, incoming_all, idx_out):
     incoming_all["geometry"] = incoming_all.apply(
         lambda row: linemerge([row.geometry, row.line]), axis=1
     )
-
     new_edges = edges.drop(idx_out, axis=0)
 
-    # creating a unique label for returned gdf
-    incoming_label = "rab_" + incoming_all.index_right.astype(str)
+    # creating a unique group label for returned gdf
+    _, inv = np.unique(incoming_all.index_right, return_inverse=True)
+    incoming_label = pd.Series(inv, index=incoming_all.index)
     incoming_label = incoming_label[~incoming_label.index.duplicated(keep="first")]
 
     # maintaining the same gdf shape as the original
@@ -986,7 +986,7 @@ def _ext_lines_to_center(edges, incoming_all, idx_out):
     new_edges = pd.concat([new_edges, incoming_all])
 
     # adding a new column to match
-    new_edges["simpl_edge"] = incoming_label
+    new_edges["simplification_group"] = incoming_label.astype("Int64")
 
     return new_edges
 
