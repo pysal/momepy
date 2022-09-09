@@ -9,6 +9,8 @@ import pandas as pd
 import scipy as sp
 from tqdm.auto import tqdm  # progress bar
 
+from numpy.lib import NumpyVersion
+
 __all__ = [
     "Range",
     "Theil",
@@ -903,10 +905,12 @@ class Percentiles:
                     neighbours += spatial_weights.neighbors[index]
 
                     values_list = data.loc[neighbours]
+                    if NumpyVersion(np.__version__) >= "1.22.0":
+                        method = dict(method=interpolation)
+                    else:
+                        method = dict(interpolation=interpolation)
                     results_list.append(
-                        np.nanpercentile(
-                            values_list, percentiles, interpolation=interpolation
-                        )
+                        np.nanpercentile(values_list, percentiles, **method)
                     )
                 else:
                     results_list.append(np.nan)
