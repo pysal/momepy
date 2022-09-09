@@ -272,11 +272,16 @@ def remove_false_nodes(gdf):
         else:
             final = gpd.GeoSeries(new).explode().reset_index(drop=True)
         if isinstance(gdf, gpd.GeoDataFrame):
-            return df.append(
-                gpd.GeoDataFrame({df.geometry.name: final}, geometry=df.geometry.name),
+            return pd.concat(
+                [
+                    df,
+                    gpd.GeoDataFrame(
+                        {df.geometry.name: final}, geometry=df.geometry.name
+                    ),
+                ],
                 ignore_index=True,
             )
-        return df.append(final, ignore_index=True)
+        return pd.concat([df, final], ignore_index=True)
 
     # if there's nothing to fix, return the original dataframe
     return gdf
@@ -389,7 +394,9 @@ class CheckTessellationInput:
             type_filter = gpd.GeoSeries(intersection).type == "Polygon"
             empty_filter = intersection.is_empty
             overlapping = od_matrix.reset_index(drop=True)[empty_filter ^ type_filter]
-            over_rows = sorted(overlapping.origin.append(overlapping.dest).unique())
+            over_rows = sorted(
+                pd.concat([overlapping.origin, overlapping.dest]).unique()
+            )
 
             self.overlap = gdf.iloc[over_rows]
             overlapping_c = len(self.overlap)
