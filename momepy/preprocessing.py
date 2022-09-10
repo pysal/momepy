@@ -10,12 +10,14 @@ import geopandas as gpd
 import libpysal
 import numpy as np
 import pandas as pd
+import networkx as nx
 import pygeos
 import shapely
 from packaging.version import Version
 from tqdm.auto import tqdm
+from copy import deepcopy
 
-from shapely.ops import linemerge, polygonize
+from shapely.ops import linemerge, polygonize, split
 from shapely.geometry import Point, LineString
 
 from .shape import CircularCompactness
