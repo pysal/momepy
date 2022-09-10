@@ -22,6 +22,7 @@ from shapely.geometry import Point, LineString
 
 from .shape import CircularCompactness
 from .coins import COINS
+from .utils import nx_to_gdf
 
 
 __all__ = [
@@ -1146,7 +1147,7 @@ def consolidate_intersections(
         distance in network units below which nodes will be consolidated
     rebuild_graph: Boolean
     rebuild_edges_method: string
-        'extension' or 'spider' or 'euclidean'
+        'extend' or 'spider' or 'euclidean'
     directed: Boolean or None
         consider the graph a MultiDiGraph if True or MultiGraph if False, and
         if None infer from the passed object type
@@ -1225,7 +1226,7 @@ def consolidate_intersections(
     # Rebuild edges if necessary:
     if rebuild_graph:
         graph.graph["approach"] = "primal"
-        edges_gdf = mm.nx_to_gdf(graph, points=False, lines=True)
+        edges_gdf = nx_to_gdf(graph, points=False, lines=True)
         simplified_edges = _get_rebuilt_edges(
             edges_gdf,
             nodes_to_merge_dict,
