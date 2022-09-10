@@ -5,7 +5,6 @@
 # definitions of dimension characters
 
 import math
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -639,16 +638,19 @@ class StreetProfile:
             )
             widths.append(np.mean([left_mean, right_mean]) * 2)
 
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore", message="invalid value encountered in long_scalars"
-                )
-                openness.append(np.isnan(s).sum() / (f).sum())
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore", message="Degrees of freedom <= 0 for slice."
-                )
-                deviations.append(np.nanstd(s))
+            f_sum = (f).sum()
+            if not f_sum:
+                openness_score = np.nan
+            else:
+                openness_score = np.isnan(s).sum() / f_sum
+            openness.append(openness_score)
+
+            s_nan = np.isnan(s).all()
+            if s_nan:
+                deviation_score = np.nan
+            else:
+                deviation_score = np.nanstd(s)
+            deviations.append(deviation_score)
 
             if do_heights:
                 b = blgs[f]
