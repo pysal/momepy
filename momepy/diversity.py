@@ -844,7 +844,6 @@ class Percentiles:
         verbose=True,
         weighted=None,
     ):
-        """
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -909,9 +908,12 @@ class Percentiles:
                     neighbours = [index]
                     neighbours += spatial_weights.neighbors[index]
                     values_list = data.loc[neighbours]
-                    results_list.append(
-                        np.nanpercentile(values_list, percentiles, **method)
-                    )
+                    all_nan = np.isnan(values_list).all()
+                    if not all_nan:
+                        values_list = np.nanpercentile(
+                            values_list, percentiles, **method
+                        )
+                    results_list.append(values_list)
                 else:
                     results_list.append(np.nan)
 
@@ -921,90 +923,3 @@ class Percentiles:
 
         else:
             raise ValueError(f"'{weighted}' is not a valid option.")
-        """
-
-        import warnings
-
-        warnings.filterwarnings("error")
-
-        try:
-
-            self.gdf = gdf
-            self.sw = spatial_weights
-            self.id = gdf[unique_id]
-
-            data = gdf.copy()
-
-            if values is not None:
-                if not isinstance(values, str):
-                    data["mm_v"] = values
-                    values = "mm_v"
-            self.values = data[values]
-
-            results_list = []
-
-            if weighted == "linear":
-                data = data.set_index(unique_id)[[values, data.geometry.name]]
-                data.geometry = data.centroid
-
-                for i, geom in tqdm(
-                    data.geometry.iteritems(), total=data.shape[0], disable=not verbose
-                ):
-                    if i in spatial_weights.neighbors.keys():
-                        neighbours = spatial_weights.neighbors[i]
-
-                        vicinity = data.loc[neighbours]
-                        distance = vicinity.distance(geom)
-                        distance_decay = 1 / distance
-                        vals = vicinity[values].values
-                        sorter = np.argsort(vals)
-                        vals = vals[sorter]
-                        nan_mask = np.isnan(vals)
-                        if nan_mask.all():
-                            results_list.append(np.array([np.nan] * len(percentiles)))
-                        else:
-                            sample_weight = distance_decay.values[sorter][~nan_mask]
-                            weighted_quantiles = (
-                                np.cumsum(sample_weight) - 0.5 * sample_weight
-                            )
-                            weighted_quantiles /= np.sum(sample_weight)
-                            interpolate = np.interp(
-                                [x / 100 for x in percentiles],
-                                weighted_quantiles,
-                                vals[~nan_mask],
-                            )
-                            results_list.append(interpolate)
-                    else:
-                        results_list.append(np.array([np.nan] * len(percentiles)))
-
-                self.frame = pd.DataFrame(
-                    results_list, columns=percentiles, index=gdf.index
-                )
-
-            elif weighted is None:
-                data = data.set_index(unique_id)[values]
-
-                if NumpyVersion(np.__version__) >= "1.22.0":
-                    method = dict(method=interpolation)
-                else:
-                    method = dict(interpolation=interpolation)
-                for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-                    if index in spatial_weights.neighbors.keys():
-                        neighbours = [index]
-                        neighbours += spatial_weights.neighbors[index]
-                        values_list = data.loc[neighbours]
-                        results_list.append(
-                            np.nanpercentile(values_list, percentiles, **method)
-                        )
-                    else:
-                        results_list.append(np.nan)
-
-                self.frame = pd.DataFrame(
-                    results_list, columns=percentiles, index=gdf.index
-                )
-
-            else:
-                raise ValueError(f"'{weighted}' is not a valid option.")
-
-        except RuntimeWarning:
-            stop
