@@ -32,6 +32,7 @@ __all__ = [
     "close_gaps",
     "extend_lines",
     "roundabout_simplification",
+    "consolidate_intersections",
 ]
 
 GPD_10 = Version(gpd.__version__) >= Version("0.10")
