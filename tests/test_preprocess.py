@@ -1,5 +1,6 @@
 import geopandas as gpd
 import numpy as np
+import osmnx as ox
 import pytest
 from packaging.version import Version
 from shapely import affinity
@@ -27,6 +28,8 @@ class TestPreprocessing:
         self.df_rab_polys = gpd.GeoDataFrame(
             geometry=[g for g in plgns], crs=self.df_streets_rabs.crs
         )
+        test_file_path3 = mm.datasets.get_path("nyc_graph", extension='graphml')
+        self.graph = ox.get_undirected(ox.load_graphml(test_file_path3))
 
     def test_preprocess(self):
         test_file_path2 = mm.datasets.get_path("tests")
@@ -177,3 +180,15 @@ class TestPreprocessing:
         )
         assert len(check) == 65
         assert len(self.df_streets_rabs) == 88
+
+    def test_consolidate_intersections(self):
+        tol=30
+        for method in ['spider', 'euclidean', 'extend']:
+            graph_simplified = mm.consolidate_intersections(self.graph, tolerance=tol, rebuild_graph=True, rebuild_edges_method=method)
+            nodes_simplified, edges_simplified = mm.nx_to_gdf(graph_simplified)
+
+            assert len(nodes_simplified) == 39
+            assert len(edges_simplified) == 66
+
+            if method != 'euclidean':
+                assert edges_simplified.length.min() >= tol
