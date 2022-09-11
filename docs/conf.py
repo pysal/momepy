@@ -28,7 +28,8 @@ autodoc_mock_imports = [
     "pandas",
     "rtree",
     "scipy",
-    "scipy.spatial" "shapely",
+    "scipy.spatial",
+    "shapely",
     "shapely.geometry",
     "shapely.wkt",
     "shapely.ops",
@@ -76,6 +77,7 @@ extensions = [
     "myst_parser",
     "sphinx_copybutton",
     "sphinx_gallery.load_style",
+    "sphinxext.rediraffe",
 ]
 
 # nbsphinx do not use requirejs (breaks bootstrap)
@@ -233,17 +235,9 @@ epub_exclude_files = ["search.html"]
 
 # Add redirect for previously existing pages, each item is like `(from_old, to_new)`
 
-moved_pages = [
-    (
-        "user_guide/elements/preprocessing",
-        "user_guide/preprocessing/simple_preprocessing",
-    ),
-]
-
-html_additional_pages = {page[0]: "redirect.html" for page in moved_pages}
-
-html_context = {"redirects": {old: new for old, new in moved_pages}}
-
+rediraffe_redirects = {
+    "user_guide/elements/preprocessing.ipynb": "user_guide/preprocessing/simple_preprocessing.ipynb",  # noqa
+}
 
 # -- Extension configuration -------------------------------------------------
 # Generate the API documentation when building
