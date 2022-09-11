@@ -231,6 +231,19 @@ epub_title = project
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ["search.html"]
 
+# Add redirect for previously existing pages, each item is like `(from_old, to_new)`
+
+moved_pages = [
+    (
+        "user_guide/elements/preprocessing",
+        "user_guide/preprocessing/simple_preprocessing",
+    ),
+]
+
+html_additional_pages = {page[0]: "redirect.html" for page in moved_pages}
+
+html_context = {"redirects": {old: new for old, new in moved_pages}}
+
 
 # -- Extension configuration -------------------------------------------------
 # Generate the API documentation when building
