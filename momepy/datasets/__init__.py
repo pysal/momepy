@@ -6,7 +6,7 @@ _module_path = os.path.dirname(__file__)
 available = ["bubenec", "tests", "nyc_graph"]
 
 
-def get_path(dataset, extension='gpkg'):
+def get_path(dataset, extension="gpkg"):
     """
     Get the path to the data file.
     Parameters
@@ -18,7 +18,7 @@ def get_path(dataset, extension='gpkg'):
         The extension of the data file
     """
     if dataset in available:
-        filepath=dataset+"."+extension
+        filepath = dataset + "." + extension
         return os.path.abspath(os.path.join(_module_path, filepath))
     msg = "The dataset '{data}' is not available. ".format(data=dataset)
     msg += "Available datasets are {}".format(", ".join(available))
