@@ -7,3 +7,4 @@ ipython
 myst-parser
 sphinx_copybutton
 sphinx-gallery
+sphinxext-rediraffe
