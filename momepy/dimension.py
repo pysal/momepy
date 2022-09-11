@@ -637,8 +637,21 @@ class StreetProfile:
                 np.nanmean(rights) if ~np.isnan(rights).all() else tick_length / 2
             )
             widths.append(np.mean([left_mean, right_mean]) * 2)
-            openness.append(np.isnan(s).sum() / (f).sum())
-            deviations.append(np.nanstd(s))
+
+            f_sum = (f).sum()
+            s_nan = np.isnan(s)
+
+            if not f_sum:
+                openness_score = np.nan
+            else:
+                openness_score = s_nan.sum() / f_sum
+            openness.append(openness_score)
+
+            if s_nan.all():
+                deviation_score = np.nan
+            else:
+                deviation_score = np.nanstd(s)
+            deviations.append(deviation_score)
 
             if do_heights:
                 b = blgs[f]
