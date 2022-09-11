@@ -639,14 +639,15 @@ class StreetProfile:
             widths.append(np.mean([left_mean, right_mean]) * 2)
 
             f_sum = (f).sum()
+            s_nan = np.isnan(s)
+
             if not f_sum:
                 openness_score = np.nan
             else:
-                openness_score = np.isnan(s).sum() / f_sum
+                openness_score = s_nan.sum() / f_sum
             openness.append(openness_score)
 
-            s_nan = np.isnan(s).all()
-            if s_nan:
+            if s_nan.all():
                 deviation_score = np.nan
             else:
                 deviation_score = np.nanstd(s)
