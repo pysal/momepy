@@ -473,14 +473,18 @@ def limit_range(vals, rng):
 
     vals = np.asarray(vals)
 
-    if len(vals) > 2 or not np.isnan(vals).all():
+    if (len(vals) > 2) and (not np.isnan(vals).all()):
         if NumpyVersion(np.__version__) >= "1.22.0":
             method = dict(method="nearest")
         else:
             method = dict(interpolation="nearest")
         rng = sorted(rng)
-        lower = np.nanpercentile(vals, rng[0], **method)
-        higher = np.nanpercentile(vals, rng[1], **method)
+        if np.isnan(vals).any():
+            lower = np.nanpercentile(vals, rng[0], **method)
+            higher = np.nanpercentile(vals, rng[1], **method)
+        else:
+            lower = np.percentile(vals, rng[0], **method)
+            higher = np.percentile(vals, rng[1], **method)
         vals = vals[(lower <= vals) & (vals <= higher)]
 
     return vals

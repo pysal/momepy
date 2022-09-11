@@ -903,13 +903,18 @@ class Percentiles:
                 method = dict(method=interpolation)
             else:
                 method = dict(interpolation=interpolation)
+
+            nan_filler = np.empty(len(percentiles))
+            nan_filler[:] = np.nan
             for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
                 if index in spatial_weights.neighbors.keys():
                     neighbours = [index]
                     neighbours += spatial_weights.neighbors[index]
                     values_list = data.loc[neighbours]
                     all_nan = np.isnan(values_list).all()
-                    if not all_nan:
+                    if all_nan:
+                        values_list = nan_filler
+                    else:
                         values_list = np.nanpercentile(
                             values_list, percentiles, **method
                         )
