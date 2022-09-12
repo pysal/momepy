@@ -5,11 +5,12 @@
 # definitions of diversity characters
 
 import numpy as np
+from numpy.lib import NumpyVersion
 import pandas as pd
 import scipy as sp
 from tqdm.auto import tqdm  # progress bar
+import warnings
 
-from numpy.lib import NumpyVersion
 
 __all__ = [
     "Range",
@@ -904,21 +905,18 @@ class Percentiles:
             else:
                 method = dict(interpolation=interpolation)
 
-            nan_filler = np.empty(len(percentiles))
-            nan_filler[:] = np.nan
             for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
                 if index in spatial_weights.neighbors.keys():
                     neighbours = [index]
                     neighbours += spatial_weights.neighbors[index]
                     values_list = data.loc[neighbours]
-                    all_nan = np.isnan(values_list).all()
-                    if all_nan:
-                        values_list = nan_filler
-                    else:
-                        values_list = np.nanpercentile(
-                            values_list, percentiles, **method
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings(
+                            "ignore", message="All-NaN slice encountered"
                         )
-                    results_list.append(values_list)
+                        results_list.append(
+                            np.nanpercentile(values_list, percentiles, **method)
+                        )
                 else:
                     results_list.append(np.nan)
 
