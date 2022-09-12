@@ -122,7 +122,7 @@ class Range:
 
 
 class Theil:
-    """
+    r"""
     Calculates the Theil measure of inequality of values within neighbours defined in
     ``spatial_weights``.
 
