@@ -117,13 +117,12 @@ class TestElements:
 
     def test_Blocks_inner(self):
         streets = self.df_streets.copy()
-        streets.loc[35] = (
+        streets.loc[35, "geometry"] = (
             self.df_buildings.geometry.iloc[141]
             .representative_point()
             .buffer(20)
             .exterior
         )
-        streets = streets.set_crs(self.df_tessellation.crs)
         blocks = mm.Blocks(
             self.df_tessellation, streets, self.df_buildings, "bID", "uID"
         )
