@@ -10,3 +10,4 @@ This section covers:
    :maxdepth: 2
 
    simple_preprocessing
+   roundabout_simplification
