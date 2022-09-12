@@ -123,6 +123,7 @@ class TestElements:
             .buffer(20)
             .exterior
         )
+        streets = streets.set_crs(self.df_tessellation.crs)
         blocks = mm.Blocks(
             self.df_tessellation, streets, self.df_buildings, "bID", "uID"
         )
