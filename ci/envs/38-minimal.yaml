@@ -5,7 +5,7 @@ dependencies:
   - python=3.8
   - geopandas=0.8
   - libpysal=4.2.2
-  - networkx=2.3
+  - networkx=2.5
   - tqdm=4.27.0
   - pytest
   - pytest-cov
