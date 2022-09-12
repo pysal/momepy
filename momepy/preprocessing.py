@@ -16,7 +16,10 @@ from packaging.version import Version
 from tqdm.auto import tqdm
 
 from shapely.ops import linemerge, polygonize
-from shapely.geometry import Point, LineString
+from shapely.geometry import Point, LineString, MultiPoint
+from scipy.stats import gaussian_kde
+from scipy.signal import argrelextrema
+
 
 from .shape import CircularCompactness
 from .coins import COINS
@@ -1101,3 +1104,164 @@ def roundabout_simplification(
     output = _ext_lines_to_center(edges, incoming_all, idx_drop)
 
     return output
+
+
+def _create_shape_index(gdf):
+    """
+    Martin's shape index based on area and minimum_bounding_circle.
+    """
+    # Extract underlying PyGEOS geometries pygeos understands (minimum_bounding_circle is not yet exposed in geopandas)
+    ga = gdf.geometry.array.data
+    # measure area
+    gdf["area"] = gdf.area
+    # generate minimum bounding circle
+    circles = gpd.GeoDataFrame(
+        geometry=gpd.GeoSeries(pygeos.minimum_bounding_circle(ga), crs=gdf.crs)
+    )
+    # measure MBC's area
+    circles["circle_area"] = circles.area
+    # measure Reock (circular) compactness
+    gdf["reock"] = gdf["area"] / circles["circle_area"]
+    # measure direct shape index that captures banana-like relationship between area and Reock compactness in a one dimension
+    gdf["shape_index"] = gdf["area"] / np.sqrt(circles["circle_area"])
+
+    return gdf
+
+
+def _selecting_invalid_polys(gdf):
+    """
+    From a GeoDataFrame of polygons, returns a GDF of polygons that are
+    considered 'invalid' based on a threshold on shape index.
+    """
+    gdf_shape_idx = _create_shape_index(gdf)
+
+    # filtering out the selected roundabouts
+    rab_plus = _selecting_rabs_from_poly(gdf_shape_idx, area_col="area")
+    rab_plus_idx = rab_plus.index
+    rab_mask = list(dict.fromkeys(rab_plus_idx))
+    pre_inv_polys = gdf_shape_idx.drop(rab_mask)
+
+    # find threshold to mark valid-invalid
+    shape_idx = pre_inv_polys["shape_index"].to_numpy()
+    shape_idx = np.delete(shape_idx, 0)
+
+    # Evaluate KDE
+    scipy_kernel = gaussian_kde(shape_idx)
+
+    mask = (pre_inv_polys.area <= 50000) & (pre_inv_polys.reock < 0.7)
+    max_area_lim = pre_inv_polys[mask].shape_index.max()
+
+    num_samples = len(
+        shape_idx
+    )  # the greater the more accurate the result but also more expensive
+    X_plot = np.linspace(0, max_area_lim, num_samples)
+
+    v = scipy_kernel.evaluate(X_plot)
+
+    # TODO
+    # sgenerating a smoother sample to properly capture the inflections
+
+    minima_ind = argrelextrema(v, np.less)
+    infls = minima_ind[0]
+    threshold_val = X_plot[infls][0]
+
+    inv_polys = pre_inv_polys[pre_inv_polys.shape_index <= threshold_val]
+
+    return inv_polys
+
+
+def _invalid_adjacency_grouping(invalid_polys_gdf, edges_gdf):
+    """
+    From a selection of invalid polygons (for network analysis/ not to confuse with invild geometry)
+    creates groups based on their adjacency and acounts the number of forming edges for each polygon
+    and a gdf with the covered edges and their corresponding group and edge indexes.
+    """
+    # creating invalid groups
+    groups = gpd.GeoSeries([geom for geom in invalid_polys_gdf.unary_union.geoms])
+    groups_gdf = gpd.GeoDataFrame(geometry=groups, crs=invalid_polys_gdf.crs)
+    # SJOIN assigns all but the bridges (where polygons "intersect" but are not "within")
+    grouped_polys = invalid_polys_gdf.sjoin(groups_gdf, predicate="within")
+    grouped_polys.drop_duplicates(subset=["geometry"], inplace=True)
+    grouped_polys.rename(columns={"index_right": "group_idx"}, inplace=True)
+
+    # find number of edges that define each poly's pseudo shape (eg.triangle)
+    # likely replaceable with a bulk_query since it's done just for counting #TODO
+    edges_gdf["nodes_pts"] = edges_gdf.geometry.apply(
+        lambda x: MultiPoint([x.coords[0], x.coords[-1]])
+    )
+    covered_edges = grouped_polys.sjoin(edges_gdf.reset_index(), predicate="covers")
+    covered_edges.index.name = "poly_index"
+
+    # preparing for return
+    return_cols = [i for i in edges_gdf.index.names]
+    return_cols.append("nodes_pts")
+    return_cols.append("group_idx")
+    covered_nodes = covered_edges[return_cols]
+    covered_nodes = gpd.GeoDataFrame(
+        covered_nodes, geometry="nodes_pts", crs=edges_gdf.crs
+    )
+
+    grouped_polys["num_edges"] = covered_edges.groupby("poly_index").geometry.count()
+    edges_gdf.drop(columns="nodes_pts", inplace=True)  # not to alter the original gdf
+    grouped_polys = grouped_polys.reset_index().set_index("group_idx")
+
+    return grouped_polys, covered_nodes
+
+
+def _isolating_single_polys(grouped_polys):
+    m = grouped_polys.index.value_counts() == 1
+    single_polys = grouped_polys.loc[m]
+
+    return single_polys
+
+
+def _single_tri_polys_pts(single_polys, covered_nodes, edges_gdf):
+    """
+    Creates a point for single invalid polygons formed by three streets/edges.
+    """
+    # TODO a solution for the rings should be easy (num_edges == 1 )
+    tri_like = single_polys.num_edges == 3  # triangle-like
+
+    single_tri_polys = single_polys[tri_like]
+
+    touching_tri_edges = edges_gdf.sjoin(single_tri_polys, predicate="touches")
+    edge_idx_names = edges_gdf.index.names
+    new_pts = {}
+    # loop through each
+    for g_id in single_tri_polys.index.unique():
+        # coins per group
+        temp_m = touching_tri_edges.index_right == g_id
+        coins = COINS(touching_tri_edges[temp_m])
+        stroke_gdf = coins.stroke_gdf()
+        # checking that outputs are all LineString
+        if all(g == "LineString" for g in stroke_gdf.geometry.type.tolist()):
+            stroke_gdf["end_pts"] = stroke_gdf.geometry.apply(
+                lambda x: MultiPoint([x.coords[0], x.coords[-1]])
+            )
+
+            # compare the stoke.end_pts to the original edge (cov_nodes)
+            cov_mask = covered_nodes.group_idx == g_id
+            tt = covered_nodes[cov_mask].sjoin(stroke_gdf, predicate="covered_by")
+
+            for i, row in tt.iterrows():
+                stroke_ends = [p for p in row.end_pts.geoms]
+                node_pts = [p for p in row.nodes_pts.geoms]
+
+                # if no node_points coincide with the stroke points
+                if any(item in node_pts for item in stroke_ends) == False:
+                    # it means this is the line that should remain as part of its original stroke
+                    i_edge = row[edge_idx_names]
+                    # this is not source agnostic!! It presumes there's a 3-level index (OSMNX)
+                    # TODO
+                    edge_remaining = edges_gdf.loc[
+                        (i_edge.iloc[0]), (i_edge.iloc[1]), (i_edge.iloc[2])
+                    ].geometry
+                    merge_pt = edge_remaining.interpolate(0.5, normalized=True)
+
+                    new_pts[g_id] = merge_pt
+
+    gs = gpd.GeoSeries(new_pts, crs=edges_gdf.crs)
+    # unsure why this is generating a SettingWithCopyWarning despite using the recomended .loc[]
+    single_polys.loc[gs.index, "new_pt"] = gs
+
+    return single_polys
