@@ -461,7 +461,7 @@ class AverageCharacter:
                 if "median" in mode:
                     medians.append(np.median(values_list))
                 if "mode" in mode:
-                    modes.append(sp.stats.mode(values_list)[0][0])
+                    modes.append(sp.stats.mode(values_list, keepdims=False)[0])
 
             else:
                 if "mean" in mode:
