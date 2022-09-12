@@ -1152,10 +1152,14 @@ def consolidate_intersections(
     directed: Boolean or None
         consider the graph a MultiDiGraph if True or MultiGraph if False, and
         if None infer from the passed object type
-    x_col, y_col: string
-        node attribute with the valid coordinate
-    edge_from_col, edge_to_col: string
-        edge attribute with the valid origin/destination node id
+    x_col: string
+        node attribute with the valid x-coordinate
+    y_col: string
+        node attribute with the valid y-coordinate
+    edge_from_col: string
+        edge attribute with the valid origin node id
+    edge_to_col: string
+        edge attribute with the valid destination node id
 
     Returns
     ----------
@@ -1288,8 +1292,10 @@ def _get_rebuilt_edges(
         'extension' or 'spider' or 'euclidean'
     buffer : float
         distance to buffer consolidated nodes in the Spider-web reconstruction
-    edge_from_col, edge_to_col: string
-        edge attribute with the valid origin/destination node id
+    edge_from_col: string
+        edge attribute with the valid origin node id
+    edge_to_col: string
+        edge attribute with the valid destination node id
 
     Returns
     ----------
@@ -1356,7 +1362,9 @@ def _get_rebuilt_edges(
             new_geometry=edges_simplified_geometries
         )
     else:
-        print("Simplification method not recognized. Using spider-web simplification.")
+        warnings.warn(
+            "Simplification method not recognized. Using spider-web simplification."
+        )
         edges_simplified_geometries = edges_tosimplify_gdf.apply(
             lambda edge: _spider_simplification(
                 edge.geometry, edge.new_origin_pt, edge.new_destination_pt, buffer
@@ -1412,7 +1420,8 @@ def _extension_simplification(geometry, new_origin, new_destination):
     Parameters
     ----------
     geometry : shapely.LineString
-    new_origin, new_destination: shapely.Point or None
+    new_origin : shapely.Point or None
+    new_destination: shapely.Point or None
 
     Returns
     ----------
@@ -1447,7 +1456,8 @@ def _spider_simplification(geometry, new_origin, new_destination, buff=15):
     Parameters
     ----------
     geometry : shapely.LineString
-    new_origin, new_destination: shapely.Point or None
+    new_origin : shapely.Point or None
+    new_destination: shapely.Point or None
     buff : float
         distance from new endpoint to break current geometry
 
@@ -1533,7 +1543,8 @@ def _euclidean_simplification(geometry, new_origin, new_destination):
     Parameters
     ----------
     geometry : shapely.LineString
-    new_origin, new_destination: shapely.Point or None
+    new_origin : shapely.Point or None
+    new_destination: shapely.Point or None
 
     Returns
     ----------

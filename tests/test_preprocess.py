@@ -183,7 +183,7 @@ class TestPreprocessing:
 
     def test_consolidate_intersections(self):
         tol = 30
-        for method in ["spider", "euclidean", "extend"]:
+        for method in ["spider", "euclidean", "extend", "other"]:
             graph_simplified = mm.consolidate_intersections(
                 self.graph,
                 tolerance=tol,
