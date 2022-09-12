@@ -1148,7 +1148,7 @@ def consolidate_intersections(
         distance in network units below which nodes will be consolidated
     rebuild_graph: Boolean
     rebuild_edges_method: string
-        'extend' or 'spider' or 'euclidean'
+        'extend' or 'spider' or 'euclidean', ignored if rebuild_graph is False
     directed: Boolean or None
         consider the graph a MultiDiGraph if True or MultiGraph if False, and
         if None infer from the passed object type
@@ -1166,7 +1166,6 @@ def consolidate_intersections(
     Networkx.MultiGraph or Networkx.MultiDiGraph
 
     """
-
     # Collect nodes and their data:
     nodes, nodes_dict = zip(*graph.nodes(data=True))
     nodes_df = pd.DataFrame(nodes_dict, index=nodes)
@@ -1230,6 +1229,7 @@ def consolidate_intersections(
 
     # Rebuild edges if necessary:
     if rebuild_graph:
+        rebuild_edges_method = rebuild_edges_method.lower()
         graph.graph["approach"] = "primal"
         edges_gdf = nx_to_gdf(graph, points=False, lines=True)
         simplified_edges = _get_rebuilt_edges(
@@ -1363,7 +1363,7 @@ def _get_rebuilt_edges(
         )
     else:
         warnings.warn(
-            "Simplification method not recognized. Using spider-web simplification."
+            f"Simplification method '{method}' not recognized. Using spider-web simplification."
         )
         edges_simplified_geometries = edges_tosimplify_gdf.apply(
             lambda edge: _spider_simplification(
