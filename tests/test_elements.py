@@ -117,7 +117,7 @@ class TestElements:
 
     def test_Blocks_inner(self):
         streets = self.df_streets.copy()
-        streets.loc[35] = (
+        streets.loc[35, "geometry"] = (
             self.df_buildings.geometry.iloc[141]
             .representative_point()
             .buffer(20)

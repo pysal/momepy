@@ -130,8 +130,8 @@ class Theil:
 
     .. math::
 
-        T = \sum_{i=1}^n \left( \\frac{y_i}{\sum_{i=1}^n y_i} \ln \left[ N \\frac{y_i}
-        {\sum_{i=1}^n y_i}\\right] \\right)
+        T = \\sum_{i=1}^n \\left( \\frac{y_i}{\\sum_{i=1}^n y_i} \\ln \\left[ N \\frac{y_i}
+        {\\sum_{i=1}^n y_i}\\right] \\right)
 
     Parameters
     ----------
