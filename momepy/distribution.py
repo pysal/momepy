@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm  # progress bar
 
-from .utils import _azimuth
+from .utils import _azimuth, deprecated
 
 __all__ = [
     "Orientation",
@@ -96,6 +96,7 @@ class Orientation:
         self.series = pd.Series(results, index=gdf.index)
 
 
+@deprecated("shared_walls")
 class SharedWalls:
     """
     Calculate the length of shared walls of adjacent elements (typically buildings)
@@ -135,7 +136,8 @@ class SharedWalls:
         self.series = shared_walls(gdf)
 
 
-class SharedWallsRatio(SharedWalls):
+@deprecated("shared_walls_ratio")
+class SharedWallsRatio:
     """
     Calculate shared walls ratio of adjacent elements (typically buildings)
 

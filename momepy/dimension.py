@@ -13,6 +13,7 @@ import scipy as sp
 from tqdm.auto import tqdm
 
 from .shape import _circle_radius
+from .utils import deprecated
 
 __all__ = [
     "Area",
@@ -64,6 +65,7 @@ class Area:
         self.series = self.gdf.geometry.area
 
 
+@deprecated("perimeter")
 class Perimeter:
     """
     Calculates perimeter of each object in given GeoDataFrame. It can be used for any
@@ -99,6 +101,7 @@ class Perimeter:
         self.series = perimeter(gdf)
 
 
+@deprecated("volume")
 class Volume:
     """
     Calculates volume of each object in given GeoDataFrame based on its height and area.
@@ -848,6 +851,7 @@ class CoveredArea:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("perimeter_wall")
 class PerimeterWall:
     """
     Calculate the perimeter wall length the joined structure.
