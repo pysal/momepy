@@ -94,8 +94,9 @@ class Perimeter:
     """
 
     def __init__(self, gdf):
-        self.gdf = gdf
-        self.series = self.gdf.geometry.length
+        from .functional.dimension import perimeter
+
+        self.series = perimeter(gdf)
 
 
 class Volume:
@@ -144,28 +145,9 @@ class Volume:
     """
 
     def __init__(self, gdf, heights, areas=None):
-        self.gdf = gdf
+        from .functional.dimension import volume
 
-        gdf = gdf.copy()
-        if not isinstance(heights, str):
-            gdf["mm_h"] = heights
-            heights = "mm_h"
-        self.heights = gdf[heights]
-
-        if areas is not None:
-            if not isinstance(areas, str):
-                gdf["mm_a"] = areas
-                areas = "mm_a"
-            self.areas = gdf[areas]
-        else:
-            self.areas = gdf.geometry.area
-        try:
-            self.series = self.areas * self.heights
-
-        except KeyError:
-            raise KeyError(
-                "Column not found. Define heights and areas or set areas to None."
-            )
+        self.series = volume(gdf, heights=heights, areas=areas)
 
 
 class FloorArea:
@@ -902,39 +884,9 @@ class PerimeterWall:
     """
 
     def __init__(self, gdf, spatial_weights=None, verbose=True):
-        self.gdf = gdf
+        from .functional.dimension import perimeter_wall
 
-        if spatial_weights is None:
-
-            print("Calculating spatial weights...") if verbose else None
-            from libpysal.weights import Queen
-
-            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
-            print("Spatial weights ready...") if verbose else None
-        self.sw = spatial_weights
-
-        # dict to store walls for each uID
-        walls = {}
-        components = pd.Series(spatial_weights.component_labels, index=range(len(gdf)))
-        geom = gdf.geometry
-
-        for i in tqdm(range(gdf.shape[0]), total=gdf.shape[0], disable=not verbose):
-            # if the id is already present in walls, continue (avoid repetition)
-            if i in walls:
-                continue
-            else:
-                comp = spatial_weights.component_labels[i]
-                to_join = components[components == comp].index
-                joined = geom.iloc[to_join]
-                # buffer to avoid multipolygons where buildings touch by corners only
-                dissolved = joined.buffer(0.01).unary_union
-                for b in to_join:
-                    walls[b] = dissolved.exterior.length
-
-        results_list = []
-        for i in tqdm(range(gdf.shape[0]), total=gdf.shape[0], disable=not verbose):
-            results_list.append(walls[i])
-        self.series = pd.Series(results_list, index=gdf.index)
+        self.series = perimeter_wall(gdf, w=spatial_weights)
 
 
 class SegmentsLength:

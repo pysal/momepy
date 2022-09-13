@@ -130,18 +130,9 @@ class SharedWalls:
     """
 
     def __init__(self, gdf):
-        self.gdf = gdf
+        from .functional.distribution import shared_walls
 
-        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
-        left = gdf.geometry.take(inp).reset_index(drop=True)
-        right = gdf.geometry.take(res).reset_index(drop=True)
-        intersections = left.intersection(right).length
-        results = intersections.groupby(inp).sum().reset_index(
-            drop=True
-        ) - gdf.geometry.length.reset_index(drop=True)
-        results.index = gdf.index
-
-        self.series = results
+        self.series = shared_walls(gdf)
 
 
 class SharedWallsRatio(SharedWalls):
@@ -185,16 +176,9 @@ class SharedWallsRatio(SharedWalls):
     """
 
     def __init__(self, gdf, perimeters=None):
-        super(SharedWallsRatio, self).__init__(gdf)
+        from .functional.distribution import shared_walls_ratio
 
-        if perimeters is None:
-            self.perimeters = gdf.geometry.length
-        elif isinstance(perimeters, str):
-            self.perimeters = gdf[perimeters]
-        else:
-            self.perimeters = perimeters
-
-        self.series = self.series / self.perimeters
+        self.series = shared_walls_ratio(gdf, perimeters=perimeters)
 
 
 class StreetAlignment:
