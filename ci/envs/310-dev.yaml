@@ -3,21 +3,22 @@ channels:
   - conda-forge
 dependencies:
   - python=3.10
+  - dask
   - geopandas
+  - inequality
   - libpysal
   - networkx
+  - osmnx
+  - packaging
+  - pygeos
   - tqdm
+  # testing
+  - codecov
   - pytest
   - pytest-cov
-  - codecov
-  - pip
-  - osmnx
-  - inequality
-  - pygeos
-  - dask
-  - packaging
   # for mapclassify
   - scikit-learn
+  - pip
   - pip:
       - git+https://github.com/geopandas/geopandas.git
       - git+https://github.com/pysal/libpysal.git
