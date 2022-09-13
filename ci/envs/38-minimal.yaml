@@ -3,7 +3,6 @@ channels:
   - conda-forge
 dependencies:
   - python=3.8
-  - codecov
   - geopandas=0.8
   - inequality
   - libpysal=4.2.2
@@ -13,6 +12,8 @@ dependencies:
   - osmnx
   - packaging
   - pygeos
+  - tqdm=4.27.0
+  # testing
+  - codecov
   - pytest
   - pytest-cov
-  - tqdm=4.27.0

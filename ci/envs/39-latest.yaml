@@ -5,18 +5,13 @@ dependencies:
   - python=3.9
   - geopandas
   - libpysal
-  - networkx
-  - tqdm
   - mapclassify
+  - networkx
+  - osmnx
   - packaging
+  - pygeos
+  - tqdm
   # testing
+  - codecov
   - pytest
   - pytest-cov
-  - codecov
-  # user guide testing
-  - osmnx
-  - matplotlib
-  - jupyter
-  - inequality
-  - pygeos
-  - dask
