@@ -1,7 +1,6 @@
 import geopandas as gpd
 import numpy as np
 import pytest
-from pytest import approx
 
 import momepy as mm
 from momepy import sw_high
@@ -22,14 +21,14 @@ class TestDiversity:
 
     def test_Range(self):
         full_sw = mm.Range(self.df_tessellation, "area", self.sw, "uID").series
-        assert full_sw[0] == approx(8255.372, rel=1e-3)
+        assert full_sw[0] == pytest.approx(8255.372, rel=1e-3)
         area = self.df_tessellation["area"]
         full2 = mm.Range(self.df_tessellation, area, self.sw, "uID").series
-        assert full2[0] == approx(8255.372, rel=1e-3)
+        assert full2[0] == pytest.approx(8255.372, rel=1e-3)
         limit = mm.Range(
             self.df_tessellation, "area", self.sw, "uID", rng=(10, 90)
         ).series
-        assert limit[0] == approx(4122.139, rel=1e-3)
+        assert limit[0] == pytest.approx(4122.139, rel=1e-3)
         assert (
             mm.Range(self.df_tessellation, "area", self.sw_drop, "uID")
             .series.isna()
@@ -38,7 +37,7 @@ class TestDiversity:
 
     def test_Theil(self):
         full_sw = mm.Theil(self.df_tessellation, "area", self.sw, "uID").series
-        assert full_sw[0] == approx(0.25744684)
+        assert full_sw[0] == pytest.approx(0.25744684)
         limit = mm.Theil(
             self.df_tessellation,
             self.df_tessellation.area,
@@ -46,7 +45,7 @@ class TestDiversity:
             "uID",
             rng=(10, 90),
         ).series
-        assert limit[0] == approx(0.1330295)
+        assert limit[0] == pytest.approx(0.1330295)
         zeros = mm.Theil(
             self.df_tessellation, np.zeros(len(self.df_tessellation)), self.sw, "uID"
         ).series
@@ -105,11 +104,11 @@ class TestDiversity:
 
     def test_Gini(self):
         full_sw = mm.Gini(self.df_tessellation, "area", self.sw, "uID").series
-        assert full_sw[0] == approx(0.3945388)
+        assert full_sw[0] == pytest.approx(0.3945388)
         limit = mm.Gini(
             self.df_tessellation, "area", self.sw, "uID", rng=(10, 90)
         ).series
-        assert limit[0] == approx(0.28532814)
+        assert limit[0] == pytest.approx(0.28532814)
         self.df_tessellation["negative"] = (
             self.df_tessellation.area - self.df_tessellation.area.mean()
         )
