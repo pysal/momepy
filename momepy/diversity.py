@@ -5,11 +5,12 @@
 # definitions of diversity characters
 
 import numpy as np
+from numpy.lib import NumpyVersion
 import pandas as pd
 import scipy as sp
 from tqdm.auto import tqdm  # progress bar
+import warnings
 
-from numpy.lib import NumpyVersion
 
 __all__ = [
     "Range",
@@ -129,8 +130,8 @@ class Theil:
 
     .. math::
 
-        T = \sum_{i=1}^n \left( \\frac{y_i}{\sum_{i=1}^n y_i} \ln \left[ N \\frac{y_i}
-        {\sum_{i=1}^n y_i}\\right] \\right)
+        T = \\sum_{i=1}^n \\left( \\frac{y_i}{\\sum_{i=1}^n y_i} \\ln \\left[ N \\frac{y_i}
+        {\\sum_{i=1}^n y_i}\\right] \\right)
 
     Parameters
     ----------
@@ -899,19 +900,23 @@ class Percentiles:
         elif weighted is None:
             data = data.set_index(unique_id)[values]
 
+            if NumpyVersion(np.__version__) >= "1.22.0":
+                method = dict(method=interpolation)
+            else:
+                method = dict(interpolation=interpolation)
+
             for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
                 if index in spatial_weights.neighbors.keys():
                     neighbours = [index]
                     neighbours += spatial_weights.neighbors[index]
-
                     values_list = data.loc[neighbours]
-                    if NumpyVersion(np.__version__) >= "1.22.0":
-                        method = dict(method=interpolation)
-                    else:
-                        method = dict(interpolation=interpolation)
-                    results_list.append(
-                        np.nanpercentile(values_list, percentiles, **method)
-                    )
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings(
+                            "ignore", message="All-NaN slice encountered"
+                        )
+                        results_list.append(
+                            np.nanpercentile(values_list, percentiles, **method)
+                        )
                 else:
                     results_list.append(np.nan)
 

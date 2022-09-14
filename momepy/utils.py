@@ -8,9 +8,9 @@ import geopandas as gpd
 import libpysal
 import networkx as nx
 import numpy as np
+from numpy.lib import NumpyVersion
 from shapely.geometry import Point, LineString
 
-from numpy.lib import NumpyVersion
 
 __all__ = [
     "unique_id",
@@ -470,20 +470,24 @@ def limit_range(vals, rng):
     array
         limited array
     """
+
     vals = np.asarray(vals)
-    if len(vals) > 2:
+    nan_tracker = np.isnan(vals)
+
+    if (len(vals) > 2) and (not nan_tracker.all()):
         if NumpyVersion(np.__version__) >= "1.22.0":
             method = dict(method="nearest")
         else:
             method = dict(interpolation="nearest")
         rng = sorted(rng)
-        if np.isnan(vals).any():
+        if nan_tracker.any():
             lower = np.nanpercentile(vals, rng[0], **method)
             higher = np.nanpercentile(vals, rng[1], **method)
         else:
             lower = np.percentile(vals, rng[0], **method)
             higher = np.percentile(vals, rng[1], **method)
-        return vals[(lower <= vals) & (vals <= higher)]
+        vals = vals[(lower <= vals) & (vals <= higher)]
+
     return vals
 
 

@@ -4,14 +4,20 @@ channels:
 dependencies:
   - python=3.10
   - geopandas
+  - inequality
   - libpysal
+  - mapclassify
   - networkx
+  - packaging
   - tqdm
+  # testing
+  - codecov
   - pytest
   - pytest-cov
-  - codecov
-  - mapclassify
+  # user guide testing
+  - dask
+  - inequality
+  - jupyter
+  - matplotlib
   - osmnx
   - pygeos
-  - inequality
-  - packaging

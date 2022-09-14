@@ -15,3 +15,6 @@ omit =
     tests/*
     momepy/_version.py
     versioneer.py
+    setup.py
+    docs/conf.py
+    benchmarks/*
