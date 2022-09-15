@@ -1130,7 +1130,7 @@ def consolidate_intersections(
         Edges are cropped within a buffer of the new endpoints and linearly extended from there. This
         method improves upon linear reconstruction by mantaining, when possible, network planarity.
     3. Euclidean reconstruction:
-        Edges are ignored and new edges are built as straightlines between new origin and new
+        Edges are ignored and new edges are built as straight lines between new origin and new
         destination. This method ignores geometry, but efficiently preserves adjacency.
 
     If ``rebuild_graph`` is False, graph is returned with consolidated nodes but without reconstructed
