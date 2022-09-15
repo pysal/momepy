@@ -1121,7 +1121,7 @@ def consolidate_intersections(
     """
     Consolidate close street intersections into a single node, collapsing short edges.
 
-    If rebuild_graph is True, new edges are drawn according to rebuild_edges_method which is one of:
+    If rebuild_graph is True, new edges are drawn according to ``rebuild_edges_method`` which is one of:
 
     1. Extension reconstruction:
         Edges are linearly extended from original endpoints until the new nodes. This method preserves
