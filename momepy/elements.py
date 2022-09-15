@@ -912,41 +912,56 @@ def get_network_ratio(df, edges, initial_buffer=500):
 
     """
 
-    df_ix, edg_ix = edges.sindex.nearest(df.geometry, max_distance=initial_buffer)
-
-    intersections = (
-        df.iloc[df_ix]
-        .intersection(edges.buffer(0.01).iloc[edg_ix], align=False)
-        .reset_index(drop=True)
+    (df_ix, edg_ix), dist = edges.sindex.nearest(
+        df.geometry, max_distance=initial_buffer, return_distance=True
     )
 
-    mask = intersections.area > 0.0001
-    df_ix = df_ix[mask]
+    touching = dist < 0.1
+
+    intersections = (
+        df.iloc[df_ix[touching]]
+        .intersection(edges.buffer(0.0001).iloc[edg_ix[touching]], align=False)
+        .reset_index()
+    )
+
+    mask = intersections.area > 0.001
+
+    df_ix_touching = df_ix[touching][mask]
     lengths = intersections[mask].area
-    grouped = lengths.groupby(df_ix)
+    grouped = lengths.groupby(df_ix_touching)
     totals = grouped.sum()
     ints_vect = []
     for name, group in grouped:
         ratios = group / totals.loc[name]
-        ints_vect.append({edg_ix[item[0]]: item[1] for item in ratios.iteritems()})
+        ints_vect.append(
+            {edg_ix[touching][item[0]]: item[1] for item in ratios.iteritems()}
+        )
 
-    ratios = pd.Series(ints_vect, index=grouped.groups.keys())
+    ratios = pd.Series(ints_vect, index=df.index[list(grouped.groups.keys())])
+
+    near = []
+    df_ix_non = df_ix[~touching]
+    grouped = pd.Series(dist[~touching]).groupby(df_ix_non)
+    for name, group in grouped:
+        near.append({edg_ix[~touching][group.idxmin()]: 1.0})
+
+    near = pd.Series(near, index=df.index[list(grouped.groups.keys())])
+
+    ratios = pd.concat([ratios, near])
 
     nans = df[~df.index.isin(ratios.index)]
     if not nans.empty:
         df_ix, edg_ix = edges.sindex.nearest(
             nans.geometry, return_all=False, max_distance=None
         )
-        additional = pd.Series(
-            [{edges.index[i]: 1.0} for i in edg_ix], index=nans.index
-        )
+        additional = pd.Series([{i: 1.0} for i in edg_ix], index=nans.index)
 
         ratios = pd.concat([ratios, additional])
 
     result = pd.DataFrame()
     result["edgeID_keys"] = ratios.apply(lambda d: list(d.keys()))
     result["edgeID_values"] = ratios.apply(lambda d: list(d.values()))
-    result.index = df.index
+
     return result
 
 
