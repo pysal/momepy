@@ -912,42 +912,37 @@ def get_network_ratio(df, edges, initial_buffer=500):
 
     """
 
-    # intersection-based join
-    buff = edges.buffer(0.01)  # to avoid floating point error
-    inp, res = buff.sindex.query_bulk(df.geometry, predicate="intersects")
+    df_ix, edg_ix = edges.sindex.nearest(df.geometry, max_distance=initial_buffer)
+
     intersections = (
-        df.iloc[inp]
+        df.iloc[df_ix]
+        .intersection(edges.buffer(0.01).iloc[edg_ix], align=False)
         .reset_index(drop=True)
-        .intersection(buff.iloc[res].reset_index(drop=True))
     )
+
     mask = intersections.area > 0.0001
-    intersections = intersections[mask]
-    inp = inp[mask]
-    lengths = intersections.area
-    grouped = lengths.groupby(inp)
+    df_ix = df_ix[mask]
+    lengths = intersections[mask].area
+    grouped = lengths.groupby(df_ix)
     totals = grouped.sum()
     ints_vect = []
     for name, group in grouped:
         ratios = group / totals.loc[name]
-        ints_vect.append({res[item[0]]: item[1] for item in ratios.iteritems()})
+        ints_vect.append({edg_ix[item[0]]: item[1] for item in ratios.iteritems()})
 
-    edge_dicts = pd.Series(ints_vect, index=totals.index)
+    ratios = pd.Series(ints_vect, index=grouped.groups.keys())
 
-    # nearest neighbor join
-    nans = df.index.difference(edge_dicts.index)
-    buffered = df.iloc[nans].buffer(initial_buffer)
-    additional = []
+    nans = df[~df.index.isin(ratios.index)]
+    if not nans.empty:
+        df_ix, edg_ix = edges.sindex.nearest(
+            nans.geometry, return_all=False, max_distance=None
+        )
+        additional = pd.Series(
+            [{edges.index[i]: 1.0} for i in edg_ix], index=nans.index
+        )
 
-    for orig, geom in zip(df.iloc[nans].geometry, buffered.geometry):
-        query = edges.sindex.query(geom, predicate="intersects")
-        b = initial_buffer
-        while query.size == 0:
-            query = edges.sindex.query(geom.buffer(b), predicate="intersects")
-            b += initial_buffer
-        additional.append({edges.iloc[query].distance(orig).idxmin(): 1})
+        ratios = pd.concat([ratios, additional])
 
-    additional = pd.Series(additional, index=nans)
-    ratios = pd.concat([edge_dicts, additional]).sort_index()
     result = pd.DataFrame()
     result["edgeID_keys"] = ratios.apply(lambda d: list(d.keys()))
     result["edgeID_values"] = ratios.apply(lambda d: list(d.values()))
