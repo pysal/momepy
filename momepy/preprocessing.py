@@ -1125,7 +1125,7 @@ def consolidate_intersections(
 
     1. Extension reconstruction:
         Edges are linearly extended from original endpoints until the new nodes. This method preserves
-        most faithfully the network geometry.
+        most faithfully the network geometry but can result in overlapping geometry.
     2. Spider-web reconstruction:
         Edges are cropped within a buffer of the new endpoints and linearly extended from there. This
         method improves upon linear reconstruction by mantaining, when possible, network planarity.
