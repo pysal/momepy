@@ -1133,7 +1133,7 @@ def consolidate_intersections(
         Edges are ignored and new edges are built as straightlines between new origin and new
         destination. This method ignores geometry, but efficiently preserves adjacency.
 
-    If rebuild_graph is False, graph is returned with consolidated nodes but without reconstructed
+    If ``rebuild_graph`` is False, graph is returned with consolidated nodes but without reconstructed
     edges i.e. graph is intentionally disconnected.
 
     Graph must be configured so that
