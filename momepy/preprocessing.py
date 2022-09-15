@@ -1144,7 +1144,7 @@ def consolidate_intersections(
     Parameters
     ----------
     graph : Networkx.MultiGraph or Networkx.MultiDiGraph
-    tolerance : float
+    tolerance : float, default 30
         distance in network units below which nodes will be consolidated
     rebuild_graph: Boolean
     rebuild_edges_method: string
