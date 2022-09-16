@@ -155,6 +155,12 @@ class TestElements:
         ids = mm.get_node_id(self.df_buildings, nodes, edges, "nodeID", "nID")
         assert not ids.isna().any()
 
+    @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
+    @pytest.mark.skipif(not GPD_10, reason="requires sindex.nearest")
+    def test_get_node_id_ratio(self):
+        nx = mm.gdf_to_nx(self.df_streets)
+        nodes, edges = mm.nx_to_gdf(nx)
+
         convex_hull = edges.unary_union.convex_hull
         enclosures = mm.enclosures(edges, limit=gpd.GeoSeries([convex_hull]))
         enclosed_tess = mm.Tessellation(
