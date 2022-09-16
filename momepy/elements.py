@@ -550,10 +550,10 @@ class Tessellation:
 
 class Blocks:
     """
-    Generate blocks based on buildings, tesselation and street network.
+    Generate blocks based on buildings, tessellation, and street network.
 
     Dissolves tessellation cells based on street-network based polygons.
-    Links resulting id to ``buildings`` and ``tesselation`` as attributes.
+    Links resulting id to ``buildings`` and ``tessellation`` as attributes.
 
     Parameters
     ----------
