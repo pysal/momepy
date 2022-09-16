@@ -924,7 +924,7 @@ def get_network_ratio(df, edges, initial_buffer=500):
         .reset_index()
     )
 
-    mask = intersections.area > 0.001
+    mask = intersections.area > 0.0001
 
     df_ix_touching = df_ix[touching][mask]
     lengths = intersections[mask].area
