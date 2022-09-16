@@ -912,6 +912,9 @@ def get_network_ratio(df, edges, initial_buffer=500):
 
     """
 
+    if not GPD_10:
+        raise ImportError("`get_network_ratio` requires geopandas 0.10 or newer.")
+
     (df_ix, edg_ix), dist = edges.sindex.nearest(
         df.geometry, max_distance=initial_buffer, return_distance=True
     )

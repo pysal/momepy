@@ -14,6 +14,7 @@ import momepy as mm
 
 # https://github.com/geopandas/geopandas/issues/2282
 GPD_REGR = Version("0.10.2") < Version(gpd.__version__) < Version("0.11")
+GPD_10 = Version(gpd.__version__) >= Version("0.10")
 
 
 class TestElements:
@@ -205,6 +206,7 @@ class TestElements:
         encl = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([limit]), clip=True)
         assert len(encl) == 18
 
+    @pytest.mark.skipif(not GPD_10, reason="requires sindex.nearest")
     def test_get_network_ratio(self):
         convex_hull = self.df_streets.unary_union.convex_hull
         enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
@@ -230,3 +232,13 @@ class TestElements:
 
         for i, idx in enumerate(expected_tail):
             assert sorted(links2.edgeID_keys.tail(5).iloc[i]) == sorted(idx)
+
+    @pytest.mark.skipif(GPD_10, reason="requires sindex.nearest")
+    def test_get_network_ratio_error(self):
+        convex_hull = self.df_streets.unary_union.convex_hull
+        enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
+        enclosed_tess = mm.Tessellation(
+            self.df_buildings, unique_id="uID", enclosures=enclosures
+        ).tessellation
+        with pytest.raises(ImportError, match="`get_network_ratio` requires geopandas"):
+            mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
