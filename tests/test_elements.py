@@ -1,4 +1,5 @@
 from random import shuffle
+import uuid
 
 import geopandas as gpd
 import numpy as np
@@ -13,6 +14,7 @@ import momepy as mm
 
 # https://github.com/geopandas/geopandas/issues/2282
 GPD_REGR = Version("0.10.2") < Version(gpd.__version__) < Version("0.11")
+GPD_10 = Version(gpd.__version__) >= Version("0.10")
 
 
 class TestElements:
@@ -153,6 +155,12 @@ class TestElements:
         ids = mm.get_node_id(self.df_buildings, nodes, edges, "nodeID", "nID")
         assert not ids.isna().any()
 
+    @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
+    @pytest.mark.skipif(not GPD_10, reason="requires sindex.nearest")
+    def test_get_node_id_ratio(self):
+        nx = mm.gdf_to_nx(self.df_streets)
+        nodes, edges = mm.nx_to_gdf(nx)
+
         convex_hull = edges.unary_union.convex_hull
         enclosures = mm.enclosures(edges, limit=gpd.GeoSeries([convex_hull]))
         enclosed_tess = mm.Tessellation(
@@ -204,6 +212,7 @@ class TestElements:
         encl = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([limit]), clip=True)
         assert len(encl) == 18
 
+    @pytest.mark.skipif(not GPD_10, reason="requires sindex.nearest")
     def test_get_network_ratio(self):
         convex_hull = self.df_streets.unary_union.convex_hull
         enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
@@ -215,3 +224,27 @@ class TestElements:
         assert links.edgeID_values.apply(lambda x: sum(x)).sum() == len(enclosed_tess)
         m = enclosed_tess["uID"] == 110
         assert sorted(links[m].iloc[0]["edgeID_keys"]) == [0, 34]
+
+        # ensure index is preserved
+        enclosed_tess.index = [str(uuid.uuid4()) for _ in range(len(enclosed_tess))]
+        links2 = mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
+
+        assert_index_equal(enclosed_tess.index, links2.index, check_order=False)
+        expected_head = [[0, 34], [34], [34], [0], [0, 15, 3, 14, 4, 7]]
+        expected_tail = [[28], [29], [28], [32], [21]]
+
+        for i, idx in enumerate(expected_head):
+            assert sorted(links2.edgeID_keys.iloc[i]) == sorted(idx)
+
+        for i, idx in enumerate(expected_tail):
+            assert sorted(links2.edgeID_keys.tail(5).iloc[i]) == sorted(idx)
+
+    @pytest.mark.skipif(GPD_10, reason="requires sindex.nearest")
+    def test_get_network_ratio_error(self):
+        convex_hull = self.df_streets.unary_union.convex_hull
+        enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
+        enclosed_tess = mm.Tessellation(
+            self.df_buildings, unique_id="uID", enclosures=enclosures
+        ).tessellation
+        with pytest.raises(ImportError, match="`get_network_ratio` requires geopandas"):
+            mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
