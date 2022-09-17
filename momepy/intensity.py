@@ -5,7 +5,6 @@
 # definitions of intensity characters
 
 import collections
-import warnings
 
 import numpy as np
 import pandas as pd
