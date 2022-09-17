@@ -1,14 +1,14 @@
-from random import shuffle
 import uuid
+from random import shuffle
 
 import geopandas as gpd
 import numpy as np
 import pytest
 from geopandas.testing import assert_geodataframe_equal
+from packaging.version import Version
 from pandas.testing import assert_index_equal
 from shapely import affinity
 from shapely.geometry import LineString, MultiPoint, Polygon
-from packaging.version import Version
 
 import momepy as mm
 

@@ -13,14 +13,12 @@ import pandas as pd
 import pygeos
 import shapely
 from packaging.version import Version
+from shapely.geometry import LineString, Point
+from shapely.ops import linemerge, polygonize
 from tqdm.auto import tqdm
 
-from shapely.ops import linemerge, polygonize
-from shapely.geometry import Point, LineString
-
-from .shape import CircularCompactness
 from .coins import COINS
-
+from .shape import CircularCompactness
 
 __all__ = [
     "preprocess",
@@ -1048,9 +1046,9 @@ def roundabout_simplification(
     include_adjacent : boolean (default True)
         Adjacent polygons to be considered also as part of the simplification.
     diameter_factor : float (default 1.5)
-        The factor to be applied to the diameter of each roundabout that determines how far
-        an adjacent polygon can stretch until it is no longer considered part of the overall
-        roundabout group. Only applyies when include_adjacent = True.
+        The factor to be applied to the diameter of each roundabout that determines
+        how far an adjacent polygon can stretch until it is no longer considered part
+        of the overall roundabout group. Only applyies when include_adjacent = True.
     center_type : string (default 'centroid')
         Method to use for converging the incoming LineStrings.
         Current list of options available : 'centroid', 'mean'.
@@ -1073,16 +1071,23 @@ def roundabout_simplification(
     Returns
     -------
     GeoDataFrame
-        GeoDataFrame with an updated geometry and an additional column labeling modified edges.
+        GeoDataFrame with an updated geometry and an additional
+        column labeling modified edges.
     """
     if not GPD_09:
         raise ImportError(
-            f"`roundabout_simplification` requires geopandas 0.9.0 or newer. Your current version is {gpd.__version__}."
+            (
+                "`roundabout_simplification` requires geopandas 0.9.0 or newer. "
+                f"Your current version is {gpd.__version__}."
+            )
         )
 
     if len(edges[edges.geom_type != "LineString"]) > 0:
         raise TypeError(
-            "Only LineString geometries are allowed. Try using the `explode()` method to explode MultiLineStrings."
+            (
+                "Only LineString geometries are allowed. "
+                "Try using the `explode()` method to explode MultiLineStrings."
+            )
         )
 
     polys = _polygonize_ifnone(edges, polys)

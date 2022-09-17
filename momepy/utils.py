@@ -9,8 +9,7 @@ import libpysal
 import networkx as nx
 import numpy as np
 from numpy.lib import NumpyVersion
-from shapely.geometry import Point, LineString
-
+from shapely.geometry import Point
 
 __all__ = [
     "unique_id",
@@ -51,15 +50,16 @@ def _angle(a, b, c):
 
 
 def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
-    """
-    Generate primal graph.
-    Helper for gdf_to_nx.
-    """
+    """Generate primal graph. Helper for gdf_to_nx."""
     G.graph["approach"] = "primal"
 
-    msg = "%s. This can lead to unexpected behaviour. The intended usage of the conversion function is with networks made of LineStrings only."
+    msg = (
+        "%s. This can lead to unexpected behaviour. "
+        "The intended usage of the conversion function "
+        "is with networks made of LineStrings only."
+    )
 
-    if not "LineString" in gdf_network.geom_type.unique():
+    if "LineString" not in gdf_network.geom_type.unique():
         warnings.warn(
             message=msg % "The given network does not contain any LineString.",
             category=RuntimeWarning,
@@ -93,10 +93,7 @@ def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
 
 
 def _generate_dual(G, gdf_network, fields, angles, multigraph, angle):
-    """
-    Generate dual graph
-    Helper for gdf_to_nx.
-    """
+    """Generate dual graph Helper for gdf_to_nx."""
     G.graph["approach"] = "dual"
     key = 0
 
@@ -187,10 +184,10 @@ def gdf_to_nx(
         name of attribute of angle between LineStrings which will be saved to graph.
         Ignored if ``approach="primal"``.
     oneway_column : str, default None
-        create an additional edge for each LineString which allows bidirectional path traversal by
-        specifying the boolean column in the GeoDataFrame. Note, that the reverse conversion
-        ``nx_to_gdf(gdf_to_nx(gdf, directed=True, oneway_column="oneway"))`` will contain
-        additional duplicated geometries.
+        create an additional edge for each LineString which allows bidirectional
+        path traversal by specifying the boolean column in the GeoDataFrame. Note,
+        that the reverse conversion ``nx_to_gdf(gdf_to_nx(gdf, directed=True,
+        oneway_column="oneway"))`` will contain additional duplicated geometries.
 
     Returns
     -------
@@ -284,10 +281,7 @@ def gdf_to_nx(
 
 
 def _points_to_gdf(net):
-    """
-    Generate point gdf from nodes.
-    Helper for nx_to_gdf.
-    """
+    """Generate point gdf from nodes. Helper for nx_to_gdf."""
     node_xy, node_data = zip(*net.nodes(data=True))
     if isinstance(node_xy[0], int) and "x" in node_data[0].keys():
         geometry = [Point(data["x"], data["y"]) for data in node_data]  # osmnx graph
@@ -300,10 +294,7 @@ def _points_to_gdf(net):
 
 
 def _lines_to_gdf(net, points, nodeID):
-    """
-    Generate linestring gdf from edges.
-    Helper for nx_to_gdf.
-    """
+    """Generate linestring gdf from edges. Helper for nx_to_gdf."""
     starts, ends, edge_data = zip(*net.edges(data=True))
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
 
@@ -324,10 +315,7 @@ def _lines_to_gdf(net, points, nodeID):
 
 
 def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
-    """
-    Generate gdf(s) from primal network.
-    Helper for nx_to_gdf.
-    """
+    """Generate gdf(s) from primal network. Helper for nx_to_gdf."""
     if points is True:
         gdf_nodes = _points_to_gdf(net)
 
@@ -350,10 +338,7 @@ def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
 
 
 def _dual_to_gdf(net):
-    """
-    Generate linestring gdf from dual network.
-    Helper for nx_to_gdf.
-    """
+    """Generate linestring gdf from dual network. Helper for nx_to_gdf."""
     starts, edge_data = zip(*net.nodes(data=True))
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
     gdf_edges.crs = net.graph["crs"]
@@ -492,6 +477,6 @@ def limit_range(vals, rng):
 
 
 def _azimuth(point1, point2):
-    """azimuth between 2 shapely points (interval 0 - 180)"""
+    """Return the azimuth between 2 shapely points (interval 0 - 180)."""
     angle = np.arctan2(point2[0] - point1[0], point2[1] - point1[1])
     return np.degrees(angle) if angle > 0 else np.degrees(angle) + 180
