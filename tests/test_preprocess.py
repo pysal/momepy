@@ -1,11 +1,11 @@
 import geopandas as gpd
 import numpy as np
 import pytest
+from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
 from shapely import affinity
 from shapely.geometry import LineString, MultiPoint, Polygon
 from shapely.ops import polygonize
-from geopandas.testing import assert_geodataframe_equal
 
 import momepy as mm
 

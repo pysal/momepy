@@ -10,7 +10,6 @@ import libpysal
 import numpy as np
 import pandas as pd
 import pygeos
-
 from packaging.version import Version
 from scipy.spatial import Voronoi
 from shapely.geometry.base import BaseGeometry

@@ -4,13 +4,13 @@
 # diversity.py
 # definitions of diversity characters
 
-import numpy as np
-from numpy.lib import NumpyVersion
-import pandas as pd
-import scipy as sp
-from tqdm.auto import tqdm  # progress bar
 import warnings
 
+import numpy as np
+import pandas as pd
+import scipy as sp
+from numpy.lib import NumpyVersion
+from tqdm.auto import tqdm  # progress bar
 
 __all__ = [
     "Range",
@@ -130,8 +130,11 @@ class Theil:
 
     .. math::
 
-        T = \\sum_{i=1}^n \\left( \\frac{y_i}{\\sum_{i=1}^n y_i} \\ln \\left[ N \\frac{y_i}
-        {\\sum_{i=1}^n y_i}\\right] \\right)
+        T = \\sum_{i=1}^n \\left(
+            \\frac{y_i}{\\sum_{i=1}^n y_i} \\ln \\left[
+                N \\frac{y_i} {\\sum_{i=1}^n y_i}
+            \\right]
+        \\right)
 
     Parameters
     ----------
