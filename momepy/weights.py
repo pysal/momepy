@@ -12,32 +12,32 @@ class DistanceBand:
     On demand distance-based spatial weights-like class.
 
     Mimic the behavior of ``libpysal.weights.DistanceBand`` but do not compute all
-    neighbors at once but only on demand. Only ``DistanceBand.neighbors[key]`` is
-    implemented. Once user asks for ``DistanceBand.neighbors[key]``, neighbors for
-    specified key will be computed using rtree. The algorithm is significantly
-    slower than ``libpysal.weights.DistanceBand`` but allows for large number of
+    neighbors at once; only on demand. Only ``DistanceBand.neighbors[key]`` is
+    implemented. Once a user asks for ``DistanceBand.neighbors[key]``, neighbors for
+    specified key will be computed using ``rtree``. The algorithm is significantly
+    slower than ``libpysal.weights.DistanceBand`` but allows for a large number of
     neighbors which may cause memory issues in libpysal.
 
     Use ``libpysal.weights.DistanceBand`` if possible. ``momepy.weights.DistanceBand``
-    only when necessary. ``DistanceBand.neighbors[key]`` should yield same results as
-    :class:`momepy.DistanceBand`.
+    only when necessary. ``DistanceBand.neighbors[key]`` should yield the same results
+    as :class:`momepy.DistanceBand`.
 
     Parameters
     ----------
     gdf : GeoDataFrame or GeoSeries
-        GeoDataFrame containing objects to be used
+        The GeoDataFrame containing objects to be used.
     threshold : float
-        distance band to be used as buffer
+        The distance band to be used as buffer.
     centroid : bool (default True)
-        use centroid of geometry (as in ``libpysal.weights.DistanceBand``).
-        If ``False``, works with the geometry as it is.
+        Use the centroid of geometries (as in ``libpysal.weights.DistanceBand``).
+        If ``False``, this works with the geometry as it is.
     ids : str
-        column to be used as geometry ids. If not set, integer position is used.
+        The column to be used as geometry IDs. If not set, integer position is used.
 
     Attributes
     ----------
     neighbors[key] : list
-        list of ids of neighboring features
+        A list of IDs of neighboring features.
 
     """
 
@@ -56,9 +56,7 @@ class DistanceBand:
 
 
 class _Neighbors(dict, DistanceBand):
-    """
-    Helper class for DistanceBand.
-    """
+    """Helper class for DistanceBand."""
 
     def __init__(self, geoms, buffer, ids):
         self.geoms = geoms
@@ -85,32 +83,30 @@ class _Neighbors(dict, DistanceBand):
 
 def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True):
     """
-    Generate spatial weights based on Queen or Rook contiguity of order k.
-
-    Adjacent are all features within <= k steps. Pass either ``gdf`` or ``weights``.
-    If both are passed, ``weights`` is used.
-    If ``weights`` are passed, ``contiguity`` is
-    ignored and high order spatial weights based on ``weights`` are computed.
+    Generate spatial weights based on Queen or Rook contiguity of order ``k``.
+    All features within <= ``k`` steps are adjacent. Pass in either ``gdf`` or
+    ``weights``. If both are passed, ``weights`` is used. If ``weights`` are
+    passed, ``contiguity`` is ignored and high order spatial weights based on
+    ``weights`` are computed.
 
     Parameters
     ----------
     k : int
-        order of contiguity
+        The order of contiguity.
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse. Index has to be
-        consecutive range ``0:x``.
-        Otherwise, spatial weights will not match objects.
+        A GeoDataFrame containing objects to analyse. Index has to be a consecutive
+        range ``0:x``. Otherwise, spatial weights will not match objects.
     weights : libpysal.weights
-        libpysal.weights of order 1
+        A libpysal.weights of order 1.
     contiguity : str (default 'queen')
-        type of contiguity weights. Can be ``'queen'`` or ``'rook'``.
+        The type of contiguity weights. Can be ``'queen'`` or ``'rook'``.
     silent : bool (default True)
-        silence libpysal islands warnings
+        Silence libpysal islands warnings (``True``).
 
     Returns
     -------
     libpysal.weights
-        libpysal.weights object
+        The libpysal.weights object.
 
     Examples
     --------
