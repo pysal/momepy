@@ -71,8 +71,3 @@ parentdir_prefix = "momepy-"
 [tool.isort]
 profile = "black"
 src_paths = ["momepy", "tests", "benchmarks"]
-
-[tool.flake8]
-max-line-length = 88
-exclude = ["*__init__.py", "docs/conf.py", "versioneer.py", "momepy/_version.py"]
-
