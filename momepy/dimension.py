@@ -32,22 +32,21 @@ __all__ = [
 
 class Area:
     """
-    Calculates area of each object in given GeoDataFrame. It can be used for any
-    suitable element (building footprint, plot, tessellation, block).
-
-    It is a simple wrapper for GeoPandas ``.area`` for the consistency of momepy.
+    Calculates the area of each object in a given GeoDataFrame. It can be used for any
+    suitable element (building footprint, plot, tessellation, block). It is a simple
+    wrapper for GeoPandas ``.area`` for the consistency of momepy.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
 
     Examples
     --------
@@ -66,23 +65,21 @@ class Area:
 
 class Perimeter:
     """
-    Calculates perimeter of each object in given GeoDataFrame. It can be used for any
-    suitable element (building footprint, plot, tessellation, block).
-
-    It is a simple wrapper for GeoPandas ``.length`` for the consistency of momepy.
+    Calculates perimeter of each object in a given GeoDataFrame. It can be used for any
+    suitable element (building footprint, plot, tessellation, block). It is a simple
+    wrapper for GeoPandas ``.length`` for the consistency of momepy.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
-
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
 
     Examples
     --------
@@ -100,7 +97,8 @@ class Perimeter:
 
 class Volume:
     """
-    Calculates volume of each object in given GeoDataFrame based on its height and area.
+    Calculates the volume of each object in a
+    given GeoDataFrame based on its height and area.
 
     .. math::
         area * height
@@ -108,28 +106,25 @@ class Volume:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     heights : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series``
-        where is stored height value
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where height values are stored.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series``
-        where is stored area value. If set to None, function will calculate areas
-        during the process without saving them separately.
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where area values are stored. If set to ``None``, this will calculate
+        areas during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
-
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
-
+        The original GeoDataFrame.
     heights : Series
-        Series containing used heights values
-
+        A Series containing used heights values.
     areas : GeoDataFrame
-        Series containing used areas values
+        A Series containing used areas values.
 
     Examples
     --------
@@ -170,10 +165,9 @@ class Volume:
 
 class FloorArea:
     """
-    Calculates floor area of each object based on height and area.
-
-    Number of floors is simplified into formula height / 3
-    (it is assumed that on average one floor is approximately 3 metres)
+    Calculates floor area of each object based on height and area. The number of
+    floors is simplified into the formula: height / 3. It is assumed that on
+    average one floor is approximately 3 metres.
 
     .. math::
         area * \\frac{height}{3}
@@ -181,25 +175,25 @@ class FloorArea:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     heights : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        is stored height value
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where height values are stored.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        is stored area value. If set to None, function will calculate areas
-        during the process without saving them separately.
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where area values are stored. If set to ``None``, this will calculate
+        areas during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     heights : Series
-        Series containing used heights values
+        A Series containing used heights values.
     areas : GeoDataFrame
-        Series containing used areas values
+        A Series containing used areas values.
 
     Examples
     --------
@@ -244,28 +238,25 @@ class FloorArea:
 class CourtyardArea:
     """
     Calculates area of holes within geometry - area of courtyards.
-
     Expects pygeos backend of geopandas.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to None, function will calculate areas
-        during the process without saving them separately.
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where area values are stored. If set to ``None``, this will calculate
+        areas during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
-
+        Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
-
+        The original GeoDataFrame.
     areas : GeoDataFrame
-        Series containing used areas values
+        A Series containing used areas values.
 
     Examples
     --------
@@ -293,11 +284,9 @@ class CourtyardArea:
 
 class LongestAxisLength:
     """
-    Calculates the length of the longest axis of object.
-
-    Axis is defined as a diameter of minimal circumscribed circle around the
-    convex hull.
-    It does not have to be fully inside an object.
+    Calculates the length of the longest axis of object. Axis is defined as a
+    diameter of minimal circumscribed circle around the convex hull. It does
+    not have to be fully inside an object.
 
     .. math::
         \\max \\left\\{d_{1}, d_{2}, \\ldots, d_{n}\\right\\}
@@ -305,15 +294,14 @@ class LongestAxisLength:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
-
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
 
     Examples
     --------
@@ -330,62 +318,58 @@ class LongestAxisLength:
 
 class AverageCharacter:
     """
-    Calculates the average of a character within a set neighbourhood
-    defined in ``spatial_weights``
-
-    Average value of the character within a set neighbourhood defined
-    in ``spatial_weights``.
-    Can be set to ``mean``, ``median`` or ``mode``. ``mean`` is defined as:
+    Calculates the average of a character within a set
+    neighbourhood defined in ``spatial_weights``. Can be
+    set to ``mean``, ``median`` or ``mode``. ``mean`` is defined as:
 
     .. math::
         \\frac{1}{n}\\left(\\sum_{i=1}^{n} value_{i}\\right)
 
     Adapted from :cite:`hausleitner2017`.
 
-
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing morphological tessellation
+        A GeoDataFrame containing a morphological tessellation.
     values : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        is stored character value.
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where character values are stored.
     unique_id : str
-        name of the column with unique id used as ``spatial_weights`` index.
+        The name of the column with unique ID used as the ``spatial_weights`` index.
     spatial_weights : libpysal.weights
-        spatial weights matrix
-    rng : Two-element sequence containing floats in range of [0,100], optional
-        Percentiles over which to compute the range. Each must be
-        between 0 and 100, inclusive. The order of the elements is not important.
+        A spatial weights matrix.
+    rng : tuple, list, optional (default None)
+        A two-element sequence containing floats between 0 and 100 (inclusive)
+        that are the percentiles over which to compute the range.
+        The order of the elements is not important.
     mode : str (default 'all')
-        mode of average calculation. Can be set to `all`, `mean`, `median` or `mode` or
-        list of any of the options.
+        The mode of average calculation. It can be set to ``'all'``, ``'mean'``,
+        ``'median'``, or ``'mode'`` or a list of any of the options.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting mean values
+        A Series containing resulting mean values.
     mean : Series
-        Series containing resulting mean values
+        A Series containing resulting mean values.
     median : Series
-        Series containing resulting median values
+        A Series containing resulting median values.
     mode : Series
-        Series containing resulting mode values
+        A Series containing resulting mode values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     values : GeoDataFrame
-        Series containing used values
+        A Series containing used values.
     sw : libpysal.weights
-        spatial weights matrix
+        The spatial weights matrix.
     id : Series
-        Series containing used unique ID
+        A Series containing used unique ID.
     rng : tuple
-        range
+        The range.
     modes : str
-        mode
-
+        The mode.
 
     Examples
     --------
@@ -481,12 +465,11 @@ class AverageCharacter:
 
 class StreetProfile:
     """
-    Calculates the street profile characters.
-
-    Returns a dictionary with widths, standard deviation of width, openness, heights,
-    standard deviation of height and ratio height/width. Algorithm generates
-    perpendicular ines to ``right`` dataframe features every ``distance`` and
-    measures values on intersectionwith features of ``left``. If no feature is
+    Calculates the street profile characters. This functions
+    returns a dictionary with widths, standard deviation of width, openness, heights,
+    standard deviation of height and ratio height/width. The algorithm generates
+    perpendicular lines to the ``right`` dataframe features every ``distance`` and
+    measures values on intersections with features of ``left``. If no feature is
     reached within ``tick_length`` its value is set as width (being a theoretical
     maximum).
 
@@ -495,46 +478,46 @@ class StreetProfile:
     Parameters
     ----------
     left : GeoDataFrame
-        GeoDataFrame containing streets to analyse
+        A GeoDataFrame containing streets to analyse.
     right : GeoDataFrame
-        GeoDataFrame containing buildings along the streets (only Polygon geometry type
-        is supported)
+        A GeoDataFrame containing buildings along the streets.
+        Only Polygon geometries are currently supported.
     heights: str, list, np.array, pd.Series (default None)
-        the name of the buildings dataframe column, ``np.array``, or ``pd.Series``
-        where is stored building height. If set to None,
+        The name of the buildings dataframe column, ``np.array``, or ``pd.Series``
+        where building height are stored. If set to ``None``,
         height and ratio height/width will not be calculated.
     distance : int (default 10)
-        distance between perpendicular ticks
+        The distance between perpendicular ticks.
     tick_length : int (default 50)
-        length of ticks
+        The length of ticks.
 
     Attributes
     ----------
     w : Series
-        Series containing street profile width values
+        A Series containing street profile width values.
     wd : Series
-        Series containing street profile standard deviation values
+        A Series containing street profile standard deviation values.
     o : Series
-        Series containing street profile openness values
+        A Series containing street profile openness values.
     h : Series
-        Series containing street profile heights values.
-        Returned only when heights is set.
+        A Series containing street profile heights
+        values that is returned only when ``heights`` is set.
     hd : Series
-        Series containing street profile heights standard deviation values.
-        Returned only when heights is set.
+        A Series containing street profile heights standard deviation
+        values that is returned only when ``heights`` is set.
     p : Series
-        Series containing street profile height/width ratio values.
-        Returned only when heights is set.
+        A Series containing street profile height/width ratio
+        values that is returned only when ``heights`` is set.
     left : GeoDataFrame
-        original left GeoDataFrame
+        The original left GeoDataFrame.
     right : GeoDataFrame
-        original right GeoDataFrame
+        The original right GeoDataFrame.
     distance : int
-        distance between perpendicular ticks
+        The distance between perpendicular ticks.
     tick_length : int
-        length of ticks
+        The length of ticks.
     heights : GeoDataFrame
-        Series containing used height values
+        A Series containing used height values.
 
     Examples
     --------
@@ -710,10 +693,8 @@ class StreetProfile:
 
 class WeightedCharacter:
     """
-    Calculates the weighted character
-
-    Character weighted by the area of the objects within neighbors defined
-    in ``spatial_weights``.
+    Calculates the weighted character. Character weighted by the area
+    of the objects within neighbors defined in ``spatial_weights``.
 
     .. math::
         \\frac{\\sum_{i=1}^{n} {character_{i} * area_{i}}}{\\sum_{i=1}^{n} area_{i}}
@@ -723,36 +704,36 @@ class WeightedCharacter:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        The GeoDataFrame containing objects to analyse.
     values : str, list, np.array, pd.Series
-        the name of the gdf dataframe column, ``np.array``, or ``pd.Series`` where
-        is stored character to be weighted
+        The name of the ``gdf`` dataframe column, ``np.array``, or
+        ``pd.Series`` where the characters to be weighted are stored.
     spatial_weights : libpysal.weights
-        spatial weights matrix - If None, Queen contiguity matrix of set order will
-        be calculated based on left.
+        A spatial weights matrix. If ``None``, Queen contiguity matrix
+        of set order will be calculated based on left.
     unique_id : str
-        name of the column with unique id used as ``spatial_weights`` index.
+        The name of the column with unique ID used as ``spatial_weights`` index.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the left dataframe column, ``np.array``, or ``pd.Series``
-        where is stored area value
+        The name of the left dataframe column, ``np.array``, or ``pd.Series``
+        where the area values are stored.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        A original GeoDataFrame.
     values : GeoDataFrame
-        Series containing used values
+        A Series containing used values.
     areas : GeoDataFrame
-        Series containing used areas
+        Series containing used areas.
     sw : libpysal.weights
-        spatial weights matrix
+        The spatial weights matrix.
     id : Series
-        Series containing used unique ID
+        A Series containing used unique ID.
 
     Examples
     --------
@@ -807,34 +788,30 @@ class WeightedCharacter:
 
 class CoveredArea:
     """
-    Calculates the area covered by neighbours
-
-    Total area covered by neighbours defined in ``spatial_weights`` and element itself.
-
-    .. math::
-
+    Calculates the area covered by neighbours, which is total area covered
+    by neighbours defined in ``spatial_weights`` and the element itself.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing Polygon geometry
+        A GeoDataFrame containing Polygon geometries.
     spatial_weights : libpysal.weights
-        spatial weights matrix
+        A spatial weights matrix.
     unique_id : str
-        name of the column with unique id used as ``spatial_weights`` index.
+        The name of the column with unique ID used as ``spatial_weights`` index.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     sw : libpysal.weights
-        spatial weights matrix
+        The spatial weights matrix.
     id : Series
-        Series containing used unique ID
+        A Series containing used unique ID.
 
     Examples
     --------
@@ -868,26 +845,26 @@ class CoveredArea:
 
 class PerimeterWall:
     """
-    Calculate the perimeter wall length the joined structure.
+    Calculate the perimeter wall length of the joined structure.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on gdf. It is to denote adjacent buildings (note: based on index, not ID).
+        A spatial weights matrix. If ``None``, Queen contiguity matrix will
+        be calculated based on ``gdf``. It is to denote adjacent buildings.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     sw : libpysal.weights
-        spatial weights matrix
+        The spatial weights matrix.
 
     Examples
     --------
@@ -898,6 +875,9 @@ class PerimeterWall:
 
     Notes
     -----
+    The ``spatial_weights`` keyword argument should be
+    based on *position*, not unique ID.
+
     It might take a while to compute this character.
     """
 
@@ -939,45 +919,46 @@ class PerimeterWall:
 
 class SegmentsLength:
     """
-    Calculate the cummulative and/or mean length of segments.
-
-    Length of segments within set topological distance from each of them.
-    Reached topological distance should be captured by ``spatial_weights``.
-    If ``mean=False`` it will compute sum of length, if ``mean=True``
-    it will compute sum and mean.
+    Calculate the cummulative and/or mean length of segments. Length of segments
+    within set topological distance from each of them. Reached topological distance
+    should be captured by ``spatial_weights``.  If ``mean=False`` it will compute
+    sum of length, if ``mean=True`` it will compute sum and mean.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing streets (edges) to analyse
+        A GeoDataFrame containing streets (edges) to analyse.
     spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on streets (note: spatial_weights should be based on index,
-        not unique ID).
-    mean : boolean, optional
-        If mean=False it will compute sum of length, if mean=True it will compute
-        sum and mean
+        A spatial weights matrix. If ``None``, Queen contiguity
+        matrix will be calculated based on streets.
+    mean : bool, optional
+        If ``mean=False`` it will compute sum of length, if ``mean=True``
+         it will compute sum and mean.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting total lengths
+        A Series containing resulting total lengths.
     mean : Series
-        Series containing resulting total lengths
+        A Series containing resulting total lengths.
     sum : Series
-        Series containing resulting total lengths
+        A Series containing resulting total lengths.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame
     sw : libpysal.weights
-        spatial weights matrix
+        The spatial weights matrix.
 
     Examples
     --------
     >>> streets_df['length_neighbours'] = mm.SegmentsLength(streets_df, mean=True).mean
     Calculating spatial weights...
     Spatial weights ready...
+
+    Notes
+    -----
+    The ``spatial_weights`` keyword argument should be based on *index*, not unique ID.
     """
 
     def __init__(self, gdf, spatial_weights=None, mean=False, verbose=True):
