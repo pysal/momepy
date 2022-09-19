@@ -8,7 +8,7 @@
 ## Introduction
 Momepy is a library for quantitative analysis of urban form - urban morphometrics. It is
 part of [PySAL (Python Spatial Analysis Library)](http://pysal.org) and is built on top
-of [GeoPandas](http://geopandas.org), other [PySAL](http://pysal.org) modules and
+of [GeoPandas](http://geopandas.org), other [PySAL](http://pysal.org) modules, and
 [networkX](http://networkx.github.io).
 
 > *momepy* stands for Morphological Measuring in Python
@@ -20,8 +20,8 @@ Some of the functionality that momepy offers:
 - Capturing [spatial distribution](https://docs.momepy.org/en/latest/api.html#spatial-distribution) of elements of one kind as well as relationships between different kinds.
 - Computing density and other types of [intensity](https://docs.momepy.org/en/latest/api.html#intensity) characters.
 - Calculating [diversity](https://docs.momepy.org/en/latest/api.html#diversity) of various aspects of urban form.
-- Capturing [connectivity](https://docs.momepy.org/en/latest/api.html#graph) of urban street networks
-- Generating relational [elements](https://docs.momepy.org/en/latest/api.html#elements) of urban form (e.g. morphological tessellation)
+- Capturing [connectivity](https://docs.momepy.org/en/latest/api.html#graph) of urban street networks.
+- Generating relational [elements](https://docs.momepy.org/en/latest/api.html#elements) of urban form (e.g. morphological tessellation).
 
 Momepy aims to provide a wide range of tools for a systematic and exhaustive analysis of urban form. It can work with a wide range of elements, while focused on building footprints and street networks.
 
@@ -30,7 +30,7 @@ Comments, suggestions, feedback, and contributions, as well as bug reports, are 
 The package is currently maintained by [**@martinfleis**](https://github.com/martinfleis) and [**@jGaboardi**](https://github.com/jGaboardi).
 
 ## Getting Started
-Quick and easy [getting started guide](http://docs.momepy.org/en/stable/user_guide/getting_started.html) is part of the [User Guide](http://docs.momepy.org/en/stable/user_guide/intro.html).
+A quick and easy [getting started guide](http://docs.momepy.org/en/stable/user_guide/getting_started.html) is part of the [User Guide](http://docs.momepy.org/en/stable/user_guide/intro.html).
 
 
 ## Documentation
@@ -91,12 +91,16 @@ or from PyPI using `pip`:
     pip install momepy
 
 See the [installation instructions](http://docs.momepy.org/en/latest/install.html) for detailed instructions.
-Momepy depends on python geospatial stack, which might cause some dependency issues.
+Momepy depends on the python geospatial stack, which might cause some dependency issues.
 
 ## Contributing to momepy
-Contributions of any kind to momepy are more than welcome. That does not mean new code only, but also improvements of documentation and user guide, additional tests (ideally filling the gaps in existing suite) or bug report or idea what could be added or done better.
+Contributions of any kind to momepy are more than welcome. That does not mean new code only, but also:
+* improvements to the documentation and user guide,
+* additional tests (ideally filling the gaps in the existing suite),
+* bug reports, or
+* ideas for what could be added or done better.
 
-All contributions should go through our GitHub repository. Bug reports, ideas or even questions should be raised by opening an issue on the GitHub tracker. Suggestions for changes in code or documentation should be submitted as a pull request. However, if you are not sure what to do, feel free to open an issue. All discussion will then take place on GitHub to keep the development of momepy transparent.
+All contributions should go through our GitHub repository. Bug reports, ideas, or even questions should be raised by opening an issue on the GitHub tracker. Suggestions for changes in code or documentation should be submitted as a pull request. However, if you are not sure what to do, feel free to open an issue. All discussion will then take place on GitHub to keep the development of momepy transparent.
 
 If you decide to contribute to the codebase, ensure that you are using an up-to-date `main` branch. The latest development version will always be there, including the documentation (powered by `sphinx`).
 
@@ -108,7 +112,7 @@ If you have a question regarding momepy, feel free to open an [issue](https://gi
 
 ## Acknowledgements
 
-Initial release of momepy was a result of a research of [Urban Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with University of Strathclyde in Glasgow, UK. Further development was supported by [Geographic Data Science Lab](https://www.liverpool.ac.uk/geographic-data-science/) of the University of Liverpool wihtin [Urban Grammar AI](https://urbangrammarai.xyz) research project.
+The initial release of momepy was a result of a research of [Urban Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with University of Strathclyde in Glasgow, UK. Further development was supported by [Geographic Data Science Lab](https://www.liverpool.ac.uk/geographic-data-science/) of the University of Liverpool wihtin [Urban Grammar AI](https://urbangrammarai.xyz) research project.
 
 ---
 Copyright (c) 2018-, Martin Fleischmann and PySAL Developers
