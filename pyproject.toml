@@ -59,3 +59,20 @@ momepy = [
     "datasets/bubenec.gpkg",
     "datasets/tests.gpkg",
 ]
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "momepy/_version.py"
+versionfile_build = "momepy/_version.py"
+tag_prefix = "v"
+parentdir_prefix = "momepy-"
+
+[tool.isort]
+profile = "black"
+src_paths = ["momepy", "tests", "benchmarks"]
+
+[tool.flake8]
+max_line_length = 88
+exclude = ["*__init__.py", "docs/conf.py", "versioneer.py", "momepy/_version.py"]
+
