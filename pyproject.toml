@@ -1,12 +1,16 @@
 [build-system]
 requires = [
-    "setuptools>=61.0.0", "versioneer[toml]==0.26"
+    "setuptools>=61.0.0",
+    "versioneer[toml]==0.26",
+    "pyproject-flake8==5.0.4",
+    "isort",
+    "black"
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "momepy"
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 authors = [
     {name = "Martin Fleischmann", email = "martin@martinfleischmann.net"},
 ]
@@ -71,3 +75,11 @@ parentdir_prefix = "momepy-"
 [tool.isort]
 profile = "black"
 src_paths = ["momepy", "tests", "benchmarks"]
+
+[tool.black]
+line-length = 88
+
+[tool.flake8]
+# Black enforces 88 characters line length
+max_line_length = 88
+exclude = ["*__init__.py", "docs/conf.py", "versioneer.py", "momepy/_version.py"]
