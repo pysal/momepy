@@ -73,6 +73,6 @@ profile = "black"
 src_paths = ["momepy", "tests", "benchmarks"]
 
 [tool.flake8]
-max_line_length = 88
+max-line-length = 88
 exclude = ["*__init__.py", "docs/conf.py", "versioneer.py", "momepy/_version.py"]
 
