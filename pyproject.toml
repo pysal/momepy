@@ -1,3 +1,61 @@
 [build-system]
- requires = ["setuptools", "wheel"]
- build-backend = "setuptools.build_meta"
+requires = [
+    "setuptools>=61.0.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "momepy"
+dynamic = ["version"]
+authors = [
+    {name = "Martin Fleischmann", email = "martin@martinfleischmann.net"},
+]
+maintainers = [
+    {name = "momepy contributors"},
+]
+license = {text = "BSD 3-Clause"}
+description = "Urban Morphology Measuring Toolkit"
+keywords = ["urban morphology", "urban morphometrics", "tessellation"]
+readme = {text = """\
+Momepy (*Mo*rphological *Me*asuring in *Py*thon) is a library for
+quantitative analysis of urban form - urban morphometrics. It is
+part of `PySAL`_ (Python Spatial Analysis Library) and is built on top
+of `GeoPandas`_, other PySAL modules, and
+`networkX`_.
+
+.. _PySAL: http://pysal.org
+.. _GeoPandas: http://geopandas.org
+.. _networkX : http://networkx.github.io
+""", content-type = "text/x-rst"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "geopandas>=0.8.0",
+    "networkx>=2.3",
+    "libpysal>=4.2.0",
+    "tqdm>=4.27.0",
+    "pygeos",
+    "packaging",
+]
+
+[project.urls]
+Home = "http://momepy.org"
+Repository = "https://github.com/pysal/momepy"
+
+[tool.setuptools.packages.find]
+include = [
+    "momepy",
+    "momepy.*",
+]
+
+[tool.setuptools.package-data]
+momepy = [
+    "datasets/bubenec.gpkg",
+    "datasets/tests.gpkg",
+]
