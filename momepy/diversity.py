@@ -376,7 +376,7 @@ def simpson_diversity(values, bins=None, categorical=False):
         A list of values.
     bins : array, optional
         An array of top edges of classification bins.
-        Should be equal to the result of ``binnng.bins``.
+        Should be equal to the result of ``binning.bins``.
     categorical : bool (default False)
         Treat values as categories (will not use ``bins``).
 
@@ -654,7 +654,7 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
     data : GeoDataFrame
         A GeoDataFrame containing morphological tessellation.
     bins : array, optional
-        An array of top edges of classification bins. Result of ``binnng.bins``.
+        An array of top edges of classification bins. Result of ``binning.bins``.
     categorical : bool (default False)
         tTeat values as categories (will not use ``bins``).
     categories : list-like (default None)

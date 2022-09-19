@@ -875,7 +875,8 @@ class PerimeterWall:
 
     Notes
     -----
-    The ``spatial_weights`` keyword argument should be based on index, not unique ID.
+    The ``spatial_weights`` keyword argument should be
+    based on *position*, not unique ID.
 
     It might take a while to compute this character.
     """
@@ -957,7 +958,7 @@ class SegmentsLength:
 
     Notes
     -----
-    The ``spatial_weights`` keyword argument should be based on index, not unique ID.
+    The ``spatial_weights`` keyword argument should be based on *index*, not unique ID.
     """
 
     def __init__(self, gdf, spatial_weights=None, mean=False, verbose=True):
