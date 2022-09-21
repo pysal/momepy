@@ -89,8 +89,7 @@ def preprocess(
         blg.reset_index(inplace=True, drop=True)
         blg["mm_uid"] = range(len(blg))
         sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
-        blg["neighbors"] = sw.neighbors
-        blg["neighbors"] = blg["neighbors"].map(sw.neighbors)
+        blg["neighbors"] = sw.neighbors.values()
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
         blg["circu"] = CircularCompactness(blg).series
 
