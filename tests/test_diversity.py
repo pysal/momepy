@@ -1,6 +1,8 @@
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import pytest
+from shapely.geometry import Polygon
 
 import momepy as mm
 from momepy import sw_high
@@ -216,6 +218,27 @@ class TestDiversity:
         assert np.all(
             perc.loc[0].values - np.array([1211.83227008, 3839.99083097]) < 0.00001
         )
+
+        _data = {"uID": [9999], "area": 1.0}
+        _pgon = [Polygon(((0, 0), (0, 1), (1, 1), (1, 0)))]
+        _gdf = gpd.GeoDataFrame(_data, index=[9999], geometry=_pgon)
+
+        perc = mm.Percentiles(
+            pd.concat([self.df_tessellation, _gdf]),
+            "area",
+            self.sw,
+            "uID",
+        ).frame
+        np.testing.assert_array_equal(np.isnan(perc.loc[9999]), np.ones(3, dtype=bool))
+
+        perc = mm.Percentiles(
+            pd.concat([_gdf, self.df_tessellation]),
+            "area",
+            self.sw,
+            "uID",
+            weighted="linear",
+        ).frame
+        np.testing.assert_array_equal(np.isnan(perc.loc[9999]), np.ones(3, dtype=bool))
 
         with pytest.raises(ValueError, match="'nonsense' is not a valid"):
             mm.Percentiles(
