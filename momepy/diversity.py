@@ -922,7 +922,7 @@ class Percentiles:
                             np.nanpercentile(values_list, percentiles, **method)
                         )
                 else:
-                    results_list.append(np.nan)
+                    results_list.append(np.array([np.nan] * len(percentiles)))
 
             self.frame = pd.DataFrame(
                 results_list, columns=percentiles, index=gdf.index
