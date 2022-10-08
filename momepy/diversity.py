@@ -868,7 +868,7 @@ class Percentiles:
             data.geometry = data.centroid
 
             for i, geom in tqdm(
-                data.geometry.iteritems(), total=data.shape[0], disable=not verbose
+                data.geometry.items(), total=data.shape[0], disable=not verbose
             ):
                 if i in spatial_weights.neighbors.keys():
                     neighbours = spatial_weights.neighbors[i]

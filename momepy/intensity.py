@@ -459,7 +459,7 @@ class Reached:
 
         # iterating over rows one by one
         for index, lid in tqdm(
-            left[left_id].iteritems(), total=left.shape[0], disable=not verbose
+            left[left_id].items(), total=left.shape[0], disable=not verbose
         ):
             if spatial_weights is None:
                 ids = [lid]

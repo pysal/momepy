@@ -471,7 +471,7 @@ class Alignment:
 
         # iterating over rows one by one
         for index, orient in tqdm(
-            data.iteritems(), total=data.shape[0], disable=not verbose
+            data.items(), total=data.shape[0], disable=not verbose
         ):
             if index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index]
@@ -538,9 +538,7 @@ class NeighborDistance:
         data = gdf.set_index(unique_id).geometry
 
         # iterating over rows one by one
-        for index, geom in tqdm(
-            data.iteritems(), total=data.shape[0], disable=not verbose
-        ):
+        for index, geom in tqdm(data.items(), total=data.shape[0], disable=not verbose):
             if geom is not None and index in spatial_weights.neighbors.keys():
                 neighbours = spatial_weights.neighbors[index]
                 building_neighbours = data.loc[neighbours]
@@ -876,7 +874,7 @@ class Neighbors:
 
         neighbours = []
         for index, geom in tqdm(
-            gdf.set_index(unique_id).geometry.iteritems(),
+            gdf.set_index(unique_id).geometry.items(),
             total=gdf.shape[0],
             disable=not verbose,
         ):
