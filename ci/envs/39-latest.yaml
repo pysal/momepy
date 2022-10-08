@@ -10,6 +10,7 @@ dependencies:
   - networkx
   - osmnx
   - packaging
+  - pandas=1.4.4
   - pygeos
   - tqdm
   # testing
