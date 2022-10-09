@@ -223,7 +223,7 @@ class TestElements:
 
         assert links.edgeID_values.apply(lambda x: sum(x)).sum() == len(enclosed_tess)
         m = enclosed_tess["uID"] == 110
-        assert sorted(links[m].iloc[0]["edgeID_keys"]) == [0, 34]
+        assert sorted(links.loc[m].iloc[0]["edgeID_keys"]) == [0, 34]
 
         # ensure index is preserved
         enclosed_tess.index = [str(uuid.uuid4()) for _ in range(len(enclosed_tess))]

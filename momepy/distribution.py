@@ -624,7 +624,7 @@ class MeanInterbuildingDistance:
         results_list = []
 
         # define adjacency list from lipysal
-        adj_list = spatial_weights.to_adjlist()
+        adj_list = spatial_weights.to_adjlist(drop_islands=True)
         adj_list["weight"] = (
             data.loc[adj_list.focal]
             .reset_index(drop=True)
