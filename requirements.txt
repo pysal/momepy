@@ -1,5 +1,5 @@
 geopandas>=0.8.0
-libpysal>=4.1.0
+libpysal>=4.6.0
 networkx>=2.3
 packaging
 pygeos
