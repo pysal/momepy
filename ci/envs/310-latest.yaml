@@ -9,7 +9,7 @@ dependencies:
   - mapclassify
   - networkx
   - packaging
-  - pandas=1.4.4
+  - pandas!=1.5.0
   - tqdm
   # testing
   - codecov
