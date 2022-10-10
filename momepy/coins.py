@@ -68,7 +68,7 @@ class COINS:
         self.uv_index = range(len(self.edge_gdf.index))
 
         # get line segments from edge gdf
-        self.lines = [list(value[1].coords) for value in edge_gdf.geometry.iteritems()]
+        self.lines = [list(value[1].coords) for value in edge_gdf.geometry.items()]
 
         # split edges into line segments
         self._split_lines()

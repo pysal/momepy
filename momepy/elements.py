@@ -923,7 +923,7 @@ def get_network_ratio(df, edges, initial_buffer=500):
     for name, group in grouped:
         ratios = group / totals.loc[name]
         ints_vect.append(
-            {edg_ix[touching][item[0]]: item[1] for item in ratios.iteritems()}
+            {edg_ix[touching][item[0]]: item[1] for item in ratios.items()}
         )
 
     ratios = pd.Series(ints_vect, index=df.index[list(grouped.groups.keys())])
