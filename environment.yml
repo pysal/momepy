@@ -12,6 +12,7 @@ dependencies:
   - momepy
   - networkx
   - osmnx
+  - pandas!=1.5.0
   - pygeos
   - rtree
   - tqdm
