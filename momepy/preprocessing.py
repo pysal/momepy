@@ -1227,11 +1227,16 @@ def consolidate_intersections(
     )
     cluster_nodes_list = list(cluster_gdf.to_dict("index").items())
 
+    # Create a simplified graph object:
+    simplified_graph = graph.copy()
+    if not directed:
+        simplified_graph = nx.MultiGraph(simplified_graph)
+    
     # Rebuild edges if necessary:
     if rebuild_graph:
         rebuild_edges_method = rebuild_edges_method.lower()
-        graph.graph["approach"] = "primal"
-        edges_gdf = nx_to_gdf(graph, points=False, lines=True)
+        simplified_graph.graph["approach"] = "primal"
+        edges_gdf = nx_to_gdf(simplified_graph, points=False, lines=True)
         simplified_edges = _get_rebuilt_edges(
             edges_gdf,
             nodes_to_merge_dict,
@@ -1243,12 +1248,8 @@ def consolidate_intersections(
         )
 
     # Replacing the collapsed nodes with centroids and adding edges:
-    simplified_graph = graph.copy()
-    if not directed:
-        simplified_graph = nx.MultiGraph(simplified_graph)
     simplified_graph.remove_nodes_from(nodes_to_merge_df.index)
     simplified_graph.add_nodes_from(cluster_nodes_list)
-
     if rebuild_graph:
         simplified_graph.add_edges_from(simplified_edges)
 
