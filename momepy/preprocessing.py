@@ -1113,10 +1113,10 @@ def consolidate_intersections(
     rebuild_graph=True,
     rebuild_edges_method="spider",
     directed=None,
-    x_col="x",
-    y_col="y",
-    edge_from_col="from",
-    edge_to_col="to",
+    x_att="x",
+    y_att="y",
+    edge_from_att="from",
+    edge_to_att="to",
 ):
     """
     Consolidate close street intersections into a single node, collapsing short edges.
@@ -1152,13 +1152,13 @@ def consolidate_intersections(
     directed: Boolean or None
         consider the graph a MultiDiGraph if True or MultiGraph if False, and
         if None infer from the passed object type
-    x_col: string
+    x_att: string
         node attribute with the valid x-coordinate
-    y_col: string
+    y_att: string
         node attribute with the valid y-coordinate
-    edge_from_col: string
+    edge_from_att: string
         edge attribute with the valid origin node id
-    edge_to_col: string
+    edge_to_att: string
         edge attribute with the valid destination node id
 
     Returns
@@ -1169,7 +1169,7 @@ def consolidate_intersections(
     # Collect nodes and their data:
     nodes, nodes_dict = zip(*graph.nodes(data=True))
     nodes_df = pd.DataFrame(nodes_dict, index=nodes)
-    nodes_geometries = gpd.points_from_xy(nodes_df[x_col], nodes_df[y_col])
+    nodes_geometries = gpd.points_from_xy(nodes_df[x_att], nodes_df[y_att])
     graph_crs = graph.graph.get("crs")
     nodes_gdf = gpd.GeoDataFrame(
         nodes_df,
@@ -1208,7 +1208,7 @@ def consolidate_intersections(
         nodes_to_merge_dict, orient="index", columns=["cluster"]
     )
     nodes_to_merge_df = pd.concat(
-        [new_nodes_df, nodes_df[[x_col, y_col]]], axis=1, join="inner"
+        [new_nodes_df, nodes_df[[x_att, y_att]]], axis=1, join="inner"
     )
 
     # The two node attributes we need for the clusters are the position of the cluster
@@ -1220,7 +1220,7 @@ def consolidate_intersections(
         components_dict
     )
     cluster_geometries = gpd.points_from_xy(
-        cluster_centroids_df[x_col], cluster_centroids_df[y_col]
+        cluster_centroids_df[x_att], cluster_centroids_df[y_att]
     )
     cluster_gdf = gpd.GeoDataFrame(
         cluster_centroids_df, crs=graph_crs, geometry=cluster_geometries
@@ -1238,8 +1238,8 @@ def consolidate_intersections(
             cluster_gdf,
             method=rebuild_edges_method,
             buffer=1.5 * tolerance,
-            edge_from_col=edge_from_col,
-            edge_to_col=edge_to_col,
+            edge_from_att=edge_from_att,
+            edge_to_att=edge_to_att,
         )
 
     # Replacing the collapsed nodes with centroids and adding edges:
@@ -1261,8 +1261,8 @@ def _get_rebuilt_edges(
     cluster_gdf,
     method="spider",
     buffer=45,
-    edge_from_col="from",
-    edge_to_col="to",
+    edge_from_att="from",
+    edge_to_att="to",
 ):
     """
     Update origin and destination on network edges when original endpoints were replaced by a
@@ -1292,9 +1292,9 @@ def _get_rebuilt_edges(
         'extension' or 'spider' or 'euclidean'
     buffer : float
         distance to buffer consolidated nodes in the Spider-web reconstruction
-    edge_from_col: string
+    edge_from_att: string
         edge attribute with the valid origin node id
-    edge_to_col: string
+    edge_to_att: string
         edge attribute with the valid destination node id
 
     Returns
@@ -1305,17 +1305,17 @@ def _get_rebuilt_edges(
 
     """
     # Determine what endpoints were made into clusters:
-    edges_gdf["origin_cluster"] = edges_gdf[edge_from_col].apply(
+    edges_gdf["origin_cluster"] = edges_gdf[edge_from_att].apply(
         lambda u: nodes_dict[u] if u in nodes_dict else -1
     )
-    edges_gdf["destination_cluster"] = edges_gdf[edge_to_col].apply(
+    edges_gdf["destination_cluster"] = edges_gdf[edge_to_att].apply(
         lambda v: nodes_dict[v] if v in nodes_dict else -1
     )
 
     # Determine what edges need to be simplified (either between diff.
     #  clusters or self-loops in a cluster):
     edges_tosimplify_gdf = edges_gdf.query(
-        f"origin_cluster != destination_cluster or (('{edge_to_col}' == '{edge_from_col}') and origin_cluster >= 0)"
+        f"origin_cluster != destination_cluster or (('{edge_to_att}' == '{edge_from_att}') and origin_cluster >= 0)"
     )
 
     # Determine the new point geometries (when exists):
@@ -1377,10 +1377,10 @@ def _get_rebuilt_edges(
 
     # Rename and update the columns:
     cols_rename = {
-        edge_from_col: "original_from",
-        edge_to_col: "original_to",
-        "origin_cluster": edge_from_col,
-        "destination_cluster": edge_to_col,
+        edge_from_att: "original_from",
+        edge_to_att: "original_to",
+        "origin_cluster": edge_from_att,
+        "destination_cluster": edge_to_att,
         "geometry": "original_geometry",
         "new_geometry": "geometry",
     }
@@ -1391,18 +1391,18 @@ def _get_rebuilt_edges(
     new_edges_gdf.loc[:, "length"] = new_edges_gdf.length
 
     # Update the indices:
-    new_edges_gdf.loc[:, edge_from_col] = new_edges_gdf[edge_from_col].where(
-        new_edges_gdf[edge_from_col] >= 0, new_edges_gdf["original_from"]
+    new_edges_gdf.loc[:, edge_from_att] = new_edges_gdf[edge_from_att].where(
+        new_edges_gdf[edge_from_att] >= 0, new_edges_gdf["original_from"]
     )
-    new_edges_gdf.loc[:, edge_to_col] = new_edges_gdf[edge_to_col].where(
-        new_edges_gdf[edge_to_col] >= 0, new_edges_gdf["original_to"]
+    new_edges_gdf.loc[:, edge_to_att] = new_edges_gdf[edge_to_att].where(
+        new_edges_gdf[edge_to_att] >= 0, new_edges_gdf["original_to"]
     )
 
     # Get the edge list with (from, to, data):
     new_edges_list = list(
         zip(
-            new_edges_gdf[edge_from_col],
-            new_edges_gdf[edge_to_col],
+            new_edges_gdf[edge_from_att],
+            new_edges_gdf[edge_to_att],
             new_edges_gdf.iloc[:, 2:].to_dict("index").values(),
         )
     )
