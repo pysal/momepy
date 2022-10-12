@@ -1358,18 +1358,8 @@ def _get_rebuilt_edges(
             new_geometry=edges_simplified_geometries
         )
     else:
-        warnings.warn(
-            f"Simplification method '{method}' not recognized. Using spider-web simplification."
-        )
-        edges_simplified_geometries = edges_tosimplify_gdf.apply(
-            lambda edge: _spider_simplification(
-                edge.geometry, edge.new_origin_pt, edge.new_destination_pt, buffer
-            ),
-            axis=1,
-        )
-        edges_simplified_gdf = edges_tosimplify_gdf.assign(
-            new_geometry=edges_simplified_geometries
-        )
+        msg = f"Simplification method '{method}' not recognized. See documentation for options."
+        raise ValueError(msg)
 
     # Rename and update the columns:
     cols_rename = {
