@@ -1347,7 +1347,7 @@ def _get_rebuilt_edges(
             new_geometry=edges_simplified_geometries
         )
     else:
-        msg = f"Simplification method '{method}' not recognized. See documentation for options."
+        msg = f"Simplification '{method}' not recognized. See documentation for options."
         raise ValueError(msg)
 
     # Rename and update the columns:
@@ -1357,14 +1357,15 @@ def _get_rebuilt_edges(
         "origin_cluster": edge_from_att,
         "destination_cluster": edge_to_att,
         "geometry": "original_geometry",
-        "new_geometry": "geometry",
     }
+    new_edges_gdf = edges_simplified_gdf.rename(cols_rename, axis=1)
+    
     cols_drop = ["new_origin_pt", "new_destination_pt"]
-    new_edges_gdf = edges_simplified_gdf.rename(cols_rename, axis=1).drop(
-        columns=cols_drop
-    )
+    new_edges_gdf = new_edges_gdf.drop(columns=cols_drop)
+    
+    new_edges_gdf = new_edges_gdf.set_geometry('new_geometry', drop=True)
     new_edges_gdf.loc[:, "length"] = new_edges_gdf.length
-
+    
     # Update the indices:
     new_edges_gdf.loc[:, edge_from_att] = new_edges_gdf[edge_from_att].where(
         new_edges_gdf[edge_from_att] >= 0, new_edges_gdf["original_from"]
