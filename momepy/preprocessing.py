@@ -1111,7 +1111,6 @@ def consolidate_intersections(
     tolerance=30,
     rebuild_graph=True,
     rebuild_edges_method="spider",
-    directed=None,
     x_att="x",
     y_att="y",
     edge_from_att="from",
@@ -1148,9 +1147,6 @@ def consolidate_intersections(
     rebuild_graph: Boolean
     rebuild_edges_method: string
         'extend' or 'spider' or 'euclidean', ignored if rebuild_graph is False
-    directed: Boolean or None
-        consider the graph a MultiDiGraph if True or MultiGraph if False, and
-        if None infer from the passed object type
     x_att: string
         node attribute with the valid x-coordinate
     y_att: string
@@ -1163,6 +1159,7 @@ def consolidate_intersections(
     Returns
     ----------
     Networkx.MultiGraph or Networkx.MultiDiGraph
+        directionality inferred from input type
 
     """
     # Collect nodes and their data:
@@ -1172,15 +1169,9 @@ def consolidate_intersections(
     graph_crs = graph.graph.get("crs")
     nodes_gdf = gpd.GeoDataFrame(nodes_df, crs=graph_crs, geometry=nodes_geometries,)
 
-    # In case we did not specify directionality, we infer it from the network:
-    if directed is None:
-        directed = True if isinstance(graph, nx.MultiDiGraph) else False
-
     # Create a graph without the edges above a certain length and clean it
     #  from isolated nodes (the unsimplifiable nodes):
     components_graph = deepcopy(graph)
-    if not directed:
-        components_graph = nx.MultiGraph(components_graph)
     components_graph.remove_edges_from(
         [
             edge
@@ -1224,8 +1215,6 @@ def consolidate_intersections(
 
     # Create a simplified graph object:
     simplified_graph = graph.copy()
-    if not directed:
-        simplified_graph = nx.MultiGraph(simplified_graph)
 
     # Rebuild edges if necessary:
     if rebuild_graph:
