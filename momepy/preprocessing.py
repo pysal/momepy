@@ -636,8 +636,7 @@ def _extend_line(coords, target, tolerance, snap=True):
     """
     if snap:
         extrapolation = _get_extrapolated_line(
-            coords[-4:] if len(coords.shape) == 1 else coords[-2:].flatten(),
-            tolerance,
+            coords[-4:] if len(coords.shape) == 1 else coords[-2:].flatten(), tolerance,
         )
         int_idx = target.sindex.query(extrapolation, predicate="intersects")
         intersection = pygeos.intersection(
@@ -1143,7 +1142,7 @@ def consolidate_intersections(
 
     Parameters
     ----------
-    graph : Networkx.MultiGraph or Networkx.MultiDiGraph
+    graph : Networkx.Graph, Networkx.DiGraph, Networkx.MultiGraph, or Networkx.MultiDiGraph
     tolerance : float, default 30
         distance in network units below which nodes will be consolidated
     rebuild_graph: Boolean
@@ -1171,11 +1170,7 @@ def consolidate_intersections(
     nodes_df = pd.DataFrame(nodes_dict, index=nodes)
     nodes_geometries = gpd.points_from_xy(nodes_df[x_att], nodes_df[y_att])
     graph_crs = graph.graph.get("crs")
-    nodes_gdf = gpd.GeoDataFrame(
-        nodes_df,
-        crs=graph_crs,
-        geometry=nodes_geometries,
-    )
+    nodes_gdf = gpd.GeoDataFrame(nodes_df, crs=graph_crs, geometry=nodes_geometries,)
 
     # In case we did not specify directionality, we infer it from the network:
     if directed is None:
@@ -1231,7 +1226,7 @@ def consolidate_intersections(
     simplified_graph = graph.copy()
     if not directed:
         simplified_graph = nx.MultiGraph(simplified_graph)
-    
+
     # Rebuild edges if necessary:
     if rebuild_graph:
         rebuild_edges_method = rebuild_edges_method.lower()
