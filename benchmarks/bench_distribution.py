@@ -1,7 +1,8 @@
 import geopandas as gpd
-import momepy as mm
 import numpy as np
 from libpysal.weights import Queen
+
+import momepy as mm
 
 
 class TimeDistribution:

@@ -69,8 +69,7 @@
         "networkx": [],
         "tqdm": [],
         "mapclassify": [],
-        "inequality": [],
-        "pygeos": []
+        "inequality": []
     },
     // Combinations of libraries/python versions can be excluded/included
     // from the set to test. Each entry is a dictionary containing additional

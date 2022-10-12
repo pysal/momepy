@@ -2,7 +2,7 @@ import math
 
 import geopandas as gpd
 import numpy as np
-from pytest import approx
+import pytest
 from shapely.geometry import MultiLineString, Point, Polygon
 
 import momepy as mm
@@ -24,7 +24,7 @@ class TestShape:
             self.df_buildings, "volume", heights="height"
         ).series
         check = 5.4486362624193
-        assert self.df_buildings["ff"].mean() == approx(check)
+        assert self.df_buildings["ff"].mean() == pytest.approx(check)
 
         self.df_buildings["ff"] = mm.FormFactor(
             self.df_buildings,
@@ -32,7 +32,7 @@ class TestShape:
             areas=self.df_buildings.geometry.area,
             heights=self.df_buildings["height"],
         ).series
-        assert self.df_buildings["ff"].mean() == approx(check)
+        assert self.df_buildings["ff"].mean() == pytest.approx(check)
 
     def test_FractalDimension(self):
         self.df_buildings["fd"] = mm.FractalDimension(self.df_buildings).series
@@ -166,7 +166,7 @@ class TestShape:
 
     def test_Squareness(self):
         self.df_buildings["squ"] = mm.Squareness(self.df_buildings).series
-        check = approx(3.707, rel=1e-3)
+        check = pytest.approx(3.707, rel=1e-3)
         assert self.df_buildings["squ"][0] == check
         self.df_buildings["squ"] = mm.Squareness(self.df_buildings.exterior).series
         assert self.df_buildings["squ"].isna().all()
@@ -180,13 +180,13 @@ class TestShape:
             areas=self.df_buildings.geometry.area,
             perimeters=self.df_buildings.geometry.length,
         ).series
-        check = approx(0.7879, rel=1e-3)
+        check = pytest.approx(0.7879, rel=1e-3)
         assert self.df_buildings["eri"][0] == check
         assert self.df_buildings["eri_array"][0] == check
 
     def test_Elongation(self):
         self.df_buildings["elo"] = mm.Elongation(self.df_buildings).series
-        check = approx(0.908, rel=1e-3)
+        check = pytest.approx(0.908, rel=1e-3)
         assert self.df_buildings["elo"][0] == check
 
     def test_CentroidCorners(self):
@@ -200,8 +200,8 @@ class TestShape:
         cc = mm.CentroidCorners(self.df_buildings)
         self.df_buildings["ccd"] = cc.mean
         self.df_buildings["ccddev"] = cc.std
-        check = approx(15.961, rel=1e-3)
-        check_devs = approx(3.081, rel=1e-3)
+        check = pytest.approx(15.961, rel=1e-3)
+        check_devs = pytest.approx(3.081, rel=1e-3)
         assert self.df_buildings["ccd"][0] == check
         assert self.df_buildings["ccddev"][0] == check_devs
 
@@ -211,7 +211,7 @@ class TestShape:
             Point(self.df_streets.geometry[0].coords[-1])
         )
         check = euclidean / self.df_streets.geometry[0].length
-        assert self.df_streets["lin"][0] == approx(check, rel=1e-6)
+        assert self.df_streets["lin"][0] == pytest.approx(check, rel=1e-6)
 
         self.df_streets.loc[len(self.df_streets)] = MultiLineString(
             [[(0, 0), (-1, 1)], [(10, 10), (11, 11)]]
@@ -225,11 +225,11 @@ class TestShape:
             perimeters=self.df_buildings.geometry.length,
             longest_axis=mm.LongestAxisLength(self.df_buildings).series,
         ).series
-        check = approx(26.327, rel=1e-3)
+        check = pytest.approx(26.327, rel=1e-3)
         assert self.df_buildings["cwa"][0] == check
         assert self.df_buildings["cwa_array"][0] == check
 
     def test__circle_area(self):
         poly = Polygon([(0, 1, 0), (1, 1, 0), (2, 4, 0)])
         check = _circle_area(poly.exterior.coords)
-        assert check == approx(10.210, rel=1e-3)
+        assert check == pytest.approx(10.210, rel=1e-3)

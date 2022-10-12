@@ -28,7 +28,8 @@ autodoc_mock_imports = [
     "pandas",
     "rtree",
     "scipy",
-    "scipy.spatial" "shapely",
+    "scipy.spatial",
+    "shapely",
     "shapely.geometry",
     "shapely.wkt",
     "shapely.ops",
@@ -42,7 +43,7 @@ autodoc_mock_imports = [
 # -- Project information -----------------------------------------------------
 
 project = "momepy"
-copyright = "2018-2021, Martin Fleischmann and PySAL Developers"
+copyright = "2018-2022, Martin Fleischmann and PySAL Developers"
 author = "Martin Fleischmann"
 
 # The short X.Y version
@@ -76,6 +77,7 @@ extensions = [
     "myst_parser",
     "sphinx_copybutton",
     "sphinx_gallery.load_style",
+    "sphinxext.rediraffe",
 ]
 
 # nbsphinx do not use requirejs (breaks bootstrap)
@@ -231,6 +233,11 @@ epub_title = project
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ["search.html"]
 
+# Add redirect for previously existing pages, each item is like `(from_old, to_new)`
+
+rediraffe_redirects = {
+    "user_guide/elements/preprocessing.ipynb": "user_guide/preprocessing/simple_preprocessing.ipynb",  # noqa
+}
 
 # -- Extension configuration -------------------------------------------------
 # Generate the API documentation when building

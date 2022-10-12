@@ -8,9 +8,8 @@ import geopandas as gpd
 import libpysal
 import networkx as nx
 import numpy as np
-from shapely.geometry import Point, LineString
-
 from numpy.lib import NumpyVersion
+from shapely.geometry import Point
 
 __all__ = [
     "unique_id",
@@ -22,17 +21,17 @@ __all__ = [
 
 def unique_id(objects):
     """
-    Add an attribute with unique ID to each row of GeoDataFrame.
+    Add an attribute with a unique ID to each row of a GeoDataFrame.
 
     Parameters
     ----------
     objects : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
 
     Returns
     -------
-    Series
-        Series containing resulting values.
+    series : Series
+        A Series containing resulting values.
 
     """
     series = range(len(objects))
@@ -41,8 +40,7 @@ def unique_id(objects):
 
 def _angle(a, b, c):
     """
-    Measure angle between a-b, b-c. In degrees.
-    Helper for gdf_to_nx.
+    Measure the angle between a-b, b-c (in degrees). Helper for ``gdf_to_nx``.
     Adapted from cityseer's implementation.
     """
     a1 = math.degrees(math.atan2(b[1] - a[1], b[0] - a[0]))
@@ -51,15 +49,16 @@ def _angle(a, b, c):
 
 
 def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
-    """
-    Generate primal graph.
-    Helper for gdf_to_nx.
-    """
+    """Generate a primal graph. Helper for ``gdf_to_nx``."""
     G.graph["approach"] = "primal"
 
-    msg = "%s. This can lead to unexpected behaviour. The intended usage of the conversion function is with networks made of LineStrings only."
+    msg = (
+        "%s. This can lead to unexpected behaviour. "
+        "The intended usage of the conversion function "
+        "is with networks made of LineStrings only."
+    )
 
-    if not "LineString" in gdf_network.geom_type.unique():
+    if "LineString" not in gdf_network.geom_type.unique():
         warnings.warn(
             message=msg % "The given network does not contain any LineString.",
             category=RuntimeWarning,
@@ -93,10 +92,7 @@ def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
 
 
 def _generate_dual(G, gdf_network, fields, angles, multigraph, angle):
-    """
-    Generate dual graph
-    Helper for gdf_to_nx.
-    """
+    """Generate a dual graph. Helper for ``gdf_to_nx``."""
     G.graph["approach"] = "dual"
     key = 0
 
@@ -154,51 +150,47 @@ def gdf_to_nx(
     oneway_column=None,
 ):
     """
-    Convert LineString GeoDataFrame to networkx.MultiGraph or other Graph as per
-    specification.
-
-    Preserves columns as edge or node attributes (depending on the ``approach``).
-    Index is not preserved.
+    Convert a LineString GeoDataFrame to a ``networkx.MultiGraph`` or other
+    Graph as per specification. Columns are preserved  as edge or node
+    attributes (depending on the ``approach``). Index is not preserved.
 
     See the User Guide page :doc:`../../user_guide/graph/convert` for details.
 
     Parameters
     ----------
     gdf_network : GeoDataFrame
-        GeoDataFrame containing objects to convert
+        A GeoDataFrame containing objects to convert.
     approach : str, default 'primal'
-        Allowed options are ``'primal'`` or ``'dual'``. Primal graph represents
-        endpoints as nodes and LineStrings as edges, dual graph represents
+        Allowed options are ``'primal'`` or ``'dual'``. Primal graphs represent
+        endpoints as nodes and LineStrings as edges. Dual graphs represent
         LineStrings as nodes and their topological relation as edges. In such a
         case, it can encode an angle between LineStrings as an edge attribute.
     length : str, default 'mm_len'
-        name of attribute of segment length (geographical) which will be saved to graph
+        The attribute name of segment length (geographical)
+        which will be saved to the graph.
     multigraph : bool, default True
-        create ``MultiGraph`` of ``Graph`` (potentially directed). ``MutliGraph``
-        allows multiple
-        edges between any pair of nodes, which is a common case in street networks.
+        Create a ``MultiGraph`` of ``Graph`` (potentially directed).
+        ``MutliGraph`` allows multiple edges between any pair of nodes,
+        which is a common case in street networks.
     directed : bool, default False
-        create directed graph (``DiGraph`` or ``MultiDiGraph``). Directionality follows
-        the order of LineString coordinates.
+        Create a directed graph (``DiGraph`` or ``MultiDiGraph``).
+        Directionality follows the order of LineString coordinates.
     angles : bool, default True
-        capture angles between LineStrings as an attribute of a dual graph. Ignored if
-        ``approach="primal"``.
+        Capture the angles between LineStrings as an attribute of a dual graph.
+        Ignored if ``approach='primal'``.
     angle : str, default 'angle'
-        name of attribute of angle between LineStrings which will be saved to graph.
-        Ignored if ``approach="primal"``.
+        The attribute name of the angle between LineStrings which will
+        be saved to the graph. Ignored if ``approach='primal'``.
     oneway_column : str, default None
-        create an additional edge for each LineString which allows bidirectional path traversal by
-        specifying the boolean column in the GeoDataFrame. Note, that the reverse conversion
-        ``nx_to_gdf(gdf_to_nx(gdf, directed=True, oneway_column="oneway"))`` will contain
-        additional duplicated geometries.
+        Create an additional edge for each LineString which allows bidirectional
+        path traversal by specifying the boolean column in the GeoDataFrame. Note,
+        that the reverse conversion ``nx_to_gdf(gdf_to_nx(gdf, directed=True,
+        oneway_column="oneway"))`` will contain additional duplicated geometries.
 
     Returns
     -------
-    networkx.Graph,
-    networkx.MultiGraph,
-    networkx.DiGraph,
-    networkx.MultiDiGraph
-        Graph as per specification
+    net : networkx.Graph, networkx.MultiGraph, networkx.DiGraph, networkx.MultiDiGraph
+        Graph as per specification.
 
     See also
     --------
@@ -239,7 +231,6 @@ def gdf_to_nx(
     >>> G_dual = momepy.gdf_to_nx(df, approach="dual")
     >>> G_dual
     <networkx.classes.multigraph.MultiGraph object at 0x7f8cf9150fd0>
-
 
     """
     gdf_network = gdf_network.copy()
@@ -284,10 +275,7 @@ def gdf_to_nx(
 
 
 def _points_to_gdf(net):
-    """
-    Generate point gdf from nodes.
-    Helper for nx_to_gdf.
-    """
+    """Generate a point gdf from nodes. Helper for ``nx_to_gdf``."""
     node_xy, node_data = zip(*net.nodes(data=True))
     if isinstance(node_xy[0], int) and "x" in node_data[0].keys():
         geometry = [Point(data["x"], data["y"]) for data in node_data]  # osmnx graph
@@ -300,10 +288,7 @@ def _points_to_gdf(net):
 
 
 def _lines_to_gdf(net, points, nodeID):
-    """
-    Generate linestring gdf from edges.
-    Helper for nx_to_gdf.
-    """
+    """Generate a linestring gdf from edges. Helper for ``nx_to_gdf``."""
     starts, ends, edge_data = zip(*net.edges(data=True))
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
 
@@ -324,10 +309,7 @@ def _lines_to_gdf(net, points, nodeID):
 
 
 def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
-    """
-    Generate gdf(s) from primal network.
-    Helper for nx_to_gdf.
-    """
+    """Generate gdf(s) from a primal network. Helper for ``nx_to_gdf``."""
     if points is True:
         gdf_nodes = _points_to_gdf(net)
 
@@ -350,10 +332,7 @@ def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
 
 
 def _dual_to_gdf(net):
-    """
-    Generate linestring gdf from dual network.
-    Helper for nx_to_gdf.
-    """
+    """Generate a linestring gdf from a dual network. Helper for ``nx_to_gdf``."""
     starts, edge_data = zip(*net.nodes(data=True))
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
     gdf_edges.crs = net.graph["crs"]
@@ -362,30 +341,31 @@ def _dual_to_gdf(net):
 
 def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeID"):
     """
-    Convert ``networkx.Graph`` to LineString GeoDataFrame and Point GeoDataFrame.
+    Convert a ``networkx.Graph`` to a LineString GeoDataFrame and Point GeoDataFrame.
 
-    Automatically detects an ``approach`` of the graph and assignes edges and nodes to
-    relevant geometry type.
+    Automatically detects an ``approach`` of the graph and assigns
+    edges and nodes to relevant geometry type.
 
     See the User Guide page :doc:`../../user_guide/graph/convert` for details.
 
     Parameters
     ----------
     net : networkx.Graph
-        ``networkx.Graph``
-    points : bool
-        export point-based gdf representing intersections
-    lines : bool
-        export line-based gdf representing streets
-    spatial_weights : bool
-        export libpysal spatial weights for nodes (only for primal graphs)
+        A ``networkx.Graph`` object.
+    points : bool (default is ``True``)
+        Export point-based gdf representing intersections.
+    lines : bool (default is ``True``)
+        Export line-based gdf representing streets.
+    spatial_weights : bool (default is ``False``)
+        Set to ``True`` to export a libpysal spatial weights
+        for nodes (only for primal graphs).
     nodeID : str
-        name of node ID column to be generated
+        The name of the node ID column to be generated.
 
     Returns
     -------
     GeoDataFrame
-        Selected gdf or tuple of both gdfs or tuple of gdfs and weights
+       The  Selected gdf or tuple of both gdfs or tuple of gdfs and weights.
 
     See also
     --------
@@ -401,7 +381,7 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
     1  LINESTRING (1603268.502 6464060.781, 1603296.8...
     >>> G = momepy.gdf_to_nx(df)
 
-    Converting primal Graph to points as intersections and lines as street segments:
+    Converting the primal Graph to points as intersections and lines as street segments:
 
     >>> points, lines = momepy.nx_to_gdf(G)
     >>> points.head(2)
@@ -413,13 +393,13 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
     0  LINESTRING (1603585.640...  264.103950           1         2
     1  LINESTRING (1603561.740...   70.020202           1         9
 
-    Storing relationship between points/nodes as libpysal W object:
+    Storing the relationship between points/nodes as a libpysal W object:
 
     >>> points, lines, W = momepy.nx_to_gdf(G, spatial_weights=True)
     >>> W
     <libpysal.weights.weights.W object at 0x7f8d01837210>
 
-    Converting dual Graph to lines. Dual Graph does not export edges to GDF:
+    Converting the dual Graph to lines. The dual Graph does not export edges to GDF:
 
     >>> G = momepy.gdf_to_nx(df, approach="dual")
     >>> lines = momepy.nx_to_gdf(G)
@@ -456,38 +436,44 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
 
 def limit_range(vals, rng):
     """
-    Extract values within selected range
+    Extract values within selected range.
 
     Parameters
     ----------
-    vals : array
+    vals : numpy.array
+        Values over which to extract a range.
+    rng : tuple, list, optional (default None)
+        A two-element sequence containing floats between 0 and 100 (inclusive)
+        that are the percentiles over which to compute the range.
+        The order of the elements is not important.
 
-    rng : Two-element sequence containing floats in range of [0,100], optional
-        Percentiles over which to compute the range. Each must be
-        between 0 and 100, inclusive. The order of the elements is not important.
     Returns
     -------
-    array
-        limited array
+    vals : numpy.array
+        The limited array.
     """
+
     vals = np.asarray(vals)
-    if len(vals) > 2:
+    nan_tracker = np.isnan(vals)
+
+    if (len(vals) > 2) and (not nan_tracker.all()):
         if NumpyVersion(np.__version__) >= "1.22.0":
             method = dict(method="nearest")
         else:
             method = dict(interpolation="nearest")
         rng = sorted(rng)
-        if np.isnan(vals).any():
+        if nan_tracker.any():
             lower = np.nanpercentile(vals, rng[0], **method)
             higher = np.nanpercentile(vals, rng[1], **method)
         else:
             lower = np.percentile(vals, rng[0], **method)
             higher = np.percentile(vals, rng[1], **method)
-        return vals[(lower <= vals) & (vals <= higher)]
+        vals = vals[(lower <= vals) & (vals <= higher)]
+
     return vals
 
 
 def _azimuth(point1, point2):
-    """azimuth between 2 shapely points (interval 0 - 180)"""
+    """Return the azimuth between 2 shapely points (interval 0 - 180)."""
     angle = np.arctan2(point2[0] - point1[0], point2[1] - point1[1])
     return np.degrees(angle) if angle > 0 else np.degrees(angle) + 180

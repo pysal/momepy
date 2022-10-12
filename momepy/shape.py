@@ -33,7 +33,7 @@ __all__ = [
 
 
 def _form_factor(height, geometry, area=None, perimeter=None, volume=None):
-    """helper for FormFactor"""
+    """Helper for FormFactor."""
     if area is None:
         area = geometry.area
     if perimeter is None:
@@ -51,7 +51,7 @@ def _form_factor(height, geometry, area=None, perimeter=None, volume=None):
 
 class FormFactor:
     """
-    Calculates form factor of each object in given GeoDataFrame.
+    Calculates the form factor of each object in a given GeoDataFrame.
 
     .. math::
         surface \\over {volume^{2 \\over 3}}
@@ -66,29 +66,28 @@ class FormFactor:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     volumes : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored volume value.
-        (To calculate volume you can use :py:func:`momepy.volume`)
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where volume
+        values are stored. To calculate volume you can use :py:func:`momepy.volume`.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to ``None``, function will calculate areas
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        area values stored. If set to ``None``, this function will calculate areas
         during the process without saving them separately.
     heights : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where height
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where height
         values are stored. Note that it cannot be ``None``.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     volumes : Series
-        Series containing used volume values
+        A Series containing used volume values.
     areas : Series
-        Series containing used area values
+        A Series containing used area values.
 
     Examples
     --------
@@ -100,7 +99,6 @@ class FormFactor:
     >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, volume).series
     >>> buildings_df.formfactor[0]
     1.9385988170288635
-
     """
 
     def __init__(self, gdf, volumes, areas=None, heights=None):
@@ -148,26 +146,26 @@ class FractalDimension:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to ``None``, function will calculate areas
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        area values stored. If set to ``None``, this function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored perimeter value. If set to ``None``, function will calculate perimeters
-        during the process without saving them separately.
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        perimeter values stored. If set to ``None``, this function will calculate
+        perimeters during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     perimeters : Series
-        Series containing used perimeter values
+        A Series containing used perimeter values.
     areas : Series
-        Series containing used area values
+        A Series containing used area values.
 
     Examples
     --------
@@ -204,7 +202,7 @@ class FractalDimension:
 
 class VolumeFacadeRatio:
     """
-    Calculates volume/facade ratio of each object in given GeoDataFrame.
+    Calculates the volume/facade ratio of each object in a given GeoDataFrame.
 
     .. math::
         volume \\over perimeter * height
@@ -214,28 +212,27 @@ class VolumeFacadeRatio:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     heights : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored height value
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where height values are stored.
     volumes : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored volume value
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where volume values are stored.
     perimeters : , list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored perimeter value
-
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where perimeter values are stored.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     perimeters : Series
-        Series containing used perimeter values
+        A Series containing used perimeter values.
     volumes : Series
-        Series containing used volume values
+        A Series containing used volume values.
 
     Examples
     --------
@@ -269,6 +266,7 @@ class VolumeFacadeRatio:
         self.series = gdf[volumes] / (gdf[perimeters] * gdf[heights])
 
 
+#######################################################################################
 # Smallest enclosing circle - Library (Python)
 
 # Copyright (c) 2017 Project Nayuki
@@ -315,8 +313,8 @@ def _make_circle(points):
     return c
 
 
-# One boundary point known
 def _make_circle_one_point(points, p):
+    """One boundary point known."""
     c = (p[0], p[1], 0.0)
     for (i, q) in enumerate(points):
         if not _is_in_circle(c, q):
@@ -327,8 +325,8 @@ def _make_circle_one_point(points, p):
     return c
 
 
-# Two boundary points known
 def _make_circle_two_points(points, p, q):
+    """Two boundary points known."""
     circ = _make_diameter(p, q)
     left = None
     right = None
@@ -371,7 +369,7 @@ def _make_circle_two_points(points, p, q):
 
 
 def _make_circumcircle(p0, p1, p2):
-    # Mathematical algorithm from Wikipedia: Circumscribed circle
+    """Mathematical algorithm from Wikipedia: Circumscribed circle."""
     ax, ay = p0
     bx, by = p1
     cx, cy = p2
@@ -428,16 +426,20 @@ def _is_in_circle(c, p):
     )
 
 
-# Returns twice the signed area of the triangle defined by (x0, y0), (x1, y1), (x2, y2).
 def _cross_product(x0, y0, x1, y1, x2, y2):
+    """
+    Returns twice the signed area of the
+    triangle defined by (x0, y0), (x1, y1), (x2, y2).
+    """
     return (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0)
 
 
 # end of Nayuiki script to define the smallest enclosing circle
+#######################################################################################
 
 
-# calculate the area of circumcircle
 def _circle_area(points):
+    """calculate the area of circumcircle."""
     if len(points[0]) == 3:
         points = [x[:2] for x in points]
     circ = _make_circle(points)
@@ -453,7 +455,7 @@ def _circle_radius(points):
 
 class CircularCompactness:
     """
-    Calculates compactness index of each object in given GeoDataFrame.
+    Calculates the compactness index of each object in a given GeoDataFrame.
 
     .. math::
         area \\over \\textit{area of enclosing circle}
@@ -463,20 +465,20 @@ class CircularCompactness:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to ``None``, function will calculate areas
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        area values stored. If set to ``None``, this function will calculate areas
         during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     areas : Series
-        Series containing used area values
+        A Series containing used area values.
 
     Examples
     --------
@@ -502,7 +504,7 @@ class CircularCompactness:
 
 class SquareCompactness:
     """
-    Calculates compactness index of each object in given GeoDataFrame.
+    Calculates the compactness index of each object in a given GeoDataFrame.
 
     .. math::
         \\begin{equation*}
@@ -514,33 +516,32 @@ class SquareCompactness:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to ``None``, function will calculate areas
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        area values stored. If set to ``None``, this function will calculate areas
         during the process without saving them separately.
-    perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored perimeter value. If set to ``None``, function will calculate perimeters
-        during the process without saving them separately.
+    areas : str, list, np.array, pd.Series (default None)
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        perimeter values stored. If set to ``None``, this function will calculate
+        perimeters during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     areas : Series
-        Series containing used area values
+        A Series containing used area values.
     perimeters : Series
-        Series containing used perimeter values
+        A Series containing used perimeter values.
 
     Examples
     --------
     >>> buildings_df['squ_comp'] = momepy.SquareCompactness(buildings_df).series
     >>> buildings_df['squ_comp'][0]
     0.6193872538650996
-
     """
 
     def __init__(self, gdf, areas=None, perimeters=None):
@@ -567,7 +568,7 @@ class SquareCompactness:
 
 class Convexity:
     """
-    Calculates Convexity index of each object in given GeoDataFrame.
+    Calculates the Convexity index of each object in a given GeoDataFrame.
 
     .. math::
         area \\over \\textit{convex hull area}
@@ -577,20 +578,20 @@ class Convexity:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to ``None``, function will calculate areas
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        area values stored. If set to ``None``, this function will calculate areas
         during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     areas : Series
-        Series containing used area values
+        A Series containing used area values.
 
     Examples
     --------
@@ -615,7 +616,7 @@ class Convexity:
 
 class CourtyardIndex:
     """
-    Calculates courtyard index of each object in given GeoDataFrame.
+    Calculates the courtyard index of each object in a given GeoDataFrame.
 
     .. math::
         \\textit{area of courtyards} \\over \\textit{total area}
@@ -625,26 +626,26 @@ class CourtyardIndex:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     courtyard_areas : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value
-        (To calculate volume you can use :py:class:`momepy.CourtyardArea`)
+        the name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        courtyard area values are stored. To calculate volume you can use
+        :py:class:`momepy.CourtyardArea`.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to ``None``, function will calculate areas
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        area values stored. If set to ``None``, this function will calculate areas
         during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     courtyard_areas : Series
-        Series containing used courtyard areas values
+        A Series containing used courtyard areas values.
     areas : Series
-        Series containing used area values
+        A Series containing used area values.
 
     Examples
     --------
@@ -674,7 +675,7 @@ class CourtyardIndex:
 
 class Rectangularity:
     """
-    Calculates rectangularity of each object in given GeoDataFrame.
+    Calculates the rectangularity of each object in a given GeoDataFrame.
 
     .. math::
         {area \\over \\textit{minimum bounding rotated rectangle area}}
@@ -684,20 +685,20 @@ class Rectangularity:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to ``None``, function will calculate areas
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        area values stored. If set to ``None``, this function will calculate areas
         during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     areas : Series
-        Series containing used area values
+        A Series containing used area values.
 
     Examples
     --------
@@ -725,7 +726,7 @@ class Rectangularity:
 
 class ShapeIndex:
     """
-    Calculates shape index of each object in given GeoDataFrame.
+    Calculates the shape index of each object in a given GeoDataFrame.
 
     .. math::
         {\\sqrt{{area} \\over {\\pi}}} \\over {0.5 * \\textit{longest axis}}
@@ -733,25 +734,25 @@ class ShapeIndex:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     longest_axis : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored longest axis value
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where is longest axis values are stored.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to ``None``, function will calculate areas
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        area values stored. If set to ``None``, this function will calculate areas
         during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     longest_axis : Series
-        Series containing used longest axis values
+        A Series containing used longest axis values.
     areas : Series
-        Series containing used area values
+        A Series containing used area values.
 
     Examples
     --------
@@ -784,10 +785,8 @@ class ShapeIndex:
 
 class Corners:
     """
-    Calculates number of corners of each object in given GeoDataFrame.
-
-    Uses only external shape (``shapely.geometry.exterior``), courtyards are not
-    included.
+    Calculates the number of corners of each object in a given GeoDataFrame. Uses only
+    external shape (``shapely.geometry.exterior``), courtyards are not included.
 
     .. math::
         \\sum corner
@@ -795,17 +794,16 @@ class Corners:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
-
+        The original GeoDataFrame.
 
     Examples
     --------
@@ -813,8 +811,6 @@ class Corners:
     100%|██████████| 144/144 [00:00<00:00, 1042.15it/s]
     >>> buildings_df.corners[0]
     24
-
-
     """
 
     def __init__(self, gdf, verbose=True):
@@ -907,10 +903,9 @@ class Corners:
 
 class Squareness:
     """
-    Calculates squareness of each object in given GeoDataFrame.
-
-    Uses only external shape (``shapely.geometry.exterior``), courtyards are not
-    included.
+    Calculates the squareness of each object in a given GeoDataFrame. Uses only
+    external shape (``shapely.geometry.exterior``), courtyards are not included.
+     Returns ``np.nan`` for MultiPolygons.
 
     .. math::
         \\mu=\\frac{\\sum_{i=1}^{N} d_{i}}{N}
@@ -919,21 +914,19 @@ class Squareness:
 
     Adapted from :cite:`dibble2017`.
 
-    Returns ``np.nan`` for MultiPolygons.
-
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
 
     Examples
     --------
@@ -1004,7 +997,7 @@ class Squareness:
 
 class EquivalentRectangularIndex:
     """
-    Calculates equivalent rectangular index of each object in given GeoDataFrame.
+    Calculates the equivalent rectangular index of each object in a given GeoDataFrame.
 
     .. math::
         \\sqrt{{area} \\over \\textit{area of bounding rectangle}} *
@@ -1015,26 +1008,26 @@ class EquivalentRectangularIndex:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to ``None``, function will calculate areas
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        area values are stored. If set to ``None``, this function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored perimeter value. If set to ``None``, function will calculate perimeters
-        during the process without saving them separately.
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        perimeter values are stored. If set to ``None``, the function will calculate
+        perimeters during the process without saving them separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     areas : Series
-        Series containing used area values
+        A Series containing used area values.
     perimeters : Series
-        Series containing used perimeter values
+        A Series containing used perimeter values.
 
     Examples
     --------
@@ -1073,8 +1066,8 @@ class EquivalentRectangularIndex:
 
 class Elongation:
     """
-    Calculates elongation of object seen as elongation of
-    its minimum bounding rectangle.
+    Calculates the elongation of each object seen as
+    elongation of its minimum bounding rectangle.
 
     .. math::
         {{p - \\sqrt{p^2 - 16a}} \\over {4}} \\over
@@ -1087,14 +1080,14 @@ class Elongation:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
 
     Attributes
     ----------
     e : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
 
     Examples
     --------
@@ -1131,7 +1124,8 @@ class Elongation:
 
 class CentroidCorners:
     """
-    Calculates mean distance centroid - corners and st. deviation.
+    Calculates the mean distance centroid - corners and standard deviation.
+    Returns ``np.nan`` for MultiPolygons.
 
     .. math::
         \\overline{x}=\\frac{1}{n}\\left(\\sum_{i=1}^{n} dist_{i}\\right);
@@ -1139,23 +1133,21 @@ class CentroidCorners:
 
     Adapted from :cite:`schirmer2015` and :cite:`cimburova2017`.
 
-    Returns ``np.nan`` for MultiPolygons.
-
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     mean : Series
-        Series containing mean distance values.
+        A Series containing mean distance values.
     std : Series
-        Series containing standard deviation values.
+        A Series containing standard deviation values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
 
     Examples
     --------
@@ -1248,28 +1240,29 @@ class CentroidCorners:
 
 class Linearity:
     """
-    Calculates linearity of each LineString object in given GeoDataFrame.
+    Calculates the linearity of each LineString object in a given GeoDataFrame.
+    MultiLineString returns ``np.nan``.
 
     .. math::
         \\frac{l_{euclidean}}{l_{segment}}
 
-    where `l` is the length of the LineString. MultiLineString returns ``np.nan``.
+    where `l` is the length of the LineString.
 
     Adapted from :cite:`araldi2019`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing mean distance values.
+        A Series containing mean distance values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
 
     Examples
     --------
@@ -1294,8 +1287,7 @@ class Linearity:
 
 class CompactnessWeightedAxis:
     """
-    Calculates compactness-weighted axis of each object in given GeoDataFrame.
-
+    Calculates the compactness-weighted axis of each object in a given GeoDataFrame.
     Initially designed for blocks.
 
     .. math::
@@ -1305,33 +1297,33 @@ class CompactnessWeightedAxis:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects
+        A GeoDataFrame containing objects.
     areas : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored area value. If set to ``None``, function will calculate areas
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        area value are stored . If set to ``None``, this function will calculate areas
         during the process without saving them separately.
     perimeters : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored perimeter value. If set to ``None``, function will calculate perimeters
-        during the process without saving them separately.
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        perimeter values are stored. If set to ``None``, this function will calculate
+        perimeters during the process without saving them separately.
     longest_axis : str, list, np.array, pd.Series (default None)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored longest axis length value. If set to ``None``, function will calculate it
-        during the process without saving them separately.
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        longest axis length values are stored. If set to ``None``, this function will
+        calculate longest axis lengths during the process without saving them
+        separately.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     areas : Series
-        Series containing used area values
+        A Series containing used area values.
     longest_axis : Series
-        Series containing used area values
+        A Series containing used area values.
     perimeters : Series
-        Series containing used area values
-
+        A Series containing used area values.
 
     Examples
     --------

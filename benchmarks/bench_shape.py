@@ -1,6 +1,7 @@
 import geopandas as gpd
-import momepy as mm
 import numpy as np
+
+import momepy as mm
 
 
 class TimeShape:

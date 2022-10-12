@@ -2,10 +2,9 @@ import geopandas as gpd
 import networkx
 import numpy as np
 import osmnx as ox
-import warnings
 import pytest
-from shapely.geometry import LineString, Point
 from packaging.version import Version
+from shapely.geometry import LineString, Point
 
 import momepy as mm
 
@@ -190,3 +189,7 @@ class TestUtils:
         assert list(
             mm.limit_range(np.array([0, 1, 2, 3, 4, np.nan]), rng=(25, 75))
         ) == [1, 2, 3]
+        np.testing.assert_array_equal(
+            mm.limit_range(np.array([np.nan, np.nan, np.nan]), rng=(25, 75)),
+            np.array([np.nan, np.nan, np.nan]),
+        )

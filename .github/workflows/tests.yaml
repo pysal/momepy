@@ -63,7 +63,7 @@ jobs:
           pytest -v --color yes --cov-config .coveragerc --cov momepy --cov-append --cov-report term-missing --cov-report xml tests
 
       - name: Test user guide
-        if: contains(matrix.env, '39-latest.yaml') && contains(matrix.os, 'ubuntu')
+        if: contains(matrix.env, '310-latest.yaml') && contains(matrix.os, 'ubuntu')
         run: |
           ci/envs/test_user_guide.sh
 

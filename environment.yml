@@ -2,17 +2,17 @@ name: momepy_env
 channels:
   - conda-forge
 dependencies:
-  - python
+  - python=3.10
   - geopandas
-  - libpysal
-  - networkx
-  - tqdm
+  - inequality
+  - jupyter
+  - libpysal>=4.6.0
   - mapclassify
   - matplotlib
-  - descartes
-  - rtree
-  - osmnx
   - momepy
-  - jupyter
-  - inequality
+  - networkx
+  - osmnx
+  - pandas!=1.5.0
   - pygeos
+  - rtree
+  - tqdm

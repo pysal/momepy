@@ -1,7 +1,8 @@
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import pytest
-from pytest import approx
+from shapely.geometry import Polygon
 
 import momepy as mm
 from momepy import sw_high
@@ -22,14 +23,14 @@ class TestDiversity:
 
     def test_Range(self):
         full_sw = mm.Range(self.df_tessellation, "area", self.sw, "uID").series
-        assert full_sw[0] == approx(8255.372, rel=1e-3)
+        assert full_sw[0] == pytest.approx(8255.372, rel=1e-3)
         area = self.df_tessellation["area"]
         full2 = mm.Range(self.df_tessellation, area, self.sw, "uID").series
-        assert full2[0] == approx(8255.372, rel=1e-3)
+        assert full2[0] == pytest.approx(8255.372, rel=1e-3)
         limit = mm.Range(
             self.df_tessellation, "area", self.sw, "uID", rng=(10, 90)
         ).series
-        assert limit[0] == approx(4122.139, rel=1e-3)
+        assert limit[0] == pytest.approx(4122.139, rel=1e-3)
         assert (
             mm.Range(self.df_tessellation, "area", self.sw_drop, "uID")
             .series.isna()
@@ -38,7 +39,7 @@ class TestDiversity:
 
     def test_Theil(self):
         full_sw = mm.Theil(self.df_tessellation, "area", self.sw, "uID").series
-        assert full_sw[0] == approx(0.25744684)
+        assert full_sw[0] == pytest.approx(0.25744684)
         limit = mm.Theil(
             self.df_tessellation,
             self.df_tessellation.area,
@@ -46,7 +47,7 @@ class TestDiversity:
             "uID",
             rng=(10, 90),
         ).series
-        assert limit[0] == approx(0.1330295)
+        assert limit[0] == pytest.approx(0.1330295)
         zeros = mm.Theil(
             self.df_tessellation, np.zeros(len(self.df_tessellation)), self.sw, "uID"
         ).series
@@ -105,11 +106,11 @@ class TestDiversity:
 
     def test_Gini(self):
         full_sw = mm.Gini(self.df_tessellation, "area", self.sw, "uID").series
-        assert full_sw[0] == approx(0.3945388)
+        assert full_sw[0] == pytest.approx(0.3945388)
         limit = mm.Gini(
             self.df_tessellation, "area", self.sw, "uID", rng=(10, 90)
         ).series
-        assert limit[0] == approx(0.28532814)
+        assert limit[0] == pytest.approx(0.28532814)
         self.df_tessellation["negative"] = (
             self.df_tessellation.area - self.df_tessellation.area.mean()
         )
@@ -217,6 +218,27 @@ class TestDiversity:
         assert np.all(
             perc.loc[0].values - np.array([1211.83227008, 3839.99083097]) < 0.00001
         )
+
+        _data = {"uID": [9999], "area": 1.0}
+        _pgon = [Polygon(((0, 0), (0, 1), (1, 1), (1, 0)))]
+        _gdf = gpd.GeoDataFrame(_data, index=[9999], geometry=_pgon)
+
+        perc = mm.Percentiles(
+            pd.concat([self.df_tessellation, _gdf]),
+            "area",
+            self.sw,
+            "uID",
+        ).frame
+        np.testing.assert_array_equal(np.isnan(perc.loc[9999]), np.ones(3, dtype=bool))
+
+        perc = mm.Percentiles(
+            pd.concat([_gdf, self.df_tessellation]),
+            "area",
+            self.sw,
+            "uID",
+            weighted="linear",
+        ).frame
+        np.testing.assert_array_equal(np.isnan(perc.loc[9999]), np.ones(3, dtype=bool))
 
         with pytest.raises(ValueError, match="'nonsense' is not a valid"):
             mm.Percentiles(

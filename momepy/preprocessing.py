@@ -5,25 +5,23 @@ import collections
 import math
 import operator
 import warnings
+from copy import deepcopy
 
 import geopandas as gpd
 import libpysal
+import networkx as nx
 import numpy as np
 import pandas as pd
-import networkx as nx
 import pygeos
 import shapely
 from packaging.version import Version
-from tqdm.auto import tqdm
-from copy import deepcopy
-
+from shapely.geometry import LineString, Point
 from shapely.ops import linemerge, polygonize, split
-from shapely.geometry import Point, LineString
+from tqdm.auto import tqdm
 
-from .shape import CircularCompactness
 from .coins import COINS
+from .shape import CircularCompactness
 from .utils import nx_to_gdf
-
 
 __all__ = [
     "preprocess",
@@ -95,8 +93,7 @@ def preprocess(
         blg.reset_index(inplace=True, drop=True)
         blg["mm_uid"] = range(len(blg))
         sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
-        blg["neighbors"] = sw.neighbors
-        blg["neighbors"] = blg["neighbors"].map(sw.neighbors)
+        blg["neighbors"] = sw.neighbors.values()
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
         blg["circu"] = CircularCompactness(blg).series
 
@@ -636,7 +633,8 @@ def _extend_line(coords, target, tolerance, snap=True):
     """
     if snap:
         extrapolation = _get_extrapolated_line(
-            coords[-4:] if len(coords.shape) == 1 else coords[-2:].flatten(), tolerance,
+            coords[-4:] if len(coords.shape) == 1 else coords[-2:].flatten(),
+            tolerance,
         )
         int_idx = target.sindex.query(extrapolation, predicate="intersects")
         intersection = pygeos.intersection(
@@ -1051,9 +1049,9 @@ def roundabout_simplification(
     include_adjacent : boolean (default True)
         Adjacent polygons to be considered also as part of the simplification.
     diameter_factor : float (default 1.5)
-        The factor to be applied to the diameter of each roundabout that determines how far
-        an adjacent polygon can stretch until it is no longer considered part of the overall
-        roundabout group. Only applyies when include_adjacent = True.
+        The factor to be applied to the diameter of each roundabout that determines
+        how far an adjacent polygon can stretch until it is no longer considered part
+        of the overall roundabout group. Only applyies when include_adjacent = True.
     center_type : string (default 'centroid')
         Method to use for converging the incoming LineStrings.
         Current list of options available : 'centroid', 'mean'.
@@ -1076,16 +1074,23 @@ def roundabout_simplification(
     Returns
     -------
     GeoDataFrame
-        GeoDataFrame with an updated geometry and an additional column labeling modified edges.
+        GeoDataFrame with an updated geometry and an additional
+        column labeling modified edges.
     """
     if not GPD_09:
         raise ImportError(
-            f"`roundabout_simplification` requires geopandas 0.9.0 or newer. Your current version is {gpd.__version__}."
+            (
+                "`roundabout_simplification` requires geopandas 0.9.0 or newer. "
+                f"Your current version is {gpd.__version__}."
+            )
         )
 
     if len(edges[edges.geom_type != "LineString"]) > 0:
         raise TypeError(
-            "Only LineString geometries are allowed. Try using the `explode()` method to explode MultiLineStrings."
+            (
+                "Only LineString geometries are allowed. "
+                "Try using the `explode()` method to explode MultiLineStrings."
+            )
         )
 
     polys = _polygonize_ifnone(edges, polys)
@@ -1167,7 +1172,11 @@ def consolidate_intersections(
     nodes_df = pd.DataFrame(nodes_dict, index=nodes)
     nodes_geometries = gpd.points_from_xy(nodes_df[x_att], nodes_df[y_att])
     graph_crs = graph.graph.get("crs")
-    nodes_gdf = gpd.GeoDataFrame(nodes_df, crs=graph_crs, geometry=nodes_geometries,)
+    nodes_gdf = gpd.GeoDataFrame(
+        nodes_df,
+        crs=graph_crs,
+        geometry=nodes_geometries,
+    )
 
     # Create a graph without the edges above a certain length and clean it
     #  from isolated nodes (the unsimplifiable nodes):
@@ -1347,7 +1356,9 @@ def _get_rebuilt_edges(
             new_geometry=edges_simplified_geometries
         )
     else:
-        msg = f"Simplification '{method}' not recognized. See documentation for options."
+        msg = (
+            f"Simplification '{method}' not recognized. See documentation for options."
+        )
         raise ValueError(msg)
 
     # Rename and update the columns:
@@ -1359,13 +1370,13 @@ def _get_rebuilt_edges(
         "geometry": "original_geometry",
     }
     new_edges_gdf = edges_simplified_gdf.rename(cols_rename, axis=1)
-    
+
     cols_drop = ["new_origin_pt", "new_destination_pt"]
     new_edges_gdf = new_edges_gdf.drop(columns=cols_drop)
-    
-    new_edges_gdf = new_edges_gdf.set_geometry('new_geometry', drop=True)
+
+    new_edges_gdf = new_edges_gdf.set_geometry("new_geometry", drop=True)
     new_edges_gdf.loc[:, "length"] = new_edges_gdf.length
-    
+
     # Update the indices:
     new_edges_gdf.loc[:, edge_from_att] = new_edges_gdf[edge_from_att].where(
         new_edges_gdf[edge_from_att] >= 0, new_edges_gdf["original_from"]
