@@ -422,9 +422,9 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
             )
 
     if not primal:
-        import warnings
-
-        warnings.warn("Approach is not set. Defaulting to 'primal'.")
+        warnings.warn(
+            message="Approach is not set. Defaulting to 'primal'.", category=UserWarning
+        )
 
     for nid, n in enumerate(net):
         net.nodes[n][nodeID] = nid

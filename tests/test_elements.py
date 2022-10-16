@@ -85,9 +85,17 @@ class TestElements:
         df.loc[145] = [146, MultiPoint([(x, y), (x + 1, y)]).buffer(0.55)]
         df.loc[146] = [147, affinity.rotate(df.geometry.iloc[0], 12)]
 
-        tess = mm.Tessellation(df, "uID", self.limit)
-        assert tess.collapsed == {145}
-        assert len(tess.multipolygons) == 3
+        with pytest.warns(
+            UserWarning, match="Tessellation does not fully match buildings."
+        ):
+            mm.Tessellation(df, "uID", self.limit)
+
+        with pytest.warns(
+            UserWarning, match="Tessellation contains MultiPolygon elements."
+        ):
+            tess = mm.Tessellation(df, "uID", self.limit)
+            assert tess.collapsed == {145}
+            assert len(tess.multipolygons) == 3
 
     def test_crs_error(self):
         with pytest.raises(ValueError, match="Geometry is in a geographic CRS"):

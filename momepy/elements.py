@@ -381,9 +381,12 @@ class Tessellation:
 
             self.collapsed = set(ids_original).difference(ids_generated)
             warnings.warn(
-                "Tessellation does not fully match buildings. "
-                f"{len(self.collapsed)} element(s) collapsed "
-                f"during generation - unique_id: {self.collapsed}."
+                message=(
+                    "Tessellation does not fully match buildings. "
+                    f"{len(self.collapsed)} element(s) collapsed "
+                    f"during generation - unique_id: {self.collapsed}."
+                ),
+                category=UserWarning,
             )
 
         # check MultiPolygons - usually caused by error in input geometry
@@ -392,9 +395,12 @@ class Tessellation:
         ]
         if len(self.multipolygons) > 0:
             warnings.warn(
-                "Tessellation contains MultiPolygon elements. Initial "
-                "objects should  be edited. `unique_id` of affected "
-                f"elements: {list(self.multipolygons)}."
+                message=(
+                    "Tessellation contains MultiPolygon elements. Initial "
+                    "objects should  be edited. `unique_id` of affected "
+                    f"elements: {list(self.multipolygons)}."
+                ),
+                category=UserWarning,
             )
 
     def _enclosed_tessellation(
@@ -469,7 +475,11 @@ class Tessellation:
                 use_dask = False
 
                 warnings.warn(
-                    "dask.dataframe could not be imported. Setting `use_dask=False`."
+                    message=(
+                        "dask.dataframe could not be imported. "
+                        f"Setting `use_dask={use_dask}`."
+                    ),
+                    category=UserWarning,
                 )
 
         if use_dask:
@@ -753,8 +763,11 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
 
     if series.isnull().any():
         warnings.warn(
-            "Some objects were not attached to the network. Set larger "
-            f"`min_size``. {sum(series.isnull())} affected elements."
+            message=(
+                "Some objects were not attached to the network. Set larger "
+                f"`min_size``. {sum(series.isnull())} affected elements."
+            ),
+            category=UserWarning,
         )
     return series
 

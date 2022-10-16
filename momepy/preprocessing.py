@@ -344,8 +344,6 @@ class CheckTessellationInput:
     Overlapping features: 22
     """
 
-    import warnings
-
     warnings.filterwarnings("ignore", "GeoSeries.isna", UserWarning)
 
     def __init__(self, gdf, shrink=0.4, collapse=True, split=True, overlap=True):
@@ -375,9 +373,7 @@ class CheckTessellationInput:
 
         if overlap:
             shrink = shrink.reset_index(drop=True)
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", "GeoSeries.isna", UserWarning)
-                shrink = shrink[~(shrink.is_empty | shrink.geometry.isna())]
+            shrink = shrink[~(shrink.is_empty | shrink.geometry.isna())]
             sindex = shrink.sindex
             hits = shrink.bounds.apply(
                 lambda row: list(sindex.intersection(row)), axis=1
