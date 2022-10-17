@@ -85,9 +85,17 @@ class TestElements:
         df.loc[145] = [146, MultiPoint([(x, y), (x + 1, y)]).buffer(0.55)]
         df.loc[146] = [147, affinity.rotate(df.geometry.iloc[0], 12)]
 
-        tess = mm.Tessellation(df, "uID", self.limit)
-        assert tess.collapsed == {145}
-        assert len(tess.multipolygons) == 3
+        with pytest.warns(
+            UserWarning, match="Tessellation does not fully match buildings."
+        ):
+            mm.Tessellation(df, "uID", self.limit)
+
+        with pytest.warns(
+            UserWarning, match="Tessellation contains MultiPolygon elements."
+        ):
+            tess = mm.Tessellation(df, "uID", self.limit)
+            assert tess.collapsed == {145}
+            assert len(tess.multipolygons) == 3
 
     def test_crs_error(self):
         with pytest.raises(ValueError, match="Geometry is in a geographic CRS"):
@@ -101,7 +109,7 @@ class TestElements:
         assert not blocks.buildings_id.isna().any()
         assert len(blocks.blocks) == 8
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="'uID' column cannot be"):
             mm.Blocks(
                 self.df_tessellation, self.df_streets, self.df_buildings, "uID", "uID"
             )
@@ -202,7 +210,7 @@ class TestElements:
         assert len(additional) == 28
         assert isinstance(additional, gpd.GeoDataFrame)
 
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match="`additional_barriers` expects a list"):
             additional = mm.enclosures(
                 self.df_streets, gpd.GeoSeries([self.limit]), additional_barrier
             )

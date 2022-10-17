@@ -23,10 +23,14 @@ class TestWeights:
         assert sorted(from_df.neighbors[0]) == check
         assert sorted(rook.neighbors[0]) == check
 
-        with pytest.raises(AttributeError):
+        with pytest.raises(
+            AttributeError, match="GeoDataFrame or spatial weights must be given."
+        ):
             mm.sw_high(2, gdf=None, weights=None)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match="is not supported. Use 'queen' or 'rook'."
+        ):
             mm.sw_high(2, gdf=self.df_tessellation, contiguity="nonexistent")
 
     def test_DistanceBand(self):

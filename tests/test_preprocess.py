@@ -4,7 +4,7 @@ import pytest
 from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
 from shapely import affinity
-from shapely.geometry import LineString, MultiPoint, Polygon
+from shapely.geometry import LineString, MultiPoint, Point, Polygon
 from shapely.ops import polygonize
 
 import momepy as mm
@@ -139,6 +139,12 @@ class TestPreprocessing:
             ImportError, match="`roundabout_simplification` requires geopandas 0.9.0"
         ):
             mm.roundabout_simplification(self.df_streets_rabs)
+
+    @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
+    def test_roundabout_simplification_point_error(self):
+        point_df = gpd.GeoDataFrame({"nID": [0]}, geometry=[Point(0, 0)])
+        with pytest.raises(TypeError, match="Only LineString geometries are allowed."):
+            mm.roundabout_simplification(point_df)
 
     @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
     def test_roundabout_simplification_default(self):

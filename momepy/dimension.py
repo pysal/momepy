@@ -425,10 +425,10 @@ class AverageCharacter:
         elif isinstance(mode, list):
             for m in mode:
                 if m not in allowed:
-                    raise ValueError("{} is not supported as mode.".format(mode))
+                    raise ValueError(f"{m} is not supported as mode.")
         elif isinstance(mode, str):
             if mode not in allowed:
-                raise ValueError("{} is not supported as mode.".format(mode))
+                raise ValueError(f"{mode} is not supported as mode.")
             mode = [mode]
 
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):

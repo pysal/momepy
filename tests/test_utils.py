@@ -29,23 +29,21 @@ class TestUtils:
         )
 
     def test_dataset_missing(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="The dataset 'sffgkt' is not available."):
             mm.datasets.get_path("sffgkt")
 
     def test_gdf_to_nx(self):
 
-        # nx = mm.gdf_to_nx(self.df_points)
         with pytest.warns(
             RuntimeWarning, match="The given network does not contain any LineString."
         ):
-            nx = mm.gdf_to_nx(self.df_points)
+            mm.gdf_to_nx(self.df_points)
 
-        # nx = mm.gdf_to_nx(self.df_points_and_linestring)
         with pytest.warns(
             RuntimeWarning,
             match="The given network consists of multiple geometry types.",
         ):
-            nx = mm.gdf_to_nx(self.df_points_and_linestring)
+            mm.gdf_to_nx(self.df_points_and_linestring)
 
         nx = mm.gdf_to_nx(self.df_streets)
         assert nx.number_of_nodes() == 29
@@ -58,7 +56,9 @@ class TestUtils:
         dual2 = mm.gdf_to_nx(self.df_streets, approach="dual")
         assert dual2.number_of_nodes() == 35
         assert dual2.number_of_edges() == 74
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match="Approach 'nonexistent' is not supported."
+        ):
             mm.gdf_to_nx(self.df_streets, approach="nonexistent")
 
         nx = mm.gdf_to_nx(self.df_streets, multigraph=False)
@@ -120,7 +120,7 @@ class TestUtils:
             (1603510.1061735682, 6464204.555117119),
         ] == {"angle": 117.18288698243317}
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Directed graphs are not supported"):
             mm.gdf_to_nx(self.df_streets, approach="dual", directed=True)
 
     @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
@@ -144,7 +144,9 @@ class TestUtils:
         edges = mm.nx_to_gdf(dual)
         assert len(edges) == 35
         dual.graph["approach"] = "nonexistent"
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match="Approach 'nonexistent' is not supported."
+        ):
             mm.nx_to_gdf(dual)
 
         # check graph without attributes

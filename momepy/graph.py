@@ -170,7 +170,7 @@ def _cds_length(graph, mode, length):
         return sum(lens)
     if mode == "mean":
         return np.mean(lens)
-    raise ValueError(f"Mode {mode} is not supported. Use 'sum' or 'mean'.")
+    raise ValueError(f"Mode '{mode}' is not supported. Use 'sum' or 'mean'.")
 
 
 def cds_length(
@@ -892,7 +892,7 @@ def betweenness_centrality(
                 val = vals[v, u]
             netx[u][v][k][name] = val
     else:
-        raise ValueError(f"Mode {mode} is not supported. Use 'nodes' or 'edges'.")
+        raise ValueError(f"Mode '{mode}' is not supported. Use 'nodes' or 'edges'.")
 
     return netx
 

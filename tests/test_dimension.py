@@ -46,7 +46,7 @@ class TestDimensions:
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings["volume"][0] == check
 
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError, match="nonexistent"):
             self.df_buildings["volume"] = mm.Volume(
                 self.df_buildings, "height", "nonexistent"
             )
@@ -71,7 +71,7 @@ class TestDimensions:
         ).series
         assert self.df_buildings["floor_area"][0] == check
 
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError, match="nonexistent"):
             self.df_buildings["floor_area"] = mm.FloorArea(
                 self.df_buildings, "height", "nonexistent"
             )
@@ -96,7 +96,7 @@ class TestDimensions:
         self.df_buildings["courtyard_area"] = mm.CourtyardArea(self.df_buildings).series
         assert self.df_buildings["courtyard_area"][80] == check
 
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError, match="nonexistent"):
             self.df_buildings["courtyard_area"] = mm.CourtyardArea(
                 self.df_buildings, "nonexistent"
             )
@@ -153,7 +153,7 @@ class TestDimensions:
             unique_id="uID",
             mode=["mean", "median"],
         )
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="nonexistent is not supported as mode."):
             self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
                 self.df_tessellation,
                 values="area",
@@ -161,7 +161,7 @@ class TestDimensions:
                 unique_id="uID",
                 mode="nonexistent",
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="nonexistent is not supported as mode."):
             self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
                 self.df_tessellation,
                 values="area",
