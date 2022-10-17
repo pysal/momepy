@@ -109,7 +109,7 @@ class TestElements:
         assert not blocks.buildings_id.isna().any()
         assert len(blocks.blocks) == 8
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="'uID' column cannot be"):
             mm.Blocks(
                 self.df_tessellation, self.df_streets, self.df_buildings, "uID", "uID"
             )
@@ -210,7 +210,7 @@ class TestElements:
         assert len(additional) == 28
         assert isinstance(additional, gpd.GeoDataFrame)
 
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match="`additional_barriers` expects a list"):
             additional = mm.enclosures(
                 self.df_streets, gpd.GeoSeries([self.limit]), additional_barrier
             )

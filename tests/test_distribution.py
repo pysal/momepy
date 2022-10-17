@@ -69,15 +69,21 @@ class TestDistribution:
             right_network_id=self.df_streets["nID"],
         ).series
 
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Network ID not set. Use either network_id or "
+                "left_network_id and right_network_id."
+            ),
+        ):
             self.df_buildings["street_alignment"] = mm.StreetAlignment(
                 self.df_buildings, self.df_streets, "orient"
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="right_network_id not set."):
             self.df_buildings["street_alignment"] = mm.StreetAlignment(
                 self.df_buildings, self.df_streets, "orient", left_network_id="nID"
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="left_network_id not set."):
             self.df_buildings["street_alignment"] = mm.StreetAlignment(
                 self.df_buildings, self.df_streets, "orient", right_network_id="nID"
             )

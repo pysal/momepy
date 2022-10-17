@@ -2,6 +2,7 @@ import geopandas as gpd
 import numpy as np
 import pytest
 from libpysal.weights import Queen
+from shapely.geometry import Point
 
 import momepy as mm
 
@@ -52,9 +53,9 @@ class TestIntensity:
         ).series
         check = 1.910949846262234
         assert far.mean() == check
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unique ID not correctly set."):
             car = mm.AreaRatio(self.df_tessellation, self.df_buildings, "area", "area")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unique ID not correctly set."):
             car = mm.AreaRatio(
                 self.df_tessellation,
                 self.df_buildings,
@@ -62,7 +63,7 @@ class TestIntensity:
                 "area",
                 left_unique_id="uID",
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Unique ID not correctly set."):
             car = mm.AreaRatio(
                 self.df_tessellation,
                 self.df_buildings,
@@ -92,6 +93,14 @@ class TestIntensity:
         assert weib.mean() == check_weib
         assert weis.mean() == pytest.approx(0.020524232642849215)
 
+        point_gdf = gpd.GeoDataFrame(
+            {"nID": [0]}, geometry=[Point(1603569.010067892, 6464302.821695424)]
+        )
+        with pytest.raises(
+            TypeError, match="Geometry type does not support weighting."
+        ):
+            mm.Count(point_gdf, self.blocks, "nID", "bID", weighted=True).series
+
     def test_Courtyards(self):
         courtyards = mm.Courtyards(self.df_buildings).series
         sw = Queen.from_dataframe(self.df_buildings, silence_warnings=True)
@@ -114,7 +123,9 @@ class TestIntensity:
         assert count.mean() == check
         assert count2.mean() == check
         assert unweigthed.mean() == check2
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match="Attribute 'weighted' needs to be True or False."
+        ):
             count = mm.BlocksCount(
                 self.df_tessellation, "bID", sw, "uID", weighted="yes"
             )

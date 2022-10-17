@@ -268,7 +268,7 @@ def gdf_to_nx(
 
     else:
         raise ValueError(
-            f"Approach {approach} is not supported. Use 'primal' or 'dual'."
+            f"Approach '{approach}' is not supported. Use 'primal' or 'dual'."
         )
 
     return net
@@ -417,7 +417,7 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
             return _dual_to_gdf(net)
         else:
             raise ValueError(
-                f"Approach {net.graph['approach']} is not supported. "
+                f"Approach '{net.graph['approach']}' is not supported. "
                 "Use 'primal' or 'dual'."
             )
 

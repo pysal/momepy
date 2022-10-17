@@ -39,7 +39,7 @@ class TestGraph:
         mean = 219.20334486944023
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["cds_len"] == sumval
         assert net2.nodes[(1603650.450422848, 6464368.600601688)]["cds_mean"] == mean
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Mode 'nonexistent' is not supported. "):
             net2 = mm.cds_length(self.network, mode="nonexistent")
         assert mm.cds_length(self.network, radius=None) == 2291.4520621447705
 
@@ -65,7 +65,7 @@ class TestGraph:
         assert glob["three"] == 0.20689655172413793
 
     def test_proportion_error(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Nothing to calculate. "):
             mm.proportion(self.network)
 
     def test_cyclomatic(self):
@@ -105,7 +105,7 @@ class TestGraph:
         net = mm.betweenness_centrality(self.network)
         net2 = mm.betweenness_centrality(self.network, mode="edges")
         angular = mm.betweenness_centrality(self.dual, weight="angle")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Mode 'nonexistent' is not supported. "):
             mm.betweenness_centrality(self.network, mode="nonexistent")
         node = 0.2413793103448276
         edge = 0.16995073891625617
