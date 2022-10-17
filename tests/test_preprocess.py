@@ -133,17 +133,18 @@ class TestPreprocessing:
         assert ext5.length.sum() > gdf.length.sum()
         assert ext5.length.sum() == pytest.approx(6.2, rel=1e-3)
 
-    def test_roundabout_simplification_point_error(self):
-        point_df = gpd.GeoDataFrame({"nID": [0]}, geometry=[Point(0, 0)])
-        with pytest.raises(TypeError, match="Only LineString geometries are allowed."):
-            mm.roundabout_simplification(point_df)
-
     @pytest.mark.skipif(GPD_09, reason="requires geopandas <0.9")
     def test_roundabout_simplification_gpd_error(self):
         with pytest.raises(
             ImportError, match="`roundabout_simplification` requires geopandas 0.9.0"
         ):
             mm.roundabout_simplification(self.df_streets_rabs)
+
+    @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
+    def test_roundabout_simplification_point_error(self):
+        point_df = gpd.GeoDataFrame({"nID": [0]}, geometry=[Point(0, 0)])
+        with pytest.raises(TypeError, match="Only LineString geometries are allowed."):
+            mm.roundabout_simplification(point_df)
 
     @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
     def test_roundabout_simplification_default(self):
