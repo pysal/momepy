@@ -12,6 +12,7 @@ dependencies:
   - packaging
   - pandas!=1.5.0
   - pygeos
+  - shapely>=1.8.0
   - tqdm
   # testing
   - codecov

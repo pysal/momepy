@@ -14,5 +14,6 @@ dependencies:
   - osmnx
   - pandas!=1.5.0
   - pygeos
+  - shapely>=1.8.0
   - rtree
   - tqdm
