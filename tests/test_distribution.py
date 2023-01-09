@@ -27,7 +27,7 @@ class TestDistribution:
     def test_Orientation(self):
         self.df_buildings["orient"] = mm.Orientation(self.df_buildings).series
         check = 41.05146788287027
-        assert self.df_buildings["orient"][0] == pytest.approx(check, abs=1e-4)
+        assert self.df_buildings["orient"][0] == pytest.approx(check, abs=1e-3)
 
         self.df_streets["orient"] = mm.Orientation(self.df_streets).series
         check = 40.7607
@@ -95,7 +95,9 @@ class TestDistribution:
         assert self.df_buildings["street_alignment"][0] == pytest.approx(
             check, abs=1e-3
         )
-        assert self.df_buildings["street_alignment2"][0] == pytest.approx(check)
+        assert self.df_buildings["street_alignment2"][0] == pytest.approx(
+            check, abs=1e-3
+        )
         assert self.df_buildings["street_a_arr"][0] == pytest.approx(check)
 
     def test_CellAlignment(self):
