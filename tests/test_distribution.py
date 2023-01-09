@@ -1,9 +1,13 @@
 import geopandas as gpd
 import numpy as np
 import pytest
+import shapely
 from libpysal.weights import Queen
+from packaging.version import Version
 
 import momepy as mm
+
+SHAPELY_G_20a1 = Version(shapely.__version__) > Version("2.0a1")
 
 
 class TestDistribution:
@@ -23,7 +27,7 @@ class TestDistribution:
     def test_Orientation(self):
         self.df_buildings["orient"] = mm.Orientation(self.df_buildings).series
         check = 41.05146788287027
-        assert self.df_buildings["orient"][0] == pytest.approx(check)
+        assert self.df_buildings["orient"][0] == pytest.approx(check, abs=1e-4)
 
         self.df_streets["orient"] = mm.Orientation(self.df_streets).series
         check = 40.7607
@@ -88,7 +92,9 @@ class TestDistribution:
                 self.df_buildings, self.df_streets, "orient", right_network_id="nID"
             )
         check = 0.29073888476702336
-        assert self.df_buildings["street_alignment"][0] == pytest.approx(check)
+        assert self.df_buildings["street_alignment"][0] == pytest.approx(
+            check, abs=1e-3
+        )
         assert self.df_buildings["street_alignment2"][0] == pytest.approx(check)
         assert self.df_buildings["street_a_arr"][0] == pytest.approx(check)
 
@@ -117,7 +123,12 @@ class TestDistribution:
         self.df_buildings["align_sw"] = mm.Alignment(
             self.df_buildings, sw, "uID", self.df_buildings["orient"]
         ).series
-        assert self.df_buildings["align_sw"][0] == pytest.approx(18.299481296)
+        # GH#457 (`minimum_rotated_rectangle` calculation update)
+        if SHAPELY_G_20a1:
+            test_value = 22.744936872392813
+        else:
+            test_value = 18.299481296
+        assert self.df_buildings["align_sw"][0] == pytest.approx(test_value)
         sw_drop = Queen.from_dataframe(self.df_tessellation[2:], ids="uID")
         assert (
             mm.Alignment(self.df_buildings, sw_drop, "uID", self.df_buildings["orient"])
