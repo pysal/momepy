@@ -4,4 +4,5 @@ networkx>=2.3
 packaging
 pandas!=1.5.0
 pygeos
+shapely>=1.8.0
 tqdm>=4.25
