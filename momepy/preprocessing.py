@@ -761,7 +761,8 @@ def _create_shape_index(gdf):
     """
     Shape index based on area and minimum_bounding_circle.
     """
-    # Extract underlying PyGEOS geometries pygeos understands (minimum_bounding_circle is not yet exposed in geopandas)
+    # Extract underlying PyGEOS geometries pygeos understands 
+    # (minimum_bounding_circle is not yet exposed in geopandas)
     ga = gdf.geometry.array.data
     # measure area
     gdf["area"] = gdf.area
@@ -773,7 +774,8 @@ def _create_shape_index(gdf):
     circles["circle_area"] = circles.area
     # measure Reock (circular) compactness
     gdf["reock"] = gdf["area"] / circles["circle_area"]
-    # measure direct shape index that captures banana-like relationship between area and Reock compactness in a one dimension
+    # measure direct shape index that captures banana-like relationship between area
+    #  and Reock compactness in a one dimension
     gdf["shape_index"] = gdf["area"] / np.sqrt(circles["circle_area"])
 
     return gdf
