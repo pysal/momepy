@@ -1099,8 +1099,7 @@ def roundabout_simplification(
         will evaluate which of those
         incoming lines should be extended according to their deflection angle.
         Segments will only be considered a part of the same street if the deflection
-        angle
-        is above the threshold.
+        angle is above the threshold.
 
     Returns
     -------
