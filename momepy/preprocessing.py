@@ -1080,7 +1080,7 @@ def roundabout_simplification(
     include_adjacent : boolean (default True)
         Adjacent polygons to be considered also as part of the simplification.
     adjacent_area_factor : int (default 4)
-        The factor to be applied to the area of each adjacent polygon of roundabouts to 
+        The factor to be applied to the area of each adjacent polygon of roundabouts to
         exclude false positive urban blocks that happen to also have 3 forming edge.
         Only applyies when include_adjacent = True.
     center_type : string (default 'centroid')
