@@ -15,6 +15,7 @@ import shapely
 from packaging.version import Version
 from shapely.geometry import LineString, Point
 from shapely.ops import linemerge, polygonize
+from shapely.validation import make_valid
 from tqdm.auto import tqdm
 
 from .coins import COINS
@@ -756,13 +757,62 @@ def _polygonize_ifnone(edges, polys):
     return polys
 
 
+def _create_shape_index(gdf):
+    """
+    Shape index based on area and minimum_bounding_circle.
+    """
+    # Extract underlying PyGEOS geometries pygeos understands (minimum_bounding_circle is not yet exposed in geopandas)
+    ga = gdf.geometry.array.data
+    # measure area
+    gdf["area"] = gdf.area
+    # generate minimum bounding circle
+    circles = gpd.GeoDataFrame(
+        geometry=gpd.GeoSeries(pygeos.minimum_bounding_circle(ga), crs=gdf.crs)
+    )
+    # measure MBC's area
+    circles["circle_area"] = circles.area
+    # measure Reock (circular) compactness
+    gdf["reock"] = gdf["area"] / circles["circle_area"]
+    # measure direct shape index that captures banana-like relationship between area and Reock compactness in a one dimension
+    gdf["shape_index"] = gdf["area"] / np.sqrt(circles["circle_area"])
+
+    return gdf
+
+
+def _count_edges_per_polygon(lines_gdf, polygons_gdf):
+    """
+    Counts the number of linestrings that formed the polygons
+    """
+    # Check if the polygons are valid geometries and fix them if not
+    polygons_gdf["geometry"] = polygons_gdf["geometry"].apply(
+        lambda x: make_valid(x) if not x.is_valid else x
+    )
+
+    # query bulk to identify the lines that are fully covered by each polygon
+    _, pol_i = polygons_gdf.sindex.query_bulk(
+        lines_gdf.geometry, predicate="covered_by"
+    )
+
+    # tracing the actual index from the polygons_gdf
+    idx_pols = polygons_gdf.index.take(pol_i)
+
+    # counting the number of lines per polygon
+    iss, counts = np.unique(idx_pols, return_counts=True)
+    count_dict = dict(zip(iss, counts))
+
+    # add column to polygons_gdf
+    polygons_gdf["count_edges"] = polygons_gdf.index.map(count_dict)
+
+    return polygons_gdf
+
+
 def _selecting_rabs_from_poly(
     gdf,
     area_col="area",
     circom_threshold=0.7,
     area_threshold=0.85,
     include_adjacent=True,
-    diameter_factor=1.5,
+    adjacent_area_factor=4,
 ):
     """
     From a GeoDataFrame of polygons, returns a GDF of polygons that are
@@ -785,43 +835,32 @@ def _selecting_rabs_from_poly(
 
     if include_adjacent is True:
 
-        bounds = rab.geometry.bounds
-        rab = pd.concat([rab, bounds], axis=1)
-        rab["deltax"] = rab.maxx - rab.minx
-        rab["deltay"] = rab.maxy - rab.miny
-        rab["rab_diameter"] = rab[["deltax", "deltay"]].max(axis=1)
-
-        # selecting the adjacent areas that are of smaller than itself
+        # selecting the adjacent areas that have only three formning edges
         if GPD_10:
             rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
         else:
             rab_adj = gpd.sjoin(gdf, rab, op="intersects")
 
+        mask_adjacents = (rab_adj["count_edges_left"] == 3) | (
+            rab_adj["reock_left"] > circom_threshold
+        )
+        rab_plus = rab_adj[mask_adjacents]
+
+        # exclude the adjacent that are too large (false positives)
         area_right = area_col + "_right"
         area_left = area_col + "_left"
-        area_mask = rab_adj[area_right] >= rab_adj[area_left]
-        rab_adj = rab_adj[area_mask]
-        rab_adj.index.name = "index"
-
-        # adding a hausdorff_distance threshold
-        rab_adj["hdist"] = 0
-        # TODO: (should be a way to vectorize)
-        for i, group in rab_adj.groupby("index_right"):
-            for g in group.itertuples():
-                hdist = g.geometry.hausdorff_distance(rab.loc[i].geometry)
-                rab_adj.loc[g.Index, "hdist"] = hdist
-
-        rab_plus = rab_adj[rab_adj.hdist < (rab_adj.rab_diameter * diameter_factor)]
+        area_mask = adjacent_area_factor * rab_plus[area_right] >= rab_plus[area_left]
+        rab_plus2 = rab_plus[area_mask]
 
     else:
         rab["index_right"] = rab.index
-        rab_plus = rab
+        rab_plus2 = rab
 
     # only keeping relevant fields
-    geom_col = rab_plus.geometry.name
-    rab_plus = rab_plus[[geom_col, "index_right"]]
+    geom_col = rab_plus2.geometry.name
+    return_rabs = rab_plus2[[geom_col, "index_right"]]
 
-    return rab_plus
+    return return_rabs
 
 
 def _rabs_center_points(gdf, center_type="centroid"):
@@ -998,7 +1037,7 @@ def roundabout_simplification(
     circom_threshold=0.7,
     area_threshold=0.85,
     include_adjacent=True,
-    diameter_factor=1.5,
+    adjacent_area_factor=4,
     center_type="centroid",
     angle_threshold=0,
 ):
@@ -1040,10 +1079,10 @@ def roundabout_simplification(
         for simplification.
     include_adjacent : boolean (default True)
         Adjacent polygons to be considered also as part of the simplification.
-    diameter_factor : float (default 1.5)
-        The factor to be applied to the diameter of each roundabout that determines
-        how far an adjacent polygon can stretch until it is no longer considered part
-        of the overall roundabout group. Only applyies when include_adjacent = True.
+    adjacent_area_factor : int (default 4)
+        The factor to be applied to the area of each adjacent polygon of roundabouts to 
+        exclude false positive urban blocks that happen to also have 3 forming edge.
+        Only applyies when include_adjacent = True.
     center_type : string (default 'centroid')
         Method to use for converging the incoming LineStrings.
         Current list of options available : 'centroid', 'mean'.
@@ -1086,13 +1125,15 @@ def roundabout_simplification(
         )
 
     polys = _polygonize_ifnone(edges, polys)
+    polys_attr_1 = _create_shape_index(polys)
+    polys_attr_2 = _count_edges_per_polygon(edges, polys_attr_1)
     rab = _selecting_rabs_from_poly(
-        polys,
+        polys_attr_2,
         area_col=area_col,
         circom_threshold=circom_threshold,
         area_threshold=area_threshold,
         include_adjacent=include_adjacent,
-        diameter_factor=diameter_factor,
+        adjacent_area_factor=adjacent_area_factor,
     )
     rab_multipolygons = _rabs_center_points(rab, center_type=center_type)
     incoming_all, idx_drop = _selecting_incoming_lines(
