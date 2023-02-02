@@ -837,20 +837,22 @@ def _selecting_rabs_from_poly(
 
     if include_adjacent is True:
 
-        # selecting the adjacent areas that have only three formning edges
+        # creating the adjacent groups
         if GPD_10:
             rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
         else:
             rab_adj = gpd.sjoin(gdf, rab, op="intersects")
 
+        area_right = area_col + "_right"
+        area_left = area_col + "_left"
+
+        # selecting the adjacent areas that have only three formning edges
         mask_adjacents = (rab_adj["count_edges_left"] == 3) | (
             rab_adj["reock_left"] > circom_threshold
         )
         rab_plus = rab_adj[mask_adjacents]
 
         # exclude the adjacent that are too large (false positives)
-        area_right = area_col + "_right"
-        area_left = area_col + "_left"
         area_mask = adjacent_area_factor * rab_plus[area_right] >= rab_plus[area_left]
         rab_plus2 = rab_plus[area_mask]
 
