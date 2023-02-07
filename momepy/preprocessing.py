@@ -824,16 +824,14 @@ def _selecting_rabs_from_poly(
     ________
     GeoDataFrames : roundabouts and adjacent polygons
     """
-    # calculate parameters
-    if area_col == "area":
-        gdf.loc[:, area_col] = gdf.geometry.area
-    circom_serie = CircularCompactness(gdf, area_col).series
     # selecting roundabout polygons based on compactness
-    mask = circom_serie > circom_threshold
+    mask = gdf.reock > circom_threshold
     rab = gdf[mask]
-    # exclude those above the area threshold
+
+    # exclude those above the area threshold and alrger than 2000sqmt
     area_threshold_val = gdf.area.quantile(area_threshold)
-    rab = rab[rab[area_col] < area_threshold_val]
+    if area_threshold_val > 2000:
+        rab = rab[rab[area_col] < area_threshold_val]
 
     if include_adjacent is True:
 
@@ -842,6 +840,10 @@ def _selecting_rabs_from_poly(
             rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
         else:
             rab_adj = gpd.sjoin(gdf, rab, op="intersects")
+        
+        # remove the adjacent polygons that are selected more than once
+        # i.e. they odd cases that are adjacent to more than one roundabout
+        rab_adj = rab_adj[~rab_adj.index.duplicated(keep=False)]
 
         # selecting the adjacent polygons smaller than itself
         area_right = area_col + "_right"
