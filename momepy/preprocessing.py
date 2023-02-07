@@ -842,7 +842,6 @@ def _selecting_rabs_from_poly(
             rab_adj = gpd.sjoin(gdf, rab, op="intersects")
         
         # remove the adjacent polygons that are selected more than once
-        # i.e. they odd cases that are adjacent to more than one roundabout
         rab_adj = rab_adj[~rab_adj.index.duplicated(keep=False)]
 
         # selecting the adjacent polygons smaller than itself
