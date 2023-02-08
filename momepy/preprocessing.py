@@ -840,8 +840,8 @@ def _selecting_rabs_from_poly(
             rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
         else:
             rab_adj = gpd.sjoin(gdf, rab, op="intersects")
-            
-        #remove the adjacent polygons that are selected more than once
+
+        # remove the adjacent polygons that are selected more than once
         rab_adj = rab_adj[~rab_adj.index.duplicated(keep=False)]
 
         # selecting the adjacent polygons smaller than itself
