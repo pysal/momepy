@@ -814,7 +814,7 @@ def _selecting_rabs_from_poly(
     circom_threshold=0.7,
     area_threshold=0.85,
     include_adjacent=True,
-    adjacent_area_factor=4,
+    diameter_factor =1.5,
 ):
     """
     From a GeoDataFrame of polygons, returns a GDF of polygons that are
@@ -835,6 +835,13 @@ def _selecting_rabs_from_poly(
 
     if include_adjacent is True:
 
+        # calculating a pseudo diameter for hausedorff metric later
+        bounds = rab.geometry.bounds
+        rab = pd.concat([rab, bounds], axis=1)
+        rab["deltax"] = rab.maxx - rab.minx
+        rab["deltay"] = rab.maxy - rab.miny
+        rab["rab_diameter"] = rab[["deltax", "deltay"]].max(axis=1)
+
         # selecting the adjacent areas that have only three formning edges
         if GPD_10:
             rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
@@ -844,24 +851,22 @@ def _selecting_rabs_from_poly(
         # remove the adjacent polygons that are selected more than once
         rab_adj = rab_adj[~rab_adj.index.duplicated(keep=False)]
 
-        # selecting the adjacent polygons smaller than itself
-        area_right = area_col + "_right"
-        area_left = area_col + "_left"
-        area_mask = rab_adj[area_right] >= rab_adj[area_left]
-
         # shape mask based on number of forming edges (3)
         mask_adjacents = (rab_adj["count_edges_left"] == 3) | (
             rab_adj["reock_left"] > circom_threshold
         )
+        rab_adj = rab_adj[mask_adjacents]
 
-        # combining both approaches (area and shape)
-        rab_plus = rab_adj[area_mask | mask_adjacents]
-
-        # exclude the adjacent that are too large (false positives)
-        large_area_mask = (
-            adjacent_area_factor * rab_plus[area_right] >= rab_plus[area_left]
-        )
-        rab_plus2 = rab_plus[large_area_mask]
+        # adding a hausdorff_distance threshold
+        rab_adj["hdist"] = 0
+        # TODO: (should be a way to vectorize)
+        for i, group in rab_adj.groupby("index_right"):
+            for g in group.itertuples():
+                hdist = g.geometry.hausdorff_distance(rab.loc[i].geometry)
+                rab_adj.loc[g.Index, "hdist"] = hdist
+        
+        hausdorff_mask = rab_adj.hdist < (rab_adj.rab_diameter * diameter_factor)
+        rab_plus2 = rab_adj[hausdorff_mask]
 
     else:
         rab["index_right"] = rab.index
