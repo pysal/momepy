@@ -1053,7 +1053,7 @@ def roundabout_simplification(
     circom_threshold=0.7,
     area_threshold=0.85,
     include_adjacent=True,
-    adjacent_area_factor=4,
+    diameter_factor =1.5,
     center_type="centroid",
     angle_threshold=0,
 ):
@@ -1095,9 +1095,9 @@ def roundabout_simplification(
         for simplification.
     include_adjacent : boolean (default True)
         Adjacent polygons to be considered also as part of the simplification.
-    adjacent_area_factor : int (default 4)
-        The factor to be applied to the area of each adjacent polygon of roundabouts to
-        exclude false positive urban blocks that happen to also have 3 forming edge.
+    diameter_factor : float (default 1.5)
+        The factor to be applied to the diameter area of each roundabouts to
+        exclude  adjacent polygons that extend past the distance * diameter_factor
         Only applyies when include_adjacent = True.
     center_type : string (default 'centroid')
         Method to use for converging the incoming LineStrings.
@@ -1148,7 +1148,7 @@ def roundabout_simplification(
         circom_threshold=circom_threshold,
         area_threshold=area_threshold,
         include_adjacent=include_adjacent,
-        adjacent_area_factor=adjacent_area_factor,
+        diameter_factor=diameter_factor,
     )
     rab_multipolygons = _rabs_center_points(rab, center_type=center_type)
     incoming_all, idx_drop = _selecting_incoming_lines(
