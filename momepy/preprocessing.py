@@ -814,7 +814,7 @@ def _selecting_rabs_from_poly(
     circom_threshold=0.7,
     area_threshold=0.85,
     include_adjacent=True,
-    diameter_factor =1.5,
+    diameter_factor=1.5,
 ):
     """
     From a GeoDataFrame of polygons, returns a GDF of polygons that are
@@ -864,7 +864,7 @@ def _selecting_rabs_from_poly(
             for g in group.itertuples():
                 hdist = g.geometry.hausdorff_distance(rab.loc[i].geometry)
                 rab_adj.loc[g.Index, "hdist"] = hdist
-        
+
         hausdorff_mask = rab_adj.hdist < (rab_adj.rab_diameter * diameter_factor)
         rab_plus2 = rab_adj[hausdorff_mask]
 
@@ -1053,7 +1053,7 @@ def roundabout_simplification(
     circom_threshold=0.7,
     area_threshold=0.85,
     include_adjacent=True,
-    diameter_factor =1.5,
+    diameter_factor=1.5,
     center_type="centroid",
     angle_threshold=0,
 ):
