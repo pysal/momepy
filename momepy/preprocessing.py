@@ -857,7 +857,7 @@ def _selecting_rabs_from_poly(
             rab_adj["reock_left"] > circom_threshold
         )
         rab_adj = rab_adj[mask_adjacents]
-        
+
         # calculating how far an adjacent polygon stretches to
         # determine if it should still be simplified
         max_dists = []
@@ -873,10 +873,9 @@ def _selecting_rabs_from_poly(
             d_max = max(ds)
             max_dists.append(d_max)
         rab_adj["max_dist"] = max_dists
-        
-        max_d_mask = (rab_adj["max_dist"] <= rab_adj["rab_diameter"] * diameter_factor) | (
-            rab_adj["reock_left"] > circom_threshold
-        )
+        max_d_mask = (
+            rab_adj["max_dist"] <= rab_adj["rab_diameter"] * diameter_factor
+        ) | (rab_adj["reock_left"] > circom_threshold)
         rab_plus2 = rab_adj[max_d_mask]
 
     else:
