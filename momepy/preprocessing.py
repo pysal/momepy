@@ -828,14 +828,14 @@ def _selecting_rabs_from_poly(
     mask = gdf.reock > circom_threshold
     rab = gdf[mask]
 
-    # exclude those above the area threshold and alrger than 2000sqmt
+    # exclude those above the area threshold and larger than 2000sqmt
     area_threshold_val = gdf.area.quantile(area_threshold)
     if area_threshold_val > 2000:
         rab = rab[rab[area_col] < area_threshold_val]
 
     if include_adjacent is True:
 
-        # calculating a pseudo diameter for hausedorff metric later
+        # calculating a pseudo diameter for dimeter metric later
         bounds = rab.geometry.bounds
         rab = pd.concat([rab, bounds], axis=1)
         rab["deltax"] = rab.maxx - rab.minx
@@ -843,6 +843,7 @@ def _selecting_rabs_from_poly(
         rab["rab_diameter"] = rab[["deltax", "deltay"]].max(axis=1)
 
         # selecting the adjacent areas that have only three formning edges
+        gdf["savedgeom"] = gdf.geometry
         if GPD_10:
             rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
         else:
@@ -851,22 +852,32 @@ def _selecting_rabs_from_poly(
         # remove the adjacent polygons that are selected more than once
         rab_adj = rab_adj[~rab_adj.index.duplicated(keep=False)]
 
-        # shape mask based on number of forming edges (3)
+        # mask based on number of forming edges (3)
         mask_adjacents = (rab_adj["count_edges_left"] == 3) | (
             rab_adj["reock_left"] > circom_threshold
         )
         rab_adj = rab_adj[mask_adjacents]
+        
+        # calculating how far an adjacent polygon stretches to
+        # determine if it should still be simplified
+        max_dists = []
+        for i, row in rab_adj.iterrows():
+            xs, ys = row.geometry.exterior.coords.xy
+            poly = np.array(list(map(lambda x, y: (x, y), xs, ys)))
 
-        # adding a hausdorff_distance threshold
-        rab_adj["hdist"] = 0
-        # TODO: (should be a way to vectorize)
-        for i, group in rab_adj.groupby("index_right"):
-            for g in group.itertuples():
-                hdist = g.geometry.hausdorff_distance(rab.loc[i].geometry)
-                rab_adj.loc[g.Index, "hdist"] = hdist
+            cx, cy = row.savedgeom.centroid.coords.xy
+            c_point = np.array(list(map(lambda x, y: (x, y), cx, cy)))
 
-        hausdorff_mask = rab_adj.hdist < (rab_adj.rab_diameter * diameter_factor)
-        rab_plus2 = rab_adj[hausdorff_mask]
+            # list of distances between centroid and each vertex of polygon
+            ds = map(np.norm, c_point - poly)
+            d_max = max(ds)
+            max_dists.append(d_max)
+        rab_adj["max_dist"] = max_dists
+        
+        max_d_mask = (rab_adj["max_dist"] <= rab_adj["rab_diameter"] * diameter_factor) | (
+            rab_adj["reock_left"] > circom_threshold
+        )
+        rab_plus2 = rab_adj[max_d_mask]
 
     else:
         rab["index_right"] = rab.index
