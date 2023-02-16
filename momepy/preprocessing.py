@@ -869,7 +869,7 @@ def _selecting_rabs_from_poly(
             c_point = np.array(list(map(lambda x, y: (x, y), cx, cy)))
 
             # list of distances between centroid and each vertex of polygon
-            ds = map(np.norm, c_point - poly)
+            ds = map(np.linalg.norm, c_point - poly)
             d_max = max(ds)
             max_dists.append(d_max)
         rab_adj["max_dist"] = max_dists
