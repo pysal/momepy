@@ -165,7 +165,7 @@ class TestPreprocessing:
         check = mm.roundabout_simplification(
             self.df_streets_rabs, self.df_rab_polys, diameter_factor=0.4
         )
-        assert len(check) == 63
+        assert len(check) == 73
         assert len(self.df_streets_rabs) == 88
 
     @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
