@@ -236,7 +236,6 @@ class Tessellation:
                 gdf,
                 enclosures,
                 unique_id,
-                enclosure_id,
                 threshold,
                 use_dask,
                 n_chunks,

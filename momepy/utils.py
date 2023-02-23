@@ -339,7 +339,9 @@ def _dual_to_gdf(net):
     return gdf_edges
 
 
-def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, node_id="node_id"):
+def nx_to_gdf(
+    net, points=True, lines=True, spatial_weights=False, nodeID="nodeID"  # noqa
+):
     """
     Convert a ``networkx.Graph`` to a LineString GeoDataFrame and Point GeoDataFrame.
 
@@ -359,7 +361,7 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, node_id="node
     spatial_weights : bool (default is ``False``)
         Set to ``True`` to export a libpysal spatial weights
         for nodes (only for primal graphs).
-    node_id : str
+    nodeID : str
         The name of the node ID column to be generated.
 
     Returns
@@ -385,7 +387,7 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, node_id="node
 
     >>> points, lines = momepy.nx_to_gdf(graph)
     >>> points.head(2)
-       node_id                         geometry
+       nodeID                         geometry
     0       1  POINT (1603585.640 6464428.774)
     1       2  POINT (1603413.206 6464228.730)
     >>> lines.head(2)
@@ -427,14 +429,14 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, node_id="node
         )
 
     for nid, n in enumerate(net):
-        net.nodes[n][node_id] = nid
+        net.nodes[n][nodeID] = nid
 
     return _primal_to_gdf(
         net,
         points=points,
         lines=lines,
         spatial_weights=spatial_weights,
-        node_id=node_id,
+        node_id=nodeID,
     )
 
 
