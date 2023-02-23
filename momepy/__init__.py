@@ -1,6 +1,7 @@
 import contextlib
 from importlib.metadata import PackageNotFoundError, version
 
+from . import datasets  # noqa
 from .coins import *
 from .dimension import *
 from .distribution import *
