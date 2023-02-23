@@ -14,6 +14,7 @@ jobs:
     name: ${{ matrix.os }}, ${{ matrix.environment-file }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         environment-file:
@@ -52,7 +53,7 @@ jobs:
           pytest -v --color yes --cov-config .coveragerc --cov momepy --cov-append --cov-report term-missing --cov-report xml .
 
       - name: Test user guide
-        if: contains(matrix.env, '310-latest.yaml') && contains(matrix.os, 'ubuntu')
+        if: contains(matrix.environment-file, '310-latest.yaml') && contains(matrix.os, 'ubuntu')
         run: |
           ci/envs/test_user_guide.sh
 
