@@ -118,12 +118,12 @@ class COINS:
                     [
                         part,
                         _compute_orientation(part),
-                        list(),
-                        list(),
-                        list(),
-                        list(),
-                        list(),
-                        list(),
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
                         self.uv_index[idx],
                     ]
                 )
@@ -174,7 +174,7 @@ class COINS:
             self.unique[n][3] = a[2]
 
     def _best_link(self):
-        self.angle_pairs = dict()
+        self.angle_pairs = {}
         for edge in range(0, len(self.unique)):
             p1_angle_set = []
             p2_angle_set = []
@@ -213,7 +213,6 @@ class COINS:
 
     def _cross_check_links(self, angle_threshold):
         for edge in range(0, len(self.unique)):
-
             best_p1 = self.unique[edge][4][0]
             best_p2 = self.unique[edge][5][0]
 
@@ -236,9 +235,9 @@ class COINS:
                 self.unique[edge][7] = "line_break"
 
     def _merge_lines(self):
-        self.merging_list = list()
-        self.merged = list()
-        self.edge_idx = list()
+        self.merging_list = []
+        self.merged = []
+        self.edge_idx = []
 
         self.result = [
             _merge_lines_loop(n, self.unique) for n in range(len(self.unique))
@@ -311,11 +310,9 @@ class COINS:
         return edge_gdf
 
     def _create_gdf_strokes(self):
-
         my_list = []
 
         for a in self.merged:
-
             # get all segment points and make line strings
             linelist = _tuple_to_list(list(self.merged[a]))
             list_lines_segments = []
@@ -341,14 +338,13 @@ class COINS:
         return edge_gdf
 
     def _add_gdf_stroke_attributes(self):
-
         # Invert self.edge_idx to get a dictionary where the key is
         # the original edge index and the value is the group
         inv_edges = {
             value: key for key in self.edge_idx for value in self.edge_idx[key]
         }
 
-        stroke_group_attributes = list()
+        stroke_group_attributes = []
 
         for edge in self.uv_index:
             stroke_group_attributes.append(inv_edges[edge])

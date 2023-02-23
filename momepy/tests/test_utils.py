@@ -14,7 +14,6 @@ GPD_REGR = Version("0.10.2") < Version(gpd.__version__) < Version("0.11")
 
 class TestUtils:
     def setup_method(self):
-
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
@@ -33,7 +32,6 @@ class TestUtils:
             mm.datasets.get_path("sffgkt")
 
     def test_gdf_to_nx(self):
-
         with pytest.warns(
             RuntimeWarning, match="The given network does not contain any LineString."
         ):

@@ -15,7 +15,6 @@ GPD_09 = Version(gpd.__version__) >= Version("0.9")
 
 class TestPreprocessing:
     def setup_method(self):
-
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")

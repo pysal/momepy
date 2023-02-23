@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import math
 import warnings
@@ -48,9 +47,9 @@ def _angle(a, b, c):
     return abs((a2 - a1 + 180) % 360 - 180)
 
 
-def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
+def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None):
     """Generate a primal graph. Helper for ``gdf_to_nx``."""
-    G.graph["approach"] = "primal"
+    graph.graph["approach"] = "primal"
 
     msg = (
         "%s. This can lead to unexpected behaviour. "
@@ -72,28 +71,27 @@ def _generate_primal(G, gdf_network, fields, multigraph, oneway_column=None):
 
     key = 0
     for row in gdf_network.itertuples():
-
         first = row.geometry.coords[0]
         last = row.geometry.coords[-1]
 
-        data = [r for r in row][1:]
+        data = list(row)[1:]
         attributes = dict(zip(fields, data))
         if multigraph:
-            G.add_edge(first, last, key=key, **attributes)
+            graph.add_edge(first, last, key=key, **attributes)
             key += 1
 
             if oneway_column:
                 oneway = bool(getattr(row, oneway_column))
                 if not oneway:
-                    G.add_edge(last, first, key=key, **attributes)
+                    graph.add_edge(last, first, key=key, **attributes)
                     key += 1
         else:
-            G.add_edge(first, last, **attributes)
+            graph.add_edge(first, last, **attributes)
 
 
-def _generate_dual(G, gdf_network, fields, angles, multigraph, angle):
+def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
     """Generate a dual graph. Helper for ``gdf_to_nx``."""
-    G.graph["approach"] = "dual"
+    graph.graph["approach"] = "dual"
     key = 0
 
     sw = libpysal.weights.Queen.from_dataframe(gdf_network, silence_warnings=True)
@@ -103,9 +101,9 @@ def _generate_dual(G, gdf_network, fields, angles, multigraph, angle):
 
     for i, row in enumerate(gdf_network.itertuples()):
         centroid = (row.temp_x_coords, row.temp_y_coords)
-        data = [f for f in row][1:-2]
+        data = list(row)[1:-2]
         attributes = dict(zip(fields, data))
-        G.add_node(centroid, **attributes)
+        graph.add_node(centroid, **attributes)
 
         if sw.cardinalities[i] > 0:
             for n in sw.neighbors[i]:
@@ -127,16 +125,18 @@ def _generate_dual(G, gdf_network, fields, angles, multigraph, angle):
                         if angles:
                             angle_value = _angle(remaining[0], shared[0], remaining[1])
                             if multigraph:
-                                G.add_edge(start, end, key=0, **{angle: angle_value})
+                                graph.add_edge(
+                                    start, end, key=0, **{angle: angle_value}
+                                )
                                 key += 1
                             else:
-                                G.add_edge(start, end, **{angle: angle_value})
+                                graph.add_edge(start, end, **{angle: angle_value})
                         else:
                             if multigraph:
-                                G.add_edge(start, end, key=0)
+                                graph.add_edge(start, end, key=0)
                                 key += 1
                             else:
-                                G.add_edge(start, end)
+                                graph.add_edge(start, end)
 
 
 def gdf_to_nx(
@@ -277,17 +277,17 @@ def gdf_to_nx(
 def _points_to_gdf(net):
     """Generate a point gdf from nodes. Helper for ``nx_to_gdf``."""
     node_xy, node_data = zip(*net.nodes(data=True))
-    if isinstance(node_xy[0], int) and "x" in node_data[0].keys():
+    if isinstance(node_xy[0], int) and "x" in node_data[0]:
         geometry = [Point(data["x"], data["y"]) for data in node_data]  # osmnx graph
     else:
         geometry = [Point(*p) for p in node_xy]
     gdf_nodes = gpd.GeoDataFrame(list(node_data), geometry=geometry)
-    if "crs" in net.graph.keys():
+    if "crs" in net.graph:
         gdf_nodes.crs = net.graph["crs"]
     return gdf_nodes
 
 
-def _lines_to_gdf(net, points, nodeID):
+def _lines_to_gdf(net, points, node_id):
     """Generate a linestring gdf from edges. Helper for ``nx_to_gdf``."""
     starts, ends, edge_data = zip(*net.edges(data=True))
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
@@ -296,37 +296,37 @@ def _lines_to_gdf(net, points, nodeID):
         node_start = []
         node_end = []
         for s in starts:
-            node_start.append(net.nodes[s][nodeID])
+            node_start.append(net.nodes[s][node_id])
         for e in ends:
-            node_end.append(net.nodes[e][nodeID])
+            node_end.append(net.nodes[e][node_id])
         gdf_edges["node_start"] = node_start
         gdf_edges["node_end"] = node_end
 
-    if "crs" in net.graph.keys():
+    if "crs" in net.graph:
         gdf_edges.crs = net.graph["crs"]
 
     return gdf_edges
 
 
-def _primal_to_gdf(net, points, lines, spatial_weights, nodeID):
+def _primal_to_gdf(net, points, lines, spatial_weights, node_id):
     """Generate gdf(s) from a primal network. Helper for ``nx_to_gdf``."""
     if points is True:
         gdf_nodes = _points_to_gdf(net)
 
         if spatial_weights is True:
-            W = libpysal.weights.W.from_networkx(net)
-            W.transform = "b"
+            weights = libpysal.weights.W.from_networkx(net)
+            weights.transform = "b"
 
     if lines is True:
-        gdf_edges = _lines_to_gdf(net, points, nodeID)
+        gdf_edges = _lines_to_gdf(net, points, node_id)
 
     if points is True and lines is True:
         if spatial_weights is True:
-            return gdf_nodes, gdf_edges, W
+            return gdf_nodes, gdf_edges, weights
         return gdf_nodes, gdf_edges
     if points is True and lines is False:
         if spatial_weights is True:
-            return gdf_nodes, W
+            return gdf_nodes, weights
         return gdf_nodes
     return gdf_edges
 
@@ -339,7 +339,9 @@ def _dual_to_gdf(net):
     return gdf_edges
 
 
-def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeID"):
+def nx_to_gdf(
+    net, points=True, lines=True, spatial_weights=False, nodeID="nodeID"  # noqa
+):
     """
     Convert a ``networkx.Graph`` to a LineString GeoDataFrame and Point GeoDataFrame.
 
@@ -383,7 +385,7 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
 
     Converting the primal Graph to points as intersections and lines as street segments:
 
-    >>> points, lines = momepy.nx_to_gdf(G)
+    >>> points, lines = momepy.nx_to_gdf(graph)
     >>> points.head(2)
        nodeID                         geometry
     0       1  POINT (1603585.640 6464428.774)
@@ -395,14 +397,14 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
 
     Storing the relationship between points/nodes as a libpysal W object:
 
-    >>> points, lines, W = momepy.nx_to_gdf(G, spatial_weights=True)
+    >>> points, lines, W = momepy.nx_to_gdf(graph, spatial_weights=True)
     >>> W
     <libpysal.weights.weights.W object at 0x7f8d01837210>
 
     Converting the dual Graph to lines. The dual Graph does not export edges to GDF:
 
     >>> G = momepy.gdf_to_nx(df, approach="dual")
-    >>> lines = momepy.nx_to_gdf(G)
+    >>> lines = momepy.nx_to_gdf(graph)
     >>> lines.head(2)
                                                 geometry      mm_len
     0  LINESTRING (1603585.640 6464428.774, 1603413.2...  264.103950
@@ -410,7 +412,7 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
     """
     # generate nodes and edges geodataframes from graph
     primal = None
-    if "approach" in net.graph.keys():
+    if "approach" in net.graph:
         if net.graph["approach"] == "primal":
             primal = True
         elif net.graph["approach"] == "dual":
@@ -430,7 +432,11 @@ def nx_to_gdf(net, points=True, lines=True, spatial_weights=False, nodeID="nodeI
         net.nodes[n][nodeID] = nid
 
     return _primal_to_gdf(
-        net, points=points, lines=lines, spatial_weights=spatial_weights, nodeID=nodeID
+        net,
+        points=points,
+        lines=lines,
+        spatial_weights=spatial_weights,
+        node_id=nodeID,
     )
 
 
@@ -458,9 +464,9 @@ def limit_range(vals, rng):
 
     if (len(vals) > 2) and (not nan_tracker.all()):
         if NumpyVersion(np.__version__) >= "1.22.0":
-            method = dict(method="nearest")
+            method = {"method": "nearest"}
         else:
-            method = dict(interpolation="nearest")
+            method = {"interpolation": "nearest"}
         rng = sorted(rng)
         if nan_tracker.any():
             lower = np.nanpercentile(vals, rng[0], **method)
