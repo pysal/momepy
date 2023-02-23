@@ -1,3 +1,6 @@
+import contextlib
+from importlib.metadata import PackageNotFoundError, version
+
 import momepy.datasets
 
 from .coins import *
@@ -15,7 +18,5 @@ from .weights import *
 __author__ = "Martin Fleischmann"
 __author_email__ = "martin@martinfleischmann.net"
 
-from ._version import get_versions
-
-__version__ = get_versions()["version"]
-del get_versions
+with contextlib.suppress(PackageNotFoundError):
+    __version__ = version("momepy")
