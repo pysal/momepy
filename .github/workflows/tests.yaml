@@ -9,16 +9,7 @@ on:
     - cron: "0 0 * * 1,4"
 
 jobs:
-  Linting:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-      - uses: pre-commit/action@v2.0.0
-
   Test:
-    needs: Linting
     name: ${{ matrix.os }}, ${{ matrix.env }}
     runs-on: ${{ matrix.os }}
     defaults:
@@ -42,13 +33,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2
+      - name: setup micromamba
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          environment-file: ${{ matrix.env }}
-          miniforge-version: latest
-          miniforge-variant: Mambaforge
-          use-mamba: true
+          environment-file: ${{ matrix.environment-file }}
+          micromamba-version: "latest"
 
       - name: Install momepy
         run: pip install .
@@ -67,4 +56,14 @@ jobs:
         run: |
           ci/envs/test_user_guide.sh
 
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
+
+      - name: Generate and publish the report
+        if: |
+          failure()
+          && steps.status.outcome == 'failure'
+          && github.event_name == 'schedule'
+          && github.repository_owner == 'pysal'
+        uses: xarray-contrib/issue-from-pytest-log@v1
+        with:
+          log-path: pytest-log.jsonl
