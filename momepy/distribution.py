@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # distribution.py
 # definitions of spatial distribution characters
@@ -183,7 +182,7 @@ class SharedWallsRatio(SharedWalls):
     """
 
     def __init__(self, gdf, perimeters=None):
-        super(SharedWallsRatio, self).__init__(gdf)
+        super().__init__(gdf)
 
         if perimeters is None:
             self.perimeters = gdf.geometry.length
@@ -473,7 +472,7 @@ class Alignment:
         for index, orient in tqdm(
             data.items(), total=data.shape[0], disable=not verbose
         ):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = spatial_weights.neighbors[index]
                 if neighbours:
                     orientation = data.loc[neighbours]
@@ -539,7 +538,7 @@ class NeighborDistance:
 
         # iterating over rows one by one
         for index, geom in tqdm(data.items(), total=data.shape[0], disable=not verbose):
-            if geom is not None and index in spatial_weights.neighbors.keys():
+            if geom is not None and index in spatial_weights.neighbors:
                 neighbours = spatial_weights.neighbors[index]
                 building_neighbours = data.loc[neighbours]
                 if len(building_neighbours) > 0:
@@ -610,7 +609,6 @@ class MeanInterbuildingDistance:
         gdf,
         spatial_weights,
         unique_id,
-        spatial_weights_higher=None,
         order=3,
         verbose=True,
     ):
@@ -633,7 +631,7 @@ class MeanInterbuildingDistance:
         )
 
         # generate graph
-        G = nx.from_pandas_edgelist(
+        graph = nx.from_pandas_edgelist(
             adj_list, source="focal", target="neighbor", edge_attr="weight"
         )
 
@@ -641,7 +639,7 @@ class MeanInterbuildingDistance:
         # iterate over subgraphs to get the final values
         for uid in tqdm(data.index, total=data.shape[0], disable=not verbose):
             try:
-                sub = nx.ego_graph(G, uid, radius=order)
+                sub = nx.ego_graph(graph, uid, radius=order)
                 results_list.append(
                     np.nanmean([x[-1] for x in list(sub.edges.data("weight"))])
                 )
@@ -800,7 +798,7 @@ class BuildingAdjacency:
             disable=not verbose,
             desc="Calculating adjacency",
         ):
-            if uid in spatial_weights_higher.neighbors.keys():
+            if uid in spatial_weights_higher.neighbors:
                 neighbours = spatial_weights_higher.neighbors[uid].copy()
                 if neighbours:
                     neighbours.append(uid)
@@ -878,7 +876,7 @@ class Neighbors:
             total=gdf.shape[0],
             disable=not verbose,
         ):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 if weighted is True:
                     neighbours.append(
                         spatial_weights.cardinalities[index] / geom.length

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # dimension.py
 # definitions of dimension characters
@@ -157,10 +156,10 @@ class Volume:
         try:
             self.series = self.areas * self.heights
 
-        except KeyError:
+        except KeyError as err:
             raise KeyError(
                 "Column not found. Define heights and areas or set areas to None."
-            )
+            ) from err
 
 
 class FloorArea:
@@ -229,10 +228,10 @@ class FloorArea:
         try:
             self.series = self.areas * (self.heights // 3)
 
-        except KeyError:
+        except KeyError as err:
             raise KeyError(
                 "Column not found. Define heights and areas or set areas to None."
-            )
+            ) from err
 
 
 class CourtyardArea:
@@ -406,10 +405,9 @@ class AverageCharacter:
             from momepy import limit_range
 
         data = gdf.copy()
-        if values is not None:
-            if not isinstance(values, str):
-                data["mm_v"] = values
-                values = "mm_v"
+        if values is not None and not isinstance(values, str):
+            data["mm_v"] = values
+            values = "mm_v"
         self.values = data[values]
 
         data = data.set_index(unique_id)[values]
@@ -432,7 +430,7 @@ class AverageCharacter:
             mode = [mode]
 
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = [index]
                 neighbours += spatial_weights.neighbors[index]
 
@@ -528,7 +526,12 @@ class StreetProfile:
     """
 
     def __init__(
-        self, left, right, heights=None, distance=10, tick_length=50, verbose=True
+        self,
+        left,
+        right,
+        heights=None,
+        distance=10,
+        tick_length=50,
     ):
         self.left = left
         self.right = right
@@ -543,7 +546,6 @@ class StreetProfile:
 
         lengths = pygeos.length(pygeos_lines)
         for ix, (line, length) in enumerate(zip(pygeos_lines, lengths)):
-
             pts = pygeos.line_interpolate_point(
                 line, np.linspace(0, length, num=int((length) // distance))
             )
@@ -563,10 +565,10 @@ class StreetProfile:
                 ticks.append([pt, pt])
 
             else:
-                angle = self._getAngle(pt, list_points[num])
-                line_end_1 = self._getPoint1(pt, angle, tick_length / 2)
-                angle = self._getAngle(line_end_1, pt)
-                line_end_2 = self._getPoint2(line_end_1, angle, tick_length)
+                angle = self._get_angle(pt, list_points[num])
+                line_end_1 = self._get_point1(pt, angle, tick_length / 2)
+                angle = self._get_angle(line_end_1, pt)
+                line_end_2 = self._get_point2(line_end_1, angle, tick_length)
                 ticks.append([line_end_1, pt])
                 ticks.append([line_end_2, pt])
 
@@ -624,16 +626,10 @@ class StreetProfile:
             f_sum = (f).sum()
             s_nan = np.isnan(s)
 
-            if not f_sum:
-                openness_score = np.nan
-            else:
-                openness_score = s_nan.sum() / f_sum
+            openness_score = np.nan if not f_sum else s_nan.sum() / f_sum
             openness.append(openness_score)
 
-            if s_nan.all():
-                deviation_score = np.nan
-            else:
-                deviation_score = np.nanstd(s)
+            deviation_score = np.nan if s_nan.all() else np.nanstd(s)
             deviations.append(deviation_score)
 
             if do_heights:
@@ -660,7 +656,7 @@ class StreetProfile:
     # http://wikicode.wikidot.com/get-angle-of-line-between-two-points
     # https://glenbambrick.com/tag/perpendicular/
     # angle between two points
-    def _getAngle(self, pt1, pt2):
+    def _get_angle(self, pt1, pt2):
         """
         pt1, pt2 : tuple
         """
@@ -670,7 +666,7 @@ class StreetProfile:
 
     # start and end points of chainage tick
     # get the first end point of a tick
-    def _getPoint1(self, pt, bearing, dist):
+    def _get_point1(self, pt, bearing, dist):
         """
         pt : tuple
         """
@@ -681,7 +677,7 @@ class StreetProfile:
         return (x, y)
 
     # get the second end point of a tick
-    def _getPoint2(self, pt, bearing, dist):
+    def _get_point2(self, pt, bearing, dist):
         """
         pt : tuple
         """
@@ -772,7 +768,7 @@ class WeightedCharacter:
 
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = [index]
                 neighbours += spatial_weights.neighbors[index]
 
@@ -831,7 +827,7 @@ class CoveredArea:
 
         results_list = []
         for index in tqdm(area.index, total=area.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = [index]
                 neighbours += spatial_weights.neighbors[index]
 
@@ -885,7 +881,6 @@ class PerimeterWall:
         self.gdf = gdf
 
         if spatial_weights is None:
-
             print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 

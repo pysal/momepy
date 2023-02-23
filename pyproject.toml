@@ -60,8 +60,8 @@ line-length = 88
 line-length = 88
 select = ["E", "F", "W", "I", "UP", "N", "B", "A", "C4", "SIM", "ARG"]
 target-version = "py38"
-ignore = ["B006"]
-exclude = ["momepy/tests/*", "doc/*", "benchmarks/*"]
+ignore = ["B006", "F403"]
+exclude = ["momepy/tests/*", "docs/*", "benchmarks/*"]
 
 [tool.coverage.run]
 source = ['momepy']

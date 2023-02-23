@@ -1,8 +1,6 @@
 import contextlib
 from importlib.metadata import PackageNotFoundError, version
 
-import momepy.datasets
-
 from .coins import *
 from .dimension import *
 from .distribution import *

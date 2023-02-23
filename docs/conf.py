@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation builder.
 #
@@ -287,4 +286,4 @@ def linkcode_resolve(domain, info):
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
     tag = "main" if "+" in release else ("v" + release)
-    return "https://github.com/pysal/momepy/blob/%s/%s" % (tag, filename)
+    return f"https://github.com/pysal/momepy/blob/{tag}/{filename}"

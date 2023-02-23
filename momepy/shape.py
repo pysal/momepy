@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # shape.py
 # definitions of shape characters
@@ -307,7 +306,7 @@ def _make_circle(points):
 
     # Progressively add points to circle or recompute circle
     c = None
-    for (i, p) in enumerate(shuffled):
+    for i, p in enumerate(shuffled):
         if c is None or not _is_in_circle(c, p):
             c = _make_circle_one_point(shuffled[: i + 1], p)
     return c
@@ -316,7 +315,7 @@ def _make_circle(points):
 def _make_circle_one_point(points, p):
     """One boundary point known."""
     c = (p[0], p[1], 0.0)
-    for (i, q) in enumerate(points):
+    for i, q in enumerate(points):
         if not _is_in_circle(c, q):
             if c[2] == 0.0:
                 c = _make_diameter(p, q)
@@ -967,9 +966,7 @@ class Squareness:
                         c = np.asarray(points[1])
                         ang = _angle(a, b, c)
 
-                        if ang <= 175:
-                            angles.append(ang)
-                        elif _angle(a, b, c) >= 185:
+                        if ang <= 175 or _angle(a, b, c) >= 185:
                             angles.append(ang)
                         else:
                             continue
@@ -980,9 +977,7 @@ class Squareness:
                         c = np.asarray(points[i + 1])
                         ang = _angle(a, b, c)
 
-                        if _angle(a, b, c) <= 175:
-                            angles.append(ang)
-                        elif _angle(a, b, c) >= 185:
+                        if _angle(a, b, c) <= 175 or _angle(a, b, c) >= 185:
                             angles.append(ang)
                         else:
                             continue
@@ -1271,7 +1266,7 @@ class Linearity:
     1.0
     """
 
-    def __init__(self, gdf, verbose=True):
+    def __init__(self, gdf):
         self.gdf = gdf
 
         euclidean = gdf.geometry.apply(
