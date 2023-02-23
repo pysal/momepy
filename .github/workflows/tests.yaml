@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches:
+      - "*"
   schedule:
     - cron: "0 0 * * 1,4"
 
@@ -12,23 +13,22 @@ jobs:
   Test:
     name: ${{ matrix.os }}, ${{ matrix.env }}
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l {0}
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        env:
+        environment-file:
           - ci/envs/38-minimal.yaml
           - ci/envs/39-latest.yaml
           - ci/envs/310-latest.yaml
           - ci/envs/310-dev.yaml
         include:
-          - env: ci/envs/310-latest.yaml
+          - environment-file: ci/envs/310-latest.yaml
             os: macos-latest
-          - env: ci/envs/310-latest.yaml
+          - environment-file: ci/envs/310-latest.yaml
             os: windows-latest
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
       - uses: actions/checkout@v2
