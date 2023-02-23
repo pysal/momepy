@@ -5,7 +5,6 @@ import momepy as mm
 
 class TimeGraph:
     def setup(self):
-
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.network = mm.gdf_to_nx(self.df_streets)
