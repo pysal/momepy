@@ -11,7 +11,7 @@ on:
 
 jobs:
   Test:
-    name: ${{ matrix.os }}, ${{ matrix.env }}
+    name: ${{ matrix.os }}, ${{ matrix.environment-file }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
