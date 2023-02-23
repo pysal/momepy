@@ -21,11 +21,12 @@ jobs:
           - ci/envs/38-minimal.yaml
           - ci/envs/39-latest.yaml
           - ci/envs/310-latest.yaml
-          - ci/envs/310-dev.yaml
+          - ci/envs/311-latest.yaml
+          - ci/envs/311-dev.yaml
         include:
-          - environment-file: ci/envs/310-latest.yaml
+          - environment-file: ci/envs/311-latest.yaml
             os: macos-latest
-          - environment-file: ci/envs/310-latest.yaml
+          - environment-file: ci/envs/311-latest.yaml
             os: windows-latest
     defaults:
       run:
