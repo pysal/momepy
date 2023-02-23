@@ -43,11 +43,6 @@ jobs:
       - name: Install momepy
         run: pip install .
 
-      - name: Check environment
-        run: |
-          conda info
-          conda list
-
       - name: Test momepy
         run: |
           pytest -v --color yes --cov-config .coveragerc --cov momepy --cov-append --cov-report term-missing --cov-report xml .
