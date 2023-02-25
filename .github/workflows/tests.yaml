@@ -46,7 +46,7 @@ jobs:
 
       - name: Test momepy
         run: |
-          pytest -v --color yes --cov-config .coveragerc --cov momepy --cov-append --cov-report term-missing --cov-report xml .
+          pytest -v --color yes --cov momepy --cov-append --cov-report term-missing --cov-report xml .
 
       - name: Test user guide
         if: contains(matrix.environment-file, '310-latest.yaml') && contains(matrix.os, 'ubuntu')
