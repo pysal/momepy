@@ -6,9 +6,9 @@ import operator
 import warnings
 import os
 
-PYGEOS=True
-if os.environ['USE_PYGEOS'] == '0':
-    PYGEOS=False
+PYGEOS = True
+if os.environ["USE_PYGEOS"] == "0":
+    PYGEOS = False
     import shapely as geos
 else:
     import pygeos as geos
@@ -537,7 +537,7 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     points = geos.points(np.unique(coords[edges], axis=0))
 
     # query LineString geometry to identify points intersecting 2 geometries
-tree = geos.STRtree(geom)
+    tree = geos.STRtree(geom)
     if PYGEOS:
         inp, res = tree.query_bulk(points, predicate="intersects")
     else:
@@ -840,9 +840,7 @@ def _rabs_center_points(gdf, center_type="centroid"):
     tmp["geometry"] = tmp.geometry.values.data
 
     pygeos_geoms = (
-        tmp.groupby("index_right")
-        .geometry.apply(geos.multipolygons)
-        .rename("geometry")
+        tmp.groupby("index_right").geometry.apply(geos.multipolygons).rename("geometry")
     )
     pygeos_geoms = geos.make_valid(pygeos_geoms)
 
@@ -917,7 +915,7 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
         else:
             edges_idx, rabs_idx = rab_multipolygons.sindex.query(
                 edges.geometry, predicate="covered_by"
-            )           
+            )
     else:
         touching = gpd.sjoin(edges, rab_multipolygons, op="touches")
         if PYGEOS:
@@ -927,7 +925,7 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
         else:
             edges_idx, rabs_idx = rab_multipolygons.sindex.query(
                 edges.geometry, op="covered_by"
-            )           
+            )
     idx_drop = edges.index.take(edges_idx)
     touching_idx = touching.index
     ls = list(set(touching_idx) - set(idx_drop))
