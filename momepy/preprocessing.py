@@ -7,7 +7,7 @@ import warnings
 import os
 
 PYGEOS = True
-if os.environ["USE_PYGEOS"] == "0":
+if os.environ.get("USE_PYGEOS", "1") == "0":
     PYGEOS = False
     import shapely as geos
 else:
