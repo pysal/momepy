@@ -6,13 +6,6 @@ import operator
 import warnings
 import os
 
-PYGEOS = True
-if os.environ.get("USE_PYGEOS", "1") == "0":
-    PYGEOS = False
-    import shapely as geos
-else:
-    import pygeos as geos
-
 import geopandas as gpd
 import libpysal
 import numpy as np
@@ -37,6 +30,15 @@ __all__ = [
 
 GPD_10 = Version(gpd.__version__) >= Version("0.10")
 GPD_09 = Version(gpd.__version__) >= Version("0.9")
+
+if os.environ.get("USE_PYGEOS", "1") == "1":
+    raise DeprecationWarning(
+        """The environment variable USE_PYGEOS is either 
+    unset or set to 1. Due to breaking changing this module has been updated to
+    use Shapely 2.0 which may make some functions fail. To use and test Shapely
+    2.0, you have set the environment variable USE_PYGEOS=0.
+    """
+    )
 
 
 def preprocess(
@@ -228,8 +230,8 @@ def remove_false_nodes(gdf):
         df = gpd.GeoSeries(gdf)
 
     # extract array of coordinates and number per geometry
-    coords = geos.get_coordinates(geom)
-    indices = geos.get_num_coordinates(geom)
+    coords = shapely.get_coordinates(geom)
+    indices = shapely.get_num_coordinates(geom)
 
     # generate a list of start and end coordinates and create point geometries
     edges = [0]
@@ -240,14 +242,11 @@ def remove_false_nodes(gdf):
         edges.append(ix)
         i = ix
     edges = edges[:-1]
-    points = geos.points(np.unique(coords[edges], axis=0))
+    points = shapely.points(np.unique(coords[edges], axis=0))
 
     # query LineString geometry to identify points intersecting 2 geometries
-    tree = geos.STRtree(geom)
-    if PYGEOS:
-        inp, res = tree.query_bulk(points, predicate="intersects")
-    else:
-        inp, res = tree.query(points, predicate="intersects")
+    tree = shapely.STRtree(geom)
+    inp, res = tree.query(points, predicate="intersects")
     unique, counts = np.unique(inp, return_counts=True)
     merge = res[np.isin(inp, unique[counts == 2])]
 
@@ -273,7 +272,7 @@ def remove_false_nodes(gdf):
             for item in components.items():
                 if item[1] == c:
                     keys.append(item[0])
-            new.append(geos.line_merge(geos.union_all(geom[keys])))
+            new.append(shapely.line_merge(shapely.union_all(geom[keys])))
 
         # remove incorrect geometries and append fixed versions
         df = df.drop(merge)
@@ -436,8 +435,8 @@ def close_gaps(gdf, tolerance):
 
     """
     geom = gdf.geometry.values.data
-    coords = geos.get_coordinates(geom)
-    indices = geos.get_num_coordinates(geom)
+    coords = shapely.get_coordinates(geom)
+    indices = shapely.get_num_coordinates(geom)
 
     # generate a list of start and end coordinates and create point geometries
     edges = [0]
@@ -448,20 +447,20 @@ def close_gaps(gdf, tolerance):
         edges.append(ix)
         i = ix
     edges = edges[:-1]
-    points = geos.points(np.unique(coords[edges], axis=0))
+    points = shapely.points(np.unique(coords[edges], axis=0))
 
-    buffered = geos.buffer(points, tolerance / 2)
+    buffered = shapely.buffer(points, tolerance / 2)
 
-    dissolved = geos.union_all(buffered)
+    dissolved = shapely.union_all(buffered)
 
     exploded = [
-        geos.get_geometry(dissolved, i)
-        for i in range(geos.get_num_geometries(dissolved))
+        shapely.get_geometry(dissolved, i)
+        for i in range(shapely.get_num_geometries(dissolved))
     ]
 
-    centroids = geos.centroid(exploded)
+    centroids = shapely.centroid(exploded)
 
-    snapped = geos.snap(geom, geos.union_all(centroids), tolerance)
+    snapped = shapely.snap(geom, shapely.union_all(centroids), tolerance)
 
     return gpd.GeoSeries(snapped, crs=gdf.crs)
 
@@ -522,8 +521,8 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     geom = df.geometry.values.data
 
     # extract array of coordinates and number per geometry
-    coords = geos.get_coordinates(geom)
-    indices = geos.get_num_coordinates(geom)
+    coords = shapely.get_coordinates(geom)
+    indices = shapely.get_num_coordinates(geom)
 
     # generate a list of start and end coordinates and create point geometries
     edges = [0]
@@ -534,24 +533,21 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
         edges.append(ix)
         i = ix
     edges = edges[:-1]
-    points = geos.points(np.unique(coords[edges], axis=0))
+    points = shapely.points(np.unique(coords[edges], axis=0))
 
     # query LineString geometry to identify points intersecting 2 geometries
-    tree = geos.STRtree(geom)
-    if PYGEOS:
-        inp, res = tree.query_bulk(points, predicate="intersects")
-    else:
-        inp, res = tree.query(points, predicate="intersects")
+    tree = shapely.STRtree(geom)
+    inp, res = tree.query(points, predicate="intersects")
     unique, counts = np.unique(inp, return_counts=True)
     ends = np.unique(res[np.isin(inp, unique[counts == 1])])
 
     new_geoms = []
     # iterate over cul-de-sac-like segments and attempt to snap them to street network
     for line in ends:
-        l_coords = geos.get_coordinates(geom[line])
+        l_coords = shapely.get_coordinates(geom[line])
 
-        start = geos.points(l_coords[0])
-        end = geos.points(l_coords[-1])
+        start = shapely.points(l_coords[0])
+        end = shapely.points(l_coords[-1])
 
         first = list(tree.query(start, predicate="intersects"))
         second = list(tree.query(end, predicate="intersects"))
@@ -565,17 +561,17 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
             if (
                 barrier is not None
                 and barrier.sindex.query(
-                    geos.linestrings(snapped), predicate="intersects"
+                    shapely.linestrings(snapped), predicate="intersects"
                 ).size
                 > 0
             ):
                 new_geoms.append(geom[line])
             else:
                 if extension == 0:
-                    new_geoms.append(geos.linestrings(snapped))
+                    new_geoms.append(shapely.linestrings(snapped))
                 else:
                     new_geoms.append(
-                        geos.linestrings(
+                        shapely.linestrings(
                             _extend_line(snapped, t, extension, snap=False)
                         )
                     )
@@ -584,17 +580,17 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
             if (
                 barrier is not None
                 and barrier.sindex.query(
-                    geos.linestrings(snapped), predicate="intersects"
+                    shapely.linestrings(snapped), predicate="intersects"
                 ).size
                 > 0
             ):
                 new_geoms.append(geom[line])
             else:
                 if extension == 0:
-                    new_geoms.append(geos.linestrings(snapped))
+                    new_geoms.append(shapely.linestrings(snapped))
                 else:
                     new_geoms.append(
-                        geos.linestrings(
+                        shapely.linestrings(
                             _extend_line(snapped, t, extension, snap=False)
                         )
                     )
@@ -605,17 +601,17 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
             if (
                 barrier is not None
                 and barrier.sindex.query(
-                    geos.linestrings(snapped), predicate="intersects"
+                    shapely.linestrings(snapped), predicate="intersects"
                 ).size
                 > 0
             ):
                 new_geoms.append(geom[line])
             else:
                 if extension == 0:
-                    new_geoms.append(geos.linestrings(snapped))
+                    new_geoms.append(shapely.linestrings(snapped))
                 else:
                     new_geoms.append(
-                        geos.linestrings(
+                        shapely.linestrings(
                             _extend_line(snapped, t, extension, snap=False)
                         )
                     )
@@ -634,7 +630,7 @@ def _extend_line(coords, target, tolerance, snap=True):
             tolerance,
         )
         int_idx = target.sindex.query(extrapolation, predicate="intersects")
-        intersection = geos.intersection(
+        intersection = shapely.intersection(
             target.iloc[int_idx].geometry.values.data, extrapolation
         )
         if intersection.size > 0:
@@ -642,14 +638,14 @@ def _extend_line(coords, target, tolerance, snap=True):
                 distances = {}
                 ix = 0
                 for p in intersection:
-                    distance = geos.distance(p, geos.points(coords[-1]))
+                    distance = shapely.distance(p, shapely.points(coords[-1]))
                     distances[ix] = distance
                     ix = ix + 1
                 minimal = min(distances.items(), key=operator.itemgetter(1))[0]
-                new_point_coords = geos.get_coordinates(intersection[minimal])
+                new_point_coords = shapely.get_coordinates(intersection[minimal])
 
             else:
-                new_point_coords = geos.get_coordinates(intersection[0])
+                new_point_coords = shapely.get_coordinates(intersection[0])
             coo = np.append(coords, new_point_coords)
             new = np.reshape(coo, (int(len(coo) / 2), 2))
 
@@ -751,7 +747,7 @@ def _get_extrapolated_line(coords, tolerance, point=False):
         )
     if point:
         return b
-    return geos.linestrings([a, b])
+    return shapely.linestrings([a, b])
 
 
 def _polygonize_ifnone(edges, polys):
@@ -840,9 +836,11 @@ def _rabs_center_points(gdf, center_type="centroid"):
     tmp["geometry"] = tmp.geometry.values.data
 
     pygeos_geoms = (
-        tmp.groupby("index_right").geometry.apply(geos.multipolygons).rename("geometry")
+        tmp.groupby("index_right")
+        .geometry.apply(shapely.multipolygons)
+        .rename("geometry")
     )
-    pygeos_geoms = geos.make_valid(pygeos_geoms)
+    pygeos_geoms = shapely.make_valid(pygeos_geoms)
 
     rab_multipolygons = gpd.GeoDataFrame(pygeos_geoms, crs=gdf.crs)
     # make_valid is transforming the multipolygons into geometry collections because of
@@ -855,7 +853,7 @@ def _rabs_center_points(gdf, center_type="centroid"):
         ].geometry.centroid
 
     elif center_type == "mean":
-        coords, idxs = geos.get_coordinates(pygeos_geoms, return_index=True)
+        coords, idxs = shapely.get_coordinates(pygeos_geoms, return_index=True)
         means = {}
         for i in np.unique(idxs):
             tmps = coords[idxs == i]
@@ -908,24 +906,14 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     # selecting the lines that are touching but not covered by
     if GPD_10:
         touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
-        if PYGEOS:
-            edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
-                edges.geometry, predicate="covered_by"
-            )
-        else:
-            edges_idx, rabs_idx = rab_multipolygons.sindex.query(
-                edges.geometry, predicate="covered_by"
-            )
+        edges_idx, rabs_idx = rab_multipolygons.sindex.query(
+            edges.geometry, predicate="covered_by"
+        )
     else:
         touching = gpd.sjoin(edges, rab_multipolygons, op="touches")
-        if PYGEOS:
-            edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
-                edges.geometry, op="covered_by"
-            )
-        else:
-            edges_idx, rabs_idx = rab_multipolygons.sindex.query(
-                edges.geometry, op="covered_by"
-            )
+        edges_idx, rabs_idx = rab_multipolygons.sindex.query(
+            edges.geometry, op="covered_by"
+        )
     idx_drop = edges.index.take(edges_idx)
     touching_idx = touching.index
     ls = list(set(touching_idx) - set(idx_drop))
