@@ -12,10 +12,10 @@ import numpy as np
 import pandas as pd
 import pygeos
 import shapely
+from esda import shape
 from packaging.version import Version
 from shapely.geometry import LineString, Point
 from shapely.ops import linemerge, polygonize
-from shapely.validation import make_valid
 from tqdm.auto import tqdm
 
 from .coins import COINS
@@ -757,27 +757,13 @@ def _polygonize_ifnone(edges, polys):
     return polys
 
 
-def _create_shape_index(gdf):
-    """
-    Shape index based on area and minimum_bounding_circle.
-    """
-    # Extract underlying PyGEOS geometries pygeos understands
-    # (minimum_bounding_circle is not yet exposed in geopandas)
-    ga = gdf.geometry.array.data
+def _create_compactness(gdf):
     # measure area
     gdf["area"] = gdf.area
-    # generate minimum bounding circle
-    circles = gpd.GeoDataFrame(
-        geometry=gpd.GeoSeries(pygeos.minimum_bounding_circle(ga), crs=gdf.crs)
-    )
-    # measure MBC's area
-    circles["circle_area"] = circles.area
-    # measure Reock (circular) compactness
-    gdf["reock"] = gdf["area"] / circles["circle_area"]
-    # measure direct shape index that captures banana-like relationship between area
-    # and Reock compactness in a one dimension
-    gdf["shape_index"] = gdf["area"] / np.sqrt(circles["circle_area"])
-
+    
+    # create index and append to input gdf
+    gdf["circular_compactness"] = shape.minimum_bounding_circle_ratio(gdf)
+    
     return gdf
 
 
@@ -786,9 +772,7 @@ def _count_edges_per_polygon(lines_gdf, polygons_gdf):
     Counts the number of linestrings that formed the polygons
     """
     # Check if the polygons are valid geometries and fix them if not
-    polygons_gdf["geometry"] = polygons_gdf["geometry"].apply(
-        lambda x: make_valid(x) if not x.is_valid else x
-    )
+    polygons_gdf["geometry"] = polygons_gdf.geometry.make_valid()
 
     # query bulk to identify the lines that are fully covered by each polygon
     _, pol_i = polygons_gdf.sindex.query_bulk(
@@ -825,7 +809,7 @@ def _selecting_rabs_from_poly(
     GeoDataFrames : roundabouts and adjacent polygons
     """
     # selecting roundabout polygons based on compactness
-    mask = gdf.reock > circom_threshold
+    mask = gdf.circular_compactness > circom_threshold
     rab = gdf[mask]
 
     # exclude those above the area threshold and larger than 2000sqmt
@@ -854,28 +838,23 @@ def _selecting_rabs_from_poly(
 
         # mask based on number of forming edges (3)
         mask_adjacents = (rab_adj["count_edges_left"] == 3) | (
-            rab_adj["reock_left"] > circom_threshold
+            rab_adj["circular_compactness_left"] > circom_threshold
         )
         rab_adj = rab_adj[mask_adjacents]
 
         # calculating how far an adjacent polygon stretches to
         # determine if it should still be simplified
         max_dists = []
-        for i, row in rab_adj.iterrows():
-            xs, ys = row.geometry.exterior.coords.xy
-            poly = np.array(list(map(lambda x, y: (x, y), xs, ys)))
-
-            cx, cy = row.savedgeom.centroid.coords.xy
-            c_point = np.array(list(map(lambda x, y: (x, y), cx, cy)))
-
-            # list of distances between centroid and each vertex of polygon
-            ds = map(np.linalg.norm, c_point - poly)
-            d_max = max(ds)
-            max_dists.append(d_max)
+        for _, row in rab_adj.iterrows():
+            dists = [
+                row.savedgeom_right.centroid.distance(Point(x, y))
+                for x, y in row.geometry.exterior.coords
+            ]
+            max_dists.append(max(dists))
         rab_adj["max_dist"] = max_dists
         max_d_mask = (
             rab_adj["max_dist"] <= rab_adj["rab_diameter"] * diameter_factor
-        ) | (rab_adj["reock_left"] > circom_threshold)
+        ) | (rab_adj["circular_compactness_left"] > circom_threshold)
         rab_plus2 = rab_adj[max_d_mask]
 
     else:
@@ -1150,7 +1129,7 @@ def roundabout_simplification(
         )
 
     polys = _polygonize_ifnone(edges, polys)
-    polys_attr_1 = _create_shape_index(polys)
+    polys_attr_1 = _create_compactness(polys)
     polys_attr_2 = _count_edges_per_polygon(edges, polys_attr_1)
     rab = _selecting_rabs_from_poly(
         polys_attr_2,
