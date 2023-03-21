@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 import pygeos
 import shapely
-from esda import shape
 from packaging.version import Version
 from shapely.geometry import LineString, Point
 from shapely.ops import linemerge, polygonize
@@ -758,12 +757,14 @@ def _polygonize_ifnone(edges, polys):
 
 
 def _create_compactness(gdf):
+    from esda import shape
+
     # measure area
     gdf["area"] = gdf.area
-    
+
     # create index and append to input gdf
     gdf["circular_compactness"] = shape.minimum_bounding_circle_ratio(gdf)
-    
+
     return gdf
 
 

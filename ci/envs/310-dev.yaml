@@ -7,6 +7,7 @@ dependencies:
   - geopandas
   - inequality
   - libpysal>=4.6.0
+  - esda
   - networkx
   - osmnx
   - packaging
@@ -27,3 +28,4 @@ dependencies:
       - git+https://github.com/networkx/networkx.git
       - git+https://github.com/pygeos/pygeos.git
       - git+https://github.com/pysal/mapclassify.git
+      - git+https://github.com/pysal/esda.git
