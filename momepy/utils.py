@@ -61,12 +61,14 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
         warnings.warn(
             message=msg % "The given network does not contain any LineString.",
             category=RuntimeWarning,
+            stacklevel=3,
         )
 
     if len(gdf_network.geom_type.unique()) > 1:
         warnings.warn(
             message=msg % "The given network consists of multiple geometry types.",
             category=RuntimeWarning,
+            stacklevel=3,
         )
 
     key = 0
@@ -425,7 +427,9 @@ def nx_to_gdf(
 
     if not primal:
         warnings.warn(
-            message="Approach is not set. Defaulting to 'primal'.", category=UserWarning
+            message="Approach is not set. Defaulting to 'primal'.",
+            category=UserWarning,
+            stacklevel=2,
         )
 
     for nid, n in enumerate(net):
