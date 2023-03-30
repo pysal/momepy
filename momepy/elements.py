@@ -382,7 +382,7 @@ class Tessellation:
                     f"during generation - unique_id: {self.collapsed}."
                 ),
                 category=UserWarning,
-                stacklevel=1,
+                stacklevel=4,
             )
 
         # check MultiPolygons - usually caused by error in input geometry
@@ -397,7 +397,7 @@ class Tessellation:
                     f"elements: {list(self.multipolygons)}."
                 ),
                 category=UserWarning,
-                stacklevel=1,
+                stacklevel=4,
             )
 
     def _enclosed_tessellation(
@@ -476,7 +476,7 @@ class Tessellation:
                         f"Setting `use_dask={use_dask}`."
                     ),
                     category=UserWarning,
-                    stacklevel=1,
+                    stacklevel=3,
                 )
 
         if use_dask:
@@ -761,7 +761,7 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
                 f"`min_size``. {sum(series.isnull())} affected elements."
             ),
             category=UserWarning,
-            stacklevel=1,
+            stacklevel=2,
         )
     return series
 
