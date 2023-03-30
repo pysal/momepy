@@ -6,7 +6,6 @@ import momepy as mm
 
 class TimeDiversity:
     def setup(self):
-
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
@@ -34,7 +33,6 @@ class TimeDiversityBinning:
     params = [("HeadTailBreaks", "Quantiles", "EqualInterval")]
 
     def setup(self, *args):
-
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")

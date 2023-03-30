@@ -118,3 +118,4 @@ run/
 .asv
 dask-worker-space
 .DS_Store
+.ruff_cache

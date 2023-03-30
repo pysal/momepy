@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # intensity.py
 # definitions of intensity characters
@@ -327,7 +326,6 @@ class BlocksCount:
     def __init__(
         self, gdf, block_id, spatial_weights, unique_id, weighted=True, verbose=True
     ):
-
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -346,7 +344,7 @@ class BlocksCount:
             areas = data.geometry.area
 
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = [index]
                 neighbours += spatial_weights.neighbors[index]
 
@@ -572,7 +570,6 @@ class NodeDensity:
 
         # iterating over rows one by one
         for index in tqdm(left.index, total=left.shape[0], disable=not verbose):
-
             neighbours = [index]
             neighbours += spatial_weights.neighbors[index]
             if weighted:
@@ -654,10 +651,9 @@ class Density:
         results_list = []
         data = gdf.copy()
 
-        if values is not None:
-            if not isinstance(values, str):
-                data["mm_v"] = values
-                values = "mm_v"
+        if values is not None and not isinstance(values, str):
+            data["mm_v"] = values
+            values = "mm_v"
         self.values = data[values]
         if areas is not None:
             if not isinstance(areas, str):
@@ -671,7 +667,7 @@ class Density:
         data = data.set_index(unique_id)
         # iterating over rows one by one
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = [index]
                 neighbours += spatial_weights.neighbors[index]
                 subset = data.loc[neighbours]

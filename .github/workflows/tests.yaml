@@ -4,67 +4,63 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches:
+      - "*"
   schedule:
     - cron: "0 0 * * 1,4"
 
 jobs:
-  Linting:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-      - uses: pre-commit/action@v2.0.0
-
   Test:
-    needs: Linting
-    name: ${{ matrix.os }}, ${{ matrix.env }}
+    name: ${{ matrix.os }}, ${{ matrix.environment-file }}
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l {0}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        env:
+        environment-file:
           - ci/envs/38-minimal.yaml
           - ci/envs/39-latest.yaml
           - ci/envs/310-latest.yaml
-          - ci/envs/310-dev.yaml
+          - ci/envs/311-latest.yaml
+          - ci/envs/311-dev.yaml
         include:
-          - env: ci/envs/310-latest.yaml
+          - environment-file: ci/envs/311-latest.yaml
             os: macos-latest
-          - env: ci/envs/310-latest.yaml
+          - environment-file: ci/envs/311-latest.yaml
             os: windows-latest
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2
+      - name: setup micromamba
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          environment-file: ${{ matrix.env }}
-          miniforge-version: latest
-          miniforge-variant: Mambaforge
-          use-mamba: true
+          environment-file: ${{ matrix.environment-file }}
+          micromamba-version: "latest"
 
       - name: Install momepy
         run: pip install .
 
-      - name: Check environment
-        run: |
-          conda info
-          conda list
-
       - name: Test momepy
         run: |
-          pytest -v --color yes --cov-config .coveragerc --cov momepy --cov-append --cov-report term-missing --cov-report xml tests
+          pytest -v --color yes --cov momepy --cov-append --cov-report term-missing --cov-report xml .
 
       - name: Test user guide
-        if: contains(matrix.env, '310-latest.yaml') && contains(matrix.os, 'ubuntu')
+        if: contains(matrix.environment-file, '310-latest.yaml') && contains(matrix.os, 'ubuntu')
         run: |
           ci/envs/test_user_guide.sh
 
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
+
+      - name: Generate and publish the report
+        if: |
+          failure()
+          && steps.status.outcome == 'failure'
+          && github.event_name == 'schedule'
+          && github.repository_owner == 'pysal'
+        uses: xarray-contrib/issue-from-pytest-log@v1
+        with:
+          log-path: pytest-log.jsonl

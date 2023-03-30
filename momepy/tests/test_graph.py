@@ -10,7 +10,6 @@ NX_26 = Version(nx.__version__) < Version("2.6")
 
 class TestGraph:
     def setup_method(self):
-
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.network = mm.gdf_to_nx(self.df_streets)

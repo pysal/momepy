@@ -12,7 +12,6 @@ SHAPELY_G_20a1 = Version(shapely.__version__) > Version("2.0a1")
 
 class TestDistribution:
     def setup_method(self):
-
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import collections
 import math
@@ -103,71 +102,68 @@ def preprocess(
             desc="Identifying changes",
             disable=not verbose,
         ):
-            if size:
-                if row.geometry.area < size:
-                    if row.n_count == 1:
-                        uid = blg.iloc[row.neighbors[0]].mm_uid
-
-                        if uid in join:
-                            existing = join[uid]
-                            existing.append(row.mm_uid)
-                            join[uid] = existing
-                        else:
-                            join[uid] = [row.mm_uid]
-                    elif row.n_count > 1:
-                        shares = {}
-                        for n in row.neighbors:
-                            shares[n] = row.geometry.intersection(
-                                blg.at[n, blg.geometry.name]
-                            ).length
-                        maximal = max(shares.items(), key=operator.itemgetter(1))[0]
-                        uid = blg.loc[maximal].mm_uid
-                        if uid in join:
-                            existing = join[uid]
-                            existing.append(row.mm_uid)
-                            join[uid] = existing
-                        else:
-                            join[uid] = [row.mm_uid]
-                    else:
-                        delete.append(row.Index)
-            if compactness:
-                if row.circu < compactness:
-                    if row.n_count == 1:
-                        uid = blg.iloc[row.neighbors[0]].mm_uid
-                        if uid in join:
-                            existing = join[uid]
-                            existing.append(row.mm_uid)
-                            join[uid] = existing
-                        else:
-                            join[uid] = [row.mm_uid]
-                    elif row.n_count > 1:
-                        shares = {}
-                        for n in row.neighbors:
-                            shares[n] = row.geometry.intersection(
-                                blg.at[n, blg.geometry.name]
-                            ).length
-                        maximal = max(shares.items(), key=operator.itemgetter(1))[0]
-                        uid = blg.loc[maximal].mm_uid
-                        if uid in join:
-                            existing = join[uid]
-                            existing.append(row.mm_uid)
-                            join[uid] = existing
-                        else:
-                            join[uid] = [row.mm_uid]
-
-            if islands:
+            if size and row.geometry.area < size:
                 if row.n_count == 1:
-                    shared = row.geometry.intersection(
-                        blg.at[row.neighbors[0], blg.geometry.name]
-                    ).length
-                    if shared == row.geometry.exterior.length:
-                        uid = blg.iloc[row.neighbors[0]].mm_uid
-                        if uid in join:
-                            existing = join[uid]
-                            existing.append(row.mm_uid)
-                            join[uid] = existing
-                        else:
-                            join[uid] = [row.mm_uid]
+                    uid = blg.iloc[row.neighbors[0]].mm_uid
+
+                    if uid in join:
+                        existing = join[uid]
+                        existing.append(row.mm_uid)
+                        join[uid] = existing
+                    else:
+                        join[uid] = [row.mm_uid]
+                elif row.n_count > 1:
+                    shares = {}
+                    for n in row.neighbors:
+                        shares[n] = row.geometry.intersection(
+                            blg.at[n, blg.geometry.name]
+                        ).length
+                    maximal = max(shares.items(), key=operator.itemgetter(1))[0]
+                    uid = blg.loc[maximal].mm_uid
+                    if uid in join:
+                        existing = join[uid]
+                        existing.append(row.mm_uid)
+                        join[uid] = existing
+                    else:
+                        join[uid] = [row.mm_uid]
+                else:
+                    delete.append(row.Index)
+            if compactness and row.circu < compactness:
+                if row.n_count == 1:
+                    uid = blg.iloc[row.neighbors[0]].mm_uid
+                    if uid in join:
+                        existing = join[uid]
+                        existing.append(row.mm_uid)
+                        join[uid] = existing
+                    else:
+                        join[uid] = [row.mm_uid]
+                elif row.n_count > 1:
+                    shares = {}
+                    for n in row.neighbors:
+                        shares[n] = row.geometry.intersection(
+                            blg.at[n, blg.geometry.name]
+                        ).length
+                    maximal = max(shares.items(), key=operator.itemgetter(1))[0]
+                    uid = blg.loc[maximal].mm_uid
+                    if uid in join:
+                        existing = join[uid]
+                        existing.append(row.mm_uid)
+                        join[uid] = existing
+                    else:
+                        join[uid] = [row.mm_uid]
+
+            if islands and row.n_count == 1:
+                shared = row.geometry.intersection(
+                    blg.at[row.neighbors[0], blg.geometry.name]
+                ).length
+                if shared == row.geometry.exterior.length:
+                    uid = blg.iloc[row.neighbors[0]].mm_uid
+                    if uid in join:
+                        existing = join[uid]
+                        existing.append(row.mm_uid)
+                        join[uid] = existing
+                    else:
+                        join[uid] = [row.mm_uid]
 
         for key in tqdm(
             join, total=len(join), desc="Changing geometry", disable=not verbose
@@ -253,9 +249,9 @@ def remove_false_nodes(gdf):
         components = {}
         for i, a in enumerate(split):
             if a[0] in dups or a[1] in dups:
-                if a[0] in components.keys():
+                if a[0] in components:
                     i = components[a[0]]
-                elif a[1] in components.keys():
+                elif a[1] in components:
                     i = components[a[1]]
             components[a[0]] = i
             components[a[1]] = i
@@ -352,10 +348,7 @@ class CheckTessellationInput:
         if split:
             types = data.type
 
-        if shrink != 0:
-            shrink = data.buffer(-shrink)
-        else:
-            shrink = data
+        shrink = data.buffer(-shrink) if shrink != 0 else data
 
         if collapse:
             emptycheck = shrink.is_empty
@@ -404,9 +397,9 @@ class CheckTessellationInput:
             overlapping_c = "NA"
 
         print(
-            "Collapsed features  : {0}\n"
-            "Split features      : {1}\n"
-            "Overlapping features: {2}".format(collapsed, split_count, overlapping_c)
+            f"Collapsed features  : {collapsed}\n"
+            f"Split features      : {split_count}\n"
+            f"Overlapping features: {overlapping_c}"
         )
 
 
@@ -542,7 +535,6 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     new_geoms = []
     # iterate over cul-de-sac-like segments and attempt to snap them to street network
     for line in ends:
-
         l_coords = pygeos.get_coordinates(geom[line])
 
         start = pygeos.points(l_coords[0])
@@ -752,7 +744,7 @@ def _get_extrapolated_line(coords, tolerance, point=False):
 def _polygonize_ifnone(edges, polys):
     if polys is None:
         pre_polys = polygonize(edges.geometry)
-        polys = gpd.GeoDataFrame(geometry=[g for g in pre_polys], crs=edges.crs)
+        polys = gpd.GeoDataFrame(geometry=list(pre_polys), crs=edges.crs)
     return polys
 
 
@@ -819,7 +811,6 @@ def _selecting_rabs_from_poly(
         rab = rab[rab[area_col] < area_threshold_val]
 
     if include_adjacent is True:
-
         # calculating a pseudo diameter for dimeter metric later
         bounds = rab.geometry.bounds
         rab = pd.concat([rab, bounds], axis=1)
@@ -923,7 +914,7 @@ def _coins_filtering_many_incoming(incoming_many, angle_threshold=0):
     # For each new connection, evaluate COINS and select the group from which the new
     # line belongs
     # TODO ideally use the groupby object on line_wkt used earlier
-    for g, x in incoming_many.groupby("line_wkt"):
+    for _g, x in incoming_many.groupby("line_wkt"):
         gs = gpd.GeoSeries(pd.concat([x.geometry, x.line]), crs=incoming_many.crs)
         gdf = gpd.GeoDataFrame(geometry=gs)
         gdf = gdf.drop_duplicates()
@@ -971,7 +962,7 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     incoming["last_pt"] = incoming.geometry.apply(lambda x: Point(x.coords[-1]))
     incoming["dist_last_pt"] = incoming.center_pt.distance(incoming.last_pt)
     lines = []
-    for i, row in incoming.iterrows():
+    for _i, row in incoming.iterrows():
         if row.dist_first_pt < row.dist_last_pt:
             lines.append(LineString([row.first_pt, row.center_pt]))
         else:
@@ -1115,18 +1106,14 @@ def roundabout_simplification(
     """
     if not GPD_09:
         raise ImportError(
-            (
-                "`roundabout_simplification` requires geopandas 0.9.0 or newer. "
-                f"Your current version is {gpd.__version__}."
-            )
+            "`roundabout_simplification` requires geopandas 0.9.0 or newer. "
+            f"Your current version is {gpd.__version__}."
         )
 
     if len(edges[edges.geom_type != "LineString"]) > 0:
         raise TypeError(
-            (
-                "Only LineString geometries are allowed. "
-                "Try using the `explode()` method to explode MultiLineStrings."
-            )
+            "Only LineString geometries are allowed. "
+            "Try using the `explode()` method to explode MultiLineStrings."
         )
 
     polys = _polygonize_ifnone(edges, polys)

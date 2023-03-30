@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # elements.py
 # generating derived elements (street edge, block)
@@ -197,7 +196,6 @@ class Tessellation:
         threshold=0.05,
         use_dask=True,
         n_chunks=None,
-        **kwargs,
     ):
         self.gdf = gdf
         self.id = gdf[unique_id]
@@ -223,7 +221,6 @@ class Tessellation:
         gdf = gdf.copy()
 
         if enclosures is not None:
-
             enclosures = enclosures.copy()
 
             bounds = enclosures.total_bounds
@@ -239,7 +236,6 @@ class Tessellation:
                 gdf,
                 enclosures,
                 unique_id,
-                enclosure_id,
                 threshold,
                 use_dask,
                 n_chunks,
@@ -378,7 +374,6 @@ class Tessellation:
         ids_original = list(orig_gdf[unique_id])
         ids_generated = list(tesselation[unique_id])
         if len(ids_original) != len(ids_generated):
-
             self.collapsed = set(ids_original).difference(ids_generated)
             warnings.warn(
                 message=(
@@ -387,6 +382,7 @@ class Tessellation:
                     f"during generation - unique_id: {self.collapsed}."
                 ),
                 category=UserWarning,
+                stacklevel=4,
             )
 
         # check MultiPolygons - usually caused by error in input geometry
@@ -401,6 +397,7 @@ class Tessellation:
                     f"elements: {list(self.multipolygons)}."
                 ),
                 category=UserWarning,
+                stacklevel=4,
             )
 
     def _enclosed_tessellation(
@@ -408,7 +405,6 @@ class Tessellation:
         buildings,
         enclosures,
         unique_id,
-        enclosure_id="eID",
         threshold=0.05,
         use_dask=True,
         n_chunks=None,
@@ -480,6 +476,7 @@ class Tessellation:
                         f"Setting `use_dask={use_dask}`."
                     ),
                     category=UserWarning,
+                    stacklevel=3,
                 )
 
         if use_dask:
@@ -515,9 +512,9 @@ class Tessellation:
 
         # finalise the result
         clean_blocks = enclosures.drop(splits)
-        clean_blocks.loc[single, "uID"] = clean_blocks.loc[single, "position"].apply(
-            lambda ix: buildings.iloc[res[inp == ix][0]][unique_id]
-        )
+        clean_blocks.loc[single, unique_id] = clean_blocks.loc[
+            single, "position"
+        ].apply(lambda ix: buildings.iloc[res[inp == ix][0]][unique_id])
         return pd.concat(new + [clean_blocks.drop(columns="position")]).reset_index(
             drop=True
         )
@@ -531,7 +528,6 @@ class Tessellation:
         query_res,
         threshold,
         unique_id,
-        **kwargs,
     ):
         poly = enclosure.geometry.values.data[ix]
         blg = buildings.iloc[query_res[query_inp == ix]]
@@ -610,7 +606,7 @@ class Blocks:
     4	5.0	POLYGON ((1603183.399594798 6463966.109982309,...
     """
 
-    def __init__(self, tessellation, edges, buildings, id_name, unique_id, **kwargs):
+    def __init__(self, tessellation, edges, buildings, id_name, unique_id):
         self.tessellation = tessellation
         self.edges = edges
         self.buildings = buildings
@@ -627,24 +623,21 @@ class Blocks:
             gpd.GeoDataFrame(geometry=edges.buffer(0.001)),
             how="difference",
         )
-        if GPD_10:
-            cut = cut.explode(ignore_index=True)
-        else:
-            cut = cut.explode()
+        cut = cut.explode(ignore_index=True) if GPD_10 else cut.explode()
 
-        W = libpysal.weights.Queen.from_dataframe(cut, silence_warnings=True)
-        cut["component"] = W.component_labels
+        weights = libpysal.weights.Queen.from_dataframe(cut, silence_warnings=True)
+        cut["component"] = weights.component_labels
         buildings_c = buildings.copy()
         buildings_c.geometry = buildings_c.representative_point()  # make points
         if GPD_10:
-            centroids_tempID = gpd.sjoin(
+            centroids_temp_id = gpd.sjoin(
                 buildings_c,
                 cut[[cut.geometry.name, "component"]],
                 how="left",
                 predicate="within",
             )
         else:
-            centroids_tempID = gpd.sjoin(
+            centroids_temp_id = gpd.sjoin(
                 buildings_c,
                 cut[[cut.geometry.name, "component"]],
                 how="left",
@@ -652,7 +645,7 @@ class Blocks:
             )
 
         cells_copy = tessellation[[unique_id, tessellation.geometry.name]].merge(
-            centroids_tempID[[unique_id, "component"]], on=unique_id, how="left"
+            centroids_temp_id[[unique_id, "component"]], on=unique_id, how="left"
         )
         if GPD_10:
             blocks = cells_copy.dissolve(by="component").explode(ignore_index=True)
@@ -664,16 +657,16 @@ class Blocks:
         blocks = blocks[[id_name, blocks.geometry.name]]
 
         if GPD_10:
-            centroids_w_bl_ID2 = gpd.sjoin(
+            centroids_w_bl_id2 = gpd.sjoin(
                 buildings_c, blocks, how="left", predicate="within"
             )
         else:
-            centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks, how="left", op="within")
+            centroids_w_bl_id2 = gpd.sjoin(buildings_c, blocks, how="left", op="within")
 
-        self.buildings_id = centroids_w_bl_ID2[id_name]
+        self.buildings_id = centroids_w_bl_id2[id_name]
 
         cells_m = tessellation[[unique_id]].merge(
-            centroids_w_bl_ID2[[unique_id, id_name]], on=unique_id, how="left"
+            centroids_w_bl_id2[[unique_id, id_name]], on=unique_id, how="left"
         )
 
         self.tessellation_id = cells_m[id_name]
@@ -723,7 +716,7 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
     momepy.get_network_ratio
     momepy.get_node_id
     """
-    INFTY = 1000000000000
+    infty = 1000000000000
     left = left.copy()
     right = right.copy()
 
@@ -747,7 +740,7 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
     ):
         pbox = (p.x - min_size, p.y - min_size, p.x + min_size, p.y + min_size)
         hits = list(idx.intersection(pbox))
-        d = INFTY
+        d = infty
         nid = None
         for h in hits:
             new_d = p.distance(right.geometry.iloc[h])
@@ -768,6 +761,7 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
                 f"`min_size``. {sum(series.isnull())} affected elements."
             ),
             category=UserWarning,
+            stacklevel=2,
         )
     return series
 
@@ -839,16 +833,16 @@ def get_node_id(
                 results_list.append(np.nan)
             else:
                 edge = edges.loc[eid]
-                startID = edge.node_start
-                start = nodes.loc[startID].geometry
+                start_id = edge.node_start
+                start = nodes.loc[start_id].geometry
                 sd = centroid.distance(start)
-                endID = edge.node_end
-                end = nodes.loc[endID].geometry
+                end_id = edge.node_end
+                end = nodes.loc[end_id].geometry
                 ed = centroid.distance(end)
                 if sd > ed:
-                    results_list.append(endID)
+                    results_list.append(end_id)
                 else:
-                    results_list.append(startID)
+                    results_list.append(start_id)
 
     elif edge_keys is not None and edge_values is not None:
         for edge_i, edge_r, geom in tqdm(
@@ -857,16 +851,16 @@ def get_node_id(
             disable=not verbose,
         ):
             edge = edges.iloc[edge_i[edge_r.index(max(edge_r))]]
-            startID = edge.node_start
-            start = nodes.loc[startID].geometry
+            start_id = edge.node_start
+            start = nodes.loc[start_id].geometry
             sd = geom.distance(start)
-            endID = edge.node_end
-            end = nodes.loc[endID].geometry
+            end_id = edge.node_end
+            end = nodes.loc[end_id].geometry
             ed = geom.distance(end)
             if sd > ed:
-                results_list.append(endID)
+                results_list.append(end_id)
             else:
-                results_list.append(startID)
+                results_list.append(start_id)
 
     series = pd.Series(results_list, index=objects.index)
     return series
@@ -944,7 +938,7 @@ def get_network_ratio(df, edges, initial_buffer=500):
     near = []
     df_ix_non = df_ix[~touching]
     grouped = pd.Series(dist[~touching]).groupby(df_ix_non)
-    for name, group in grouped:
+    for _, group in grouped:
         near.append({edg_ix[~touching][group.idxmin()]: 1.0})
 
     near = pd.Series(near, index=df.index[list(grouped.groups.keys())])

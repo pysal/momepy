@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import libpysal
 import numpy as np
@@ -137,11 +136,11 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True
     if k > 1:
         id_order = first_order.id_order
         w = first_order.sparse
-        wk = sum(map(lambda x: w**x, range(2, k + 1)))
+        wk = sum(w**x for x in range(2, k + 1))
         rk, ck = wk.nonzero()
         sk = set(zip(rk, ck))
-        sk = set([(i, j) for i, j in sk if i != j])
-        d = dict([(i, []) for i in id_order])
+        sk = {(i, j) for i, j in sk if i != j}
+        d = {i: [] for i in id_order}
         for pair in sk:
             k, v = pair
             k = id_order[k]

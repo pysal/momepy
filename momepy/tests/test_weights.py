@@ -7,7 +7,6 @@ import momepy as mm
 
 class TestWeights:
     def setup_method(self):
-
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
