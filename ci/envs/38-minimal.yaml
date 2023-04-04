@@ -11,7 +11,7 @@ dependencies:
   - numpy=1.21
   - osmnx
   - packaging
-  - pandas>=0.23.0,!=1.5.0
+  - pandas>=0.23.0,!=1.5.0,<2
   - pygeos
   - shapely=1.8.0
   - tqdm=4.27.0
