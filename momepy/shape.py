@@ -8,6 +8,7 @@ import random
 
 import numpy as np
 import pandas as pd
+import shapely
 from shapely.geometry import Point
 from tqdm.auto import tqdm  # progress bar
 
@@ -708,7 +709,6 @@ class Rectangularity:
     """
 
     def __init__(self, gdf, areas=None):
-        # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
         self.gdf = gdf
         gdf = gdf.copy()
         if areas is None:
@@ -717,10 +717,9 @@ class Rectangularity:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.series = gdf.apply(
-            lambda row: row[areas] / (row.geometry.minimum_rotated_rectangle.area),
-            axis=1,
-        )
+        mrr = shapely.minimum_rotated_rectangle(gdf.geometry.array)
+        mrr_area = shapely.area(mrr)
+        self.series = gdf[areas] / mrr_area
 
 
 class ShapeIndex:
@@ -1052,8 +1051,7 @@ class EquivalentRectangularIndex:
                 areas = gdf[areas]
 
         self.areas = areas
-        # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
-        bbox = gdf.geometry.apply(lambda g: g.minimum_rotated_rectangle)
+        bbox = shapely.minimum_rotated_rectangle(gdf.geometry)
         res = np.sqrt(areas / bbox.area) * (bbox.length / perimeters)
 
         self.series = pd.Series(res, index=gdf.index)
@@ -1094,8 +1092,7 @@ class Elongation:
     def __init__(self, gdf):
         self.gdf = gdf
 
-        # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
-        bbox = gdf.geometry.apply(lambda g: g.minimum_rotated_rectangle)
+        bbox = shapely.minimum_rotated_rectangle(gdf.geometry)
         a = bbox.area
         p = bbox.length
         cond1 = p**2

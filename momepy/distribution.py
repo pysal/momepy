@@ -8,6 +8,7 @@ import math
 import networkx as nx
 import numpy as np
 import pandas as pd
+import shapely
 from tqdm.auto import tqdm  # progress bar
 
 from .utils import _azimuth
@@ -67,10 +68,12 @@ class Orientation:
         def _dist(a, b):
             return math.hypot(b[0] - a[0], b[1] - a[1])
 
-        for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
+        bboxes = shapely.minimum_rotated_rectangle(gdf.geometry)
+        for geom, bbox in tqdm(
+            zip(gdf.geometry, bboxes), total=gdf.shape[0], disable=not verbose
+        ):
             if geom.type in ["Polygon", "MultiPolygon", "LinearRing"]:
-                # TODO: vectorize once minimum_rotated_rectangle is in geopandas
-                bbox = list(geom.minimum_rotated_rectangle.exterior.coords)
+                bbox = list(bbox.exterior.coords)
                 axis1 = _dist(bbox[0], bbox[3])
                 axis2 = _dist(bbox[0], bbox[1])
 
