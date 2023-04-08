@@ -194,9 +194,9 @@ class Count:
         joined.loc[joined["mm_count"].isna(), "mm_count"] = 0
 
         if weighted:
-            if left.geometry[0].type in ["Polygon", "MultiPolygon"]:
+            if left.geometry[0].geom_type in ["Polygon", "MultiPolygon"]:
                 joined["mm_count"] = joined["mm_count"] / left.geometry.area
-            elif left.geometry[0].type in ["LineString", "MultiLineString"]:
+            elif left.geometry[0].geom_type in ["LineString", "MultiLineString"]:
                 joined["mm_count"] = joined["mm_count"] / left.geometry.length
             else:
                 raise TypeError("Geometry type does not support weighting.")

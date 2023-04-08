@@ -72,7 +72,7 @@ class Orientation:
         for geom, bbox in tqdm(
             zip(gdf.geometry, bboxes), total=gdf.shape[0], disable=not verbose
         ):
-            if geom.type in ["Polygon", "MultiPolygon", "LinearRing"]:
+            if geom.geom_type in ["Polygon", "MultiPolygon", "LinearRing"]:
                 bbox = list(bbox.exterior.coords)
                 axis1 = _dist(bbox[0], bbox[3])
                 axis2 = _dist(bbox[0], bbox[1])
@@ -81,7 +81,7 @@ class Orientation:
                     az = _azimuth(bbox[0], bbox[1])
                 else:
                     az = _azimuth(bbox[0], bbox[3])
-            elif geom.type in ["LineString", "MultiLineString"]:
+            elif geom.geom_type in ["LineString", "MultiLineString"]:
                 coords = geom.coords
                 az = _azimuth(coords[0], coords[-1])
             else:

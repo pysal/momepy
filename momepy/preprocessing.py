@@ -345,7 +345,7 @@ class CheckTessellationInput:
         data = gdf[~gdf.is_empty]
 
         if split:
-            types = data.type
+            types = data.geom_type
 
         shrink = data.buffer(-shrink) if shrink != 0 else data
 
@@ -357,7 +357,7 @@ class CheckTessellationInput:
             collapsed = "NA"
 
         if split:
-            type_check = shrink.type != types
+            type_check = shrink.geom_type != types
             self.split = gdf[type_check]
             split_count = len(self.split)
         else:
@@ -383,7 +383,7 @@ class CheckTessellationInput:
                 shrink.geometry.rename("o_geom"), on="origin"
             ).join(shrink.geometry.rename("d_geom"), on="dest")
             intersection = od_matrix.o_geom.values.intersection(od_matrix.d_geom.values)
-            type_filter = gpd.GeoSeries(intersection).type == "Polygon"
+            type_filter = gpd.GeoSeries(intersection).geom_type == "Polygon"
             empty_filter = intersection.is_empty
             overlapping = od_matrix.reset_index(drop=True)[empty_filter ^ type_filter]
             over_rows = sorted(

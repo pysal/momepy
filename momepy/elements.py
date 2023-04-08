@@ -271,7 +271,7 @@ class Tessellation:
 
         if shrink != 0:
             print("Inward offset...") if verbose else None
-            mask = objects.type.isin(["Polygon", "MultiPolygon"])
+            mask = objects.geom_type.isin(["Polygon", "MultiPolygon"])
             objects.loc[mask, objects.geometry.name] = objects[mask].buffer(
                 -shrink, cap_style=2, join_style=2
             )
@@ -384,9 +384,9 @@ class Tessellation:
             )
 
         # check MultiPolygons - usually caused by error in input geometry
-        self.multipolygons = tesselation[tesselation.geometry.type == "MultiPolygon"][
-            unique_id
-        ]
+        self.multipolygons = tesselation[
+            tesselation.geometry.geom_type == "MultiPolygon"
+        ][unique_id]
         if len(self.multipolygons) > 0:
             warnings.warn(
                 message=(
