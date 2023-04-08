@@ -15,7 +15,7 @@ import math
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from shapely import ops
+import shapely
 from shapely.geometry import LineString, MultiLineString
 
 
@@ -320,7 +320,7 @@ class COINS:
             for b in linelist:
                 list_lines_segments.append(LineString(b))
 
-            geom_multi_line = ops.linemerge(MultiLineString(list_lines_segments))
+            geom_multi_line = shapely.line_merge(MultiLineString(list_lines_segments))
 
             # get other values for gdf
             id_value = a

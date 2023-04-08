@@ -11,8 +11,8 @@ dependencies:
   - osmnx
   - packaging
   - pandas!=1.5.0
+  - shapely>=2
   - pygeos
-  - shapely>=1.8.0
   - tqdm
   # testing
   - codecov

@@ -100,7 +100,7 @@ described above regarding installing using pip. To ensure that environment is
 properly prepared and every dependency will work as intended, you can install
 them using conda before installing development version of momepy::
 
-    conda install -c conda-forge geopandas networkx libpysal tqdm pygeos
+    conda install -c conda-forge geopandas networkx libpysal tqdm
 
 
 Dependencies
@@ -112,7 +112,6 @@ Required dependencies:
 - `libpysal`_ (>= 4.6.0)
 - `networkx`_
 - `tqdm`_
-- `pygeos`_
 
 Some functions also depend on additional packages, which are optional:
 
@@ -138,4 +137,3 @@ Some functions also depend on additional packages, which are optional:
 
 .. _conda: https://conda.io/en/latest/
 
-.. _pygeos: http://pygeos.readthedocs.org

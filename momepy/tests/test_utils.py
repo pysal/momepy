@@ -1,7 +1,6 @@
 import geopandas as gpd
 import networkx
 import numpy as np
-import osmnx as ox
 import pytest
 from packaging.version import Version
 from shapely.geometry import LineString, Point
@@ -175,8 +174,9 @@ class TestUtils:
 
     @pytest.mark.xfail(reason="nominatim connection error")
     def test_nx_to_gdf_osmnx(self):
+        osmnx = pytest.importorskip("osmnx")
         # osmnx compatibility
-        G = ox.graph_from_place("Preborov, Czechia", network_type="drive")
+        G = osmnx.graph_from_place("Preborov, Czechia", network_type="drive")
         with pytest.warns(UserWarning, match="Approach is not set"):
             pts, lines = mm.nx_to_gdf(G)
         assert len(pts) == 7

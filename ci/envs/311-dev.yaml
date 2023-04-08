@@ -11,8 +11,7 @@ dependencies:
   - osmnx
   - packaging
   - pandas!=1.5.0
-  - pygeos
-  - shapely>=1.8.0
+  - shapely>=2
   - tqdm
   # testing
   - codecov
@@ -25,5 +24,5 @@ dependencies:
       - git+https://github.com/geopandas/geopandas.git
       - git+https://github.com/pysal/libpysal.git
       - git+https://github.com/networkx/networkx.git
-      - git+https://github.com/pygeos/pygeos.git
+      - git+https://github.com/shapely/shapely.git
       - git+https://github.com/pysal/mapclassify.git

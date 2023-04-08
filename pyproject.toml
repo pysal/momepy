@@ -39,7 +39,7 @@ dependencies = [
     "networkx>=2.3",
     "packaging",
     "pandas!=1.5.0",
-    "pygeos",
+    "shapely>=2",
     "tqdm>=4.27.0",
 ]
 
