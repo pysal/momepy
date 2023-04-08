@@ -1,13 +1,9 @@
 import geopandas as gpd
 import numpy as np
 import pytest
-import shapely
 from libpysal.weights import Queen
-from packaging.version import Version
 
 import momepy as mm
-
-SHAPELY_G_20a1 = Version(shapely.__version__) > Version("2.0a1")
 
 
 class TestDistribution:
@@ -125,10 +121,7 @@ class TestDistribution:
             self.df_buildings, sw, "uID", self.df_buildings["orient"]
         ).series
         # GH#457 (`minimum_rotated_rectangle` calculation update)
-        if SHAPELY_G_20a1:
-            test_value = 22.744936872392813
-        else:
-            test_value = 18.299481296
+        test_value = 22.744936872392813
         assert self.df_buildings["align_sw"][0] == pytest.approx(test_value)
         sw_drop = Queen.from_dataframe(self.df_tessellation[2:], ids="uID")
         assert (
