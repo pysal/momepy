@@ -12,8 +12,7 @@ dependencies:
   - osmnx
   - packaging
   - pandas>=0.23.0,!=1.5.0,<2
-  - pygeos
-  - shapely=1.8.0
+  - shapely=2.0
   - tqdm=4.27.0
   # testing
   - codecov

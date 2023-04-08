@@ -11,7 +11,6 @@ RUN conda install mamba \
     'geopandas' \
     'momepy' \
     'seaborn' \
-    'pygeos' \
     'scikit-learn' \
     'contextily' \
     'legendgram' \

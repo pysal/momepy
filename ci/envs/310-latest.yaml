@@ -22,4 +22,3 @@ dependencies:
   - jupyter
   - matplotlib
   - osmnx
-  - pygeos

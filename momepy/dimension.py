@@ -7,8 +7,8 @@ import math
 
 import numpy as np
 import pandas as pd
-import pygeos
 import scipy as sp
+import shapely
 from tqdm.auto import tqdm
 
 from .shape import _circle_radius
@@ -237,7 +237,6 @@ class FloorArea:
 class CourtyardArea:
     """
     Calculates area of holes within geometry - area of courtyards.
-    Expects pygeos backend of geopandas.
 
     Parameters
     ----------
@@ -276,7 +275,9 @@ class CourtyardArea:
             areas = "mm_a"
         self.areas = gdf[areas]
 
-        exts = pygeos.area(pygeos.polygons(gdf.geometry.exterior.values.data))
+        exts = shapely.area(
+            shapely.polygons(shapely.get_exterior_ring(gdf.geometry.array))
+        )
 
         self.series = pd.Series(exts - gdf[areas], index=gdf.index)
 
@@ -538,18 +539,18 @@ class StreetProfile:
         self.distance = distance
         self.tick_length = tick_length
 
-        pygeos_lines = left.geometry.values.data
+        lines = left.geometry.array
 
         list_points = np.empty((0, 2))
         ids = []
         end_markers = []
 
-        lengths = pygeos.length(pygeos_lines)
-        for ix, (line, length) in enumerate(zip(pygeos_lines, lengths)):
-            pts = pygeos.line_interpolate_point(
+        lengths = shapely.length(lines)
+        for ix, (line, length) in enumerate(zip(lines, lengths)):
+            pts = shapely.line_interpolate_point(
                 line, np.linspace(0, length, num=int((length) // distance))
             )
-            list_points = np.append(list_points, pygeos.get_coordinates(pts), axis=0)
+            list_points = np.append(list_points, shapely.get_coordinates(pts), axis=0)
             if len(pts) > 1:
                 ids += [ix] * len(pts) * 2
                 markers = [True] + ([False] * (len(pts) - 2)) + [True]
@@ -572,11 +573,13 @@ class StreetProfile:
                 ticks.append([line_end_1, pt])
                 ticks.append([line_end_2, pt])
 
-        ticks = pygeos.linestrings(ticks)
+        ticks = shapely.linestrings(ticks)
 
-        inp, res = right.sindex.query_bulk(ticks, predicate="intersects")
-        intersections = pygeos.intersection(ticks[inp], right.geometry.values.data[res])
-        distances = pygeos.distance(intersections, pygeos.points(list_points[inp // 2]))
+        inp, res = shapely.STRtree(right.geometry).query(ticks, predicate="intersects")
+        intersections = shapely.intersection(ticks[inp], right.geometry.array[res])
+        distances = shapely.distance(
+            intersections, shapely.points(list_points[inp // 2])
+        )
         inp_uni, inp_cts = np.unique(inp, return_counts=True)
         splitter = np.cumsum(inp_cts)[:-1]
         dist_per_res = np.split(distances, splitter)
