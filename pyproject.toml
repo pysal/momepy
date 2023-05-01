@@ -15,7 +15,7 @@ license = { text = "BSD 3-Clause" }
 description = "Urban Morphology Measuring Toolkit"
 keywords = ["urban morphology", "urban morphometrics", "tessellation"]
 readme = { text = """\
-Momepy (*Mo*rphological *Me*asuring in *Py*thon) is a library for
+Momepy (Morphological Measuring in Python) is a library for
 quantitative analysis of urban form - urban morphometrics. It is
 part of `PySAL`_ (Python Spatial Analysis Library) and is built on top
 of `GeoPandas`_, other PySAL modules, and
