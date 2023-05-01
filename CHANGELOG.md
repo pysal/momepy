@@ -1,6 +1,22 @@
 Changelog
 =========
 
+Version 0.6.0 (May 1, 2023)
+---------------------------
+
+Momepy now requires shapely 2.0 or newer to run and no longer depends on PyGEOS. The
+highlights of the release:
+
+Enhancements:
+
+- ENH: support bi-directional roads in ``gdf_to_nx`` (#357)
+- ENH: geometry-based simplification of roundabouts (#371, #392)
+- REF: update for shapely 2.0 (#479)
+
+Bug fixes:
+
+- resolves bug in ``Percentiles`` append. (#427)
+
 Version 0.5.4 (September 20, 2022)
 ----------------------------------
 
