@@ -2,6 +2,7 @@
 
 # connectivity.py
 # definitions of connectivity characters
+import collections
 import math
 
 import networkx as nx
@@ -304,10 +305,8 @@ def mean_node_degree(
 
 def _proportion(graph, degree):
     """Calculates the proportion of intersection types in a graph."""
-    import collections
 
-    values = list(dict(graph.nodes(degree)).values())
-    counts = collections.Counter(values)
+    counts = collections.Counter(dict(graph.nodes(degree)).values())
     return counts
 
 

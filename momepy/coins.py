@@ -361,25 +361,17 @@ def _tuple_to_list(line):
     The imported shapefile lines comes as tuple, whereas the export requires list,
     this function converts tuples inside lines to lists.
     """
-    for a in range(0, len(line)):
-        line[a] = list(line[a])
-    return line
+    return [list(point) for point in line]
 
 
 def _list_to_tuple(line):
-    for a in range(0, len(line)):
-        line[a] = tuple(line[a])
-    return tuple(line)
+    return tuple(tuple(point) for point in line)
 
 
 def _list_to_pairs(in_list):
     """Split a line at every point."""
-    out_list = []
-    index = 0
-    for index in range(0, len(in_list) - 1):
-        temp_list = [list(in_list[index]), list(in_list[index + 1])]
-        out_list.append(temp_list)
-    return out_list
+    tmp_list = [list(point) for point in in_list]
+    return [list(pair) for pair in zip(tmp_list, tmp_list[1:])]
 
 
 def _compute_angle(point1, point2):

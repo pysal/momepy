@@ -230,12 +230,11 @@ def remove_false_nodes(gdf):
             components[a[1]] = i
 
         # iterate through components and create new geometries
+        all_keys = {}
+        for k, v in components.items():
+            all_keys.setdefault(v, []).append(k)
         new = []
-        for c in set(components.values()):
-            keys = []
-            for item in components.items():
-                if item[1] == c:
-                    keys.append(item[0])
+        for keys in all_keys.values():
             new.append(shapely.line_merge(shapely.union_all(geom[keys])))
 
         # remove incorrect geometries and append fixed versions
