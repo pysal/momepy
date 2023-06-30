@@ -52,21 +52,21 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
     graph.graph["approach"] = "primal"
 
     msg = (
-        "%s. This can lead to unexpected behaviour. "
+        " This can lead to unexpected behaviour. "
         "The intended usage of the conversion function "
         "is with networks made of LineStrings only."
     )
 
     if "LineString" not in gdf_network.geom_type.unique():
         warnings.warn(
-            message=msg % "The given network does not contain any LineString.",
+            message="The given network does not contain any LineString." + msg,
             category=RuntimeWarning,
             stacklevel=3,
         )
 
     if len(gdf_network.geom_type.unique()) > 1:
         warnings.warn(
-            message=msg % "The given network consists of multiple geometry types.",
+            message="The given network consists of multiple geometry types." + msg,
             category=RuntimeWarning,
             stacklevel=3,
         )
