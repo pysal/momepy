@@ -691,17 +691,15 @@ def _closeness_centrality(graph, u=None, length=None, len_graph=None):
         path_length = nx.single_source_shortest_path_length
 
     nodes = [u]
-    closeness_centrality = {}
+    closeness_centrality = dict.fromkeys(nodes, 0)
     for n in nodes:
         sp = dict(path_length(graph, n))
         totsp = sum(sp.values())
-        if totsp > 0.0 and len(graph) > 1:
-            closeness_centrality[n] = (len(sp) - 1.0) / totsp
+        if totsp > 0 and len(graph) > 1:
+            closeness_centrality[n] = (len(sp) - 1) / totsp
             # normalize to number of nodes-1 in connected part
-            s = (len(sp) - 1.0) / (len_graph - 1)
+            s = (len(sp) - 1) / (len_graph - 1)
             closeness_centrality[n] *= s
-        else:
-            closeness_centrality[n] = 0.0
 
     return closeness_centrality[u]
 
@@ -903,28 +901,23 @@ def _euclidean(n, m):
 
 def _straightness_centrality(graph, weight, normalized=True):
     """Calculates straightness centrality."""
-    straightness_centrality = {}
+    straightness_centrality = dict.fromkeys(graph.nodes(), 0)
 
     for n in graph.nodes():
-        straightness = 0
         sp = nx.single_source_dijkstra_path_length(graph, n, weight=weight)
 
         if len(sp) > 0 and len(graph) > 1:
+            straightness = 0
             for target in sp:
                 if n != target:
                     network_dist = sp[target]
                     euclidean_dist = _euclidean(n, target)
                     straightness = straightness + (euclidean_dist / network_dist)
-            straightness_centrality[n] = straightness * (1.0 / (len(graph) - 1.0))
+            straightness_centrality[n] = straightness * (1 / (len(graph) - 1))
             # normalize to number of nodes-1 in connected part
-            if normalized:
-                if len(sp) > 1:
-                    s = (len(graph) - 1.0) / (len(sp) - 1.0)
-                    straightness_centrality[n] *= s
-                else:
-                    straightness_centrality[n] = 0
-        else:
-            straightness_centrality[n] = 0.0
+            if normalized and len(sp) > 1:
+                s = (len(graph) - 1) / (len(sp) - 1)
+                straightness_centrality[n] *= s
     return straightness_centrality
 
 

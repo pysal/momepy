@@ -678,7 +678,7 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
         """Relative abundance"""
         if n == 0:
             return 0
-        return (float(n) / sum_n) * ln(float(n) / sum_n)
+        return (n / sum_n) * ln(n / sum_n)
 
     if categorical:
         counts = dict.fromkeys(categories, 0)

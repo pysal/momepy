@@ -611,7 +611,7 @@ def _extend_line(coords, target, tolerance, snap=True):
             else:
                 new_point_coords = shapely.get_coordinates(intersection[0])
             coo = np.append(coords, new_point_coords)
-            new = np.reshape(coo, (int(len(coo) / 2), 2))
+            new = np.reshape(coo, (len(coo) // 2, 2))
 
             return new
         return coords
