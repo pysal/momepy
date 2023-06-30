@@ -17,7 +17,7 @@ class TestCOINS:
 
         assert result.shape == (10, 2)
 
-        expected_index = pd.Index(list(range(10)), name="stroke_group")
+        expected_index = pd.RangeIndex(stop=10, name="stroke_group")
         assert_index_equal(result.index, expected_index)
 
         expected_segments = pd.Series(
