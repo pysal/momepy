@@ -214,7 +214,7 @@ def remove_false_nodes(gdf):
     unique, counts = np.unique(inp, return_counts=True)
     merge = res[np.isin(inp, unique[counts == 2])]
 
-    if len(merge) > 0:
+    if len(merge):
         # filter duplications and create a dictionary with indication of components to
         # be merged together
         dups = [item for item, count in collections.Counter(merge).items() if count > 1]
