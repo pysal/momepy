@@ -188,16 +188,16 @@ class COINS:
             # both the keys. The key is already present in the dictionary so
             # it does not calculate a second time.
             for link1 in self.unique[edge][2]:
-                self.angle_pairs["%d_%d" % (edge, link1)] = _angle_between_two_lines(
+                self.angle_pairs[f"{edge}_{link1}"] = _angle_between_two_lines(
                     self.unique[edge][0], self.unique[link1][0]
                 )
-                p1_angle_set.append(self.angle_pairs["%d_%d" % (edge, link1)])
+                p1_angle_set.append(self.angle_pairs[f"{edge}_{link1}"])
 
             for link2 in self.unique[edge][3]:
-                self.angle_pairs["%d_%d" % (edge, link2)] = _angle_between_two_lines(
+                self.angle_pairs[f"{edge}_{link2}"] = _angle_between_two_lines(
                     self.unique[edge][0], self.unique[link2][0]
                 )
-                p2_angle_set.append(self.angle_pairs["%d_%d" % (edge, link2)])
+                p2_angle_set.append(self.angle_pairs[f"{edge}_{link2}"])
 
             # Among the adjacent segments deflection angle values, check
             # for the maximum value at both the ends. The segment with
@@ -223,7 +223,7 @@ class COINS:
             if (
                 isinstance(best_p1, int)
                 and edge in [self.unique[best_p1][4][0], self.unique[best_p1][5][0]]
-                and self.angle_pairs["%d_%d" % (edge, best_p1)] > angle_threshold
+                and self.angle_pairs[f"{edge}_{best_p1}"] > angle_threshold
             ):
                 self.unique[edge][6] = best_p1
             else:
@@ -232,7 +232,7 @@ class COINS:
             if (
                 isinstance(best_p2, int)
                 and edge in [self.unique[best_p2][4][0], self.unique[best_p2][5][0]]
-                and self.angle_pairs["%d_%d" % (edge, best_p2)] > angle_threshold
+                and self.angle_pairs[f"{edge}_{best_p2}"] > angle_threshold
             ):
                 self.unique[edge][7] = best_p2
             else:
@@ -361,25 +361,17 @@ def _tuple_to_list(line):
     The imported shapefile lines comes as tuple, whereas the export requires list,
     this function converts tuples inside lines to lists.
     """
-    for a in range(0, len(line)):
-        line[a] = list(line[a])
-    return line
+    return [list(point) for point in line]
 
 
 def _list_to_tuple(line):
-    for a in range(0, len(line)):
-        line[a] = tuple(line[a])
-    return tuple(line)
+    return tuple(tuple(point) for point in line)
 
 
 def _list_to_pairs(in_list):
     """Split a line at every point."""
-    out_list = []
-    index = 0
-    for index in range(0, len(in_list) - 1):
-        temp_list = [list(in_list[index]), list(in_list[index + 1])]
-        out_list.append(temp_list)
-    return out_list
+    tmp_list = [list(point) for point in in_list]
+    return [list(pair) for pair in zip(tmp_list, tmp_list[1:])]
 
 
 def _compute_angle(point1, point2):

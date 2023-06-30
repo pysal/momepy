@@ -315,10 +315,10 @@ def _make_circle(points):
 
 def _make_circle_one_point(points, p):
     """One boundary point known."""
-    c = (p[0], p[1], 0.0)
+    c = (p[0], p[1], 0)
     for i, q in enumerate(points):
         if not _is_in_circle(c, q):
-            if c[2] == 0.0:
+            if c[2] == 0:
                 c = _make_diameter(p, q)
             else:
                 c = _make_circle_two_points(points[: i + 1], p, q)
@@ -343,13 +343,13 @@ def _make_circle_two_points(points, p, q):
         c = _make_circumcircle(p, q, r)
         if c is None:
             continue
-        elif cross > 0.0 and (
+        elif cross > 0 and (
             left is None
             or _cross_product(px, py, qx, qy, c[0], c[1])
             > _cross_product(px, py, qx, qy, left[0], left[1])
         ):
             left = c
-        elif cross < 0.0 and (
+        elif cross < 0 and (
             right is None
             or _cross_product(px, py, qx, qy, c[0], c[1])
             < _cross_product(px, py, qx, qy, right[0], right[1])
@@ -373,16 +373,16 @@ def _make_circumcircle(p0, p1, p2):
     ax, ay = p0
     bx, by = p1
     cx, cy = p2
-    ox = (min(ax, bx, cx) + max(ax, bx, cx)) / 2.0
-    oy = (min(ay, by, cy) + max(ay, by, cy)) / 2.0
+    ox = (min(ax, bx, cx) + max(ax, bx, cx)) / 2
+    oy = (min(ay, by, cy) + max(ay, by, cy)) / 2
     ax -= ox
     ay -= oy
     bx -= ox
     by -= oy
     cx -= ox
     cy -= oy
-    d = (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)) * 2.0
-    if d == 0.0:
+    d = (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)) * 2
+    if d == 0:
         return None
     x = (
         ox
@@ -409,8 +409,8 @@ def _make_circumcircle(p0, p1, p2):
 
 
 def _make_diameter(p0, p1):
-    cx = (p0[0] + p1[0]) / 2.0
-    cy = (p0[1] + p1[1]) / 2.0
+    cx = (p0[0] + p1[0]) / 2
+    cy = (p0[1] + p1[1]) / 2
     r0 = math.hypot(cx - p0[0], cy - p0[1])
     r1 = math.hypot(cx - p1[0], cy - p1[1])
     return (cx, cy, max(r0, r1))

@@ -214,7 +214,7 @@ def remove_false_nodes(gdf):
     unique, counts = np.unique(inp, return_counts=True)
     merge = res[np.isin(inp, unique[counts == 2])]
 
-    if len(merge) > 0:
+    if len(merge):
         # filter duplications and create a dictionary with indication of components to
         # be merged together
         dups = [item for item, count in collections.Counter(merge).items() if count > 1]
@@ -230,12 +230,11 @@ def remove_false_nodes(gdf):
             components[a[1]] = i
 
         # iterate through components and create new geometries
+        all_keys = {}
+        for k, v in components.items():
+            all_keys.setdefault(v, []).append(k)
         new = []
-        for c in set(components.values()):
-            keys = []
-            for item in components.items():
-                if item[1] == c:
-                    keys.append(item[0])
+        for keys in all_keys.values():
             new.append(shapely.line_merge(shapely.union_all(geom[keys])))
 
         # remove incorrect geometries and append fixed versions
@@ -611,7 +610,7 @@ def _extend_line(coords, target, tolerance, snap=True):
             else:
                 new_point_coords = shapely.get_coordinates(intersection[0])
             coo = np.append(coords, new_point_coords)
-            new = np.reshape(coo, (int(len(coo) / 2), 2))
+            new = np.reshape(coo, (len(coo) // 2, 2))
 
             return new
         return coords

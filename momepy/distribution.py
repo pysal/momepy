@@ -544,7 +544,7 @@ class NeighborDistance:
             if geom is not None and index in spatial_weights.neighbors:
                 neighbours = spatial_weights.neighbors[index]
                 building_neighbours = data.loc[neighbours]
-                if len(building_neighbours) > 0:
+                if len(building_neighbours):
                     results_list.append(
                         building_neighbours.geometry.distance(geom).mean()
                     )
