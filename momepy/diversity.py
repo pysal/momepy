@@ -681,10 +681,8 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
         return (float(n) / sum_n) * ln(float(n) / sum_n)
 
     if categorical:
-        counts = data.value_counts().to_dict()
-        for c in categories:
-            if c not in counts.keys():
-                counts[c] = 0
+        counts = dict.fromkeys(categories, 0)
+        counts.update(data.value_counts())
     else:
         sample_bins = mc.UserDefined(data, bins)
         counts = dict(zip(bins, sample_bins.counts))

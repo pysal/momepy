@@ -117,8 +117,7 @@ class COINS:
         self.temp_array = []
         n = 0
         # Iterate through the lines and split the edges
-        idx = 0
-        for line in self.lines:
+        for idx, line in enumerate(self.lines):
             for part in _list_to_pairs(line):
                 out_line.append(
                     [
@@ -139,7 +138,6 @@ class COINS:
                     [n, f"{part[0][0]}_{part[0][1]}", f"{part[1][0]}_{part[1][1]}"]
                 )
                 n += 1
-            idx += 1
 
         self.split = out_line
 

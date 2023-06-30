@@ -104,13 +104,7 @@ def preprocess(
             if size and row.geometry.area < size:
                 if row.n_count == 1:
                     uid = blg.iloc[row.neighbors[0]].mm_uid
-
-                    if uid in join:
-                        existing = join[uid]
-                        existing.append(row.mm_uid)
-                        join[uid] = existing
-                    else:
-                        join[uid] = [row.mm_uid]
+                    join.setdefault(uid, []).append(row.mm_uid)
                 elif row.n_count > 1:
                     shares = {}
                     for n in row.neighbors:
@@ -119,23 +113,13 @@ def preprocess(
                         ).length
                     maximal = max(shares.items(), key=operator.itemgetter(1))[0]
                     uid = blg.loc[maximal].mm_uid
-                    if uid in join:
-                        existing = join[uid]
-                        existing.append(row.mm_uid)
-                        join[uid] = existing
-                    else:
-                        join[uid] = [row.mm_uid]
+                    join.setdefault(uid, []).append(row.mm_uid)
                 else:
                     delete.append(row.Index)
             if compactness and row.circu < compactness:
                 if row.n_count == 1:
                     uid = blg.iloc[row.neighbors[0]].mm_uid
-                    if uid in join:
-                        existing = join[uid]
-                        existing.append(row.mm_uid)
-                        join[uid] = existing
-                    else:
-                        join[uid] = [row.mm_uid]
+                    join.setdefault(uid, []).append(row.mm_uid)
                 elif row.n_count > 1:
                     shares = {}
                     for n in row.neighbors:
@@ -144,12 +128,7 @@ def preprocess(
                         ).length
                     maximal = max(shares.items(), key=operator.itemgetter(1))[0]
                     uid = blg.loc[maximal].mm_uid
-                    if uid in join:
-                        existing = join[uid]
-                        existing.append(row.mm_uid)
-                        join[uid] = existing
-                    else:
-                        join[uid] = [row.mm_uid]
+                    join.setdefault(uid, []).append(row.mm_uid)
 
             if islands and row.n_count == 1:
                 shared = row.geometry.intersection(
@@ -157,12 +136,7 @@ def preprocess(
                 ).length
                 if shared == row.geometry.exterior.length:
                     uid = blg.iloc[row.neighbors[0]].mm_uid
-                    if uid in join:
-                        existing = join[uid]
-                        existing.append(row.mm_uid)
-                        join[uid] = existing
-                    else:
-                        join[uid] = [row.mm_uid]
+                    join.setdefault(uid, []).append(row.mm_uid)
 
         for key in tqdm(
             join, total=len(join), desc="Changing geometry", disable=not verbose
