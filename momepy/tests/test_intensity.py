@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 from libpysal.weights import Queen
 from shapely.geometry import Point
+from pandas.testing import assert_series_equal
 
 import momepy as mm
 
@@ -86,9 +87,14 @@ class TestIntensity:
         weis = mm.Count(
             self.df_streets, self.df_buildings, "nID", "nID", weighted=True
         ).series
-        check_eib = [13, 14, 8, 26, 24, 17, 23, 19]
+        check_eib = (
+            self.df_buildings.drop(columns="bID")
+            .sjoin(self.blocks)["bID"]
+            .value_counts()
+            .sort_index()
+        )
         check_weib = pytest.approx(0.00040170607189453996)
-        assert eib.tolist() == check_eib
+        assert_series_equal(check_eib, eib, check_names=False)
         assert weib.mean() == check_weib
         assert weis.mean() == pytest.approx(0.020524232642849215)
 
