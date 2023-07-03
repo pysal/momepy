@@ -88,8 +88,7 @@ class TestIntensity:
             self.df_streets, self.df_buildings, "nID", "nID", weighted=True
         ).series
         check_eib = (
-            self.df_buildings.drop(columns="bID")
-            .sjoin(self.blocks)["bID"]
+            gpd.sjoin(self.df_buildings.drop(columns="bID"), self.blocks)["bID"]
             .value_counts()
             .sort_index()
         )
