@@ -42,7 +42,7 @@ autodoc_mock_imports = [
 # -- Project information -----------------------------------------------------
 
 project = "momepy"
-copyright = "2018-2022, Martin Fleischmann and PySAL Developers"
+copyright = "2018-, Martin Fleischmann and PySAL Developers"
 author = "Martin Fleischmann"
 
 # The short X.Y version
