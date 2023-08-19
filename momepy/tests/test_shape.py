@@ -3,7 +3,7 @@ import math
 import geopandas as gpd
 import numpy as np
 import pytest
-from shapely.geometry import MultiLineString, Point, Polygon
+from shapely.geometry import MultiLineString, Point, Polygon, MultiPolygon
 
 import momepy as mm
 from momepy.shape import _circle_area
@@ -169,6 +169,12 @@ class TestShape:
         assert self.df_buildings["squ"][0] == check
         self.df_buildings["squ"] = mm.Squareness(self.df_buildings.exterior).series
         assert self.df_buildings["squ"].isna().all()
+        df_buildings_multi = self.df_buildings.copy()
+        df_buildings_multi["geometry"] = df_buildings_multi["geometry"].apply(
+            lambda geom: MultiPolygon([geom])
+        )
+        self.df_buildings["squm"] = mm.Squareness(df_buildings_multi).series
+        assert self.df_buildings["squm"][0] == check
 
     def test_EquivalentRectangularIndex(self):
         self.df_buildings["eri"] = mm.EquivalentRectangularIndex(
@@ -196,13 +202,22 @@ class TestShape:
             0,
             0,
         ]
+        check = pytest.approx(15.961, rel=1e-3)
+        check_devs = pytest.approx(3.081, rel=1e-3)
         cc = mm.CentroidCorners(self.df_buildings)
         self.df_buildings["ccd"] = cc.mean
         self.df_buildings["ccddev"] = cc.std
-        check = pytest.approx(15.961, rel=1e-3)
-        check_devs = pytest.approx(3.081, rel=1e-3)
         assert self.df_buildings["ccd"][0] == check
         assert self.df_buildings["ccddev"][0] == check_devs
+        df_buildings_multi = self.df_buildings.copy()
+        df_buildings_multi["geometry"] = df_buildings_multi["geometry"].apply(
+            lambda geom: MultiPolygon([geom])
+        )
+        cc = mm.CentroidCorners(df_buildings_multi)
+        df_buildings_multi["ccd"] = cc.mean
+        df_buildings_multi["ccddev"] = cc.std
+        assert df_buildings_multi["ccd"][0] == check
+        assert df_buildings_multi["ccddev"][0] == check_devs
 
     def test_Linearity(self):
         self.df_streets["lin"] = mm.Linearity(self.df_streets).series

@@ -903,7 +903,7 @@ class Squareness:
     """
     Calculates the squareness of each object in a given GeoDataFrame. Uses only
     external shape (``shapely.geometry.exterior``), courtyards are not included.
-     Returns ``np.nan`` for MultiPolygons.
+    Returns ``np.nan`` for MultiPolygons if containing multiple geoms.
 
     .. math::
         \\mu=\\frac{\\sum_{i=1}^{N} d_{i}}{N}
@@ -948,41 +948,36 @@ class Squareness:
 
             return angle
 
+        def _calc(geom):
+            angles = []
+            points = list(geom.exterior.coords)  # get points of a shape
+            if len(points) < 3:
+                return np.nan
+            stop = len(points) - 1
+            for i in range(
+                1, len(points)
+            ):  # for every point, calculate angle and add 1 if True angle
+                a = np.asarray(points[i - 1])
+                b = np.asarray(points[i])
+                # in last case, needs to wrap around start to find finishing angle
+                c = np.asarray(points[i + 1]) if i != stop else np.asarray(points[1])
+                ang = _angle(a, b, c)
+                if ang <= 175 or ang >= 185:
+                    angles.append(ang)
+                else:
+                    continue
+            deviations = [abs(90 - i) for i in angles]
+            return np.mean(deviations)
+
         # fill new column with the value of area, iterating over rows one by one
         for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
-            if geom.geom_type == "Polygon":
-                angles = []
-                points = list(geom.exterior.coords)  # get points of a shape
-                stop = len(points) - 1  # define where to stop
-                for i in np.arange(
-                    len(points)
-                ):  # for every point, calculate angle and add 1 if True angle
-                    if i == 0:
-                        continue
-                    elif i == stop:
-                        a = np.asarray(points[i - 1])
-                        b = np.asarray(points[i])
-                        c = np.asarray(points[1])
-                        ang = _angle(a, b, c)
-
-                        if ang <= 175 or _angle(a, b, c) >= 185:
-                            angles.append(ang)
-                        else:
-                            continue
-
-                    else:
-                        a = np.asarray(points[i - 1])
-                        b = np.asarray(points[i])
-                        c = np.asarray(points[i + 1])
-                        ang = _angle(a, b, c)
-
-                        if _angle(a, b, c) <= 175 or _angle(a, b, c) >= 185:
-                            angles.append(ang)
-                        else:
-                            continue
-                deviations = [abs(90 - i) for i in angles]
-                results_list.append(np.mean(deviations))
-
+            if geom.geom_type == "Polygon" or (
+                geom.geom_type == "MultiPolygon" and len(geom.geoms) == 1
+            ):
+                # unpack multis with single geoms
+                if geom.geom_type == "MultiPolygon":
+                    geom = geom.geoms[0]
+                results_list.append(_calc(geom))
             else:
                 results_list.append(np.nan)
 
@@ -1117,7 +1112,7 @@ class Elongation:
 class CentroidCorners:
     """
     Calculates the mean distance centroid - corners and standard deviation.
-    Returns ``np.nan`` for MultiPolygons.
+    Returns ``np.nan`` for MultiPolygons if containing multiple geoms.
 
     .. math::
         \\overline{x}=\\frac{1}{n}\\left(\\sum_{i=1}^{n} dist_{i}\\right);
@@ -1173,55 +1168,47 @@ class CentroidCorners:
                 return True
             return False
 
+        def _calc(geom):
+            distances = []  # set empty list of distances
+            centroid = geom.centroid  # define centroid
+            points = list(geom.exterior.coords)  # get points of a shape
+            stop = len(points) - 1  # define where to stop
+            for i in range(
+                1, len(points)
+            ):  # for every point, calculate angle and add 1 if True angle
+                a = np.asarray(points[i - 1])
+                b = np.asarray(points[i])
+                # in last case, needs to wrap around start to find finishing angle
+                c = np.asarray(points[i + 1]) if i != stop else np.asarray(points[1])
+                p = Point(points[i])
+                # calculate distance point - centroid
+                if true_angle(a, b, c) is True:
+                    distances.append(centroid.distance(p))
+                else:
+                    continue
+            return distances
+
         # iterating over rows one by one
         for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
-            if geom.geom_type == "Polygon":
-                distances = []  # set empty list of distances
-                centroid = geom.centroid  # define centroid
-                points = list(geom.exterior.coords)  # get points of a shape
-                stop = len(points) - 1  # define where to stop
-                for i in np.arange(
-                    len(points)
-                ):  # for every point, calculate angle and add 1 if True angle
-                    if i == 0:
-                        continue
-                    elif i == stop:
-                        a = np.asarray(points[i - 1])
-                        b = np.asarray(points[i])
-                        c = np.asarray(points[1])
-                        p = Point(points[i])
-
-                        if true_angle(a, b, c) is True:
-                            distance = centroid.distance(
-                                p
-                            )  # calculate distance point - centroid
-                            distances.append(distance)  # add distance to the list
-                        else:
-                            continue
-
-                    else:
-                        a = np.asarray(points[i - 1])
-                        b = np.asarray(points[i])
-                        c = np.asarray(points[i + 1])
-                        p = Point(points[i])
-
-                        if true_angle(a, b, c) is True:
-                            distance = centroid.distance(p)
-                            distances.append(distance)
-                        else:
-                            continue
-                if not distances:  # circular buildings
-                    if geom.has_z:
-                        coords = [
-                            (coo[0], coo[1]) for coo in geom.convex_hull.exterior.coords
-                        ]
-                    else:
-                        coords = geom.convex_hull.exterior.coords
+            if geom.geom_type == "Polygon" or (
+                geom.geom_type == "MultiPolygon" and len(geom.geoms) == 1
+            ):
+                # unpack multis with single geoms
+                if geom.geom_type == "MultiPolygon":
+                    geom = geom.geoms[0]
+                distances = _calc(geom)
+                # circular buildings
+                if not distances:
+                    # handle z dims
+                    coords = [
+                        (coo[0], coo[1]) for coo in geom.convex_hull.exterior.coords
+                    ]
                     results_list.append(_circle_radius(coords))
                     results_list_sd.append(0)
+                # calculate mean and std dev
                 else:
-                    results_list.append(np.mean(distances))  # calculate mean
-                    results_list_sd.append(np.std(distances))  # calculate st.dev
+                    results_list.append(np.mean(distances))
+                    results_list_sd.append(np.std(distances))
             else:
                 results_list.append(np.nan)
                 results_list_sd.append(np.nan)
