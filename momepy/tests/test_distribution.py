@@ -125,7 +125,7 @@ class TestDistribution:
         test_value = (
             22.744936872392813
             if Version(shapely.geos_version_string) < Version("3.12")
-            else 18.299481296
+            else 18.29842494
         )
         assert self.df_buildings["align_sw"][0] == pytest.approx(test_value)
         sw_drop = Queen.from_dataframe(self.df_tessellation[2:], ids="uID")
