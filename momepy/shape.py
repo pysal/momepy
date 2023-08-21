@@ -904,7 +904,7 @@ class Squareness:
     Calculates the squareness of each object in a given GeoDataFrame. Uses only
     external shape (``shapely.geometry.exterior``), courtyards are not included.
     Returns ``np.nan`` for true MultiPolygons (containing multiple geometries).
-MultiPolygons with a singular geometry are treated as Polygons.
+    MultiPolygons with a singular geometry are treated as Polygons.
 
     .. math::
         \\mu=\\frac{\\sum_{i=1}^{N} d_{i}}{N}
@@ -952,11 +952,12 @@ MultiPolygons with a singular geometry are treated as Polygons.
         def _calc(geom):
             angles = []
             points = list(geom.exterior.coords)  # get points of a shape
-            if len(points) < 3:
+            n_points = len(points)
+            if n_points < 3:
                 return np.nan
-            stop = len(points) - 1
+            stop = n_points - 1
             for i in range(
-                1, len(points)
+                1, n_points
             ):  # for every point, calculate angle and add 1 if True angle
                 a = np.asarray(points[i - 1])
                 b = np.asarray(points[i])
@@ -1114,7 +1115,7 @@ class CentroidCorners:
     """
     Calculates the mean distance centroid - corners and standard deviation.
     Returns ``np.nan`` for true MultiPolygons (containing multiple geometries).
-MultiPolygons with a singular geometry are treated as Polygons.
+    MultiPolygons with a singular geometry are treated as Polygons.
 
     .. math::
         \\overline{x}=\\frac{1}{n}\\left(\\sum_{i=1}^{n} dist_{i}\\right);
@@ -1174,9 +1175,10 @@ MultiPolygons with a singular geometry are treated as Polygons.
             distances = []  # set empty list of distances
             centroid = geom.centroid  # define centroid
             points = list(geom.exterior.coords)  # get points of a shape
-            stop = len(points) - 1  # define where to stop
+            n_points = len(points)
+            stop = n_points - 1  # define where to stop
             for i in range(
-                1, len(points)
+                1, n_points
             ):  # for every point, calculate angle and add 1 if True angle
                 a = np.asarray(points[i - 1])
                 b = np.asarray(points[i])
