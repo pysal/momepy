@@ -1113,7 +1113,8 @@ class Elongation:
 class CentroidCorners:
     """
     Calculates the mean distance centroid - corners and standard deviation.
-    Returns ``np.nan`` for MultiPolygons if containing multiple geoms.
+    Returns ``np.nan`` for true MultiPolygons (containing multiple geometries).
+MultiPolygons with a singular geometry are treated as Polygons.
 
     .. math::
         \\overline{x}=\\frac{1}{n}\\left(\\sum_{i=1}^{n} dist_{i}\\right);
