@@ -903,7 +903,8 @@ class Squareness:
     """
     Calculates the squareness of each object in a given GeoDataFrame. Uses only
     external shape (``shapely.geometry.exterior``), courtyards are not included.
-    Returns ``np.nan`` for MultiPolygons if containing multiple geoms.
+    Returns ``np.nan`` for true MultiPolygons (containing multiple geometries).
+MultiPolygons with a singular geometry are treated as Polygons.
 
     .. math::
         \\mu=\\frac{\\sum_{i=1}^{N} d_{i}}{N}
