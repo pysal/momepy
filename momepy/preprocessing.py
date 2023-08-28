@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import shapely
 from packaging.version import Version
+from scipy.signal import find_peaks
+from scipy.stats import gaussian_kde
 from shapely.geometry import LineString, Point
 from shapely.ops import linemerge, polygonize
 from tqdm.auto import tqdm
@@ -25,6 +27,7 @@ __all__ = [
     "close_gaps",
     "extend_lines",
     "roundabout_simplification",
+    "FaceArtifacts",
 ]
 
 GPD_10 = Version(gpd.__version__) >= Version("0.10")
@@ -1060,3 +1063,117 @@ def roundabout_simplification(
     output = _ext_lines_to_center(edges, incoming_all, idx_drop)
 
     return output
+
+
+class FaceArtifacts:
+    def __init__(self, gdf, index="circular_compactness"):
+        try:
+            from esda import shape
+        except (ImportError, ModuleNotFoundError) as err:
+            raise ImportError("`esda` package is required.") from err
+
+        # Polygonize street network
+        polygons = gpd.GeoSeries(
+            shapely.polygonize(  # polygonize
+                [gdf.unary_union]
+            ).geoms,  # get parts of the collection from polygonize
+            crs=gdf.crs,
+        ).explode(
+            ignore_index=True
+        )  # shoudln't be needed but doesn't hurt to ensure
+
+        # Store geometries as a GeoDataFrame
+        self.polygons = gpd.GeoDataFrame(geometry=polygons)
+        if index == "circular_compactness":
+            self.polygons["face_artifact_index"] = np.log(
+                shape.minimum_bounding_circle_ratio(polygons) * polygons.area
+            )
+        elif index == "isoperimetric_quotient":
+            self.polygons["face_artifact_index"] = np.log(
+                shape.shape.isoperimetric_quotient(polygons) * polygons.area
+            )
+        elif index == "diameter_ratio":
+            self.polygons["face_artifact_index"] = np.log(
+                shape.shape.diameter_ratio(polygons) * polygons.area
+            )
+        else:
+            raise ValueError(
+                f"'{index} is not supported. Use one of ['circlular_compactness', "
+                "'isoperimetric_quotient', 'diameter_ratio]"
+            )
+
+        # parameters for peak/valley finding
+        peak_parameters = {
+            "height_mins": np.NINF,
+            "height_maxs": 0.008,
+            "prominence": 0.00075,
+        }
+        mylinspace = np.linspace(
+            self.polygons["face_artifact_index"].min(),
+            self.polygons["face_artifact_index"].max(),
+            1000,
+        )
+
+        self.kde = gaussian_kde(
+            self.polygons["face_artifact_index"], bw_method="silverman"
+        )
+        self.pdf = self.kde.pdf(mylinspace)
+
+        # find peaks
+        self.peaks, self.d_peaks = find_peaks(
+            x=self.pdf,
+            height=peak_parameters["height_maxs"],
+            threshold=None,
+            distance=None,
+            prominence=peak_parameters["prominence"],
+            width=1,
+            plateau_size=None,
+        )
+
+        # find valleys
+        self.valleys, self.d_valleys = find_peaks(
+            x=-self.pdf + 1,
+            height=peak_parameters["height_mins"],
+            threshold=None,
+            distance=None,
+            prominence=peak_parameters["prominence"],
+            width=1,
+            plateau_size=None,
+        )
+
+        # check if we have at least 2 peaks
+        condition_2peaks = len(self.peaks) > 1
+
+        # check if we have at least 1 valley
+        condition_1valley = len(self.valleys) > 0
+
+        conditions = [condition_2peaks, condition_1valley]
+
+        # if both these conditions are true, we find the artifact index
+        if all(conditions):
+            # find list order of highest peak
+            highest_peak_listindex = np.argmax(self.d_peaks["peak_heights"])
+            # find index (in linspace) of highest peak
+            highest_peak_index = self.peaks[highest_peak_listindex]
+            # define all possible peak ranges fitting our definition
+            peak_bounds = list(zip(self.peaks, self.peaks[1:]))
+            peak_bounds_accepted = [b for b in peak_bounds if highest_peak_index in b]
+            # find all valleys that lie between two peaks
+            valleys_accepted = [
+                v_index
+                for v_index in self.valleys
+                if any(v_index in range(b[0], b[1]) for b in peak_bounds_accepted)
+            ]
+            # the value of the first of those valleys is our artifact index
+            # get the order of the valley
+            valley_index = valleys_accepted[0]
+
+            # derive threshold value for given option from index/linspace
+            self.threshold = float(mylinspace[valley_index])
+            self.face_artifacts = self.polygons[
+                self.polygons.face_artifact_index < self.threshold
+            ]
+        else:
+            warnings.warn("No threshold found.", UserWarning(), stacklevel=2)
+            self.threshold = None
+            self.face_artifacts = None
