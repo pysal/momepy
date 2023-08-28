@@ -1066,11 +1066,78 @@ def roundabout_simplification(
 
 
 class FaceArtifacts:
-    def __init__(self, gdf, index="circular_compactness"):
+    """Identify face artifacts in street networks
+
+    For a given street network composed of transportation-oriented geometry containing
+    features representing things like roundabouts, dual carriegaways and complex
+    intersections, identify areas enclosed by geometry that is considered a `face
+    artifact` as per :cite:`fleischmann2023`. Face artifacts highlight areas with a high
+    likelihood of being of non-morphological (e.g. transporation) origin and may require
+    simplification prior morphological analysis. See :cite:`fleischmann2023` for more
+    details.
+
+    Parameters
+    ----------
+    gdf : geopandas.GeoDataFrame
+        GeoDataFrame containing street network represented as (Multi)LineString geometry
+    index : str, optional
+        A type of the shape compacntess index to be used. Available are
+        ['circlular_compactness', 'isoperimetric_quotient', 'diameter_ratio'], by
+        default "circular_compactness"
+    height_mins : float, optional
+        Required depth of valeys, by default np.NINF
+    height_maxs : float, optional
+        Required height of peaks, by default 0.008
+    prominence : float, optional
+        Required prominence of peaks, by default 0.00075
+
+    Attributes
+    ----------
+    threshold : float
+        Identified threshold between face polygons and face artifacts
+    face_artifacts : GeoDataFrame
+        A GeoDataFrame of geometries identified as face artifacts
+    polygons : GeoDataFrame
+        All polygons resulting from polygonization of the input gdf with the
+        face_artifact_index
+    kde : scipy.stats._kde.gaussian_kde
+        Representation of a kernel-density estimate using Gaussian kernels.
+    pdf : numpy.ndarray
+        Probability density function
+    peaks : numpy.ndarray
+        locations of peaks in pdf
+    valleys : numpy.ndarray
+        locations of vallyes in pdf
+
+    Examples
+    --------
+    >>> fa = momepy.FaceArtifacts(street_network_prague)
+    >>> fa.threshold
+    6.9634555986177045
+    >>> fa.face_artifacts.head()
+                                                 geometry  face_artifact_index
+    6   POLYGON ((-744164.625 -1043922.362, -744167.39...             5.112844
+    9   POLYGON ((-744154.119 -1043804.734, -744152.07...             6.295660
+    10  POLYGON ((-744101.275 -1043738.053, -744103.80...             2.862871
+    12  POLYGON ((-744095.511 -1043623.478, -744095.35...             3.712403
+    17  POLYGON ((-744488.466 -1044533.317, -744489.33...             5.158554
+    """
+
+    def __init__(
+        self,
+        gdf,
+        index="circular_compactness",
+        height_mins=np.NINF,
+        height_maxs=0.008,
+        prominence=0.00075,
+    ):
         try:
             from esda import shape
         except (ImportError, ModuleNotFoundError) as err:
-            raise ImportError("`esda` package is required.") from err
+            raise ImportError(
+                "The `esda` package is required. You can install it using "
+                "`pip install esda` or `conda install esda -c conda-forge`."
+            ) from err
 
         # Polygonize street network
         polygons = gpd.GeoSeries(
@@ -1099,14 +1166,14 @@ class FaceArtifacts:
         else:
             raise ValueError(
                 f"'{index} is not supported. Use one of ['circlular_compactness', "
-                "'isoperimetric_quotient', 'diameter_ratio]"
+                "'isoperimetric_quotient', 'diameter_ratio']"
             )
 
         # parameters for peak/valley finding
         peak_parameters = {
-            "height_mins": np.NINF,
-            "height_maxs": 0.008,
-            "prominence": 0.00075,
+            "height_mins": height_mins,
+            "height_maxs": height_maxs,
+            "prominence": prominence,
         }
         mylinspace = np.linspace(
             self.polygons["face_artifact_index"].min(),
@@ -1174,6 +1241,12 @@ class FaceArtifacts:
                 self.polygons.face_artifact_index < self.threshold
             ]
         else:
-            warnings.warn("No threshold found.", UserWarning(), stacklevel=2)
+            warnings.warn(
+                "No threshold found. Either your dataset it too small or the "
+                "distribution of the face artifact index does not follow the "
+                "expected shape.",
+                UserWarning(),
+                stacklevel=2,
+            )
             self.threshold = None
             self.face_artifacts = None
