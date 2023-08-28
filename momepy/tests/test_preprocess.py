@@ -182,3 +182,37 @@ class TestPreprocessing:
         )
         assert len(check) == 65
         assert len(self.df_streets_rabs) == 88
+
+
+def test_FaceArtifacts():
+    pytest.importorskip("esda")
+    osmnx = pytest.importorskip("osmnx")
+    type_filter = (
+        '["highway"~"living_street|motorway|motorway_link|pedestrian|primary'
+        "|primary_link|residential|secondary|secondary_link|service|tertiary"
+        '|tertiary_link|trunk|trunk_link|unclassified|service"]'
+    )
+    streets_graph = osmnx.graph_from_point(
+        (35.7798, -78.6421),
+        dist=1000,
+        network_type="all_private",
+        custom_filter=type_filter,
+        retain_all=True,
+        simplify=False,
+    )
+    streets_graph = osmnx.projection.project_graph(streets_graph)
+    gdf = osmnx.graph_to_gdfs(
+        osmnx.get_undirected(streets_graph),
+        nodes=False,
+        edges=True,
+        node_geometry=False,
+        fill_edge_geometry=True,
+    )
+    fa = mm.FaceArtifacts(gdf)
+    assert 6 < fa.threshold < 9
+    assert isinstance(fa.face_artifacts, gpd.GeoDataFrame)
+    assert fa.face_artifacts.shape[0] > 200
+    assert fa.face_artifacts.shape[1] == 2
+
+    with pytest.warns(UserWarning, match="No threshold found"):
+        mm.FaceArtifacts(gdf.cx[712104:713000, 3961073:3961500])

@@ -13,6 +13,7 @@ dependencies:
   - pandas!=1.5.0
   - shapely>=2
   - pygeos
+  - esda
   - tqdm
   # testing
   - codecov

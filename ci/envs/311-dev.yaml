@@ -26,3 +26,4 @@ dependencies:
       - git+https://github.com/networkx/networkx.git
       - git+https://github.com/shapely/shapely.git
       - git+https://github.com/pysal/mapclassify.git
+      - git+https://github.com/pysal/esda.git

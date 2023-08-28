@@ -1245,7 +1245,7 @@ class FaceArtifacts:
                 "No threshold found. Either your dataset it too small or the "
                 "distribution of the face artifact index does not follow the "
                 "expected shape.",
-                UserWarning(),
+                UserWarning,
                 stacklevel=2,
             )
             self.threshold = None
