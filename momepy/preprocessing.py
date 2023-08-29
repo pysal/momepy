@@ -1157,15 +1157,15 @@ class FaceArtifacts:
             )
         elif index == "isoperimetric_quotient":
             self.polygons["face_artifact_index"] = np.log(
-                shape.shape.isoperimetric_quotient(polygons) * polygons.area
+                shape.isoperimetric_quotient(polygons) * polygons.area
             )
         elif index == "diameter_ratio":
             self.polygons["face_artifact_index"] = np.log(
-                shape.shape.diameter_ratio(polygons) * polygons.area
+                shape.diameter_ratio(polygons) * polygons.area
             )
         else:
             raise ValueError(
-                f"'{index} is not supported. Use one of ['circlular_compactness', "
+                f"'{index}' is not supported. Use one of ['circlular_compactness', "
                 "'isoperimetric_quotient', 'diameter_ratio']"
             )
 

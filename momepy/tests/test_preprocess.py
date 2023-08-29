@@ -216,3 +216,17 @@ def test_FaceArtifacts():
 
     with pytest.warns(UserWarning, match="No threshold found"):
         mm.FaceArtifacts(gdf.cx[712104:713000, 3961073:3961500])
+
+    fa_ipq = mm.FaceArtifacts(gdf, index="isoperimetric_quotient")
+    assert 6 < fa_ipq.threshold < 9
+    assert fa_ipq.threshold != fa.threshold
+
+    fa_dia = mm.FaceArtifacts(gdf, index="diameter_ratio")
+    assert 6 < fa_dia.threshold < 9
+    assert fa_dia.threshold != fa.threshold
+
+    fa = mm.FaceArtifacts(gdf, index="isoperimetric_quotient")
+    assert 6 < fa.threshold < 9
+
+    with pytest.raises(ValueError, match="'banana' is not supported"):
+        mm.FaceArtifacts(gdf, index="banana")
