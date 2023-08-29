@@ -1085,7 +1085,7 @@ class FaceArtifacts:
         ['circlular_compactness', 'isoperimetric_quotient', 'diameter_ratio'], by
         default "circular_compactness"
     height_mins : float, optional
-        Required depth of valeys, by default np.NINF
+        Required depth of valleys, by default np.NINF
     height_maxs : float, optional
         Required height of peaks, by default 0.008
     prominence : float, optional
@@ -1107,7 +1107,7 @@ class FaceArtifacts:
     peaks : numpy.ndarray
         locations of peaks in pdf
     valleys : numpy.ndarray
-        locations of vallyes in pdf
+        locations of valleys in pdf
 
     Examples
     --------
