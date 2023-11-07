@@ -723,6 +723,43 @@ def _polygonize_ifnone(edges, polys):
     return polys
 
 
+def _create_compactness(gdf):
+    from esda import shape
+
+    # measure area
+    gdf["area"] = gdf.area
+
+    # create index and append to input gdf
+    gdf["circular_compactness"] = shape.minimum_bounding_circle_ratio(gdf)
+
+    return gdf
+
+
+def _count_edges_per_polygon(lines_gdf, polygons_gdf):
+    """
+    Counts the number of linestrings that formed the polygons
+    """
+    # Check if the polygons are valid geometries and fix them if not
+    polygons_gdf["geometry"] = polygons_gdf.geometry.make_valid()
+
+    # query bulk to identify the lines that are fully covered by each polygon
+    _, pol_i = polygons_gdf.sindex.query_bulk(
+        lines_gdf.geometry, predicate="covered_by"
+    )
+
+    # tracing the actual index from the polygons_gdf
+    idx_pols = polygons_gdf.index.take(pol_i)
+
+    # counting the number of lines per polygon
+    iss, counts = np.unique(idx_pols, return_counts=True)
+    count_dict = dict(zip(iss, counts))
+
+    # add column to polygons_gdf
+    polygons_gdf["count_edges"] = polygons_gdf.index.map(count_dict)
+
+    return polygons_gdf
+
+
 def _selecting_rabs_from_poly(
     gdf,
     area_col="area",
@@ -739,55 +776,63 @@ def _selecting_rabs_from_poly(
     ________
     GeoDataFrames : roundabouts and adjacent polygons
     """
-    # calculate parameters
-    if area_col == "area":
-        gdf.loc[:, area_col] = gdf.geometry.area
-    circom_serie = CircularCompactness(gdf, area_col).series
     # selecting roundabout polygons based on compactness
-    mask = circom_serie > circom_threshold
+    mask = gdf.circular_compactness > circom_threshold
     rab = gdf[mask]
-    # exclude those above the area threshold
+
+    # exclude those above the area threshold and larger than 2000sqmt
     area_threshold_val = gdf.area.quantile(area_threshold)
-    rab = rab[rab[area_col] < area_threshold_val]
+    if area_threshold_val > 2000:
+        rab = rab[rab[area_col] < area_threshold_val]
 
     if include_adjacent is True:
+        # calculating a pseudo diameter for dimeter metric later
         bounds = rab.geometry.bounds
         rab = pd.concat([rab, bounds], axis=1)
         rab["deltax"] = rab.maxx - rab.minx
         rab["deltay"] = rab.maxy - rab.miny
         rab["rab_diameter"] = rab[["deltax", "deltay"]].max(axis=1)
 
-        # selecting the adjacent areas that are of smaller than itself
+        # selecting the adjacent areas that have only three formning edges
+        gdf["savedgeom"] = gdf.geometry
         if GPD_10:
             rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
         else:
             rab_adj = gpd.sjoin(gdf, rab, op="intersects")
 
-        area_right = area_col + "_right"
-        area_left = area_col + "_left"
-        area_mask = rab_adj[area_right] >= rab_adj[area_left]
-        rab_adj = rab_adj[area_mask]
-        rab_adj.index.name = "index"
+        # remove the adjacent polygons that are selected more than once
+        rab_adj = rab_adj[~rab_adj.index.duplicated(keep=False)]
 
-        # adding a hausdorff_distance threshold
-        rab_adj["hdist"] = 0
-        # TODO: (should be a way to vectorize)
-        for i, group in rab_adj.groupby("index_right"):
-            for g in group.itertuples():
-                hdist = g.geometry.hausdorff_distance(rab.loc[i].geometry)
-                rab_adj.loc[g.Index, "hdist"] = hdist
+        # mask based on number of forming edges (3)
+        mask_adjacents = (rab_adj["count_edges_left"] == 3) | (
+            rab_adj["circular_compactness_left"] > circom_threshold
+        )
+        rab_adj = rab_adj[mask_adjacents]
 
-        rab_plus = rab_adj[rab_adj.hdist < (rab_adj.rab_diameter * diameter_factor)]
+        # calculating how far an adjacent polygon stretches to
+        # determine if it should still be simplified
+        max_dists = []
+        for _, row in rab_adj.iterrows():
+            dists = [
+                row.savedgeom_right.centroid.distance(Point(x, y))
+                for x, y in row.geometry.exterior.coords
+            ]
+            max_dists.append(max(dists))
+        rab_adj["max_dist"] = max_dists
+        max_d_mask = (
+            rab_adj["max_dist"] <= rab_adj["rab_diameter"] * diameter_factor
+        ) | (rab_adj["circular_compactness_left"] > circom_threshold)
+        rab_plus2 = rab_adj[max_d_mask]
 
     else:
         rab["index_right"] = rab.index
-        rab_plus = rab
+        rab_plus2 = rab
 
     # only keeping relevant fields
-    geom_col = rab_plus.geometry.name
-    rab_plus = rab_plus[[geom_col, "index_right"]]
+    geom_col = rab_plus2.geometry.name
+    return_rabs = rab_plus2[[geom_col, "index_right"]]
 
-    return rab_plus
+    return return_rabs
 
 
 def _rabs_center_points(gdf, center_type="centroid"):
@@ -1007,9 +1052,9 @@ def roundabout_simplification(
     include_adjacent : boolean (default True)
         Adjacent polygons to be considered also as part of the simplification.
     diameter_factor : float (default 1.5)
-        The factor to be applied to the diameter of each roundabout that determines
-        how far an adjacent polygon can stretch until it is no longer considered part
-        of the overall roundabout group. Only applyies when include_adjacent = True.
+        The factor to be applied to the diameter area of each roundabouts to
+        exclude  adjacent polygons that extend past the distance * diameter_factor
+        Only applyies when include_adjacent = True.
     center_type : string (default 'centroid')
         Method to use for converging the incoming LineStrings.
         Current list of options available : 'centroid', 'mean'.
@@ -1026,8 +1071,7 @@ def roundabout_simplification(
         will evaluate which of those
         incoming lines should be extended according to their deflection angle.
         Segments will only be considered a part of the same street if the deflection
-        angle
-        is above the threshold.
+        angle is above the threshold.
 
     Returns
     -------
@@ -1048,8 +1092,10 @@ def roundabout_simplification(
         )
 
     polys = _polygonize_ifnone(edges, polys)
+    polys_attr_1 = _create_compactness(polys)
+    polys_attr_2 = _count_edges_per_polygon(edges, polys_attr_1)
     rab = _selecting_rabs_from_poly(
-        polys,
+        polys_attr_2,
         area_col=area_col,
         circom_threshold=circom_threshold,
         area_threshold=area_threshold,
