@@ -32,15 +32,15 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
-    "geopandas>=0.8.0",
+    "geopandas>=0.11.0",
     "libpysal>=4.6.0",
-    "networkx>=2.3",
+    "networkx>=2.7",
     "packaging",
     "pandas!=1.5.0",
     "shapely>=2",
-    "tqdm>=4.27.0",
+    "tqdm>=4.63.0",
 ]
 
 [project.urls]
@@ -59,7 +59,6 @@ line-length = 88
 [tool.ruff]
 line-length = 88
 select = ["E", "F", "W", "I", "UP", "N", "B", "A", "C4", "SIM", "ARG"]
-target-version = "py38"
 ignore = ["B006", "F403"]
 exclude = ["momepy/tests/*", "docs/*", "benchmarks/*"]
 

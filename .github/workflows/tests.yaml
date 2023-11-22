@@ -18,15 +18,15 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         environment-file:
-          - ci/envs/38-minimal.yaml
-          - ci/envs/39-latest.yaml
+          - ci/envs/310-oldest.yaml
           - ci/envs/310-latest.yaml
           - ci/envs/311-latest.yaml
-          - ci/envs/311-dev.yaml
+          - ci/envs/312-latest.yaml
+          - ci/envs/312-dev.yaml
         include:
-          - environment-file: ci/envs/311-latest.yaml
+          - environment-file: ci/envs/312-latest.yaml
             os: macos-latest
-          - environment-file: ci/envs/311-latest.yaml
+          - environment-file: ci/envs/312-latest.yaml
             os: windows-latest
     defaults:
       run:
