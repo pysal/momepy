@@ -3,16 +3,16 @@ channels:
   - conda-forge
 dependencies:
   - python=3.10
-  - geopandas=0.8
+  - geopandas=0.11
   - inequality
   - libpysal=4.6.0
   - mapclassify
-  - networkx=2.3
-  - numpy=1.21
+  - networkx=2.7
+  - numpy=1.22
   - packaging
-  - pandas>=0.23.0,!=1.5.0,<2
+  - pandas>=1.4.0,!=1.5.0,<2
   - shapely=2.0
-  - tqdm=4.27.0
+  - tqdm=4.63.0
   # testing
   - codecov
   - pytest
