@@ -138,7 +138,7 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True
         w = first_order.sparse
         wk = sum(w**x for x in range(2, k + 1))
         rk, ck = wk.nonzero()
-        sk = set(zip(rk, ck))
+        sk = set(zip(rk, ck, strict=True))
         sk = {(i, j) for i, j in sk if i != j}
         d = {i: [] for i in id_order}
         for pair in sk:

@@ -9,9 +9,6 @@ from shapely.ops import polygonize
 
 import momepy as mm
 
-GPD_10 = Version(gpd.__version__) >= Version("0.10")
-GPD_09 = Version(gpd.__version__) >= Version("0.9")
-
 
 class TestPreprocessing:
     def setup_method(self):
@@ -45,11 +42,8 @@ class TestPreprocessing:
         fixed_series = mm.remove_false_nodes(self.false_network.geometry)
         assert len(fixed_series) == 56
         assert isinstance(fixed_series, gpd.GeoSeries)
-        # assert self.false_network.crs.equals(fixed_series.crs) GeoPandas 0.8 BUG
-        if GPD_10:
-            multiindex = self.false_network.explode(index_parts=True)
-        else:
-            multiindex = self.false_network.explode()
+        assert self.false_network.crs.equals(fixed_series.crs)
+        multiindex = self.false_network.explode(index_parts=True)
         fixed_multiindex = mm.remove_false_nodes(multiindex)
         assert len(fixed_multiindex) == 56
         assert isinstance(fixed, gpd.GeoDataFrame)
@@ -132,26 +126,16 @@ class TestPreprocessing:
         assert ext5.length.sum() > gdf.length.sum()
         assert ext5.length.sum() == pytest.approx(6.2, rel=1e-3)
 
-    @pytest.mark.skipif(GPD_09, reason="requires geopandas <0.9")
-    def test_roundabout_simplification_gpd_error(self):
-        with pytest.raises(
-            ImportError, match="`roundabout_simplification` requires geopandas 0.9.0"
-        ):
-            mm.roundabout_simplification(self.df_streets_rabs)
-
-    @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
     def test_roundabout_simplification_point_error(self):
         point_df = gpd.GeoDataFrame({"nID": [0]}, geometry=[Point(0, 0)])
         with pytest.raises(TypeError, match="Only LineString geometries are allowed."):
             mm.roundabout_simplification(point_df)
 
-    @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
     def test_roundabout_simplification_default(self):
         check = mm.roundabout_simplification(self.df_streets_rabs)
         assert len(check) == 65
         assert len(self.df_streets_rabs) == 88  # checking that nothing has changed
 
-    @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
     def test_roundabout_simplification_high_circom_threshold(self):
         check = mm.roundabout_simplification(
             self.df_streets_rabs, self.df_rab_polys, circom_threshold=0.97
@@ -159,7 +143,6 @@ class TestPreprocessing:
         assert len(check) == 77
         assert len(self.df_streets_rabs) == 88
 
-    @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
     def test_roundabout_simplification_low_area_threshold(self):
         check = mm.roundabout_simplification(
             self.df_streets_rabs, self.df_rab_polys, area_threshold=0.8
@@ -167,7 +150,6 @@ class TestPreprocessing:
         assert len(check) == 67
         assert len(self.df_streets_rabs) == 88
 
-    @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
     def test_roundabout_simplification_exclude_adjacent(self):
         check = mm.roundabout_simplification(
             self.df_streets_rabs, self.df_rab_polys, include_adjacent=False
@@ -175,7 +157,6 @@ class TestPreprocessing:
         assert len(check) == 88
         assert len(self.df_streets_rabs) == 88
 
-    @pytest.mark.skipif(not GPD_09, reason="requires geopandas 0.9+")
     def test_roundabout_simplification_center_type_mean(self):
         check = mm.roundabout_simplification(
             self.df_streets_rabs, self.df_rab_polys, center_type="mean"

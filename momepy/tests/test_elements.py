@@ -12,10 +12,6 @@ from shapely.geometry import LineString, MultiPoint, Polygon
 
 import momepy as mm
 
-# https://github.com/geopandas/geopandas/issues/2282
-GPD_REGR = Version("0.10.2") < Version(gpd.__version__) < Version("0.11")
-GPD_10 = Version(gpd.__version__) >= Version("0.10")
-
 
 class TestElements:
     def setup_method(self):
@@ -152,7 +148,6 @@ class TestElements:
         buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, "nID")
         assert not buildings_id.isna().any()
 
-    @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
     def test_get_node_id(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges = mm.nx_to_gdf(nx)
@@ -162,8 +157,6 @@ class TestElements:
         ids = mm.get_node_id(self.df_buildings, nodes, edges, "nodeID", "nID")
         assert not ids.isna().any()
 
-    @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
-    @pytest.mark.skipif(not GPD_10, reason="requires sindex.nearest")
     def test_get_node_id_ratio(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges = mm.nx_to_gdf(nx)
@@ -219,7 +212,6 @@ class TestElements:
         encl = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([limit]), clip=True)
         assert len(encl) == 18
 
-    @pytest.mark.skipif(not GPD_10, reason="requires sindex.nearest")
     def test_get_network_ratio(self):
         convex_hull = self.df_streets.unary_union.convex_hull
         enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
@@ -245,13 +237,3 @@ class TestElements:
 
         for i, idx in enumerate(expected_tail):
             assert sorted(links2.edgeID_keys.tail(5).iloc[i]) == sorted(idx)
-
-    @pytest.mark.skipif(GPD_10, reason="requires sindex.nearest")
-    def test_get_network_ratio_error(self):
-        convex_hull = self.df_streets.unary_union.convex_hull
-        enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
-        enclosed_tess = mm.Tessellation(
-            self.df_buildings, unique_id="uID", enclosures=enclosures
-        ).tessellation
-        with pytest.raises(ImportError, match="`get_network_ratio` requires geopandas"):
-            mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)

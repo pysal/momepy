@@ -7,9 +7,6 @@ from shapely.geometry import LineString, Point
 
 import momepy as mm
 
-# https://github.com/geopandas/geopandas/issues/2282
-GPD_REGR = Version("0.10.2") < Version(gpd.__version__) < Version("0.11")
-
 
 class TestUtils:
     def setup_method(self):
@@ -120,7 +117,6 @@ class TestUtils:
         with pytest.raises(ValueError, match="Directed graphs are not supported"):
             mm.gdf_to_nx(self.df_streets, approach="dual", directed=True)
 
-    @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
     def test_nx_to_gdf(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)

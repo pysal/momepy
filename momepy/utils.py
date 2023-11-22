@@ -77,7 +77,7 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
         last = row.geometry.coords[-1]
 
         data = list(row)[1:]
-        attributes = dict(zip(fields, data))
+        attributes = dict(zip(fields, data, strict=True))
         if multigraph:
             graph.add_edge(first, last, key=key, **attributes)
             key += 1
@@ -104,7 +104,7 @@ def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
     for i, row in enumerate(gdf_network.itertuples()):
         centroid = (row.temp_x_coords, row.temp_y_coords)
         data = list(row)[1:-2]
-        attributes = dict(zip(fields, data))
+        attributes = dict(zip(fields, data, strict=True))
         graph.add_node(centroid, **attributes)
 
         if sw.cardinalities[i] > 0:
@@ -278,7 +278,7 @@ def gdf_to_nx(
 
 def _points_to_gdf(net):
     """Generate a point gdf from nodes. Helper for ``nx_to_gdf``."""
-    node_xy, node_data = zip(*net.nodes(data=True))
+    node_xy, node_data = zip(*net.nodes(data=True), strict=True)
     if isinstance(node_xy[0], int) and "x" in node_data[0]:
         geometry = [Point(data["x"], data["y"]) for data in node_data]  # osmnx graph
     else:
@@ -291,7 +291,7 @@ def _points_to_gdf(net):
 
 def _lines_to_gdf(net, points, node_id):
     """Generate a linestring gdf from edges. Helper for ``nx_to_gdf``."""
-    starts, ends, edge_data = zip(*net.edges(data=True))
+    starts, ends, edge_data = zip(*net.edges(data=True), strict=True)
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
 
     if points is True:
@@ -329,7 +329,7 @@ def _primal_to_gdf(net, points, lines, spatial_weights, node_id):
 
 def _dual_to_gdf(net):
     """Generate a linestring gdf from a dual network. Helper for ``nx_to_gdf``."""
-    starts, edge_data = zip(*net.nodes(data=True))
+    starts, edge_data = zip(*net.nodes(data=True), strict=True)
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
     gdf_edges.crs = net.graph["crs"]
     return gdf_edges

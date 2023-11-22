@@ -184,13 +184,13 @@ class TestIntensity:
             self.df_streets, self.df_buildings, "nID", "nID", sw
         ).series
         assert max(count) == 18
-        assert max(area) == 18085.45897711331
+        assert max(area) == pytest.approx(18085.45897711331)
         assert max(count_sw) == 138
-        assert max(mean) == 1808.5458977113315
-        assert max(std) == 3153.7019229524785
-        assert max(area_v) == 79169.31385861784
-        assert max(mean_v) == 7916.931385861784
-        assert max(std_v) == 8995.18003493457
+        assert max(mean) == pytest.approx(1808.5458977113315)
+        assert max(std) == pytest.approx(3153.7019229524785)
+        assert max(area_v) == pytest.approx(79169.31385861784)
+        assert max(mean_v) == pytest.approx(7916.931385861784)
+        assert max(std_v) == pytest.approx(8995.18003493457)
 
     def test_NodeDensity(self):
         nx = mm.gdf_to_nx(self.df_streets)

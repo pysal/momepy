@@ -10,7 +10,6 @@ import libpysal
 import numpy as np
 import pandas as pd
 import shapely
-from packaging.version import Version
 from scipy.signal import find_peaks
 from scipy.stats import gaussian_kde
 from shapely.geometry import LineString, Point
@@ -29,9 +28,6 @@ __all__ = [
     "roundabout_simplification",
     "FaceArtifacts",
 ]
-
-GPD_10 = Version(gpd.__version__) >= Version("0.10")
-GPD_09 = Version(gpd.__version__) >= Version("0.9")
 
 
 def preprocess(
@@ -80,11 +76,7 @@ def preprocess(
         GeoDataFrame containing preprocessed geometry
     """
     blg = buildings.copy()
-    if GPD_10:
-        blg = blg.explode(ignore_index=True)
-    else:
-        blg = blg.explode()
-        blg.reset_index(drop=True, inplace=True)
+    blg = blg.explode(ignore_index=True)
     for loop in range(0, loops):
         print("Loop", loop + 1, f"out of {loops}.") if verbose else None
         blg.reset_index(inplace=True, drop=True)
@@ -182,13 +174,10 @@ def remove_false_nodes(gdf):
     momepy.extend_lines
     momepy.close_gaps
     """
-    if isinstance(gdf, (gpd.GeoDataFrame, gpd.GeoSeries)):
+    if isinstance(gdf, gpd.GeoDataFrame | gpd.GeoSeries):
         # explode to avoid MultiLineStrings
         # reset index due to the bug in GeoPandas explode
-        if GPD_10:
-            df = gdf.reset_index(drop=True).explode(ignore_index=True)
-        else:
-            df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
+        df = gdf.reset_index(drop=True).explode(ignore_index=True)
 
         # get underlying shapely geometry
         geom = df.geometry.array
@@ -242,10 +231,7 @@ def remove_false_nodes(gdf):
 
         # remove incorrect geometries and append fixed versions
         df = df.drop(merge)
-        if GPD_10:
-            final = gpd.GeoSeries(new).explode(ignore_index=True)
-        else:
-            final = gpd.GeoSeries(new).explode().reset_index(drop=True)
+        final = gpd.GeoSeries(new).explode(ignore_index=True)
         if isinstance(gdf, gpd.GeoDataFrame):
             return pd.concat(
                 [
@@ -472,10 +458,7 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     """
     # explode to avoid MultiLineStrings
     # reset index due to the bug in GeoPandas explode
-    if GPD_10:
-        df = gdf.reset_index(drop=True).explode(ignore_index=True)
-    else:
-        df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
+    df = gdf.reset_index(drop=True).explode(ignore_index=True)
 
     if target is None:
         target = df
@@ -758,10 +741,7 @@ def _selecting_rabs_from_poly(
         rab["rab_diameter"] = rab[["deltax", "deltay"]].max(axis=1)
 
         # selecting the adjacent areas that are of smaller than itself
-        if GPD_10:
-            rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
-        else:
-            rab_adj = gpd.sjoin(gdf, rab, op="intersects")
+        rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
 
         area_right = area_col + "_right"
         area_left = area_col + "_left"
@@ -870,16 +850,10 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     is used to select the line to be extended further.
     """
     # selecting the lines that are touching but not covered by
-    if GPD_10:
-        touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
-        edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
-            edges.geometry, predicate="covered_by"
-        )
-    else:
-        touching = gpd.sjoin(edges, rab_multipolygons, op="touches")
-        edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
-            edges.geometry, op="covered_by"
-        )
+    touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
+    edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
+        edges.geometry, predicate="covered_by"
+    )
     idx_drop = edges.index.take(edges_idx)
     touching_idx = touching.index
     ls = list(set(touching_idx) - set(idx_drop))
@@ -1035,12 +1009,6 @@ def roundabout_simplification(
         GeoDataFrame with an updated geometry and an additional
         column labeling modified edges.
     """
-    if not GPD_09:
-        raise ImportError(
-            "`roundabout_simplification` requires geopandas 0.9.0 or newer. "
-            f"Your current version is {gpd.__version__}."
-        )
-
     if len(edges[edges.geom_type != "LineString"]) > 0:
         raise TypeError(
             "Only LineString geometries are allowed. "
@@ -1223,7 +1191,7 @@ class FaceArtifacts:
             # find index (in linspace) of highest peak
             highest_peak_index = self.peaks[highest_peak_listindex]
             # define all possible peak ranges fitting our definition
-            peak_bounds = list(zip(self.peaks, self.peaks[1:]))
+            peak_bounds = list(zip(self.peaks[:-1], self.peaks[1:], strict=True))
             peak_bounds_accepted = [b for b in peak_bounds if highest_peak_index in b]
             # find all valleys that lie between two peaks
             valleys_accepted = [
