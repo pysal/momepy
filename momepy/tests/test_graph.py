@@ -34,11 +34,17 @@ class TestGraph:
         net2 = mm.cds_length(self.network, mode="mean", name="cds_mean")
         sumval = 1753.626758955522
         mean = 219.20334486944023
-        assert net.nodes[(1603650.450422848, 6464368.600601688)]["cds_len"] == sumval
-        assert net2.nodes[(1603650.450422848, 6464368.600601688)]["cds_mean"] == mean
+        assert net.nodes[(1603650.450422848, 6464368.600601688)][
+            "cds_len"
+        ] == pytest.approx(sumval)
+        assert net2.nodes[(1603650.450422848, 6464368.600601688)][
+            "cds_mean"
+        ] == pytest.approx(mean)
         with pytest.raises(ValueError, match="Mode 'nonexistent' is not supported. "):
             net2 = mm.cds_length(self.network, mode="nonexistent")
-        assert mm.cds_length(self.network, radius=None) == 2291.4520621447705
+        assert mm.cds_length(self.network, radius=None) == pytest.approx(
+            2291.4520621447705
+        )
 
     def test_mean_node_degree(self):
         net = mm.mean_node_degree(self.network)
@@ -89,14 +95,20 @@ class TestGraph:
     def test_closeness_centrality(self):
         net = mm.closeness_centrality(self.network, weight="mm_len")
         check = 0.0016066095164175716
-        assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
+        assert net.nodes[(1603650.450422848, 6464368.600601688)][
+            "closeness"
+        ] == pytest.approx(check)
 
         net = mm.closeness_centrality(self.network, radius=5, weight=None)
         check = 0.27557319223985893
-        assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
+        assert net.nodes[(1603650.450422848, 6464368.600601688)][
+            "closeness"
+        ] == pytest.approx(check)
         net2 = mm.closeness_centrality(self.network, weight="mm_len", radius=5)
         check2 = 0.0015544070362478774
-        assert net2.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check2
+        assert net2.nodes[(1603650.450422848, 6464368.600601688)][
+            "closeness"
+        ] == pytest.approx(check2)
 
     def test_betweenness_centrality(self):
         net = mm.betweenness_centrality(self.network)

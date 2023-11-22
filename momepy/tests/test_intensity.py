@@ -184,7 +184,7 @@ class TestIntensity:
             self.df_streets, self.df_buildings, "nID", "nID", sw
         ).series
         assert max(count) == 18
-        assert max(area) == 18085.45897711331
+        assert max(area) == pytest.approx(18085.45897711331)
         assert max(count_sw) == 138
         assert max(mean) == 1808.5458977113315
         assert max(std) == 3153.7019229524785

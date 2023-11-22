@@ -1191,7 +1191,7 @@ class FaceArtifacts:
             # find index (in linspace) of highest peak
             highest_peak_index = self.peaks[highest_peak_listindex]
             # define all possible peak ranges fitting our definition
-            peak_bounds = list(zip(self.peak[:-1], self.peaks[1:], strict=True))
+            peak_bounds = list(zip(self.peaks[:-1], self.peaks[1:], strict=True))
             peak_bounds_accepted = [b for b in peak_bounds if highest_peak_index in b]
             # find all valleys that lie between two peaks
             valleys_accepted = [
