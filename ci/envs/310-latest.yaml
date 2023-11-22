@@ -17,9 +17,3 @@ dependencies:
   - codecov
   - pytest
   - pytest-cov
-  # user guide testing
-  - dask
-  - inequality
-  - jupyter
-  - matplotlib
-  - osmnx
