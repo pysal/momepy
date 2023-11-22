@@ -70,7 +70,9 @@ class Orientation:
 
         bboxes = shapely.minimum_rotated_rectangle(gdf.geometry)
         for geom, bbox in tqdm(
-            zip(gdf.geometry, bboxes), total=gdf.shape[0], disable=not verbose
+            zip(gdf.geometry, bboxes, strict=True),
+            total=gdf.shape[0],
+            disable=not verbose,
         ):
             if geom.geom_type in ["Polygon", "MultiPolygon", "LinearRing"]:
                 bbox = list(bbox.exterior.coords)
@@ -793,7 +795,9 @@ class BuildingAdjacency:
             print("Spatial weights ready...") if verbose else None
 
         self.sw = spatial_weights
-        patches = dict(zip(gdf[unique_id], spatial_weights.component_labels))
+        patches = dict(
+            zip(gdf[unique_id], spatial_weights.component_labels, strict=True)
+        )
 
         for uid in tqdm(
             self.id,

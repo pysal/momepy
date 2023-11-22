@@ -685,7 +685,7 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
         counts.update(data.value_counts())
     else:
         sample_bins = mc.UserDefined(data, bins)
-        counts = dict(zip(bins, sample_bins.counts))
+        counts = dict(zip(bins, sample_bins.counts, strict=True))
 
     return -sum(p(n, sum(counts.values())) for n in counts.values() if n != 0)
 

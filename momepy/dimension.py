@@ -546,7 +546,7 @@ class StreetProfile:
         end_markers = []
 
         lengths = shapely.length(lines)
-        for ix, (line, length) in enumerate(zip(lines, lengths)):
+        for ix, (line, length) in enumerate(zip(lines, lengths, strict=True)):
             pts = shapely.line_interpolate_point(
                 line, np.linspace(0, length, num=int((length) // distance))
             )
@@ -560,7 +560,7 @@ class StreetProfile:
                 ids += [ix] * 2
 
         ticks = []
-        for num, (pt, end) in enumerate(zip(list_points, end_markers), 1):
+        for num, (pt, end) in enumerate(zip(list_points, end_markers, strict=True), 1):
             if end:
                 ticks.append([pt, pt])
                 ticks.append([pt, pt])
@@ -587,7 +587,7 @@ class StreetProfile:
 
         min_distances = []
         min_inds = []
-        for dis, ind in zip(dist_per_res, inp_per_res):
+        for dis, ind in zip(dist_per_res, inp_per_res, strict=True):
             min_distances.append(np.min(dis))
             min_inds.append(ind[np.argmin(dis)])
 

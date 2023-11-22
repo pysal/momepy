@@ -170,7 +170,7 @@ class COINS:
 
             p2.append(item)
 
-        self.result = list(zip(range(len(p1)), p1, p2))
+        self.result = list(zip(range(len(p1)), p1, p2, strict=True))
 
         for a in self.result:
             n = a[0]
@@ -371,7 +371,7 @@ def _list_to_tuple(line):
 def _list_to_pairs(in_list):
     """Split a line at every point."""
     tmp_list = [list(point) for point in in_list]
-    return [list(pair) for pair in zip(tmp_list, tmp_list[1:])]
+    return [list(pair) for pair in zip(tmp_list, tmp_list[1:], strict=True)]
 
 
 def _compute_angle(point1, point2):

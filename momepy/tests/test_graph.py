@@ -5,8 +5,6 @@ from packaging.version import Version
 
 import momepy as mm
 
-NX_26 = Version(nx.__version__) < Version("2.6")
-
 
 class TestGraph:
     def setup_method(self):
@@ -171,7 +169,6 @@ class TestGraph:
             == edge
         )
 
-    @pytest.mark.skipif(NX_26, reason="networkx<2.6 has a bug")
     def test_clustering(self):
         net = mm.clustering(self.network)
         check = 0.05555555555555555
