@@ -237,12 +237,3 @@ class TestElements:
 
         for i, idx in enumerate(expected_tail):
             assert sorted(links2.edgeID_keys.tail(5).iloc[i]) == sorted(idx)
-
-    def test_get_network_ratio_error(self):
-        convex_hull = self.df_streets.unary_union.convex_hull
-        enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
-        enclosed_tess = mm.Tessellation(
-            self.df_buildings, unique_id="uID", enclosures=enclosures
-        ).tessellation
-        with pytest.raises(ImportError, match="`get_network_ratio` requires geopandas"):
-            mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
