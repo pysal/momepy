@@ -4,6 +4,8 @@ Changelog
 Version 0.7.0 (November 22, 2023)
 ---------------------------------
 
+Momepy now requires at least Python 3.10, GeoPandas 0.12, NetworkX 2.7 and tqdm 4.63.
+
 Enhancements:
 
 - ENH: support single-part multipolygons in ``Squareness`` and ``CentroidCorners`` (#507)
