@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.7.0 (November 22, 2023)
+---------------------------------
+
+Enhancements:
+
+- ENH: support single-part multipolygons in ``Squareness`` and ``CentroidCorners`` (#507)
+- ENH: add ``FaceArtifacts`` function to detect non-morphological artifacts in street
+  networks (#510)
+
 Version 0.6.0 (May 1, 2023)
 ---------------------------
 
