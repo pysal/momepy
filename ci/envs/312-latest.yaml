@@ -27,4 +27,6 @@ dependencies:
   - clustergram
   - bokeh
   - geopy
+  - ipywidgets
+  - Iprogress
 
