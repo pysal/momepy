@@ -158,7 +158,7 @@ class TestElements:
         ids1 = mm.get_node_id(self.df_buildings, nodes, edges, "nodeID", "nID")
         assert not ids1.isna().any()
 
-        # test for NaNs with `object` IDs
+        # test for NaNs within `object` nIDs column
         _df_buildings = self.df_buildings.copy()
         _df_buildings.loc[[0, 1], "nID"] = pd.NA
         ids2 = mm.get_node_id(_df_buildings, nodes, edges, "nodeID", "nID")
