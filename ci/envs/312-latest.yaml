@@ -25,6 +25,6 @@ dependencies:
   - matplotlib
   - osmnx
   - clustergram
-  - boken
+  - bokeh
   - geopy
 
