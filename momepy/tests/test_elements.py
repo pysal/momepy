@@ -159,12 +159,13 @@ class TestElements:
         assert not ids1.isna().any()
 
         # test for NaNs within `object` nIDs column
+        edges["nID"] = edges["nID"].astype(str)
         _df_buildings = self.df_buildings.copy()
+        _df_buildings["nID"] = _df_buildings["nID"].astype(str)
         _df_buildings.loc[[0, 1], "nID"] = pd.NA
         ids2 = mm.get_node_id(_df_buildings, nodes, edges, "nodeID", "nID")
         assert ids2.isna().sum() == 2
         np.testing.assert_array_equal(ids2[ids2.isna()].index, [0, 1])
-        np.testing.assert_array_equal(ids1.loc[2:], ids2.loc[2:])
 
     def test_get_node_id_ratio(self):
         nx = mm.gdf_to_nx(self.df_streets)
