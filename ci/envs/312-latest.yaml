@@ -24,4 +24,7 @@ dependencies:
   - jupyter
   - matplotlib
   - osmnx
+  - clustergram
+  - boken
+  - geopy
 
