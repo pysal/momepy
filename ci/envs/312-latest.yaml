@@ -24,4 +24,9 @@ dependencies:
   - jupyter
   - matplotlib
   - osmnx
+  - clustergram
+  - bokeh
+  - geopy
+  - ipywidgets
+  - Iprogress
 
