@@ -3,6 +3,7 @@ from random import shuffle
 
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
@@ -154,8 +155,17 @@ class TestElements:
         self.df_buildings["nID"] = mm.get_network_id(
             self.df_buildings, self.df_streets, "nID"
         )
-        ids = mm.get_node_id(self.df_buildings, nodes, edges, "nodeID", "nID")
-        assert not ids.isna().any()
+        ids1 = mm.get_node_id(self.df_buildings, nodes, edges, "nodeID", "nID")
+        assert not ids1.isna().any()
+
+        # test for NaNs within `object` nIDs column
+        edges["nID"] = edges["nID"].astype(str)
+        _df_buildings = self.df_buildings.copy()
+        _df_buildings["nID"] = _df_buildings["nID"].astype(str)
+        _df_buildings.loc[[0, 1], "nID"] = pd.NA
+        ids2 = mm.get_node_id(_df_buildings, nodes, edges, "nodeID", "nID")
+        assert ids2.isna().sum() == 2
+        np.testing.assert_array_equal(ids2[ids2.isna()].index, [0, 1])
 
     def test_get_node_id_ratio(self):
         nx = mm.gdf_to_nx(self.df_streets)

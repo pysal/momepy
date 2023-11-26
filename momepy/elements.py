@@ -804,8 +804,8 @@ def get_node_id(
             total=objects.shape[0],
             disable=not verbose,
         ):
-            if np.isnan(eid):
-                results_list.append(np.nan)
+            if pd.isna(eid):
+                results_list.append(pd.NA)
             else:
                 edge = edges.loc[eid]
                 start_id = edge.node_start
