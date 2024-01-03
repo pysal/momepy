@@ -57,9 +57,9 @@ jobs:
       - name: Generate and publish the report
         if: |
           failure()
-          && steps.status.outcome == 'failure'
-          && github.event_name == 'schedule'
-          && github.repository_owner == 'pysal'
+          && github.event_name != 'pull_request'
+          && github.repository == 'pysal/momepy'
+          && steps.run_tests.outcome == 'failure'
         uses: xarray-contrib/issue-from-pytest-log@v1
         with:
           log-path: pytest-log.jsonl
