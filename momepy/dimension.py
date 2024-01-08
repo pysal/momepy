@@ -12,7 +12,7 @@ import shapely
 from tqdm.auto import tqdm
 
 from .shape import _circle_radius
-from .utils import deprecated
+from .utils import deprecated, removed
 
 __all__ = [
     "Area",
@@ -30,6 +30,7 @@ __all__ = [
 ]
 
 
+@removed("`.area` attribute of a GeoDataFrame")
 class Area:
     """
     Calculates the area of each object in a given GeoDataFrame. It can be used for any
@@ -63,7 +64,7 @@ class Area:
         self.series = self.gdf.geometry.area
 
 
-@deprecated("perimeter")
+@removed("`.length` attribute of a GeoDataFrame")
 class Perimeter:
     """
     Calculates perimeter of each object in a given GeoDataFrame. It can be used for any
@@ -92,9 +93,8 @@ class Perimeter:
     """
 
     def __init__(self, gdf):
-        from .functional.dimension import perimeter
-
-        self.series = perimeter(gdf)
+        self.gdf = gdf
+        self.series = self.gdf.geometry.length
 
 
 @deprecated("volume")
@@ -147,6 +147,7 @@ class Volume:
         self.series = volume(gdf, heights=heights, areas=areas)
 
 
+@deprecated("floor_area")
 class FloorArea:
     """
     Calculates floor area of each object based on height and area. The number of
@@ -866,10 +867,39 @@ class PerimeterWall:
     It might take a while to compute this character.
     """
 
-    def __init__(self, gdf, spatial_weights=None, verbose=True):  # noqa: ARG002
-        from .functional.dimension import perimeter_wall
+    def __init__(self, gdf, spatial_weights=None, verbose=True):
+        self.gdf = gdf
 
-        self.series = perimeter_wall(gdf, w=spatial_weights)
+        if spatial_weights is None:
+            print("Calculating spatial weights...") if verbose else None
+            from libpysal.weights import Queen
+
+            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            print("Spatial weights ready...") if verbose else None
+        self.sw = spatial_weights
+
+        # dict to store walls for each uID
+        walls = {}
+        components = pd.Series(spatial_weights.component_labels, index=range(len(gdf)))
+        geom = gdf.geometry
+
+        for i in tqdm(range(gdf.shape[0]), total=gdf.shape[0], disable=not verbose):
+            # if the id is already present in walls, continue (avoid repetition)
+            if i in walls:
+                continue
+            else:
+                comp = spatial_weights.component_labels[i]
+                to_join = components[components == comp].index
+                joined = geom.iloc[to_join]
+                # buffer to avoid multipolygons where buildings touch by corners only
+                dissolved = joined.buffer(0.01).unary_union
+                for b in to_join:
+                    walls[b] = dissolved.exterior.length
+
+        results_list = []
+        for i in tqdm(range(gdf.shape[0]), total=gdf.shape[0], disable=not verbose):
+            results_list.append(walls[i])
+        self.series = pd.Series(results_list, index=gdf.index)
 
 
 class SegmentsLength:
