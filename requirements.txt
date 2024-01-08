@@ -1,6 +1,0 @@
-geopandas>=0.8.0
-libpysal>=4.1.0
-networkx>=2.3
-packaging
-pygeos
-tqdm>=4.25

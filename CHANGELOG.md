@@ -1,6 +1,51 @@
 Changelog
 =========
 
+Version 0.7.0 (November 22, 2023)
+---------------------------------
+
+Momepy now requires at least Python 3.10, GeoPandas 0.12, NetworkX 2.7 and tqdm 4.63.
+
+Enhancements:
+
+- ENH: support single-part multipolygons in ``Squareness`` and ``CentroidCorners`` (#507)
+- ENH: add ``FaceArtifacts`` function to detect non-morphological artifacts in street
+  networks (#510)
+
+Version 0.6.0 (May 1, 2023)
+---------------------------
+
+Momepy now requires shapely 2.0 or newer to run and no longer depends on PyGEOS. The
+highlights of the release:
+
+Enhancements:
+
+- ENH: support bi-directional roads in ``gdf_to_nx`` (#357)
+- ENH: geometry-based simplification of roundabouts (#371, #392)
+- REF: update for shapely 2.0 (#479)
+
+Bug fixes:
+
+- resolves bug in ``Percentiles`` append. (#427)
+
+Version 0.5.4 (September 20, 2022)
+----------------------------------
+
+Minor patch bringing some bug fixes and ensuring the full compatibility with the recent
+versions of dependencies.
+
+Fixes:
+
+- BUG: return itself when no change possible in remove_false_nodes (#365)
+- BUG: make COINS independent of the GeoDataFrame index (#378)
+- Added warning for gdp_to_nx if geometries are not LineStrings (#379)
+- REF: remove deprecated pandas append (#382, #384)
+- MAINT: address numpy.nanpercintle warning (#387)
+- MAINT: handle scenarios leading to dimensions.StreetProfile() warnings (#389)
+- handle All NaN slice warning (#395)
+- Fix various warnings (#398)
+- BUG: get_network_ratio non-interescting joins fix (#409)
+
 Version 0.5.3 (April 9, 2022)
 -----------------------------
 
@@ -10,7 +55,6 @@ Fixes:
 
 - BUG: Fix angle computation in graph creation with dual approach (#347)
 - BUG: fix issue with blocks within another blocks (#351)
-
 
 Version 0.5.2 (January 6, 2022)
 -------------------------------
@@ -23,7 +67,6 @@ Fixes:
 - BUG: non-default index dropped in Blocks id series (#315)
 - BUG: fix FormFactor formula (#330)
 
-
 Version 0.5.1 (October 20, 2021)
 --------------------------------
 
@@ -33,7 +76,6 @@ Fixes:
 
 - BUG: non-default index dropped in Blocks id series
 - REF/TST: minimise warnings from geopandas 0.10
-
 
 Version 0.5.0 (September 12, 2021)
 ----------------------------------
@@ -57,7 +99,6 @@ Other:
 - DEP: remove deprecated functions and args (#268)
 - PERF: use dask.bag in Tessellation (#296)
 
-
 Version 0.4.4 (April 30, 2021)
 ---------------------------------
 
@@ -65,14 +106,12 @@ Small bug fix affecting `nx_to_gdf` and `NodeDensity`.
 
 - BUG: node ID doesn't match ID in weights (#274)
 
-
 Version 0.4.3 (February 16, 2021)
 ---------------------------------
 
 Small bug fix:
 
 - BUG: UnboundLocalError: local variable 'cpu_count' referenced before assignment (#266)
-
 
 Version 0.4.2 (February 4, 2021)
 --------------------------------
@@ -85,14 +124,12 @@ Bug fix release:
 - PERF: move translation in Tessellation (#259)
 - REGR: use convex_hull to mitigate infinity (#260)
 
-
 Version 0.4.1 (January 12, 2021)
 --------------------------------
 
 - fixed bug in the automatic selection of number of dask chunks in enclosed tessellation
 - fixed infinity issue in ``StreetProfile`` (#249)
 - fixed issue changing the original dataframe in ``DistanceBand`` (#250)
-
 
 Version 0.4.0 (December 26, 2020)
 ---------------------------------
@@ -135,7 +172,6 @@ Bug fixes:
 - ``Tessellation`` error when geom collapsed (#226)
 - ``Blocks`` empty difference (#230)
 
-
 Version 0.3.0 (July 29, 2020)
 -----------------------------
 
@@ -172,12 +208,10 @@ Bug fixes:
 - Fixed ``Squareness`` for non-Polygon geom types (#182)
 - CRS lost with older geopandas (#188)
 
-
 Version 0.2.1 (April 15, 2020)
 ------------------------------
 
 - fixed regression causing ``MeanInterbuildingDistance`` failure (#161)
-
 
 Version 0.2.0 (April 13, 2020)
 ------------------------------
@@ -206,7 +240,6 @@ Bug fixes:
 - LineString Z support in ``nx_to_gdf`` (#148)
 - accidental 'rtd' print (#150)
 - ``CentroidCorner`` may fail for Polygon Z (#151)
-
 
 Version 0.1.1 (December 15, 2019)
 ---------------------------------

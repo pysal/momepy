@@ -1,15 +1,14 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # distribution.py
 # definitions of spatial distribution characters
 
 import math
-import warnings
 
 import networkx as nx
 import numpy as np
 import pandas as pd
+import shapely
 from tqdm.auto import tqdm  # progress bar
 
 from .utils import _azimuth, deprecated
@@ -31,28 +30,27 @@ __all__ = [
 
 class Orientation:
     """
-    Calculate the orientation of object
-
-    Captures the deviation of orientation from cardinal directions.
-    Defined as an orientation of the longext axis of bounding rectangle in range 0 - 45.
-    Orientation of LineStrings is represented by the orientation of line
-    connecting first and last point of the segment.
+    Calculate the orientation of object. The deviation of orientation from cardinal
+    directions are captured. Here 'orientation' is defined as an orientation of the
+    longest axis of bounding rectangle in range 0 - 45. The orientation of LineStrings
+    is represented by the orientation of the line connecting the first and the last
+    point of the segment.
 
     Adapted from :cite:`schirmer2015`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
 
     Examples
     --------
@@ -70,10 +68,14 @@ class Orientation:
         def _dist(a, b):
             return math.hypot(b[0] - a[0], b[1] - a[1])
 
-        for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
-            if geom.type in ["Polygon", "MultiPolygon", "LinearRing"]:
-                # TODO: vectorize once minimum_rotated_rectangle is in geopandas
-                bbox = list(geom.minimum_rotated_rectangle.exterior.coords)
+        bboxes = shapely.minimum_rotated_rectangle(gdf.geometry)
+        for geom, bbox in tqdm(
+            zip(gdf.geometry, bboxes, strict=True),
+            total=gdf.shape[0],
+            disable=not verbose,
+        ):
+            if geom.geom_type in ["Polygon", "MultiPolygon", "LinearRing"]:
+                bbox = list(bbox.exterior.coords)
                 axis1 = _dist(bbox[0], bbox[3])
                 axis2 = _dist(bbox[0], bbox[1])
 
@@ -81,7 +83,7 @@ class Orientation:
                     az = _azimuth(bbox[0], bbox[1])
                 else:
                     az = _azimuth(bbox[0], bbox[3])
-            elif geom.type in ["LineString", "MultiLineString"]:
+            elif geom.geom_type in ["LineString", "MultiLineString"]:
                 coords = geom.coords
                 az = _azimuth(coords[0], coords[-1])
             else:
@@ -99,27 +101,27 @@ class Orientation:
 @deprecated("shared_walls")
 class SharedWalls:
     """
-    Calculate the length of shared walls of adjacent elements (typically buildings)
+    Calculate the length of shared walls of adjacent elements (typically buildings).
 
     .. math::
         \\textit{length of shared walls}
 
-    Note that data needs to be topologically correct. Overlapping polygons will lead to
-    incorrect results.
+    Note that data needs to be topologically correct.
+    Overlapping polygons will lead to incorrect results.
 
     Adapted from :cite:`hamaina2012a`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing gdf to analyse
+        A GeoDataFrame containing objects to analyse.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
 
     Examples
     --------
@@ -139,32 +141,32 @@ class SharedWalls:
 @deprecated("shared_walls_ratio")
 class SharedWallsRatio:
     """
-    Calculate shared walls ratio of adjacent elements (typically buildings)
+    Calculate shared walls ratio of adjacent elements (typically buildings).
 
     .. math::
         \\textit{length of shared walls} \\over perimeter
 
-    Note that data needs to be topologically correct. Overlapping polygons will lead to
-    incorrect results.
+    Note that data needs to be topologically correct.
+    Overlapping polygons will lead to incorrect results.
 
     Adapted from :cite:`hamaina2012a`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing gdf to analyse
+        A GeoDataFrame containing objects to analyse.
     perimeters : str, list, np.array, pd.Series (default None, optional)
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored perimeter value
+        The name of the dataframe column, ``np.array``, or ``pd.Series``
+        where perimeter values are stored.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     perimeters : GeoDataFrame
-        Series containing used perimeters values
+        A Series containing used perimeters values.
 
     Examples
     --------
@@ -185,15 +187,12 @@ class SharedWallsRatio:
 
 class StreetAlignment:
     """
-    Calculate the difference between street orientation and orientation of object in
-    degrees
-
-    Orientation of street segment is represented by the orientation of line
-    connecting first and last point of the segment. Network ID linking each object
-    to specific street segment is needed. Can be generated by
-    :func:`momepy.get_network_id`.
-    Either ``network_id`` or both ``left_network_id`` and ``right_network_id``
-    are required.
+    Calculate the difference between street orientation and orientation of
+    another object in degrees. The orientation of a street segment is represented
+    by the orientation of line connecting the first and the last point of the
+    segment. A network ID linking each object to specific street segment is needed,
+    and can be generated by :func:`momepy.get_network_id`. Either ``network_id`` or
+    both ``left_network_id`` and ``right_network_id`` are required.
 
     .. math::
         \\left|{\\textit{building orientation} - \\textit{street orientation}}\\right|
@@ -201,37 +200,37 @@ class StreetAlignment:
     Parameters
     ----------
     left : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     right : GeoDataFrame
-        GeoDataFrame containing street network
+        A GeoDataFrame containing a street network.
     orientations : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored object orientation value
-        (can be calculated using :class:`momepy.Orientation`)
+        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
+        object orientation values are stored. The object can be calculated
+        using :class:`momepy.Orientation`.
     network_id : str (default None)
-        the name of the column storing network ID in both left and right
+        The name of the column storing network ID in both left and right.
     left_network_id : str, list, np.array, pd.Series (default None)
-        the name of the left dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored object network ID
+        The name of the left dataframe column, ``np.array``, or ``pd.Series`` where
+        object network IDs are stored.
     right_network_id : str, list, np.array, pd.Series (default None)
-        the name of the right dataframe column, ``np.array``, or ``pd.Series`` of
-        streets with unique network id (has to be defined beforehand)
-        (can be defined using :func:`momepy.unique_id`)
+        The name of the right dataframe column, ``np.array``, or ``pd.Series`` of
+        streets with unique network IDs. These IDs have to be defined beforehand and
+        can be defined using :func:`momepy.unique_id`.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     left : GeoDataFrame
-        original left GeoDataFrame
+        The original ``left`` GeoDataFrame.
     right : GeoDataFrame
-        original right GeoDataFrame
+        The original ``right`` GeoDataFrame.
     network_id : str
-        the name of the column storing network ID in both left and right
+        The name of the column storing network ID in both ``left`` and ``right``.
     left_network_id : Series
-        Series containing used left ID
+        A Series containing used ``left`` ID.
     right_network_id : Series
-        Series containing used right ID
+        A Series containing used ``right`` ID.
 
     Examples
     --------
@@ -303,7 +302,7 @@ class StreetAlignment:
 
 class CellAlignment:
     """
-    Calculate the difference between cell orientation and orientation of object
+    Calculate the difference between cell orientation and the orientation of object.
 
     .. math::
         \\left|{\\textit{building orientation} - \\textit{cell orientation}}\\right|
@@ -311,40 +310,40 @@ class CellAlignment:
     Parameters
     ----------
     left : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     right : GeoDataFrame
-        GeoDataFrame containing tessellation cells (or relevant spatial units)
+        A GeoDataFrame containing tessellation cells (or relevant spatial units).
     left_orientations : str, list, np.array, pd.Series
-        the name of the left dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored object orientation value
-        (can be calculated using :class:`momepy.Orientation`)
+        The name of the ``left`` dataframe column, ``np.array``, or
+        `pd.Series`` where object orientation values are stored. This
+        can be calculated using :class:`momepy.Orientation`.
     right_orientations : str, list, np.array, pd.Series
-        the name of the right dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored object orientation value
-        (can be calculated using :class:`momepy.Orientation`)
+        The name of the ``right`` dataframe column, ``np.array``, or ``pd.Series``
+        where object orientation values are stored. This
+        can be calculated using :class:`momepy.Orientation`.
     left_unique_id : str
-        the name of the ``left`` dataframe column with unique id shared between ``left``
-         and ``right`` gdf
+        The name of the ``left`` dataframe column with a unique
+        ID shared between the ``left`` and ``right`` GeoDataFrame objects.
     right_unique_id : str
-        the name of the ``right`` dataframe column with unique id shared between
-        ``left`` and ``right`` gdf
+        The name of the ``right`` dataframe column with a unique
+        ID shared between the ``left`` and ``right`` GeoDataFrame objects.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     left : GeoDataFrame
-        original left GeoDataFrame
+        The original ``left`` GeoDataFrame.
     right : GeoDataFrame
-        original right GeoDataFrame
+        The original ``right`` GeoDataFrame.
     left_orientations : Series
-        Series containing used left orientations
+        A Series containing used ``left`` orientations.
     right_orientations : Series
-        Series containing used right orientations
+        A Series containing used ``right`` orientations.
     left_unique_id : Series
-        Series containing used left ID
+        A Series containing used ``left`` ID.
     right_unique_id : Series
-        Series containing used right ID
+        A Series containing used ``right`` ID.
 
     Examples
     --------
@@ -401,7 +400,7 @@ class Alignment:
 
     """
     Calculate the mean deviation of solar orientation of objects on adjacent cells
-    from an object
+    from an object.
 
     .. math::
         \\frac{1}{n}\\sum_{i=1}^n dev_i=\\frac{dev_1+dev_2+\\cdots+dev_n}{n}
@@ -409,30 +408,30 @@ class Alignment:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     spatial_weights : libpysal.weights, optional
-        spatial weights matrix
+        A spatial weights matrix.
     orientations : str, list, np.array, pd.Series
-        the name of the left dataframe column, ``np.array``, or ``pd.Series`` where is
-        stored object orientation value
-        (can be calculated using :class:`momepy.Orientation`)
+        The name of the left dataframe column, ``np.array``, or ``pd.Series``
+        where object orientation values are stored. This
+        can be calculated using :class:`momepy.Orientation`.
     unique_id : str
-        name of the column with unique id used as ``spatial_weights`` index.
+        The name of the unique ID column used as the ``spatial_weights`` index.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     orientations : Series
-        Series containing used orientation values
+        A Series containing used orientation values.
     sw : libpysal.weights
-        spatial weights matrix
+        The spatial weights matrix.
     id : Series
-        Series containing used unique ID
+        A Series containing used unique ID.
 
     Examples
     --------
@@ -462,9 +461,9 @@ class Alignment:
 
         # iterating over rows one by one
         for index, orient in tqdm(
-            data.iteritems(), total=data.shape[0], disable=not verbose
+            data.items(), total=data.shape[0], disable=not verbose
         ):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = spatial_weights.neighbors[index]
                 if neighbours:
                     orientation = data.loc[neighbours]
@@ -479,8 +478,7 @@ class Alignment:
 
 class NeighborDistance:
     """
-    Calculate the mean distance to adjacent buildings (based on ``spatial_weights``)
-
+    Calculate the mean distance to adjacent buildings (based on ``spatial_weights``).
     If no neighbours are found, return ``np.nan``.
 
     .. math::
@@ -491,24 +489,24 @@ class NeighborDistance:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     spatial_weights : libpysal.weights
-        spatial weights matrix based on unique_id
+        A spatial weights matrix based on ``unique_id``.
     unique_id : str
-        name of the column with unique id used as ``spatial_weights`` index.
+        The name of the unique ID column used as the ``spatial_weights`` index.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     sw : libpysal.weights
-        spatial weights matrix
+        The spatial weights matrix.
     id : Series
-        Series containing used unique ID
+        A Series containing used unique ID.
 
     Examples
     --------
@@ -530,13 +528,11 @@ class NeighborDistance:
         data = gdf.set_index(unique_id).geometry
 
         # iterating over rows one by one
-        for index, geom in tqdm(
-            data.iteritems(), total=data.shape[0], disable=not verbose
-        ):
-            if geom is not None and index in spatial_weights.neighbors.keys():
+        for index, geom in tqdm(data.items(), total=data.shape[0], disable=not verbose):
+            if geom is not None and index in spatial_weights.neighbors:
                 neighbours = spatial_weights.neighbors[index]
                 building_neighbours = data.loc[neighbours]
-                if len(building_neighbours) > 0:
+                if len(building_neighbours):
                     results_list.append(
                         building_neighbours.geometry.distance(geom).mean()
                     )
@@ -550,39 +546,35 @@ class NeighborDistance:
 
 class MeanInterbuildingDistance:
     """
-    Calculate the mean interbuilding distance
-
-    Interbuilding distances are calculated between buildings on adjacent cells based on
+    Calculate the mean interbuilding distance. Interbuilding distances are
+    calculated between buildings on adjacent cells based on
     ``spatial_weights``, while the extent is defined as order of contiguity.
-
-    .. math::
-
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     unique_id : str
-        name of the column with unique id used as ``spatial_weights`` index
+        The name of the unique ID column used as the ``spatial_weights`` index.
     spatial_weights : libpysal.weights
-        spatial weights matrix
+        A spatial weights matrix.
     order : int
-        Order of contiguity defining the extent
+        The order of contiguity defining the extent.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     sw : libpysal.weights
-        spatial weights matrix
+        The spatial weights matrix.
     id : Series
-        Series containing used unique ID
+        A Series containing used unique ID.
     sw_higher : libpysal.weights
-        Spatial weights matrix of higher order
+        The spatial weights matrix of higher order.
     order : int
         Order of contiguity.
 
@@ -608,7 +600,6 @@ class MeanInterbuildingDistance:
         gdf,
         spatial_weights,
         unique_id,
-        spatial_weights_higher=None,
         order=3,
         verbose=True,
     ):
@@ -622,7 +613,7 @@ class MeanInterbuildingDistance:
         results_list = []
 
         # define adjacency list from lipysal
-        adj_list = spatial_weights.to_adjlist()
+        adj_list = spatial_weights.to_adjlist(drop_islands=True)
         adj_list["weight"] = (
             data.loc[adj_list.focal]
             .reset_index(drop=True)
@@ -631,7 +622,7 @@ class MeanInterbuildingDistance:
         )
 
         # generate graph
-        G = nx.from_pandas_edgelist(
+        graph = nx.from_pandas_edgelist(
             adj_list, source="focal", target="neighbor", edge_attr="weight"
         )
 
@@ -639,7 +630,7 @@ class MeanInterbuildingDistance:
         # iterate over subgraphs to get the final values
         for uid in tqdm(data.index, total=data.shape[0], disable=not verbose):
             try:
-                sub = nx.ego_graph(G, uid, radius=order)
+                sub = nx.ego_graph(graph, uid, radius=order)
                 results_list.append(
                     np.nanmean([x[-1] for x in list(sub.edges.data("weight"))])
                 )
@@ -650,10 +641,9 @@ class MeanInterbuildingDistance:
 
 class NeighboringStreetOrientationDeviation:
     """
-    Calculate the mean deviation of solar orientation of adjacent streets
-
-    Orientation of street segment is represented by the orientation of line
-    connecting first and last point of the segment.
+    Calculate the mean deviation of solar orientation of adjacent streets. The
+    orientation of a street segment is represented by the orientation of the line
+    connecting the first and last point of the segment.
 
     .. math::
         \\frac{1}{n}\\sum_{i=1}^n dev_i=\\frac{dev_1+dev_2+\\cdots+dev_n}{n}
@@ -661,16 +651,16 @@ class NeighboringStreetOrientationDeviation:
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing street network to analyse
+        A GeoDataFrame containing objects to analyse.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     orientation : Series
-        Series containing used street orientation values
+        A Series containing used street orientation values.
 
     Examples
     --------
@@ -725,41 +715,40 @@ class NeighboringStreetOrientationDeviation:
 
 class BuildingAdjacency:
     """
-    Calculate the level of building adjacency
-
-    Building adjacency reflects how much buildings tend to join together into larger
-    structures.
-    It is calculated as a ratio of joined built-up structures and buildings within
-    the extent defined in ``spatial_weights_higher``.
+    Calculate the level of building adjacency. Building adjacency reflects how much
+    buildings tend to join together into larger structures. It is calculated as a
+    ratio of joined built-up structures and buildings within the extent defined
+    in ``spatial_weights_higher``.
 
     Adapted from :cite:`vanderhaegen2017`.
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     spatial_weights_higher : libpysal.weights
-        spatial weights matrix
+        A spatial weights matrix.
     unique_id : str
-        name of the column with unique id used as ``spatial_weights`` index
+        The name of the unique ID column used as the ``spatial_weights`` index.
     spatial_weights : libpysal.weights, optional
-        spatial weights matrix - If None, Queen contiguity matrix will be calculated
-        based on gdf. It is to denote adjacent buildings (note: based on unique ID).
+        A spatial weights matrix. If ``None``, a Queen contiguity matrix will
+        be calculated based on ``gdf``. It is to denote adjacent buildings
+        and is based on ``unique_id``.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     sw_higher : libpysal.weights
-        spatial weights matrix
+        A higher order spatial weights matrix.
     id : Series
-        Series containing used unique ID
+        A Series containing used unique IDs.
     sw : libpysal.weights
-        spatial weights matrix
+        The spatial weights matrix.
 
     Examples
     --------
@@ -792,7 +781,9 @@ class BuildingAdjacency:
             print("Spatial weights ready...") if verbose else None
 
         self.sw = spatial_weights
-        patches = dict(zip(gdf[unique_id], spatial_weights.component_labels))
+        patches = dict(
+            zip(gdf[unique_id], spatial_weights.component_labels, strict=True)
+        )
 
         for uid in tqdm(
             self.id,
@@ -800,7 +791,7 @@ class BuildingAdjacency:
             disable=not verbose,
             desc="Calculating adjacency",
         ):
-            if uid in spatial_weights_higher.neighbors.keys():
+            if uid in spatial_weights_higher.neighbors:
                 neighbours = spatial_weights_higher.neighbors[uid].copy()
                 if neighbours:
                     neighbours.append(uid)
@@ -819,42 +810,40 @@ class BuildingAdjacency:
 
 class Neighbors:
     """
-    Calculate the number of neighbours captured by ``spatial_weights``
-
-    If ``weighted=True``, number of neighbours will be divided by the perimeter of
-    object to return relative value.
+    Calculate the number of neighbours captured by ``spatial_weights``. If
+    ``weighted=True``, the number of neighbours will be divided by the perimeter of
+    the object to return relative value.
 
     Adapted from :cite:`hermosilla2012`.
-
 
     Parameters
     ----------
     gdf : GeoDataFrame
-        GeoDataFrame containing objects to analyse
+        A GeoDataFrame containing objects to analyse.
     spatial_weights : libpysal.weights
-        spatial weights matrix
+        A spatial weights matrix.
     unique_id : str
-        name of the column with unique id used as ``spatial_weights`` index
+        The name of the unique ID column used as the ``spatial_weights`` index.
     weighted : bool (default False)
-        if ``True``, number of neighbours will be divided by the perimeter of object,
-        to return relative value
+        If ``True``, the number of neighbours will be divided
+        by the perimeter of object, to return the relative value.
     verbose : bool (default True)
-        if True, shows progress bars in loops and indication of steps
+        If ``True``, shows progress bars in loops and indication of steps.
 
     Attributes
     ----------
     series : Series
-        Series containing resulting values
+        A Series containing resulting values.
     gdf : GeoDataFrame
-        original GeoDataFrame
+        The original GeoDataFrame.
     values : Series
-        Series containing used values
+        A Series containing used values.
     sw : libpysal.weights
-        spatial weights matrix
+        The spatial weights matrix.
     id : Series
-        Series containing used unique ID
+        A Series containing used unique ID.
     weighted : bool
-        used weighted value
+        Whether object is weighted or not.
 
     Examples
     --------
@@ -876,11 +865,11 @@ class Neighbors:
 
         neighbours = []
         for index, geom in tqdm(
-            gdf.set_index(unique_id).geometry.iteritems(),
+            gdf.set_index(unique_id).geometry.items(),
             total=gdf.shape[0],
             disable=not verbose,
         ):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 if weighted is True:
                     neighbours.append(
                         spatial_weights.cardinalities[index] / geom.length

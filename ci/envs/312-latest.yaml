@@ -1,0 +1,32 @@
+name: test
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - geopandas
+  - inequality
+  - libpysal>=4.6.0
+  - mapclassify
+  - networkx
+  - osmnx
+  - packaging
+  - pandas!=1.5.0
+  - shapely>=2
+  - esda
+  - tqdm
+  # testing
+  - codecov
+  - pytest
+  - pytest-cov
+  # user guide testing
+  - dask
+  - inequality
+  - jupyter
+  - matplotlib
+  - osmnx
+  - clustergram
+  - bokeh
+  - geopy
+  - ipywidgets
+  - Iprogress
+
