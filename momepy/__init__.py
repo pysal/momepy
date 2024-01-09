@@ -7,6 +7,7 @@ from .dimension import *
 from .distribution import *
 from .diversity import *
 from .elements import *
+from .functional._dimension import *
 from .graph import *
 from .intensity import *
 from .preprocessing import *
