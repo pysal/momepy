@@ -336,7 +336,11 @@ def _dual_to_gdf(net):
 
 
 def nx_to_gdf(
-    net, points=True, lines=True, spatial_weights=False, nodeID="nodeID"  # noqa
+    net,
+    points=True,
+    lines=True,
+    spatial_weights=False,
+    nodeID="nodeID",  # noqa: N803
 ):
     """
     Convert a ``networkx.Graph`` to a LineString GeoDataFrame and Point GeoDataFrame.
