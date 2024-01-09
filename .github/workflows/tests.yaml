@@ -53,13 +53,3 @@ jobs:
           ci/envs/test_user_guide.sh
 
       - uses: codecov/codecov-action@v3
-
-      - name: Generate and publish the report
-        if: |
-          failure()
-          && github.event_name != 'pull_request'
-          && github.repository == 'pysal/momepy'
-          && steps.run_tests.outcome == 'failure'
-        uses: xarray-contrib/issue-from-pytest-log@v1
-        with:
-          log-path: pytest-log.jsonl
