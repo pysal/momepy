@@ -3,9 +3,12 @@ import numpy as np
 import pandas as pd
 import pytest
 from libpysal.graph import Graph
+from packaging.version import Version
 from shapely import Polygon
 
 import momepy as mm
+
+GPD_013 = Version("0.13") >= Version(gpd.__version__)
 
 
 class TestDimensions:
@@ -67,6 +70,7 @@ class TestDimensions:
             mm.courtyard_area(self.df_buildings), expected, check_names=False
         )
 
+    @pytest.mark.skipif(not GPD_013, reason="minimum_bounding_radius() not available")
     def test_longest_axis_length(self):
         expected = self.df_buildings.minimum_bounding_radius() * 2
         pd.testing.assert_series_equal(
