@@ -77,9 +77,20 @@ class TestElements:
         x = np.mean([b[0], b[2]])
         y = np.mean([b[1], b[3]])
 
-        df.loc[144] = [145, Polygon([(x, y), (x, y + 1), (x + 1, y)])]
-        df.loc[145] = [146, MultiPoint([(x, y), (x + 1, y)]).buffer(0.55)]
-        df.loc[146] = [147, affinity.rotate(df.geometry.iloc[0], 12)]
+        df = pd.concat(
+            [
+                df,
+                gpd.GeoDataFrame(
+                    {"uID": [145, 146, 147]},
+                    geometry=[
+                        Polygon([(x, y), (x, y + 1), (x + 1, y)]),
+                        MultiPoint([(x, y), (x + 1, y)]).buffer(0.55),
+                        affinity.rotate(df.geometry.iloc[0], 12),
+                    ],
+                    index=[144, 145, 146],
+                ),
+            ]
+        )
 
         with pytest.warns(
             UserWarning, match="Tessellation does not fully match buildings."
