@@ -2,12 +2,12 @@ import contextlib
 from importlib.metadata import PackageNotFoundError, version
 
 from . import datasets  # noqa
-from ._functional.dimension import *
 from .coins import *
 from .dimension import *
 from .distribution import *
 from .diversity import *
 from .elements import *
+from .functional._dimension import *
 from .graph import *
 from .intensity import *
 from .preprocessing import *
