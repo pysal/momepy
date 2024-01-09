@@ -1113,9 +1113,7 @@ class FaceArtifacts:
                 [gdf.unary_union]
             ).geoms,  # get parts of the collection from polygonize
             crs=gdf.crs,
-        ).explode(
-            ignore_index=True
-        )  # shoudln't be needed but doesn't hurt to ensure
+        ).explode(ignore_index=True)  # shouldn't be needed but doesn't hurt to ensure
 
         # Store geometries as a GeoDataFrame
         self.polygons = gpd.GeoDataFrame(geometry=polygons)

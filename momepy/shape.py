@@ -1143,7 +1143,7 @@ class CentroidCorners:
     --------
     >>> ccd = momepy.CentroidCorners(buildings_df)
     100%|██████████| 144/144 [00:00<00:00, 846.58it/s]
-    >>> buildings_df['ccd_means'] = ccd.means
+    >>> buildings_df['ccd_means'] = ccd.mean
     >>> buildings_df['ccd_stdev'] = ccd.std
     >>> buildings_df['ccd_means'][0]
     15.961531913184833
