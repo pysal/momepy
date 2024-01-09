@@ -46,7 +46,7 @@ def floor_area(area, height, floor_height=3):
     Parameters
     ----------
     area : array_like
-        arrat of areas
+        array of areas
     height : array_like
         array of heights
     floor_height : float | array_like, optional
