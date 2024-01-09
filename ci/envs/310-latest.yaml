@@ -5,7 +5,7 @@ dependencies:
   - python=3.10
   - geopandas
   - inequality
-  - libpysal>=4.6.0
+  - libpysal>=4.8.0
   - mapclassify
   - networkx
   - packaging

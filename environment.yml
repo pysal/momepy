@@ -6,7 +6,7 @@ dependencies:
   - geopandas
   - inequality
   - jupyter
-  - libpysal>=4.6.0
+  - libpysal>=4.8.0
   - mapclassify
   - matplotlib
   - momepy
