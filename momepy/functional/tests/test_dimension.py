@@ -8,7 +8,7 @@ from shapely import Polygon
 
 import momepy as mm
 
-GPD_013 = Version("0.13") >= Version(gpd.__version__)
+GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 
 class TestDimensions:
