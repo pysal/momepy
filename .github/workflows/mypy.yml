@@ -1,4 +1,4 @@
-name: Tests
+name: Type checking
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
     - cron: "0 0 * * 1,4"
 
 jobs:
-  type-checking:
+  mypy:
     runs-on: ubuntu-latest
     defaults:
       run:
