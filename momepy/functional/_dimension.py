@@ -15,9 +15,9 @@ __all__ = [
 
 
 def volume(
-    area: NDArray[np.float_] | Series[float],
-    height: NDArray[np.float_] | Series[float],
-) -> NDArray[np.float_] | Series[float]:
+    area: NDArray[np.float_] | Series,
+    height: NDArray[np.float_] | Series,
+) -> NDArray[np.float_] | Series:
     """
     Calculates volume of each object in given GeoDataFrame based on its height and area.
 
@@ -26,24 +26,24 @@ def volume(
 
     Parameters
     ----------
-    area : NDArray[np.float_] | Series[float]
+    area : NDArray[np.float_] | Series
         array of areas
-    height : NDArray[np.float_] | Series[float]
+    height : NDArray[np.float_] | Series
         array of heights
 
     Returns
     -------
-    NDArray[np.float_] | Series[float]
+    NDArray[np.float_] | Series
         array of a type depending on the input
     """
     return area * height
 
 
 def floor_area(
-    area: NDArray[np.float_] | Series[float],
-    height: NDArray[np.float_] | Series[float],
-    floor_height: float | NDArray[np.float_] | Series[float] = 3,
-) -> NDArray[np.float_] | Series[float]:
+    area: NDArray[np.float_] | Series,
+    height: NDArray[np.float_] | Series,
+    floor_height: float | NDArray[np.float_] | Series = 3,
+) -> NDArray[np.float_] | Series:
     """Calculates floor area of each object based on height and area.
 
     The number of
@@ -56,23 +56,23 @@ def floor_area(
 
     Parameters
     ----------
-    area : NDArray[np.float_] | Series[float]
+    area : NDArray[np.float_] | Series
         array of areas
-    height : NDArray[np.float_] | Series[float]
+    height : NDArray[np.float_] | Series
         array of heights
-    floor_height : float | NDArray[np.float_] | Series[float], optional
+    floor_height : float | NDArray[np.float_] | Series, optional
         float denoting the uniform floor height or an aarray reflecting the building
         height by geometry, by default 3
 
     Returns
     -------
-    NDArray[np.float_] | Series[float]
+    NDArray[np.float_] | Series
         array of a type depending on the input
     """
     return area * (height // floor_height)
 
 
-def courtyard_area(gdf: GeoDataFrame | GeoSeries) -> Series[float]:
+def courtyard_area(gdf: GeoDataFrame | GeoSeries) -> Series:
     """Calculates area of holes within geometry - area of courtyards.
 
     Parameters
@@ -82,7 +82,7 @@ def courtyard_area(gdf: GeoDataFrame | GeoSeries) -> Series[float]:
 
     Returns
     -------
-    Series[float]
+    Series
     """
     return Series(
         shapely.area(shapely.polygons(shapely.get_exterior_ring(gdf.geometry.array)))
@@ -92,7 +92,7 @@ def courtyard_area(gdf: GeoDataFrame | GeoSeries) -> Series[float]:
     )
 
 
-def longest_axis_length(gdf: GeoDataFrame | GeoSeries) -> Series[float]:
+def longest_axis_length(gdf: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the length of the longest axis of object.
 
     Axis is defined as a
@@ -109,14 +109,12 @@ def longest_axis_length(gdf: GeoDataFrame | GeoSeries) -> Series[float]:
 
     Returns
     -------
-    Series[float]
+    Series
     """
     return shapely.minimum_bounding_radius(gdf.geometry) * 2
 
 
-def perimeter_wall(
-    gdf: GeoDataFrame | GeoSeries, graph: Graph | None = None
-) -> Series[float]:
+def perimeter_wall(gdf: GeoDataFrame | GeoSeries, graph: Graph | None = None) -> Series:
     """
     Calculate the perimeter wall length the joined structure.
 
@@ -130,7 +128,7 @@ def perimeter_wall(
 
     Returns
     -------
-    Series[float]
+    Series
     """
 
     if graph is None:
