@@ -1,6 +1,6 @@
 # momepy
 [![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Actions Status](https://github.com/pysal/momepy/workflows/Tests/badge.svg)](https://github.com/pysal/momepy/actions?query=workflow%3ATests)
-[![codecov](https://codecov.io/gh/pysal/momepy/branch/main/graph/badge.svg?token=VNn0WR5JWT)](https://codecov.io/gh/pysal/momepy) [![Discord](https://img.shields.io/badge/Discord-join%20chat-7289da?style=flat&logo=discord&link=https://discord.gg/he6Y8D2ap3)](https://discord.gg/he6Y8D2ap3) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
+[![codecov](https://codecov.io/gh/pysal/momepy/branch/main/graph/badge.svg?token=VNn0WR5JWT)](https://codecov.io/gh/pysal/momepy) [![Discord](https://img.shields.io/badge/Discord-join%20chat-7289da?style=flat&logo=discord&logoColor=cccccc&link=https://discord.gg/he6Y8D2ap3)](https://discord.gg/he6Y8D2ap3) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
 
 
 <img src="https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/logo.png" width="50%">
