@@ -144,7 +144,7 @@ Details are available in the :doc:`contributing guide <contributing>`.
 Get in touch
 ------------
 If you have a question regarding momepy, feel free to open an
-`issue`_ or a new `discussion`_ on GitHub.
+`issue`_, a new `discussion`_ on GitHub or join a chat on `Discord`_.
 
 Acknowledgements
 ----------------
@@ -188,3 +188,4 @@ Indices and tables
 .. _@jGaboardi: http://github.org/jGaboardi
 .. _issue: https://github.com/pysal/momepy/issues/new/choose
 .. _discussion: https://github.com/pysal/momepy/discussions
+.. _Discord: https://discord.gg/he6Y8D2ap3
