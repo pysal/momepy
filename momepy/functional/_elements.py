@@ -24,9 +24,13 @@ def tessellation(
     voronoi = shapely.voronoi_polygons(
         shapely.GeometryCollection(objects.values), extend_to=limit
     )
-    geoms = gpd.GeoDataFrame(geometry=shapely.get_parts(voronoi), crs=gdf.crs)
+    geoms = gpd.GeoSeries(shapely.get_parts(voronoi), crs=gdf.crs)
     ids_objects, ids_geoms = geoms.sindex.query(objects, predicate="intersects")
-    polygons = geoms.iloc[ids_geoms].dissolve(objects.index.take(ids_objects))
+    polygons = (
+        geoms.iloc[ids_geoms]
+        .groupby(objects.index.take(ids_objects))
+        .agg(shapely.coverage_union_all)
+    )
 
     if limit is not None:
         return polygons.clip(limit)
