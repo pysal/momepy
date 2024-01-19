@@ -20,9 +20,8 @@ def tessellation(
     if shrink != 0:
         mask = objects.geom_type.isin(["Polygon", "MultiPolygon"])
         objects.loc[mask] = objects[mask].buffer(-shrink, cap_style=2, join_style=2)
-    objects = objects.segmentize(segment)
     voronoi = shapely.voronoi_polygons(
-        shapely.GeometryCollection(objects.values), extend_to=limit
+        shapely.GeometryCollection(objects.segmentize(segment).values), extend_to=limit
     )
     geoms = gpd.GeoSeries(shapely.get_parts(voronoi), crs=gdf.crs)
     ids_objects, ids_geoms = geoms.sindex.query(objects, predicate="intersects")
