@@ -50,6 +50,7 @@ def tessellation(
     ).set_crs(gdf.crs)
 
     if limit is not None:
-        return polygons.clip(limit)
+        to_be_clipped = polygons.sindex.query(limit.boundary, "intersects")
+        polygons.iloc[to_be_clipped] = polygons.iloc[to_be_clipped].intersection(limit)
 
     return polygons
