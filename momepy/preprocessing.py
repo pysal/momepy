@@ -1050,20 +1050,24 @@ def consolidate_intersections(
     """
     Consolidate close street intersections into a single node, collapsing short edges.
 
-    If rebuild_graph is True, new edges are drawn according to ``rebuild_edges_method`` which is one of:
+    If rebuild_graph is True, new edges are drawn according to ``rebuild_edges_method``
+    which is one of:
 
     1. Extension reconstruction:
-        Edges are linearly extended from original endpoints until the new nodes. This method preserves
-        most faithfully the network geometry but can result in overlapping geometry.
+        Edges are linearly extended from original endpoints until the new nodes. This
+        method preserves most faithfully the network geometry but can result in
+        overlapping geometry.
     2. Spider-web reconstruction:
-        Edges are cropped within a buffer of the new endpoints and linearly extended from there. This
-        method improves upon linear reconstruction by mantaining, when possible, network planarity.
+        Edges are cropped within a buffer of the new endpoints and linearly extended
+        from there. This method improves upon linear reconstruction by mantaining, when
+        possible, network planarity.
     3. Euclidean reconstruction:
-        Edges are ignored and new edges are built as straight lines between new origin and new
-        destination. This method ignores geometry, but efficiently preserves adjacency.
+        Edges are ignored and new edges are built as straight lines between new origin
+        and new destination. This method ignores geometry, but efficiently preserves
+        adjacency.
 
-    If ``rebuild_graph`` is False, graph is returned with consolidated nodes but without reconstructed
-    edges i.e. graph is intentionally disconnected.
+    If ``rebuild_graph`` is False, graph is returned with consolidated nodes but without
+    reconstructed edges i.e. graph is intentionally disconnected.
 
     Graph must be configured so that
 
@@ -1072,7 +1076,8 @@ def consolidate_intersections(
 
     Parameters
     ----------
-    graph : Networkx.Graph, Networkx.DiGraph, Networkx.MultiGraph, or Networkx.MultiDiGraph
+    graph : Networkx.Graph, Networkx.DiGraph, Networkx.MultiGraph, or
+        Networkx.MultiDiGraph
     tolerance : float, default 30
         distance in network units below which nodes will be consolidated
     rebuild_graph: Boolean
@@ -1094,15 +1099,9 @@ def consolidate_intersections(
 
     """
     # Collect nodes and their data:
-    nodes, nodes_dict = zip(*graph.nodes(data=True))
+    nodes, nodes_dict = zip(*graph.nodes(data=True), strict=False)
     nodes_df = pd.DataFrame(nodes_dict, index=nodes)
-    nodes_geometries = gpd.points_from_xy(nodes_df[x_att], nodes_df[y_att])
     graph_crs = graph.graph.get("crs")
-    nodes_gdf = gpd.GeoDataFrame(
-        nodes_df,
-        crs=graph_crs,
-        geometry=nodes_geometries,
-    )
 
     # Create a graph without the edges above a certain length and clean it
     #  from isolated nodes (the unsimplifiable nodes):
@@ -1185,18 +1184,22 @@ def _get_rebuilt_edges(
     edge_to_att="to",
 ):
     """
-    Update origin and destination on network edges when original endpoints were replaced by a
-      consolidated node cluster. New edges are drawn according to method which is one of:
+    Update origin and destination on network edges when original endpoints were replaced
+    by a
+      consolidated node cluster. New edges are drawn according to method which is one
+      of:
 
     1. Extension reconstruction:
-        Edges are linearly extended from original endpoints until the new nodes. This method preserves
-        most faithfully the network geometry.
+        Edges are linearly extended from original endpoints until the new nodes. This
+        method preserves most faithfully the network geometry.
     2. Spider-web reconstruction:
-        Edges are cropped within a buffer of the new endpoints and linearly extended from there. This
-        method improves upon linear reconstruction by mantaining, when possible, network planarity.
+        Edges are cropped within a buffer of the new endpoints and linearly extended
+        from there. This method improves upon linear reconstruction by mantaining, when
+        possible, network planarity.
     3. Euclidean reconstruction:
-        Edges are ignored and new edges are built as straightlines between new origin and new
-        destination. This method ignores geometry, but efficiently preserves adjacency.
+        Edges are ignored and new edges are built as straightlines between new origin
+        and new destination. This method ignores geometry, but efficiently preserves
+        adjacency.
 
     Parameters
     ----------
@@ -1235,7 +1238,8 @@ def _get_rebuilt_edges(
     # Determine what edges need to be simplified (either between diff.
     #  clusters or self-loops in a cluster):
     edges_tosimplify_gdf = edges_gdf.query(
-        f"origin_cluster != destination_cluster or (('{edge_to_att}' == '{edge_from_att}') and origin_cluster >= 0)"
+        "origin_cluster != destination_cluster or "
+        f"(('{edge_to_att}' == '{edge_from_att}') and origin_cluster >= 0)"
     )
 
     # Determine the new point geometries (when exists):
@@ -1317,6 +1321,7 @@ def _get_rebuilt_edges(
             new_edges_gdf[edge_from_att],
             new_edges_gdf[edge_to_att],
             new_edges_gdf.iloc[:, 2:].to_dict("index").values(),
+            strict=False,
         )
     )
 
@@ -1343,7 +1348,7 @@ def _extension_simplification(geometry, new_origin, new_destination):
     """
     # If we are dealing with a self-loop the line has no endpoints:
     if new_origin == new_destination:
-        current_node = Point(line_coords[0])
+        current_node = Point(geometry.coords[0])
         geometry = linemerge([LineString([new_origin, current_node]), geometry])
     # Assuming the line is not closed, we can find its endpoints:
     else:
@@ -1382,7 +1387,7 @@ def _spider_simplification(geometry, new_origin, new_destination, buff=15):
     # If we are dealing with a self-loop the line has no boundary
     # . and we just use the first coordinate:
     if new_origin == new_destination:
-        current_node = Point(line_coords[0])
+        current_node = Point(geometry.coords[0])
         geometry = linemerge([LineString([new_origin, current_node]), geometry])
     # Assuming the line is not closed, we can find its endpoints
     #  via the boundary attribute:
@@ -1409,7 +1414,7 @@ def _spider_simplification(geometry, new_origin, new_destination, buff=15):
             # Consider MultiLineStrings separately:
             if geometry_split_by_buffer.geom_type == "MultiLineString":
                 geometry = linemerge(
-                    additional_line + [line for line in geometry_split_by_buffer.geoms]
+                    additional_line + list(geometry_split_by_buffer.geoms)
                 )
             else:
                 geometry = linemerge(additional_line + [geometry_split_by_buffer])
@@ -1437,7 +1442,7 @@ def _spider_simplification(geometry, new_origin, new_destination, buff=15):
             # Consider MultiLineStrings separately:
             if geometry_split_by_buffer.geom_type == "MultiLineString":
                 geometry = linemerge(
-                    [line for line in geometry_split_by_buffer.geoms] + additional_line
+                    list(geometry_split_by_buffer.geoms) + additional_line
                 )
             else:
                 geometry = linemerge([geometry_split_by_buffer] + additional_line)
