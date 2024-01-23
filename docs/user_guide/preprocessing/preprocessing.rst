@@ -11,3 +11,4 @@ This section covers:
 
    simple_preprocessing
    roundabout_simplification
+   consolidate_intersections
