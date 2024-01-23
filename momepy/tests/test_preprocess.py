@@ -1,6 +1,5 @@
 import geopandas as gpd
 import numpy as np
-import osmnx as ox
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
@@ -24,8 +23,7 @@ class TestPreprocessing:
         self.df_rab_polys = gpd.GeoDataFrame(
             geometry=[g for g in plgns], crs=self.df_streets_rabs.crs
         )
-        test_file_path3 = mm.datasets.get_path("nyc_graph", extension="graphml")
-        self.graph = ox.get_undirected(ox.load_graphml(test_file_path3))
+        self.test_file_path3 = mm.datasets.get_path("nyc_graph", extension="graphml")
 
     def test_preprocess(self):
         test_file_path2 = mm.datasets.get_path("tests")
@@ -169,9 +167,12 @@ class TestPreprocessing:
 
     @pytest.mark.parametrize("method", ["spider", "euclidean", "extend"])
     def test_consolidate_intersections(self, method):
+        ox = pytest.importorskip("osmnx")
+        graph = ox.get_undirected(ox.load_graphml(self.test_file_path3))
+
         tol = 30
         graph_simplified = mm.consolidate_intersections(
-            self.graph,
+            graph,
             tolerance=tol,
             rebuild_graph=True,
             rebuild_edges_method=method,
@@ -185,9 +186,11 @@ class TestPreprocessing:
             assert edges_simplified.length.min() >= tol
 
     def test_consolidate_intersections_unsupported(self):
+        ox = pytest.importorskip("osmnx")
+        graph = ox.get_undirected(ox.load_graphml(self.test_file_path3))
         with pytest.raises(ValueError, match="Simplification 'banana' not recognized"):
             mm.consolidate_intersections(
-                self.graph,
+                graph,
                 tolerance=30,
                 rebuild_graph=True,
                 rebuild_edges_method="banana",
