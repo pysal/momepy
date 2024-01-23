@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # elements.py
 # generating derived elements (street edge, block)
@@ -9,8 +8,7 @@ import geopandas as gpd
 import libpysal
 import numpy as np
 import pandas as pd
-import pygeos
-from packaging.version import Version
+import shapely
 from scipy.spatial import Voronoi
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
@@ -25,8 +23,6 @@ __all__ = [
     "enclosures",
     "get_network_ratio",
 ]
-
-GPD_10 = Version(gpd.__version__) >= Version("0.10")
 
 
 def buffered_limit(gdf, buffer=100):
@@ -197,7 +193,6 @@ class Tessellation:
         threshold=0.05,
         use_dask=True,
         n_chunks=None,
-        **kwargs,
     ):
         self.gdf = gdf
         self.id = gdf[unique_id]
@@ -223,7 +218,6 @@ class Tessellation:
         gdf = gdf.copy()
 
         if enclosures is not None:
-
             enclosures = enclosures.copy()
 
             bounds = enclosures.total_bounds
@@ -239,18 +233,15 @@ class Tessellation:
                 gdf,
                 enclosures,
                 unique_id,
-                enclosure_id,
                 threshold,
                 use_dask,
                 n_chunks,
             )
         else:
-            if isinstance(limit, (gpd.GeoSeries, gpd.GeoDataFrame)):
+            if isinstance(limit, gpd.GeoSeries | gpd.GeoDataFrame):
                 limit = limit.unary_union
-            if isinstance(limit, BaseGeometry):
-                limit = pygeos.from_shapely(limit)
 
-            bounds = pygeos.bounds(limit)
+            bounds = shapely.bounds(limit)
             centre_x = (bounds[0] + bounds[2]) / 2
             centre_y = (bounds[1] + bounds[3]) / 2
             gdf.geometry = gdf.geometry.translate(xoff=-centre_x, yoff=-centre_y)
@@ -259,7 +250,7 @@ class Tessellation:
             limit = (
                 gpd.GeoSeries(limit, crs=gdf.crs)
                 .translate(xoff=-centre_x, yoff=-centre_y)
-                .values.data[0]
+                .array[0]
             )
 
             self.tessellation = self._morphological_tessellation(
@@ -277,29 +268,26 @@ class Tessellation:
 
         if shrink != 0:
             print("Inward offset...") if verbose else None
-            mask = objects.type.isin(["Polygon", "MultiPolygon"])
+            mask = objects.geom_type.isin(["Polygon", "MultiPolygon"])
             objects.loc[mask, objects.geometry.name] = objects[mask].buffer(
                 -shrink, cap_style=2, join_style=2
             )
-        if GPD_10:
-            objects = objects.reset_index(drop=True).explode(ignore_index=True)
-        else:
-            objects = objects.reset_index(drop=True).explode().reset_index(drop=True)
+        objects = objects.reset_index(drop=True).explode(ignore_index=True)
         objects = objects.set_index(unique_id)
 
         print("Generating input point array...") if verbose else None
         points, ids = self._dense_point_array(
-            objects.geometry.values.data, distance=segment, index=objects.index
+            objects.geometry.array, distance=segment, index=objects.index
         )
 
-        hull = pygeos.convex_hull(limit)
-        bounds = pygeos.bounds(hull)
+        hull = shapely.convex_hull(limit)
+        bounds = shapely.bounds(hull)
         width = bounds[2] - bounds[0]
         leng = bounds[3] - bounds[1]
-        hull = pygeos.buffer(hull, 2 * width if width > leng else 2 * leng)
+        hull = shapely.buffer(hull, 2 * width if width > leng else 2 * leng)
 
         hull_p, hull_ix = self._dense_point_array(
-            [hull], distance=pygeos.length(hull) / 100, index=[0]
+            [hull], distance=shapely.length(hull) / 100, index=[0]
         )
         points = np.append(points, hull_p, axis=0)
         ids = ids + ([-1] * len(hull_ix))
@@ -326,24 +314,24 @@ class Tessellation:
 
     def _dense_point_array(self, geoms, distance, index):
         """
-        geoms : array of pygeos lines
+        geoms : array of shapely lines
         """
         # interpolate lines to represent them as points for Voronoi
         points = []
         ids = []
 
-        if pygeos.get_type_id(geoms[0]) not in [1, 2, 5]:
-            lines = pygeos.boundary(geoms)
+        if shapely.get_type_id(geoms[0]) not in [1, 2, 5]:
+            lines = shapely.boundary(geoms)
         else:
             lines = geoms
-        lengths = pygeos.length(lines)
-        for ix, line, length in zip(index, lines, lengths):
+        lengths = shapely.length(lines)
+        for ix, line, length in zip(index, lines, lengths, strict=True):
             if length > distance:  # some polygons might have collapsed
-                pts = pygeos.line_interpolate_point(
+                pts = shapely.line_interpolate_point(
                     line,
                     np.linspace(0.1, length - 0.1, num=int((length - 0.1) // distance)),
                 )  # .1 offset to keep a gap between two segments
-                points.append(pygeos.get_coordinates(pts))
+                points.append(shapely.get_coordinates(pts))
                 ids += [ix] * len(pts)
 
         points = np.vstack(points)
@@ -359,7 +347,7 @@ class Tessellation:
         polygons = []
         for region in vertices:
             if -1 not in region:
-                polygons.append(pygeos.polygons(voronoi_diagram.vertices[region]))
+                polygons.append(shapely.polygons(voronoi_diagram.vertices[region]))
             else:
                 polygons.append(None)
 
@@ -378,23 +366,30 @@ class Tessellation:
         ids_original = list(orig_gdf[unique_id])
         ids_generated = list(tesselation[unique_id])
         if len(ids_original) != len(ids_generated):
-
             self.collapsed = set(ids_original).difference(ids_generated)
             warnings.warn(
-                "Tessellation does not fully match buildings. "
-                f"{len(self.collapsed)} element(s) collapsed "
-                f"during generation - unique_id: {self.collapsed}."
+                message=(
+                    "Tessellation does not fully match buildings. "
+                    f"{len(self.collapsed)} element(s) collapsed "
+                    f"during generation - unique_id: {self.collapsed}."
+                ),
+                category=UserWarning,
+                stacklevel=4,
             )
 
         # check MultiPolygons - usually caused by error in input geometry
-        self.multipolygons = tesselation[tesselation.geometry.type == "MultiPolygon"][
-            unique_id
-        ]
+        self.multipolygons = tesselation[
+            tesselation.geometry.geom_type == "MultiPolygon"
+        ][unique_id]
         if len(self.multipolygons) > 0:
             warnings.warn(
-                "Tessellation contains MultiPolygon elements. Initial "
-                "objects should  be edited. `unique_id` of affected "
-                f"elements: {list(self.multipolygons)}."
+                message=(
+                    "Tessellation contains MultiPolygon elements. Initial "
+                    "objects should  be edited. `unique_id` of affected "
+                    f"elements: {list(self.multipolygons)}."
+                ),
+                category=UserWarning,
+                stacklevel=4,
             )
 
     def _enclosed_tessellation(
@@ -402,7 +397,6 @@ class Tessellation:
         buildings,
         enclosures,
         unique_id,
-        enclosure_id="eID",
         threshold=0.05,
         use_dask=True,
         n_chunks=None,
@@ -469,7 +463,12 @@ class Tessellation:
                 use_dask = False
 
                 warnings.warn(
-                    "dask.dataframe could not be imported. Setting `use_dask=False`."
+                    message=(
+                        "dask.dataframe could not be imported. "
+                        f"Setting `use_dask={use_dask}`."
+                    ),
+                    category=UserWarning,
+                    stacklevel=3,
                 )
 
         if use_dask:
@@ -505,9 +504,9 @@ class Tessellation:
 
         # finalise the result
         clean_blocks = enclosures.drop(splits)
-        clean_blocks.loc[single, "uID"] = clean_blocks.loc[single, "position"].apply(
-            lambda ix: buildings.iloc[res[inp == ix][0]][unique_id]
-        )
+        clean_blocks.loc[single, unique_id] = clean_blocks.loc[
+            single, "position"
+        ].apply(lambda ix: buildings.iloc[res[inp == ix][0]][unique_id])
         return pd.concat(new + [clean_blocks.drop(columns="position")]).reset_index(
             drop=True
         )
@@ -521,13 +520,12 @@ class Tessellation:
         query_res,
         threshold,
         unique_id,
-        **kwargs,
     ):
-        poly = enclosure.geometry.values.data[ix]
+        poly = enclosure.geometry.array[ix]
         blg = buildings.iloc[query_res[query_inp == ix]]
         within = blg[
-            pygeos.area(pygeos.intersection(blg.geometry.values.data, poly))
-            > (pygeos.area(blg.geometry.values.data) * threshold)
+            shapely.area(shapely.intersection(blg.geometry.array, poly))
+            > (shapely.area(blg.geometry.array) * threshold)
         ].copy()
         if len(within) > 1:
             tess = self._morphological_tessellation(
@@ -600,7 +598,7 @@ class Blocks:
     4	5.0	POLYGON ((1603183.399594798 6463966.109982309,...
     """
 
-    def __init__(self, tessellation, edges, buildings, id_name, unique_id, **kwargs):
+    def __init__(self, tessellation, edges, buildings, id_name, unique_id):
         self.tessellation = tessellation
         self.edges = edges
         self.buildings = buildings
@@ -617,53 +615,33 @@ class Blocks:
             gpd.GeoDataFrame(geometry=edges.buffer(0.001)),
             how="difference",
         )
-        if GPD_10:
-            cut = cut.explode(ignore_index=True)
-        else:
-            cut = cut.explode()
-
-        W = libpysal.weights.Queen.from_dataframe(cut, silence_warnings=True)
-        cut["component"] = W.component_labels
+        cut = cut.explode(ignore_index=True)
+        weights = libpysal.weights.Queen.from_dataframe(cut, silence_warnings=True)
+        cut["component"] = weights.component_labels
         buildings_c = buildings.copy()
         buildings_c.geometry = buildings_c.representative_point()  # make points
-        if GPD_10:
-            centroids_tempID = gpd.sjoin(
-                buildings_c,
-                cut[[cut.geometry.name, "component"]],
-                how="left",
-                predicate="within",
-            )
-        else:
-            centroids_tempID = gpd.sjoin(
-                buildings_c,
-                cut[[cut.geometry.name, "component"]],
-                how="left",
-                op="within",
-            )
+        centroids_temp_id = gpd.sjoin(
+            buildings_c,
+            cut[[cut.geometry.name, "component"]],
+            how="left",
+            predicate="within",
+        )
 
         cells_copy = tessellation[[unique_id, tessellation.geometry.name]].merge(
-            centroids_tempID[[unique_id, "component"]], on=unique_id, how="left"
+            centroids_temp_id[[unique_id, "component"]], on=unique_id, how="left"
         )
-        if GPD_10:
-            blocks = cells_copy.dissolve(by="component").explode(ignore_index=True)
-        else:
-            blocks = (
-                cells_copy.dissolve(by="component").explode().reset_index(drop=True)
-            )
+        blocks = cells_copy.dissolve(by="component").explode(ignore_index=True)
         blocks[id_name] = range(len(blocks))
         blocks = blocks[[id_name, blocks.geometry.name]]
 
-        if GPD_10:
-            centroids_w_bl_ID2 = gpd.sjoin(
-                buildings_c, blocks, how="left", predicate="within"
-            )
-        else:
-            centroids_w_bl_ID2 = gpd.sjoin(buildings_c, blocks, how="left", op="within")
+        centroids_w_bl_id2 = gpd.sjoin(
+            buildings_c, blocks, how="left", predicate="within"
+        )
 
-        self.buildings_id = centroids_w_bl_ID2[id_name]
+        self.buildings_id = centroids_w_bl_id2[id_name]
 
         cells_m = tessellation[[unique_id]].merge(
-            centroids_w_bl_ID2[[unique_id, id_name]], on=unique_id, how="left"
+            centroids_w_bl_id2[[unique_id, id_name]], on=unique_id, how="left"
         )
 
         self.tessellation_id = cells_m[id_name]
@@ -713,7 +691,7 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
     momepy.get_network_ratio
     momepy.get_node_id
     """
-    INFTY = 1000000000000
+    infty = 1000000000000
     left = left.copy()
     right = right.copy()
 
@@ -737,7 +715,7 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
     ):
         pbox = (p.x - min_size, p.y - min_size, p.x + min_size, p.y + min_size)
         hits = list(idx.intersection(pbox))
-        d = INFTY
+        d = infty
         nid = None
         for h in hits:
             new_d = p.distance(right.geometry.iloc[h])
@@ -753,8 +731,12 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
 
     if series.isnull().any():
         warnings.warn(
-            "Some objects were not attached to the network. Set larger "
-            f"`min_size``. {sum(series.isnull())} affected elements."
+            message=(
+                "Some objects were not attached to the network. Set larger "
+                f"`min_size``. {sum(series.isnull())} affected elements."
+            ),
+            category=UserWarning,
+            stacklevel=2,
         )
     return series
 
@@ -818,42 +800,44 @@ def get_node_id(
         edges = edges.set_index(edge_id)
         centroids = objects.centroid
         for eid, centroid in tqdm(
-            zip(objects[edge_id], centroids),
+            zip(objects[edge_id], centroids, strict=True),
             total=objects.shape[0],
             disable=not verbose,
         ):
-            if np.isnan(eid):
-                results_list.append(np.nan)
+            if pd.isna(eid):
+                results_list.append(pd.NA)
             else:
                 edge = edges.loc[eid]
-                startID = edge.node_start
-                start = nodes.loc[startID].geometry
+                start_id = edge.node_start
+                start = nodes.loc[start_id].geometry
                 sd = centroid.distance(start)
-                endID = edge.node_end
-                end = nodes.loc[endID].geometry
+                end_id = edge.node_end
+                end = nodes.loc[end_id].geometry
                 ed = centroid.distance(end)
                 if sd > ed:
-                    results_list.append(endID)
+                    results_list.append(end_id)
                 else:
-                    results_list.append(startID)
+                    results_list.append(start_id)
 
     elif edge_keys is not None and edge_values is not None:
         for edge_i, edge_r, geom in tqdm(
-            zip(objects[edge_keys], objects[edge_values], objects.geometry),
+            zip(
+                objects[edge_keys], objects[edge_values], objects.geometry, strict=True
+            ),
             total=objects.shape[0],
             disable=not verbose,
         ):
             edge = edges.iloc[edge_i[edge_r.index(max(edge_r))]]
-            startID = edge.node_start
-            start = nodes.loc[startID].geometry
+            start_id = edge.node_start
+            start = nodes.loc[start_id].geometry
             sd = geom.distance(start)
-            endID = edge.node_end
-            end = nodes.loc[endID].geometry
+            end_id = edge.node_end
+            end = nodes.loc[end_id].geometry
             ed = geom.distance(end)
             if sd > ed:
-                results_list.append(endID)
+                results_list.append(end_id)
             else:
-                results_list.append(startID)
+                results_list.append(start_id)
 
     series = pd.Series(results_list, index=objects.index)
     return series
@@ -898,9 +882,6 @@ def get_network_ratio(df, edges, initial_buffer=500):
     4        [26]                                        [1]
     """
 
-    if not GPD_10:
-        raise ImportError("`get_network_ratio` requires geopandas 0.10 or newer.")
-
     (df_ix, edg_ix), dist = edges.sindex.nearest(
         df.geometry, max_distance=initial_buffer, return_distance=True
     )
@@ -931,7 +912,7 @@ def get_network_ratio(df, edges, initial_buffer=500):
     near = []
     df_ix_non = df_ix[~touching]
     grouped = pd.Series(dist[~touching]).groupby(df_ix_non)
-    for name, group in grouped:
+    for _, group in grouped:
         near.append({edg_ix[~touching][group.idxmin()]: 1.0})
 
     near = pd.Series(near, index=df.index[list(grouped.groups.keys())])
@@ -1025,17 +1006,17 @@ def enclosures(
         new = []
 
         for i in unique:
-            poly = enclosures.values.data[i]  # get enclosure polygon
+            poly = enclosures.array[i]  # get enclosure polygon
             crossing = inp[res == i]  # get relevant additional barriers
-            buf = pygeos.buffer(poly, 0.01)  # to avoid floating point errors
-            crossing_ins = pygeos.intersection(
-                buf, additional.values.data[crossing]
+            buf = shapely.buffer(poly, 0.01)  # to avoid floating point errors
+            crossing_ins = shapely.intersection(
+                buf, additional.array[crossing]
             )  # keeping only parts of additional barriers within polygon
-            union = pygeos.union_all(
-                np.append(crossing_ins, pygeos.boundary(poly))
+            union = shapely.union_all(
+                np.append(crossing_ins, shapely.boundary(poly))
             )  # union
-            polygons = pygeos.get_parts(pygeos.polygonize([union]))  # polygonize
-            within = pygeos.covered_by(
+            polygons = shapely.get_parts(shapely.polygonize([union]))  # polygonize
+            within = shapely.covered_by(
                 polygons, buf
             )  # keep only those within original polygon
             new += list(polygons[within])

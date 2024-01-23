@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # diversity.py
 # definitions of diversity characters
@@ -99,17 +98,16 @@ class Range:
         self.kwargs = kwargs
 
         data = gdf.copy()
-        if values is not None:
-            if not isinstance(values, str):
-                data["mm_v"] = values
-                values = "mm_v"
+        if values is not None and not isinstance(values, str):
+            data["mm_v"] = values
+            values = "mm_v"
         self.values = data[values]
 
         data = data.set_index(unique_id)[values]
 
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = [index]
                 neighbours += spatial_weights.neighbors[index]
 
@@ -183,8 +181,8 @@ class Theil:
     def __init__(self, gdf, values, spatial_weights, unique_id, rng=None, verbose=True):
         try:
             from inequality.theil import Theil
-        except ImportError:
-            raise ImportError("The 'inequality' package is required.")
+        except ImportError as err:
+            raise ImportError("The 'inequality' package is required.") from err
 
         self.gdf = gdf
         self.sw = spatial_weights
@@ -192,10 +190,9 @@ class Theil:
         self.rng = rng
 
         data = gdf.copy()
-        if values is not None:
-            if not isinstance(values, str):
-                data["mm_v"] = values
-                values = "mm_v"
+        if values is not None and not isinstance(values, str):
+            data["mm_v"] = values
+            values = "mm_v"
         self.values = data[values]
 
         data = data.set_index(unique_id)[values]
@@ -205,7 +202,7 @@ class Theil:
 
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = [index]
                 neighbours += spatial_weights.neighbors[index]
 
@@ -303,15 +300,16 @@ class Simpson:
         gini_simpson=False,
         inverse=False,
         categorical=False,
-        categories=None,
         verbose=True,
         **classification_kwds,
     ):
         if not categorical:
             try:
                 from mapclassify import classify
-            except ImportError:
-                raise ImportError("The 'mapclassify >= 2.4.2` package is required.")
+            except ImportError as err:
+                raise ImportError(
+                    "The 'mapclassify >= 2.4.2` package is required."
+                ) from err
 
         self.gdf = gdf
         self.sw = spatial_weights
@@ -323,10 +321,9 @@ class Simpson:
         self.classification_kwds = classification_kwds
 
         data = gdf.copy()
-        if values is not None:
-            if not isinstance(values, str):
-                data["mm_v"] = values
-                values = "mm_v"
+        if values is not None and not isinstance(values, str):
+            data["mm_v"] = values
+            values = "mm_v"
         self.values = data[values]
 
         data = data.set_index(unique_id)[values]
@@ -338,7 +335,7 @@ class Simpson:
 
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = [index]
                 neighbours += spatial_weights.neighbors[index]
                 values_list = data.loc[neighbours]
@@ -392,8 +389,8 @@ def simpson_diversity(values, bins=None, categorical=False):
     if not categorical:
         try:
             import mapclassify as mc
-        except ImportError:
-            raise ImportError("The 'mapclassify' package is required")
+        except ImportError as err:
+            raise ImportError("The 'mapclassify' package is required") from err
 
     if categorical:
         counts = values.value_counts()
@@ -402,9 +399,7 @@ def simpson_diversity(values, bins=None, categorical=False):
         sample_bins = mc.UserDefined(values, bins)
         counts = sample_bins.counts
 
-    N = sum(counts)
-
-    return sum((n / N) ** 2 for n in counts if n != 0)
+    return sum((n / sum(counts)) ** 2 for n in counts if n != 0)
 
 
 class Gini:
@@ -463,8 +458,8 @@ class Gini:
     def __init__(self, gdf, values, spatial_weights, unique_id, rng=None, verbose=True):
         try:
             from inequality.gini import Gini
-        except ImportError:
-            raise ImportError("The 'inequality' package is required.")
+        except ImportError as err:
+            raise ImportError("The 'inequality' package is required.") from err
 
         self.gdf = gdf
         self.sw = spatial_weights
@@ -472,10 +467,9 @@ class Gini:
         self.rng = rng
 
         data = gdf.copy()
-        if values is not None:
-            if not isinstance(values, str):
-                data["mm_v"] = values
-                values = "mm_v"
+        if values is not None and not isinstance(values, str):
+            data["mm_v"] = values
+            values = "mm_v"
         self.values = data[values]
 
         if self.values.min() < 0:
@@ -491,7 +485,7 @@ class Gini:
 
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = spatial_weights.neighbors[index].copy()
                 if neighbours:
                     neighbours.append(index)
@@ -589,8 +583,10 @@ class Shannon:
         if not categorical:
             try:
                 from mapclassify import classify
-            except ImportError:
-                raise ImportError("The 'mapclassify >= 2.4.2` package is required.")
+            except ImportError as err:
+                raise ImportError(
+                    "The 'mapclassify >= 2.4.2` package is required."
+                ) from err
 
         self.gdf = gdf
         self.sw = spatial_weights
@@ -601,10 +597,9 @@ class Shannon:
         self.classification_kwds = classification_kwds
 
         data = gdf.copy()
-        if values is not None:
-            if not isinstance(values, str):
-                data["mm_v"] = values
-                values = "mm_v"
+        if values is not None and not isinstance(values, str):
+            data["mm_v"] = values
+            values = "mm_v"
         self.values = data[values]
 
         data = data.set_index(unique_id)[values]
@@ -619,7 +614,7 @@ class Shannon:
 
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = [index]
                 neighbours += spatial_weights.neighbors[index]
                 values_list = data.loc[neighbours]
@@ -676,27 +671,23 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
     if not categorical:
         try:
             import mapclassify as mc
-        except ImportError:
-            raise ImportError("The 'mapclassify' package is required")
+        except ImportError as err:
+            raise ImportError("The 'mapclassify' package is required") from err
 
-    def p(n, N):
+    def p(n, sum_n):
         """Relative abundance"""
         if n == 0:
             return 0
-        return (float(n) / N) * ln(float(n) / N)
+        return (n / sum_n) * ln(n / sum_n)
 
     if categorical:
-        counts = data.value_counts().to_dict()
-        for c in categories:
-            if c not in counts.keys():
-                counts[c] = 0
+        counts = dict.fromkeys(categories, 0)
+        counts.update(data.value_counts())
     else:
         sample_bins = mc.UserDefined(data, bins)
-        counts = dict(zip(bins, sample_bins.counts))
+        counts = dict(zip(bins, sample_bins.counts, strict=True))
 
-    N = sum(counts.values())
-
-    return -sum(p(n, N) for n in counts.values() if n != 0)
+    return -sum(p(n, sum(counts.values())) for n in counts.values() if n != 0)
 
 
 class Unique:
@@ -754,17 +745,16 @@ class Unique:
         self.id = gdf[unique_id]
 
         data = gdf.copy()
-        if values is not None:
-            if not isinstance(values, str):
-                data["mm_v"] = values
-                values = "mm_v"
+        if values is not None and not isinstance(values, str):
+            data["mm_v"] = values
+            values = "mm_v"
         self.values = data[values]
 
         data = data.set_index(unique_id)[values]
 
         results_list = []
         for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-            if index in spatial_weights.neighbors.keys():
+            if index in spatial_weights.neighbors:
                 neighbours = [index]
                 neighbours += spatial_weights.neighbors[index]
 
@@ -855,10 +845,9 @@ class Percentiles:
 
         data = gdf.copy()
 
-        if values is not None:
-            if not isinstance(values, str):
-                data["mm_v"] = values
-                values = "mm_v"
+        if values is not None and not isinstance(values, str):
+            data["mm_v"] = values
+            values = "mm_v"
         self.values = data[values]
 
         results_list = []
@@ -870,7 +859,7 @@ class Percentiles:
             for i, geom in tqdm(
                 data.geometry.items(), total=data.shape[0], disable=not verbose
             ):
-                if i in spatial_weights.neighbors.keys():
+                if i in spatial_weights.neighbors:
                     neighbours = spatial_weights.neighbors[i]
 
                     vicinity = data.loc[neighbours]
@@ -905,12 +894,12 @@ class Percentiles:
             data = data.set_index(unique_id)[values]
 
             if NumpyVersion(np.__version__) >= "1.22.0":
-                method = dict(method=interpolation)
+                method = {"method": interpolation}
             else:
-                method = dict(interpolation=interpolation)
+                method = {"interpolation": interpolation}
 
             for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
-                if index in spatial_weights.neighbors.keys():
+                if index in spatial_weights.neighbors:
                     neighbours = [index]
                     neighbours += spatial_weights.neighbors[index]
                     values_list = data.loc[neighbours]

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # connectivity.py
 # definitions of connectivity characters
+import collections
 import math
 
 import networkx as nx
@@ -152,8 +152,8 @@ def mean_node_dist(graph, name="meanlen", length="mm_len", verbose=True):
 
     for n, nbrs in tqdm(netx.adj.items(), total=len(netx), disable=not verbose):
         lengths = []
-        for nbr, keydict in nbrs.items():
-            for key, eattr in keydict.items():
+        for _nbr, keydict in nbrs.items():
+            for _key, eattr in keydict.items():
                 lengths.append(eattr[length])
         netx.nodes[n][name] = np.mean(lengths)
 
@@ -170,7 +170,7 @@ def _cds_length(graph, mode, length):
         return sum(lens)
     if mode == "mean":
         return np.mean(lens)
-    raise ValueError(f"Mode {mode} is not supported. Use 'sum' or 'mean'.")
+    raise ValueError(f"Mode '{mode}' is not supported. Use 'sum' or 'mean'.")
 
 
 def cds_length(
@@ -305,10 +305,8 @@ def mean_node_degree(
 
 def _proportion(graph, degree):
     """Calculates the proportion of intersection types in a graph."""
-    import collections
 
-    values = list(dict(graph.nodes(degree)).values())
-    counts = collections.Counter(values)
+    counts = collections.Counter(dict(graph.nodes(degree)).values())
     return counts
 
 
@@ -624,7 +622,7 @@ def clustering(graph, name="cluster"):
     return netx
 
 
-def _closeness_centrality(G, u=None, length=None, wf_improved=True, len_graph=None):
+def _closeness_centrality(graph, u=None, length=None, len_graph=None):
     r"""Compute closeness centrality for nodes. Slight adaptation of networkx
     `closeness_centrality` to allow normalisation for local closeness.
     Adapted script used in networkx. The closeness centrality [1]_ of a node `u` is
@@ -638,7 +636,7 @@ def _closeness_centrality(G, u=None, length=None, wf_improved=True, len_graph=No
     where `d(v, u)` is the shortest-path distance between `v` and `u`,
     and `n` is the number of nodes that can reach `u`. Notice that the
     closeness distance function computes the incoming distance to `u`
-    for directed graphs. To use outward distance, act on `G.reverse()`.
+    for directed graphs. To use outward distance, act on `graph.reverse()`.
 
     Notice that higher values of closeness indicate higher centrality.
 
@@ -692,17 +690,15 @@ def _closeness_centrality(G, u=None, length=None, wf_improved=True, len_graph=No
         path_length = nx.single_source_shortest_path_length
 
     nodes = [u]
-    closeness_centrality = {}
+    closeness_centrality = dict.fromkeys(nodes, 0)
     for n in nodes:
-        sp = dict(path_length(G, n))
+        sp = dict(path_length(graph, n))
         totsp = sum(sp.values())
-        if totsp > 0.0 and len(G) > 1:
-            closeness_centrality[n] = (len(sp) - 1.0) / totsp
+        if totsp > 0 and len(graph) > 1:
+            closeness_centrality[n] = (len(sp) - 1) / totsp
             # normalize to number of nodes-1 in connected part
-            s = (len(sp) - 1.0) / (len_graph - 1)
+            s = (len(sp) - 1) / (len_graph - 1)
             closeness_centrality[n] *= s
-        else:
-            closeness_centrality[n] = 0.0
 
     return closeness_centrality[u]
 
@@ -861,18 +857,18 @@ def betweenness_centrality(
     netx = graph.copy()
 
     # has to be Graph not MultiGraph as MG is not supported by networkx2.4
-    G = nx.Graph()
+    graph = nx.Graph()
     for u, v, k, data in netx.edges(data=True, keys=True):
-        if G.has_edge(u, v):
-            if G[u][v][weight] > netx[u][v][k][weight]:
-                nx.set_edge_attributes(G, {(u, v): data})
+        if graph.has_edge(u, v):
+            if graph[u][v][weight] > netx[u][v][k][weight]:
+                nx.set_edge_attributes(graph, {(u, v): data})
         else:
-            G.add_edge(u, v, **data)
+            graph.add_edge(u, v, **data)
 
     if radius:
-        for n in tqdm(G, total=len(G), disable=not verbose):
+        for n in tqdm(graph, total=len(graph), disable=not verbose):
             sub = nx.ego_graph(
-                G, n, radius=radius, distance=distance
+                graph, n, radius=radius, distance=distance
             )  # define subgraph of steps=radius
             netx.nodes[n][name] = nx.betweenness_centrality(
                 sub, weight=weight, normalized=normalized, **kwargs
@@ -880,11 +876,11 @@ def betweenness_centrality(
 
     elif mode == "nodes":
         vals = nx.betweenness_centrality(
-            G, weight=weight, endpoints=endpoints, **kwargs
+            graph, weight=weight, endpoints=endpoints, **kwargs
         )
         nx.set_node_attributes(netx, vals, name)
     elif mode == "edges":
-        vals = nx.edge_betweenness_centrality(G, weight=weight, **kwargs)
+        vals = nx.edge_betweenness_centrality(graph, weight=weight, **kwargs)
         for u, v, k in netx.edges(keys=True):
             try:
                 val = vals[u, v]
@@ -892,7 +888,7 @@ def betweenness_centrality(
                 val = vals[v, u]
             netx[u][v][k][name] = val
     else:
-        raise ValueError(f"Mode {mode} is not supported. Use 'nodes' or 'edges'.")
+        raise ValueError(f"Mode '{mode}' is not supported. Use 'nodes' or 'edges'.")
 
     return netx
 
@@ -902,30 +898,25 @@ def _euclidean(n, m):
     return math.sqrt((n[0] - m[0]) ** 2 + (n[1] - m[1]) ** 2)
 
 
-def _straightness_centrality(G, weight, normalized=True):
+def _straightness_centrality(graph, weight, normalized=True):
     """Calculates straightness centrality."""
-    straightness_centrality = {}
+    straightness_centrality = dict.fromkeys(graph.nodes(), 0)
 
-    for n in G.nodes():
-        straightness = 0
-        sp = nx.single_source_dijkstra_path_length(G, n, weight=weight)
+    for n in graph.nodes():
+        sp = nx.single_source_dijkstra_path_length(graph, n, weight=weight)
 
-        if len(sp) > 0 and len(G) > 1:
+        if len(sp) > 0 and len(graph) > 1:
+            straightness = 0
             for target in sp:
                 if n != target:
                     network_dist = sp[target]
                     euclidean_dist = _euclidean(n, target)
                     straightness = straightness + (euclidean_dist / network_dist)
-            straightness_centrality[n] = straightness * (1.0 / (len(G) - 1.0))
+            straightness_centrality[n] = straightness * (1 / (len(graph) - 1))
             # normalize to number of nodes-1 in connected part
-            if normalized:
-                if len(sp) > 1:
-                    s = (len(G) - 1.0) / (len(sp) - 1.0)
-                    straightness_centrality[n] *= s
-                else:
-                    straightness_centrality[n] = 0
-        else:
-            straightness_centrality[n] = 0.0
+            if normalized and len(sp) > 1:
+                s = (len(graph) - 1) / (len(sp) - 1)
+                straightness_centrality[n] *= s
     return straightness_centrality
 
 
@@ -1120,8 +1111,8 @@ def subgraph(
     return netx
 
 
-def mean_nodes(G, attr):
+def mean_nodes(graph, attr):
     """Calculates mean value of nodes attr for each edge."""
-    for u, v, k in G.edges(keys=True):
-        mean = (G.nodes[u][attr] + G.nodes[v][attr]) / 2
-        G[u][v][k][attr] = mean
+    for u, v, k in graph.edges(keys=True):
+        mean = (graph.nodes[u][attr] + graph.nodes[v][attr]) / 2
+        graph[u][v][k][attr] = mean

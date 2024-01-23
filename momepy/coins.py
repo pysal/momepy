@@ -15,7 +15,7 @@ import math
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from shapely import ops
+import shapely
 from shapely.geometry import LineString, MultiLineString
 
 
@@ -57,6 +57,12 @@ class COINS:
     To get a Series encoding stroke groups:
 
     >>> stroke_attr = coins.stroke_attribute()
+
+    Notes
+    -----
+    The LineStrings of the ``edge_gdf`` are not expected to overlap. If you are creating
+    it using OSMnx, don't forget to cast the graph to undirected using
+    ``osmnx.get_undirected(G)`` prior converting it to a GeoDataFrame.
     """
 
     def __init__(self, edge_gdf, angle_threshold=0):
@@ -111,19 +117,18 @@ class COINS:
         self.temp_array = []
         n = 0
         # Iterate through the lines and split the edges
-        idx = 0
-        for line in self.lines:
+        for idx, line in enumerate(self.lines):
             for part in _list_to_pairs(line):
                 out_line.append(
                     [
                         part,
                         _compute_orientation(part),
-                        list(),
-                        list(),
-                        list(),
-                        list(),
-                        list(),
-                        list(),
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
                         self.uv_index[idx],
                     ]
                 )
@@ -133,7 +138,6 @@ class COINS:
                     [n, f"{part[0][0]}_{part[0][1]}", f"{part[1][0]}_{part[1][1]}"]
                 )
                 n += 1
-            idx += 1
 
         self.split = out_line
 
@@ -166,7 +170,7 @@ class COINS:
 
             p2.append(item)
 
-        self.result = list(zip(range(len(p1)), p1, p2))
+        self.result = list(zip(range(len(p1)), p1, p2, strict=True))
 
         for a in self.result:
             n = a[0]
@@ -174,7 +178,7 @@ class COINS:
             self.unique[n][3] = a[2]
 
     def _best_link(self):
-        self.angle_pairs = dict()
+        self.angle_pairs = {}
         for edge in range(0, len(self.unique)):
             p1_angle_set = []
             p2_angle_set = []
@@ -184,16 +188,16 @@ class COINS:
             # both the keys. The key is already present in the dictionary so
             # it does not calculate a second time.
             for link1 in self.unique[edge][2]:
-                self.angle_pairs["%d_%d" % (edge, link1)] = _angle_between_two_lines(
+                self.angle_pairs[f"{edge}_{link1}"] = _angle_between_two_lines(
                     self.unique[edge][0], self.unique[link1][0]
                 )
-                p1_angle_set.append(self.angle_pairs["%d_%d" % (edge, link1)])
+                p1_angle_set.append(self.angle_pairs[f"{edge}_{link1}"])
 
             for link2 in self.unique[edge][3]:
-                self.angle_pairs["%d_%d" % (edge, link2)] = _angle_between_two_lines(
+                self.angle_pairs[f"{edge}_{link2}"] = _angle_between_two_lines(
                     self.unique[edge][0], self.unique[link2][0]
                 )
-                p2_angle_set.append(self.angle_pairs["%d_%d" % (edge, link2)])
+                p2_angle_set.append(self.angle_pairs[f"{edge}_{link2}"])
 
             # Among the adjacent segments deflection angle values, check
             # for the maximum value at both the ends. The segment with
@@ -213,14 +217,13 @@ class COINS:
 
     def _cross_check_links(self, angle_threshold):
         for edge in range(0, len(self.unique)):
-
             best_p1 = self.unique[edge][4][0]
             best_p2 = self.unique[edge][5][0]
 
             if (
                 isinstance(best_p1, int)
                 and edge in [self.unique[best_p1][4][0], self.unique[best_p1][5][0]]
-                and self.angle_pairs["%d_%d" % (edge, best_p1)] > angle_threshold
+                and self.angle_pairs[f"{edge}_{best_p1}"] > angle_threshold
             ):
                 self.unique[edge][6] = best_p1
             else:
@@ -229,16 +232,16 @@ class COINS:
             if (
                 isinstance(best_p2, int)
                 and edge in [self.unique[best_p2][4][0], self.unique[best_p2][5][0]]
-                and self.angle_pairs["%d_%d" % (edge, best_p2)] > angle_threshold
+                and self.angle_pairs[f"{edge}_{best_p2}"] > angle_threshold
             ):
                 self.unique[edge][7] = best_p2
             else:
                 self.unique[edge][7] = "line_break"
 
     def _merge_lines(self):
-        self.merging_list = list()
-        self.merged = list()
-        self.edge_idx = list()
+        self.merging_list = []
+        self.merged = []
+        self.edge_idx = []
 
         self.result = [
             _merge_lines_loop(n, self.unique) for n in range(len(self.unique))
@@ -311,11 +314,9 @@ class COINS:
         return edge_gdf
 
     def _create_gdf_strokes(self):
-
         my_list = []
 
         for a in self.merged:
-
             # get all segment points and make line strings
             linelist = _tuple_to_list(list(self.merged[a]))
             list_lines_segments = []
@@ -323,7 +324,7 @@ class COINS:
             for b in linelist:
                 list_lines_segments.append(LineString(b))
 
-            geom_multi_line = ops.linemerge(MultiLineString(list_lines_segments))
+            geom_multi_line = shapely.line_merge(MultiLineString(list_lines_segments))
 
             # get other values for gdf
             id_value = a
@@ -341,14 +342,13 @@ class COINS:
         return edge_gdf
 
     def _add_gdf_stroke_attributes(self):
-
         # Invert self.edge_idx to get a dictionary where the key is
         # the original edge index and the value is the group
         inv_edges = {
             value: key for key in self.edge_idx for value in self.edge_idx[key]
         }
 
-        stroke_group_attributes = list()
+        stroke_group_attributes = []
 
         for edge in self.uv_index:
             stroke_group_attributes.append(inv_edges[edge])
@@ -361,25 +361,17 @@ def _tuple_to_list(line):
     The imported shapefile lines comes as tuple, whereas the export requires list,
     this function converts tuples inside lines to lists.
     """
-    for a in range(0, len(line)):
-        line[a] = list(line[a])
-    return line
+    return [list(point) for point in line]
 
 
 def _list_to_tuple(line):
-    for a in range(0, len(line)):
-        line[a] = tuple(line[a])
-    return tuple(line)
+    return tuple(tuple(point) for point in line)
 
 
 def _list_to_pairs(in_list):
     """Split a line at every point."""
-    out_list = []
-    index = 0
-    for index in range(0, len(in_list) - 1):
-        temp_list = [list(in_list[index]), list(in_list[index + 1])]
-        out_list.append(temp_list)
-    return out_list
+    tmp_list = [list(point) for point in in_list]
+    return [list(pair) for pair in zip(tmp_list[:-1], tmp_list[1:], strict=True)]
 
 
 def _compute_angle(point1, point2):

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import collections
 import math
@@ -12,9 +11,9 @@ import libpysal
 import networkx as nx
 import numpy as np
 import pandas as pd
-import pygeos
 import shapely
-from packaging.version import Version
+from scipy.signal import find_peaks
+from scipy.stats import gaussian_kde
 from shapely.geometry import LineString, Point
 from shapely.ops import linemerge, polygonize, split
 from tqdm.auto import tqdm
@@ -31,10 +30,8 @@ __all__ = [
     "extend_lines",
     "roundabout_simplification",
     "consolidate_intersections",
+    "FaceArtifacts",
 ]
-
-GPD_10 = Version(gpd.__version__) >= Version("0.10")
-GPD_09 = Version(gpd.__version__) >= Version("0.9")
 
 
 def preprocess(
@@ -83,11 +80,7 @@ def preprocess(
         GeoDataFrame containing preprocessed geometry
     """
     blg = buildings.copy()
-    if GPD_10:
-        blg = blg.explode(ignore_index=True)
-    else:
-        blg = blg.explode()
-        blg.reset_index(drop=True, inplace=True)
+    blg = blg.explode(ignore_index=True)
     for loop in range(0, loops):
         print("Loop", loop + 1, f"out of {loops}.") if verbose else None
         blg.reset_index(inplace=True, drop=True)
@@ -107,71 +100,42 @@ def preprocess(
             desc="Identifying changes",
             disable=not verbose,
         ):
-            if size:
-                if row.geometry.area < size:
-                    if row.n_count == 1:
-                        uid = blg.iloc[row.neighbors[0]].mm_uid
-
-                        if uid in join:
-                            existing = join[uid]
-                            existing.append(row.mm_uid)
-                            join[uid] = existing
-                        else:
-                            join[uid] = [row.mm_uid]
-                    elif row.n_count > 1:
-                        shares = {}
-                        for n in row.neighbors:
-                            shares[n] = row.geometry.intersection(
-                                blg.at[n, blg.geometry.name]
-                            ).length
-                        maximal = max(shares.items(), key=operator.itemgetter(1))[0]
-                        uid = blg.loc[maximal].mm_uid
-                        if uid in join:
-                            existing = join[uid]
-                            existing.append(row.mm_uid)
-                            join[uid] = existing
-                        else:
-                            join[uid] = [row.mm_uid]
-                    else:
-                        delete.append(row.Index)
-            if compactness:
-                if row.circu < compactness:
-                    if row.n_count == 1:
-                        uid = blg.iloc[row.neighbors[0]].mm_uid
-                        if uid in join:
-                            existing = join[uid]
-                            existing.append(row.mm_uid)
-                            join[uid] = existing
-                        else:
-                            join[uid] = [row.mm_uid]
-                    elif row.n_count > 1:
-                        shares = {}
-                        for n in row.neighbors:
-                            shares[n] = row.geometry.intersection(
-                                blg.at[n, blg.geometry.name]
-                            ).length
-                        maximal = max(shares.items(), key=operator.itemgetter(1))[0]
-                        uid = blg.loc[maximal].mm_uid
-                        if uid in join:
-                            existing = join[uid]
-                            existing.append(row.mm_uid)
-                            join[uid] = existing
-                        else:
-                            join[uid] = [row.mm_uid]
-
-            if islands:
+            if size and row.geometry.area < size:
                 if row.n_count == 1:
-                    shared = row.geometry.intersection(
-                        blg.at[row.neighbors[0], blg.geometry.name]
-                    ).length
-                    if shared == row.geometry.exterior.length:
-                        uid = blg.iloc[row.neighbors[0]].mm_uid
-                        if uid in join:
-                            existing = join[uid]
-                            existing.append(row.mm_uid)
-                            join[uid] = existing
-                        else:
-                            join[uid] = [row.mm_uid]
+                    uid = blg.iloc[row.neighbors[0]].mm_uid
+                    join.setdefault(uid, []).append(row.mm_uid)
+                elif row.n_count > 1:
+                    shares = {}
+                    for n in row.neighbors:
+                        shares[n] = row.geometry.intersection(
+                            blg.at[n, blg.geometry.name]
+                        ).length
+                    maximal = max(shares.items(), key=operator.itemgetter(1))[0]
+                    uid = blg.loc[maximal].mm_uid
+                    join.setdefault(uid, []).append(row.mm_uid)
+                else:
+                    delete.append(row.Index)
+            if compactness and row.circu < compactness:
+                if row.n_count == 1:
+                    uid = blg.iloc[row.neighbors[0]].mm_uid
+                    join.setdefault(uid, []).append(row.mm_uid)
+                elif row.n_count > 1:
+                    shares = {}
+                    for n in row.neighbors:
+                        shares[n] = row.geometry.intersection(
+                            blg.at[n, blg.geometry.name]
+                        ).length
+                    maximal = max(shares.items(), key=operator.itemgetter(1))[0]
+                    uid = blg.loc[maximal].mm_uid
+                    join.setdefault(uid, []).append(row.mm_uid)
+
+            if islands and row.n_count == 1:
+                shared = row.geometry.intersection(
+                    blg.at[row.neighbors[0], blg.geometry.name]
+                ).length
+                if shared == row.geometry.exterior.length:
+                    uid = blg.iloc[row.neighbors[0]].mm_uid
+                    join.setdefault(uid, []).append(row.mm_uid)
 
         for key in tqdm(
             join, total=len(join), desc="Changing geometry", disable=not verbose
@@ -202,7 +166,7 @@ def remove_false_nodes(gdf):
 
     Parameters
     ----------
-    gdf : GeoDataFrame, GeoSeries, array of pygeos geometries
+    gdf : GeoDataFrame, GeoSeries, array of shapely geometries
         (Multi)LineString data of street network
 
     Returns
@@ -214,23 +178,20 @@ def remove_false_nodes(gdf):
     momepy.extend_lines
     momepy.close_gaps
     """
-    if isinstance(gdf, (gpd.GeoDataFrame, gpd.GeoSeries)):
+    if isinstance(gdf, gpd.GeoDataFrame | gpd.GeoSeries):
         # explode to avoid MultiLineStrings
         # reset index due to the bug in GeoPandas explode
-        if GPD_10:
-            df = gdf.reset_index(drop=True).explode(ignore_index=True)
-        else:
-            df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
+        df = gdf.reset_index(drop=True).explode(ignore_index=True)
 
-        # get underlying pygeos geometry
-        geom = df.geometry.values.data
+        # get underlying shapely geometry
+        geom = df.geometry.array
     else:
         geom = gdf
         df = gpd.GeoSeries(gdf)
 
     # extract array of coordinates and number per geometry
-    coords = pygeos.get_coordinates(geom)
-    indices = pygeos.get_num_coordinates(geom)
+    coords = shapely.get_coordinates(geom)
+    indices = shapely.get_num_coordinates(geom)
 
     # generate a list of start and end coordinates and create point geometries
     edges = [0]
@@ -241,15 +202,15 @@ def remove_false_nodes(gdf):
         edges.append(ix)
         i = ix
     edges = edges[:-1]
-    points = pygeos.points(np.unique(coords[edges], axis=0))
+    points = shapely.points(np.unique(coords[edges], axis=0))
 
     # query LineString geometry to identify points intersecting 2 geometries
-    tree = pygeos.STRtree(geom)
-    inp, res = tree.query_bulk(points, predicate="intersects")
+    tree = shapely.STRtree(geom)
+    inp, res = tree.query(points, predicate="intersects")
     unique, counts = np.unique(inp, return_counts=True)
     merge = res[np.isin(inp, unique[counts == 2])]
 
-    if len(merge) > 0:
+    if len(merge):
         # filter duplications and create a dictionary with indication of components to
         # be merged together
         dups = [item for item, count in collections.Counter(merge).items() if count > 1]
@@ -257,28 +218,24 @@ def remove_false_nodes(gdf):
         components = {}
         for i, a in enumerate(split):
             if a[0] in dups or a[1] in dups:
-                if a[0] in components.keys():
+                if a[0] in components:
                     i = components[a[0]]
-                elif a[1] in components.keys():
+                elif a[1] in components:
                     i = components[a[1]]
             components[a[0]] = i
             components[a[1]] = i
 
         # iterate through components and create new geometries
+        all_keys = {}
+        for k, v in components.items():
+            all_keys.setdefault(v, []).append(k)
         new = []
-        for c in set(components.values()):
-            keys = []
-            for item in components.items():
-                if item[1] == c:
-                    keys.append(item[0])
-            new.append(pygeos.line_merge(pygeos.union_all(geom[keys])))
+        for keys in all_keys.values():
+            new.append(shapely.line_merge(shapely.union_all(geom[keys])))
 
         # remove incorrect geometries and append fixed versions
         df = df.drop(merge)
-        if GPD_10:
-            final = gpd.GeoSeries(new).explode(ignore_index=True)
-        else:
-            final = gpd.GeoSeries(new).explode().reset_index(drop=True)
+        final = gpd.GeoSeries(new).explode(ignore_index=True)
         if isinstance(gdf, gpd.GeoDataFrame):
             return pd.concat(
                 [
@@ -348,20 +305,15 @@ class CheckTessellationInput:
     Overlapping features: 22
     """
 
-    import warnings
-
     warnings.filterwarnings("ignore", "GeoSeries.isna", UserWarning)
 
     def __init__(self, gdf, shrink=0.4, collapse=True, split=True, overlap=True):
         data = gdf[~gdf.is_empty]
 
         if split:
-            types = data.type
+            types = data.geom_type
 
-        if shrink != 0:
-            shrink = data.buffer(-shrink)
-        else:
-            shrink = data
+        shrink = data.buffer(-shrink) if shrink != 0 else data
 
         if collapse:
             emptycheck = shrink.is_empty
@@ -371,7 +323,7 @@ class CheckTessellationInput:
             collapsed = "NA"
 
         if split:
-            type_check = shrink.type != types
+            type_check = shrink.geom_type != types
             self.split = gdf[type_check]
             split_count = len(self.split)
         else:
@@ -379,9 +331,7 @@ class CheckTessellationInput:
 
         if overlap:
             shrink = shrink.reset_index(drop=True)
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", "GeoSeries.isna", UserWarning)
-                shrink = shrink[~(shrink.is_empty | shrink.geometry.isna())]
+            shrink = shrink[~(shrink.is_empty | shrink.geometry.isna())]
             sindex = shrink.sindex
             hits = shrink.bounds.apply(
                 lambda row: list(sindex.intersection(row)), axis=1
@@ -399,7 +349,7 @@ class CheckTessellationInput:
                 shrink.geometry.rename("o_geom"), on="origin"
             ).join(shrink.geometry.rename("d_geom"), on="dest")
             intersection = od_matrix.o_geom.values.intersection(od_matrix.d_geom.values)
-            type_filter = gpd.GeoSeries(intersection).type == "Polygon"
+            type_filter = gpd.GeoSeries(intersection).geom_type == "Polygon"
             empty_filter = intersection.is_empty
             overlapping = od_matrix.reset_index(drop=True)[empty_filter ^ type_filter]
             over_rows = sorted(
@@ -412,9 +362,9 @@ class CheckTessellationInput:
             overlapping_c = "NA"
 
         print(
-            "Collapsed features  : {0}\n"
-            "Split features      : {1}\n"
-            "Overlapping features: {2}".format(collapsed, split_count, overlapping_c)
+            f"Collapsed features  : {collapsed}\n"
+            f"Split features      : {split_count}\n"
+            f"Overlapping features: {overlapping_c}"
         )
 
 
@@ -440,9 +390,9 @@ def close_gaps(gdf, tolerance):
     momepy.remove_false_nodes
 
     """
-    geom = gdf.geometry.values.data
-    coords = pygeos.get_coordinates(geom)
-    indices = pygeos.get_num_coordinates(geom)
+    geom = gdf.geometry.array
+    coords = shapely.get_coordinates(geom)
+    indices = shapely.get_num_coordinates(geom)
 
     # generate a list of start and end coordinates and create point geometries
     edges = [0]
@@ -453,20 +403,20 @@ def close_gaps(gdf, tolerance):
         edges.append(ix)
         i = ix
     edges = edges[:-1]
-    points = pygeos.points(np.unique(coords[edges], axis=0))
+    points = shapely.points(np.unique(coords[edges], axis=0))
 
-    buffered = pygeos.buffer(points, tolerance / 2)
+    buffered = shapely.buffer(points, tolerance / 2)
 
-    dissolved = pygeos.union_all(buffered)
+    dissolved = shapely.union_all(buffered)
 
     exploded = [
-        pygeos.get_geometry(dissolved, i)
-        for i in range(pygeos.get_num_geometries(dissolved))
+        shapely.get_geometry(dissolved, i)
+        for i in range(shapely.get_num_geometries(dissolved))
     ]
 
-    centroids = pygeos.centroid(exploded)
+    centroids = shapely.centroid(exploded)
 
-    snapped = pygeos.snap(geom, pygeos.union_all(centroids), tolerance)
+    snapped = shapely.snap(geom, shapely.union_all(centroids), tolerance)
 
     return gpd.GeoSeries(snapped, crs=gdf.crs)
 
@@ -512,10 +462,7 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     """
     # explode to avoid MultiLineStrings
     # reset index due to the bug in GeoPandas explode
-    if GPD_10:
-        df = gdf.reset_index(drop=True).explode(ignore_index=True)
-    else:
-        df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
+    df = gdf.reset_index(drop=True).explode(ignore_index=True)
 
     if target is None:
         target = df
@@ -523,12 +470,12 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     else:
         itself = False
 
-    # get underlying pygeos geometry
-    geom = df.geometry.values.data
+    # get underlying shapely geometry
+    geom = df.geometry.array
 
     # extract array of coordinates and number per geometry
-    coords = pygeos.get_coordinates(geom)
-    indices = pygeos.get_num_coordinates(geom)
+    coords = shapely.get_coordinates(geom)
+    indices = shapely.get_num_coordinates(geom)
 
     # generate a list of start and end coordinates and create point geometries
     edges = [0]
@@ -539,22 +486,21 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
         edges.append(ix)
         i = ix
     edges = edges[:-1]
-    points = pygeos.points(np.unique(coords[edges], axis=0))
+    points = shapely.points(np.unique(coords[edges], axis=0))
 
     # query LineString geometry to identify points intersecting 2 geometries
-    tree = pygeos.STRtree(geom)
-    inp, res = tree.query_bulk(points, predicate="intersects")
+    tree = shapely.STRtree(geom)
+    inp, res = tree.query(points, predicate="intersects")
     unique, counts = np.unique(inp, return_counts=True)
     ends = np.unique(res[np.isin(inp, unique[counts == 1])])
 
     new_geoms = []
     # iterate over cul-de-sac-like segments and attempt to snap them to street network
     for line in ends:
+        l_coords = shapely.get_coordinates(geom[line])
 
-        l_coords = pygeos.get_coordinates(geom[line])
-
-        start = pygeos.points(l_coords[0])
-        end = pygeos.points(l_coords[-1])
+        start = shapely.points(l_coords[0])
+        end = shapely.points(l_coords[-1])
 
         first = list(tree.query(start, predicate="intersects"))
         second = list(tree.query(end, predicate="intersects"))
@@ -568,17 +514,17 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
             if (
                 barrier is not None
                 and barrier.sindex.query(
-                    pygeos.linestrings(snapped), predicate="intersects"
+                    shapely.linestrings(snapped), predicate="intersects"
                 ).size
                 > 0
             ):
                 new_geoms.append(geom[line])
             else:
                 if extension == 0:
-                    new_geoms.append(pygeos.linestrings(snapped))
+                    new_geoms.append(shapely.linestrings(snapped))
                 else:
                     new_geoms.append(
-                        pygeos.linestrings(
+                        shapely.linestrings(
                             _extend_line(snapped, t, extension, snap=False)
                         )
                     )
@@ -587,17 +533,17 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
             if (
                 barrier is not None
                 and barrier.sindex.query(
-                    pygeos.linestrings(snapped), predicate="intersects"
+                    shapely.linestrings(snapped), predicate="intersects"
                 ).size
                 > 0
             ):
                 new_geoms.append(geom[line])
             else:
                 if extension == 0:
-                    new_geoms.append(pygeos.linestrings(snapped))
+                    new_geoms.append(shapely.linestrings(snapped))
                 else:
                     new_geoms.append(
-                        pygeos.linestrings(
+                        shapely.linestrings(
                             _extend_line(snapped, t, extension, snap=False)
                         )
                     )
@@ -608,17 +554,17 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
             if (
                 barrier is not None
                 and barrier.sindex.query(
-                    pygeos.linestrings(snapped), predicate="intersects"
+                    shapely.linestrings(snapped), predicate="intersects"
                 ).size
                 > 0
             ):
                 new_geoms.append(geom[line])
             else:
                 if extension == 0:
-                    new_geoms.append(pygeos.linestrings(snapped))
+                    new_geoms.append(shapely.linestrings(snapped))
                 else:
                     new_geoms.append(
-                        pygeos.linestrings(
+                        shapely.linestrings(
                             _extend_line(snapped, t, extension, snap=False)
                         )
                     )
@@ -637,24 +583,24 @@ def _extend_line(coords, target, tolerance, snap=True):
             tolerance,
         )
         int_idx = target.sindex.query(extrapolation, predicate="intersects")
-        intersection = pygeos.intersection(
-            target.iloc[int_idx].geometry.values.data, extrapolation
+        intersection = shapely.intersection(
+            target.iloc[int_idx].geometry.array, extrapolation
         )
         if intersection.size > 0:
             if len(intersection) > 1:
                 distances = {}
                 ix = 0
                 for p in intersection:
-                    distance = pygeos.distance(p, pygeos.points(coords[-1]))
+                    distance = shapely.distance(p, shapely.points(coords[-1]))
                     distances[ix] = distance
                     ix = ix + 1
                 minimal = min(distances.items(), key=operator.itemgetter(1))[0]
-                new_point_coords = pygeos.get_coordinates(intersection[minimal])
+                new_point_coords = shapely.get_coordinates(intersection[minimal])
 
             else:
-                new_point_coords = pygeos.get_coordinates(intersection[0])
+                new_point_coords = shapely.get_coordinates(intersection[0])
             coo = np.append(coords, new_point_coords)
-            new = np.reshape(coo, (int(len(coo) / 2), 2))
+            new = np.reshape(coo, (len(coo) // 2, 2))
 
             return new
         return coords
@@ -669,7 +615,7 @@ def _extend_line(coords, target, tolerance, snap=True):
 
 def _get_extrapolated_line(coords, tolerance, point=False):
     """
-    Creates a pygeos line extrapoled in p1->p2 direction.
+    Creates a shapely line extrapoled in p1->p2 direction.
     """
     p1 = coords[:2]
     p2 = coords[2:]
@@ -754,13 +700,13 @@ def _get_extrapolated_line(coords, tolerance, point=False):
         )
     if point:
         return b
-    return pygeos.linestrings([a, b])
+    return shapely.linestrings([a, b])
 
 
 def _polygonize_ifnone(edges, polys):
     if polys is None:
         pre_polys = polygonize(edges.geometry)
-        polys = gpd.GeoDataFrame(geometry=[g for g in pre_polys], crs=edges.crs)
+        polys = gpd.GeoDataFrame(geometry=list(pre_polys), crs=edges.crs)
     return polys
 
 
@@ -792,7 +738,6 @@ def _selecting_rabs_from_poly(
     rab = rab[rab[area_col] < area_threshold_val]
 
     if include_adjacent is True:
-
         bounds = rab.geometry.bounds
         rab = pd.concat([rab, bounds], axis=1)
         rab["deltax"] = rab.maxx - rab.minx
@@ -800,10 +745,7 @@ def _selecting_rabs_from_poly(
         rab["rab_diameter"] = rab[["deltax", "deltay"]].max(axis=1)
 
         # selecting the adjacent areas that are of smaller than itself
-        if GPD_10:
-            rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
-        else:
-            rab_adj = gpd.sjoin(gdf, rab, op="intersects")
+        rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
 
         area_right = area_col + "_right"
         area_left = area_col + "_left"
@@ -837,20 +779,20 @@ def _rabs_center_points(gdf, center_type="centroid"):
     From a selection of roundabouts, returns an aggregated GeoDataFrame
     per roundabout with extra column with center_type.
     """
-    # temporary DataFrame where geometry is the array of pygeos geometries
+    # temporary DataFrame where geometry is the array of shapely geometries
     # Hack until shapely 2.0 is out.
-    # TODO: replace pygeos with shapely 2.0
+    # TODO: replace shapely with shapely 2.0
     tmp = pd.DataFrame(gdf.copy())  # creating a copy avoids warnings
-    tmp["geometry"] = tmp.geometry.values.data
+    tmp["geometry"] = tmp.geometry.array
 
-    pygeos_geoms = (
+    shapely_geoms = (
         tmp.groupby("index_right")
-        .geometry.apply(pygeos.multipolygons)
+        .geometry.apply(shapely.multipolygons)
         .rename("geometry")
     )
-    pygeos_geoms = pygeos.make_valid(pygeos_geoms)
+    shapely_geoms = shapely.make_valid(shapely_geoms)
 
-    rab_multipolygons = gpd.GeoDataFrame(pygeos_geoms, crs=gdf.crs)
+    rab_multipolygons = gpd.GeoDataFrame(shapely_geoms, crs=gdf.crs)
     # make_valid is transforming the multipolygons into geometry collections because of
     # shared edges
 
@@ -861,7 +803,7 @@ def _rabs_center_points(gdf, center_type="centroid"):
         ].geometry.centroid
 
     elif center_type == "mean":
-        coords, idxs = pygeos.get_coordinates(pygeos_geoms, return_index=True)
+        coords, idxs = shapely.get_coordinates(shapely_geoms, return_index=True)
         means = {}
         for i in np.unique(idxs):
             tmps = coords[idxs == i]
@@ -886,7 +828,7 @@ def _coins_filtering_many_incoming(incoming_many, angle_threshold=0):
     # For each new connection, evaluate COINS and select the group from which the new
     # line belongs
     # TODO ideally use the groupby object on line_wkt used earlier
-    for g, x in incoming_many.groupby("line_wkt"):
+    for _g, x in incoming_many.groupby("line_wkt"):
         gs = gpd.GeoSeries(pd.concat([x.geometry, x.line]), crs=incoming_many.crs)
         gdf = gpd.GeoDataFrame(geometry=gs)
         gdf = gdf.drop_duplicates()
@@ -912,16 +854,10 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     is used to select the line to be extended further.
     """
     # selecting the lines that are touching but not covered by
-    if GPD_10:
-        touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
-        edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
-            edges.geometry, predicate="covered_by"
-        )
-    else:
-        touching = gpd.sjoin(edges, rab_multipolygons, op="touches")
-        edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
-            edges.geometry, op="covered_by"
-        )
+    touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
+    edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
+        edges.geometry, predicate="covered_by"
+    )
     idx_drop = edges.index.take(edges_idx)
     touching_idx = touching.index
     ls = list(set(touching_idx) - set(idx_drop))
@@ -934,7 +870,7 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     incoming["last_pt"] = incoming.geometry.apply(lambda x: Point(x.coords[-1]))
     incoming["dist_last_pt"] = incoming.center_pt.distance(incoming.last_pt)
     lines = []
-    for i, row in incoming.iterrows():
+    for _i, row in incoming.iterrows():
         if row.dist_first_pt < row.dist_last_pt:
             lines.append(LineString([row.first_pt, row.center_pt]))
         else:
@@ -1077,20 +1013,10 @@ def roundabout_simplification(
         GeoDataFrame with an updated geometry and an additional
         column labeling modified edges.
     """
-    if not GPD_09:
-        raise ImportError(
-            (
-                "`roundabout_simplification` requires geopandas 0.9.0 or newer. "
-                f"Your current version is {gpd.__version__}."
-            )
-        )
-
     if len(edges[edges.geom_type != "LineString"]) > 0:
         raise TypeError(
-            (
-                "Only LineString geometries are allowed. "
-                "Try using the `explode()` method to explode MultiLineStrings."
-            )
+            "Only LineString geometries are allowed. "
+            "Try using the `explode()` method to explode MultiLineStrings."
         )
 
     polys = _polygonize_ifnone(edges, polys)
@@ -1553,3 +1479,188 @@ def _euclidean_simplification(geometry, new_origin, new_destination):
             if new_destination is not None:
                 geometry = LineString([current_origin, new_destination])
     return geometry
+
+
+class FaceArtifacts:
+    """Identify face artifacts in street networks
+
+    For a given street network composed of transportation-oriented geometry containing
+    features representing things like roundabouts, dual carriegaways and complex
+    intersections, identify areas enclosed by geometry that is considered a `face
+    artifact` as per :cite:`fleischmann2023`. Face artifacts highlight areas with a high
+    likelihood of being of non-morphological (e.g. transporation) origin and may require
+    simplification prior morphological analysis. See :cite:`fleischmann2023` for more
+    details.
+
+    Parameters
+    ----------
+    gdf : geopandas.GeoDataFrame
+        GeoDataFrame containing street network represented as (Multi)LineString geometry
+    index : str, optional
+        A type of the shape compacntess index to be used. Available are
+        ['circlular_compactness', 'isoperimetric_quotient', 'diameter_ratio'], by
+        default "circular_compactness"
+    height_mins : float, optional
+        Required depth of valleys, by default np.NINF
+    height_maxs : float, optional
+        Required height of peaks, by default 0.008
+    prominence : float, optional
+        Required prominence of peaks, by default 0.00075
+
+    Attributes
+    ----------
+    threshold : float
+        Identified threshold between face polygons and face artifacts
+    face_artifacts : GeoDataFrame
+        A GeoDataFrame of geometries identified as face artifacts
+    polygons : GeoDataFrame
+        All polygons resulting from polygonization of the input gdf with the
+        face_artifact_index
+    kde : scipy.stats._kde.gaussian_kde
+        Representation of a kernel-density estimate using Gaussian kernels.
+    pdf : numpy.ndarray
+        Probability density function
+    peaks : numpy.ndarray
+        locations of peaks in pdf
+    valleys : numpy.ndarray
+        locations of valleys in pdf
+
+    Examples
+    --------
+    >>> fa = momepy.FaceArtifacts(street_network_prague)
+    >>> fa.threshold
+    6.9634555986177045
+    >>> fa.face_artifacts.head()
+                                                 geometry  face_artifact_index
+    6   POLYGON ((-744164.625 -1043922.362, -744167.39...             5.112844
+    9   POLYGON ((-744154.119 -1043804.734, -744152.07...             6.295660
+    10  POLYGON ((-744101.275 -1043738.053, -744103.80...             2.862871
+    12  POLYGON ((-744095.511 -1043623.478, -744095.35...             3.712403
+    17  POLYGON ((-744488.466 -1044533.317, -744489.33...             5.158554
+    """
+
+    def __init__(
+        self,
+        gdf,
+        index="circular_compactness",
+        height_mins=np.NINF,
+        height_maxs=0.008,
+        prominence=0.00075,
+    ):
+        try:
+            from esda import shape
+        except (ImportError, ModuleNotFoundError) as err:
+            raise ImportError(
+                "The `esda` package is required. You can install it using "
+                "`pip install esda` or `conda install esda -c conda-forge`."
+            ) from err
+
+        # Polygonize street network
+        polygons = gpd.GeoSeries(
+            shapely.polygonize(  # polygonize
+                [gdf.unary_union]
+            ).geoms,  # get parts of the collection from polygonize
+            crs=gdf.crs,
+        ).explode(ignore_index=True)  # shouldn't be needed but doesn't hurt to ensure
+
+        # Store geometries as a GeoDataFrame
+        self.polygons = gpd.GeoDataFrame(geometry=polygons)
+        if index == "circular_compactness":
+            self.polygons["face_artifact_index"] = np.log(
+                shape.minimum_bounding_circle_ratio(polygons) * polygons.area
+            )
+        elif index == "isoperimetric_quotient":
+            self.polygons["face_artifact_index"] = np.log(
+                shape.isoperimetric_quotient(polygons) * polygons.area
+            )
+        elif index == "diameter_ratio":
+            self.polygons["face_artifact_index"] = np.log(
+                shape.diameter_ratio(polygons) * polygons.area
+            )
+        else:
+            raise ValueError(
+                f"'{index}' is not supported. Use one of ['circlular_compactness', "
+                "'isoperimetric_quotient', 'diameter_ratio']"
+            )
+
+        # parameters for peak/valley finding
+        peak_parameters = {
+            "height_mins": height_mins,
+            "height_maxs": height_maxs,
+            "prominence": prominence,
+        }
+        mylinspace = np.linspace(
+            self.polygons["face_artifact_index"].min(),
+            self.polygons["face_artifact_index"].max(),
+            1000,
+        )
+
+        self.kde = gaussian_kde(
+            self.polygons["face_artifact_index"], bw_method="silverman"
+        )
+        self.pdf = self.kde.pdf(mylinspace)
+
+        # find peaks
+        self.peaks, self.d_peaks = find_peaks(
+            x=self.pdf,
+            height=peak_parameters["height_maxs"],
+            threshold=None,
+            distance=None,
+            prominence=peak_parameters["prominence"],
+            width=1,
+            plateau_size=None,
+        )
+
+        # find valleys
+        self.valleys, self.d_valleys = find_peaks(
+            x=-self.pdf + 1,
+            height=peak_parameters["height_mins"],
+            threshold=None,
+            distance=None,
+            prominence=peak_parameters["prominence"],
+            width=1,
+            plateau_size=None,
+        )
+
+        # check if we have at least 2 peaks
+        condition_2peaks = len(self.peaks) > 1
+
+        # check if we have at least 1 valley
+        condition_1valley = len(self.valleys) > 0
+
+        conditions = [condition_2peaks, condition_1valley]
+
+        # if both these conditions are true, we find the artifact index
+        if all(conditions):
+            # find list order of highest peak
+            highest_peak_listindex = np.argmax(self.d_peaks["peak_heights"])
+            # find index (in linspace) of highest peak
+            highest_peak_index = self.peaks[highest_peak_listindex]
+            # define all possible peak ranges fitting our definition
+            peak_bounds = list(zip(self.peaks[:-1], self.peaks[1:], strict=True))
+            peak_bounds_accepted = [b for b in peak_bounds if highest_peak_index in b]
+            # find all valleys that lie between two peaks
+            valleys_accepted = [
+                v_index
+                for v_index in self.valleys
+                if any(v_index in range(b[0], b[1]) for b in peak_bounds_accepted)
+            ]
+            # the value of the first of those valleys is our artifact index
+            # get the order of the valley
+            valley_index = valleys_accepted[0]
+
+            # derive threshold value for given option from index/linspace
+            self.threshold = float(mylinspace[valley_index])
+            self.face_artifacts = self.polygons[
+                self.polygons.face_artifact_index < self.threshold
+            ]
+        else:
+            warnings.warn(
+                "No threshold found. Either your dataset it too small or the "
+                "distribution of the face artifact index does not follow the "
+                "expected shape.",
+                UserWarning,
+                stacklevel=2,
+            )
+            self.threshold = None
+            self.face_artifacts = None

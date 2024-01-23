@@ -1,26 +1,21 @@
 [build-system]
-requires = [
-    "setuptools>=61.0.0",
-    "versioneer[toml]==0.26",
-    "isort",
-    "black"
-]
+requires = ["setuptools>=61.0", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
 
 [project]
 name = "momepy"
 dynamic = ["version"]
 authors = [
-    {name = "Martin Fleischmann", email = "martin@martinfleischmann.net"},
+    { name = "Martin Fleischmann", email = "martin@martinfleischmann.net" },
 ]
-maintainers = [
-    {name = "momepy contributors"},
-]
-license = {text = "BSD 3-Clause"}
+maintainers = [{ name = "momepy contributors" }]
+license = { text = "BSD 3-Clause" }
 description = "Urban Morphology Measuring Toolkit"
 keywords = ["urban morphology", "urban morphometrics", "tessellation"]
-readme = {text = """\
-Momepy (*Mo*rphological *Me*asuring in *Py*thon) is a library for
+readme = { text = """\
+Momepy (Morphological Measuring in Python) is a library for
 quantitative analysis of urban form - urban morphometrics. It is
 part of `PySAL`_ (Python Spatial Analysis Library) and is built on top
 of `GeoPandas`_, other PySAL modules, and
@@ -29,7 +24,7 @@ of `GeoPandas`_, other PySAL modules, and
 .. _PySAL: http://pysal.org
 .. _GeoPandas: http://geopandas.org
 .. _networkX : http://networkx.github.io
-""", content-type = "text/x-rst"}
+""", content-type = "text/x-rst" }
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: BSD License",
@@ -37,15 +32,15 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
-    "geopandas>=0.8.0",
-    "libpysal>=4.6.0",
-    "networkx>=2.3",
+    "geopandas>=0.12.0",
+    "libpysal>=4.8.0",
+    "networkx>=2.7",
     "packaging",
     "pandas!=1.5.0",
-    "pygeos",
-    "tqdm>=4.27.0",
+    "shapely>=2",
+    "tqdm>=4.63.0",
 ]
 
 [project.urls]
@@ -53,28 +48,27 @@ Home = "http://momepy.org"
 Repository = "https://github.com/pysal/momepy"
 
 [tool.setuptools.packages.find]
-include = [
-    "momepy",
-    "momepy.*",
-]
+include = ["momepy", "momepy.*"]
 
 [tool.setuptools.package-data]
-momepy = [
-    "datasets/bubenec.gpkg",
-    "datasets/tests.gpkg",
-]
+momepy = ["datasets/bubenec.gpkg", "datasets/tests.gpkg"]
 
-[tool.versioneer]
-VCS = "git"
-style = "pep440"
-versionfile_source = "momepy/_version.py"
-versionfile_build = "momepy/_version.py"
-tag_prefix = "v"
-parentdir_prefix = "momepy-"
-
-[tool.isort]
-profile = "black"
-src_paths = ["momepy", "tests", "benchmarks"]
-
-[tool.black]
+[tool.ruff]
 line-length = 88
+select = ["E", "F", "W", "I", "UP", "N", "B", "A", "C4", "SIM", "ARG"]
+ignore = ["B006", "F403"]
+exclude = ["momepy/tests/*", "docs/*", "benchmarks/*"]
+
+[tool.coverage.run]
+source = ['momepy']
+
+[tool.coverage.report]
+exclude_lines = [
+    "if self.debug:",
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "except ModuleNotFoundError:",
+    "except ImportError",
+]
+ignore_errors = true
+omit = ["tests/*", "docs/conf.py", "benchmarks/*"]

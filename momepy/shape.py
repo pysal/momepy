@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # shape.py
 # definitions of shape characters
@@ -9,6 +8,7 @@ import random
 
 import numpy as np
 import pandas as pd
+import shapely
 from shapely.geometry import Point
 from tqdm.auto import tqdm  # progress bar
 
@@ -307,7 +307,7 @@ def _make_circle(points):
 
     # Progressively add points to circle or recompute circle
     c = None
-    for (i, p) in enumerate(shuffled):
+    for i, p in enumerate(shuffled):
         if c is None or not _is_in_circle(c, p):
             c = _make_circle_one_point(shuffled[: i + 1], p)
     return c
@@ -315,10 +315,10 @@ def _make_circle(points):
 
 def _make_circle_one_point(points, p):
     """One boundary point known."""
-    c = (p[0], p[1], 0.0)
-    for (i, q) in enumerate(points):
+    c = (p[0], p[1], 0)
+    for i, q in enumerate(points):
         if not _is_in_circle(c, q):
-            if c[2] == 0.0:
+            if c[2] == 0:
                 c = _make_diameter(p, q)
             else:
                 c = _make_circle_two_points(points[: i + 1], p, q)
@@ -343,13 +343,13 @@ def _make_circle_two_points(points, p, q):
         c = _make_circumcircle(p, q, r)
         if c is None:
             continue
-        elif cross > 0.0 and (
+        elif cross > 0 and (
             left is None
             or _cross_product(px, py, qx, qy, c[0], c[1])
             > _cross_product(px, py, qx, qy, left[0], left[1])
         ):
             left = c
-        elif cross < 0.0 and (
+        elif cross < 0 and (
             right is None
             or _cross_product(px, py, qx, qy, c[0], c[1])
             < _cross_product(px, py, qx, qy, right[0], right[1])
@@ -373,16 +373,16 @@ def _make_circumcircle(p0, p1, p2):
     ax, ay = p0
     bx, by = p1
     cx, cy = p2
-    ox = (min(ax, bx, cx) + max(ax, bx, cx)) / 2.0
-    oy = (min(ay, by, cy) + max(ay, by, cy)) / 2.0
+    ox = (min(ax, bx, cx) + max(ax, bx, cx)) / 2
+    oy = (min(ay, by, cy) + max(ay, by, cy)) / 2
     ax -= ox
     ay -= oy
     bx -= ox
     by -= oy
     cx -= ox
     cy -= oy
-    d = (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)) * 2.0
-    if d == 0.0:
+    d = (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)) * 2
+    if d == 0:
         return None
     x = (
         ox
@@ -409,8 +409,8 @@ def _make_circumcircle(p0, p1, p2):
 
 
 def _make_diameter(p0, p1):
-    cx = (p0[0] + p1[0]) / 2.0
-    cy = (p0[1] + p1[1]) / 2.0
+    cx = (p0[0] + p1[0]) / 2
+    cy = (p0[1] + p1[1]) / 2
     r0 = math.hypot(cx - p0[0], cy - p0[1])
     r1 = math.hypot(cx - p1[0], cy - p1[1])
     return (cx, cy, max(r0, r1))
@@ -709,7 +709,6 @@ class Rectangularity:
     """
 
     def __init__(self, gdf, areas=None):
-        # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
         self.gdf = gdf
         gdf = gdf.copy()
         if areas is None:
@@ -718,10 +717,9 @@ class Rectangularity:
             gdf["mm_a"] = areas
             areas = "mm_a"
         self.areas = gdf[areas]
-        self.series = gdf.apply(
-            lambda row: row[areas] / (row.geometry.minimum_rotated_rectangle.area),
-            axis=1,
-        )
+        mrr = shapely.minimum_rotated_rectangle(gdf.geometry.array)
+        mrr_area = shapely.area(mrr)
+        self.series = gdf[areas] / mrr_area
 
 
 class ShapeIndex:
@@ -836,7 +834,7 @@ class Corners:
 
         # fill new column with the value of area, iterating over rows one by one
         for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
-            if geom.type == "Polygon":
+            if geom.geom_type == "Polygon":
                 corners = 0  # define empty variables
                 points = list(geom.exterior.coords)  # get points of a shape
                 stop = len(points) - 1  # define where to stop
@@ -864,7 +862,7 @@ class Corners:
                             corners = corners + 1
                         else:
                             continue
-            elif geom.type == "MultiPolygon":
+            elif geom.geom_type == "MultiPolygon":
                 corners = 0  # define empty variables
                 for g in geom.geoms:
                     points = list(g.exterior.coords)  # get points of a shape
@@ -905,7 +903,8 @@ class Squareness:
     """
     Calculates the squareness of each object in a given GeoDataFrame. Uses only
     external shape (``shapely.geometry.exterior``), courtyards are not included.
-     Returns ``np.nan`` for MultiPolygons.
+    Returns ``np.nan`` for true MultiPolygons (containing multiple geometries).
+    MultiPolygons with a singular geometry are treated as Polygons.
 
     .. math::
         \\mu=\\frac{\\sum_{i=1}^{N} d_{i}}{N}
@@ -950,45 +949,37 @@ class Squareness:
 
             return angle
 
+        def _calc(geom):
+            angles = []
+            points = list(geom.exterior.coords)  # get points of a shape
+            n_points = len(points)
+            if n_points < 3:
+                return np.nan
+            stop = n_points - 1
+            for i in range(
+                1, n_points
+            ):  # for every point, calculate angle and add 1 if True angle
+                a = np.asarray(points[i - 1])
+                b = np.asarray(points[i])
+                # in last case, needs to wrap around start to find finishing angle
+                c = np.asarray(points[i + 1]) if i != stop else np.asarray(points[1])
+                ang = _angle(a, b, c)
+                if ang <= 175 or ang >= 185:
+                    angles.append(ang)
+                else:
+                    continue
+            deviations = [abs(90 - i) for i in angles]
+            return np.mean(deviations)
+
         # fill new column with the value of area, iterating over rows one by one
         for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
-            if geom.type == "Polygon":
-                angles = []
-                points = list(geom.exterior.coords)  # get points of a shape
-                stop = len(points) - 1  # define where to stop
-                for i in np.arange(
-                    len(points)
-                ):  # for every point, calculate angle and add 1 if True angle
-                    if i == 0:
-                        continue
-                    elif i == stop:
-                        a = np.asarray(points[i - 1])
-                        b = np.asarray(points[i])
-                        c = np.asarray(points[1])
-                        ang = _angle(a, b, c)
-
-                        if ang <= 175:
-                            angles.append(ang)
-                        elif _angle(a, b, c) >= 185:
-                            angles.append(ang)
-                        else:
-                            continue
-
-                    else:
-                        a = np.asarray(points[i - 1])
-                        b = np.asarray(points[i])
-                        c = np.asarray(points[i + 1])
-                        ang = _angle(a, b, c)
-
-                        if _angle(a, b, c) <= 175:
-                            angles.append(ang)
-                        elif _angle(a, b, c) >= 185:
-                            angles.append(ang)
-                        else:
-                            continue
-                deviations = [abs(90 - i) for i in angles]
-                results_list.append(np.mean(deviations))
-
+            if geom.geom_type == "Polygon" or (
+                geom.geom_type == "MultiPolygon" and len(geom.geoms) == 1
+            ):
+                # unpack multis with single geoms
+                if geom.geom_type == "MultiPolygon":
+                    geom = geom.geoms[0]
+                results_list.append(_calc(geom))
             else:
                 results_list.append(np.nan)
 
@@ -1057,8 +1048,7 @@ class EquivalentRectangularIndex:
                 areas = gdf[areas]
 
         self.areas = areas
-        # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
-        bbox = gdf.geometry.apply(lambda g: g.minimum_rotated_rectangle)
+        bbox = shapely.minimum_rotated_rectangle(gdf.geometry)
         res = np.sqrt(areas / bbox.area) * (bbox.length / perimeters)
 
         self.series = pd.Series(res, index=gdf.index)
@@ -1099,8 +1089,7 @@ class Elongation:
     def __init__(self, gdf):
         self.gdf = gdf
 
-        # TODO: vectorize minimum_rotated_rectangle after pygeos implementation
-        bbox = gdf.geometry.apply(lambda g: g.minimum_rotated_rectangle)
+        bbox = shapely.minimum_rotated_rectangle(gdf.geometry)
         a = bbox.area
         p = bbox.length
         cond1 = p**2
@@ -1125,7 +1114,8 @@ class Elongation:
 class CentroidCorners:
     """
     Calculates the mean distance centroid - corners and standard deviation.
-    Returns ``np.nan`` for MultiPolygons.
+    Returns ``np.nan`` for true MultiPolygons (containing multiple geometries).
+    MultiPolygons with a singular geometry are treated as Polygons.
 
     .. math::
         \\overline{x}=\\frac{1}{n}\\left(\\sum_{i=1}^{n} dist_{i}\\right);
@@ -1153,7 +1143,7 @@ class CentroidCorners:
     --------
     >>> ccd = momepy.CentroidCorners(buildings_df)
     100%|██████████| 144/144 [00:00<00:00, 846.58it/s]
-    >>> buildings_df['ccd_means'] = ccd.means
+    >>> buildings_df['ccd_means'] = ccd.mean
     >>> buildings_df['ccd_stdev'] = ccd.std
     >>> buildings_df['ccd_means'][0]
     15.961531913184833
@@ -1181,55 +1171,48 @@ class CentroidCorners:
                 return True
             return False
 
+        def _calc(geom):
+            distances = []  # set empty list of distances
+            centroid = geom.centroid  # define centroid
+            points = list(geom.exterior.coords)  # get points of a shape
+            n_points = len(points)
+            stop = n_points - 1  # define where to stop
+            for i in range(
+                1, n_points
+            ):  # for every point, calculate angle and add 1 if True angle
+                a = np.asarray(points[i - 1])
+                b = np.asarray(points[i])
+                # in last case, needs to wrap around start to find finishing angle
+                c = np.asarray(points[i + 1]) if i != stop else np.asarray(points[1])
+                p = Point(points[i])
+                # calculate distance point - centroid
+                if true_angle(a, b, c) is True:
+                    distances.append(centroid.distance(p))
+                else:
+                    continue
+            return distances
+
         # iterating over rows one by one
         for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
-            if geom.type == "Polygon":
-                distances = []  # set empty list of distances
-                centroid = geom.centroid  # define centroid
-                points = list(geom.exterior.coords)  # get points of a shape
-                stop = len(points) - 1  # define where to stop
-                for i in np.arange(
-                    len(points)
-                ):  # for every point, calculate angle and add 1 if True angle
-                    if i == 0:
-                        continue
-                    elif i == stop:
-                        a = np.asarray(points[i - 1])
-                        b = np.asarray(points[i])
-                        c = np.asarray(points[1])
-                        p = Point(points[i])
-
-                        if true_angle(a, b, c) is True:
-                            distance = centroid.distance(
-                                p
-                            )  # calculate distance point - centroid
-                            distances.append(distance)  # add distance to the list
-                        else:
-                            continue
-
-                    else:
-                        a = np.asarray(points[i - 1])
-                        b = np.asarray(points[i])
-                        c = np.asarray(points[i + 1])
-                        p = Point(points[i])
-
-                        if true_angle(a, b, c) is True:
-                            distance = centroid.distance(p)
-                            distances.append(distance)
-                        else:
-                            continue
-                if not distances:  # circular buildings
-                    if geom.has_z:
-                        coords = [
-                            (coo[0], coo[1]) for coo in geom.convex_hull.exterior.coords
-                        ]
-                    else:
-                        coords = geom.convex_hull.exterior.coords
+            if geom.geom_type == "Polygon" or (
+                geom.geom_type == "MultiPolygon" and len(geom.geoms) == 1
+            ):
+                # unpack multis with single geoms
+                if geom.geom_type == "MultiPolygon":
+                    geom = geom.geoms[0]
+                distances = _calc(geom)
+                # circular buildings
+                if not distances:
+                    # handle z dims
+                    coords = [
+                        (coo[0], coo[1]) for coo in geom.convex_hull.exterior.coords
+                    ]
                     results_list.append(_circle_radius(coords))
                     results_list_sd.append(0)
+                # calculate mean and std dev
                 else:
-                    results_list.append(np.mean(distances))  # calculate mean
-                    results_list_sd.append(np.std(distances))  # calculate st.dev
+                    results_list.append(np.mean(distances))
+                    results_list_sd.append(np.std(distances))
             else:
                 results_list.append(np.nan)
                 results_list_sd.append(np.nan)
@@ -1271,12 +1254,12 @@ class Linearity:
     1.0
     """
 
-    def __init__(self, gdf, verbose=True):
+    def __init__(self, gdf):
         self.gdf = gdf
 
         euclidean = gdf.geometry.apply(
             lambda geom: self._dist(geom.coords[0], geom.coords[-1])
-            if geom.type == "LineString"
+            if geom.geom_type == "LineString"
             else np.nan
         )
         self.series = euclidean / gdf.geometry.length

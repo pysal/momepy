@@ -148,6 +148,7 @@ preprocessing
    close_gaps
    CheckTessellationInput
    extend_lines
+   FaceArtifacts
    remove_false_nodes
    preprocess
    roundabout_simplification

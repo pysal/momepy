@@ -1,0 +1,19 @@
+name: test
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - geopandas=0.12
+  - inequality
+  - libpysal=4.8.0
+  - mapclassify
+  - networkx=2.7
+  - numpy=1.22
+  - packaging
+  - pandas>=1.4.0,!=1.5.0,<2
+  - shapely=2.0
+  - tqdm=4.63.0
+  # testing
+  - codecov
+  - pytest
+  - pytest-cov
