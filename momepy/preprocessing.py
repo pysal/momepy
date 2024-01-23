@@ -1352,7 +1352,7 @@ def _extension_simplification(geometry, new_origin, new_destination):
         geometry = linemerge([LineString([new_origin, current_node]), geometry])
     # Assuming the line is not closed, we can find its endpoints:
     else:
-        current_origin, current_destination = geometry.boundary
+        current_origin, current_destination = geometry.boundary.geoms
         if new_origin is not None:
             geometry = linemerge([LineString([new_origin, current_origin]), geometry])
         if new_destination is not None:
@@ -1392,13 +1392,15 @@ def _spider_simplification(geometry, new_origin, new_destination, buff=15):
     # Assuming the line is not closed, we can find its endpoints
     #  via the boundary attribute:
     else:
-        current_origin, current_destination = geometry.boundary
+        current_origin, current_destination = geometry.boundary.geoms
         if new_origin is not None:
             # Create a buffer around the new origin:
             new_origin_buffer = new_origin.buffer(buff)
             # Use shapely.ops.split to break the edge where it
             #  intersects the buffer:
-            geometry_split_by_buffer_list = list(split(geometry, new_origin_buffer))
+            geometry_split_by_buffer_list = list(
+                split(geometry, new_origin_buffer).geoms
+            )
             # If only one geometry results, edge does not intersect
             #  buffer and line should connect new origin to old origin
             if len(geometry_split_by_buffer_list) == 1:
@@ -1408,7 +1410,7 @@ def _spider_simplification(geometry, new_origin, new_destination, buff=15):
             #  but the first and get their origin
             else:
                 geometry_split_by_buffer = linemerge(geometry_split_by_buffer_list[1:])
-                splitting_point = geometry_split_by_buffer.boundary[0]
+                splitting_point = geometry_split_by_buffer.boundary.geoms[0]
             # Merge this into new geometry:
             additional_line = [LineString([new_origin, splitting_point])]
             # Consider MultiLineStrings separately:
@@ -1425,7 +1427,7 @@ def _spider_simplification(geometry, new_origin, new_destination, buff=15):
             # Use shapely.ops.split to break the edge where it
             #  intersects the buffer:
             geometry_split_by_buffer_list = list(
-                split(geometry, new_destination_buffer)
+                split(geometry, new_destination_buffer).geoms
             )
             # If only one geometry results, edge does not intersect
             # . buffer and line should connect new destination to old destination
@@ -1436,7 +1438,7 @@ def _spider_simplification(geometry, new_origin, new_destination, buff=15):
             #  but the last and get their destination
             else:
                 geometry_split_by_buffer = linemerge(geometry_split_by_buffer_list[:-1])
-                splitting_point = geometry_split_by_buffer.boundary[1]
+                splitting_point = geometry_split_by_buffer.boundary.geoms[1]
             # Merge this into new geometry:
             additional_line = [LineString([splitting_point, new_destination])]
             # Consider MultiLineStrings separately:
@@ -1474,7 +1476,7 @@ def _euclidean_simplification(geometry, new_origin, new_destination):
         geometry = None
     # Assuming the line is not closed, we can find its endpoints:
     else:
-        current_origin, current_destination = geometry.boundary
+        current_origin, current_destination = geometry.boundary.geoms
         if new_origin is not None:
             if new_destination is not None:
                 geometry = LineString([new_origin, new_destination])

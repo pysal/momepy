@@ -167,22 +167,31 @@ class TestPreprocessing:
         assert len(check) == 65
         assert len(self.df_streets_rabs) == 88
 
-    def test_consolidate_intersections(self):
+    @pytest.mark.parametrize("method", ["spider", "euclidean", "extend"])
+    def test_consolidate_intersections(self, method):
         tol = 30
-        for method in ["spider", "euclidean", "extend", "other"]:
-            graph_simplified = mm.consolidate_intersections(
+        graph_simplified = mm.consolidate_intersections(
+            self.graph,
+            tolerance=tol,
+            rebuild_graph=True,
+            rebuild_edges_method=method,
+        )
+        nodes_simplified, edges_simplified = mm.nx_to_gdf(graph_simplified)
+
+        assert len(nodes_simplified) == 39
+        assert len(edges_simplified) == 66
+
+        if method != "euclidean":
+            assert edges_simplified.length.min() >= tol
+
+    def test_consolidate_intersections_unsupported(self):
+        with pytest.raises(ValueError, match="Simplification 'banana' not recognized"):
+            mm.consolidate_intersections(
                 self.graph,
-                tolerance=tol,
+                tolerance=30,
                 rebuild_graph=True,
-                rebuild_edges_method=method,
+                rebuild_edges_method="banana",
             )
-            nodes_simplified, edges_simplified = mm.nx_to_gdf(graph_simplified)
-
-            assert len(nodes_simplified) == 39
-            assert len(edges_simplified) == 66
-
-            if method != "euclidean":
-                assert edges_simplified.length.min() >= tol
 
 def test_FaceArtifacts():
     pytest.importorskip("esda")
