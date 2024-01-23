@@ -1080,16 +1080,16 @@ def consolidate_intersections(
         Networkx.MultiDiGraph
     tolerance : float, default 30
         distance in network units below which nodes will be consolidated
-    rebuild_graph: Boolean
-    rebuild_edges_method: string
+    rebuild_graph : bool
+    rebuild_edges_method : str
         'extend' or 'spider' or 'euclidean', ignored if rebuild_graph is False
-    x_att: string
+    x_att : str
         node attribute with the valid x-coordinate
-    y_att: string
+    y_att : str
         node attribute with the valid y-coordinate
-    edge_from_att: string
+    edge_from_att : str
         edge attribute with the valid origin node id
-    edge_to_att: string
+    edge_to_att : str
         edge attribute with the valid destination node id
 
     Returns
@@ -1206,7 +1206,7 @@ def _get_rebuilt_edges(
     edges_gdf : GeoDataFrame
         GeoDataFrame containing LineString geometry and columns determining origin
         and destination node ids
-    nodes_dict: dict
+    nodes_dict : dict
         Dictionary whose keys are node ids and values are the corresponding consolidated
         node cluster ids. Only consolidated nodes are in the dictionary.
     cluster_gdf : GeoDataFrame
@@ -1215,9 +1215,9 @@ def _get_rebuilt_edges(
         'extension' or 'spider' or 'euclidean'
     buffer : float
         distance to buffer consolidated nodes in the Spider-web reconstruction
-    edge_from_att: string
+    edge_from_att : str
         edge attribute with the valid origin node id
-    edge_to_att: string
+    edge_to_att : str
         edge attribute with the valid destination node id
 
     Returns
@@ -1464,7 +1464,7 @@ def _euclidean_simplification(geometry, new_origin, new_destination):
     ----------
     geometry : shapely.LineString
     new_origin : shapely.Point or None
-    new_destination: shapely.Point or None
+    new_destination : shapely.Point or None
 
     Returns
     ----------
