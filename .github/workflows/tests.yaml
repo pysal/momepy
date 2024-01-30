@@ -27,6 +27,8 @@ jobs:
           - environment-file: ci/envs/312-latest.yaml
             os: macos-latest
           - environment-file: ci/envs/312-latest.yaml
+            os: macos-14 # Apple Silicon
+          - environment-file: ci/envs/312-latest.yaml
             os: windows-latest
     defaults:
       run:
