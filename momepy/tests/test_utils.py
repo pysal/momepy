@@ -54,6 +54,11 @@ class TestUtils:
             ValueError, match="Approach 'nonexistent' is not supported."
         ):
             mm.gdf_to_nx(self.df_streets, approach="nonexistent")
+        with pytest.raises(
+            ValueError,
+            match="OSMnx-compatible graphs must be directed, of multigraph type, and using the primal approach.",
+        ):
+            mm.gdf_to_nx(self.df_streets, approach="dual", osmnx_like=True)
 
         nx = mm.gdf_to_nx(self.df_streets, multigraph=False)
         assert isinstance(nx, networkx.Graph)
@@ -69,6 +74,12 @@ class TestUtils:
         assert isinstance(nx, networkx.MultiDiGraph)
         assert nx.number_of_nodes() == 29
         assert nx.number_of_edges() == 35
+
+        nx = mm.gdf_to_nx(self.df_streets, directed=True, osmnx_like=True)
+        assert isinstance(nx, networkx.MultiDiGraph)
+        assert nx.number_of_nodes() == 83
+        assert nx.number_of_edges() == 89
+        assert networkx.degree_histogram(nx) == [0, 11, 58, 6, 7, 1]
 
         self.df_streets["oneway"] = True
         self.df_streets.loc[0, "oneway"] = False  # first road section is bidirectional
