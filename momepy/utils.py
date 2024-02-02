@@ -8,7 +8,8 @@ import libpysal
 import networkx as nx
 import numpy as np
 from numpy.lib import NumpyVersion
-from shapely.geometry import Point
+from shapely.geometry import Point, LineString
+from shapely.ops import linemerge
 
 __all__ = [
     "unique_id",
@@ -47,7 +48,14 @@ def _angle(a, b, c):
     return abs((a2 - a1 + 180) % 360 - 180)
 
 
-def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None):
+def _make_edgetuples(nodelist):
+    """Zip list of nodes into list of edgetuples. Helper function for _generate_primal"""
+    return [z for z in zip(nodelist, nodelist[1:])]
+
+
+def _generate_primal(
+    graph, gdf_network, fields, multigraph, osmnx_like, oneway_column=None
+):
     """Generate a primal graph. Helper for ``gdf_to_nx``."""
     graph.graph["approach"] = "primal"
 
@@ -71,24 +79,67 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
             stacklevel=3,
         )
 
-    key = 0
-    for row in gdf_network.itertuples():
-        first = row.geometry.coords[0]
-        last = row.geometry.coords[-1]
+    if osmnx_like:
 
-        data = list(row)[1:]
-        attributes = dict(zip(fields, data, strict=True))
-        if multigraph:
-            graph.add_edge(first, last, key=key, **attributes)
-            key += 1
+        gdf_network["geometry"] = gdf_network["geometry"].apply(
+            lambda x: linemerge(x) if x.geom_type == "MultiLineString" else x
+        )
+        gdf_network = gdf_network.explode(index_parts=False)
+        gdf_network = gdf_network[fields]
 
-            if oneway_column:
-                oneway = bool(getattr(row, oneway_column))
-                if not oneway:
-                    graph.add_edge(last, first, key=key, **attributes)
-                    key += 1
-        else:
-            graph.add_edge(first, last, **attributes)
+        coords = gdf_network.get_coordinates()
+        tuples = list(set([(row.x, row.y) for row in coords.itertuples()]))
+
+        tupledict = {}
+        for i, t in enumerate(tuples):
+            tupledict[t] = i
+        nodedict = {}
+        for i, t in enumerate(tuples):
+            nodedict[i] = t
+
+        for (x, y), id in tupledict.items():
+            graph.add_node(id, x=x, y=y)
+
+        edgetuples = gdf_network.apply(
+            lambda x: _make_edgetuples([tupledict[c] for c in x.geometry.coords]),
+            axis=1,
+        )
+        for row in gdf_network.itertuples():
+            data = list(row)[1:]
+            attributes = dict(zip(fields, data, strict=True))
+            for u, v in edgetuples[row[0]]:
+                attributes["geometry"] = LineString([nodedict[u], nodedict[v]])
+                edgedata = graph.get_edge_data(u=u, v=v)
+                if edgedata:
+                    key = max(edgedata.keys()) + 1
+                else:
+                    key = 0
+                graph.add_edge(u_for_edge=u, v_for_edge=v, key=key, **attributes)
+                if oneway_column:
+                    oneway = bool(getattr(row, oneway_column))
+                    if not oneway:
+                        graph.add_edge(
+                            u_for_edge=v, v_for_edge=u, key=key + 1, **attributes
+                        )
+    else:
+        key = 0
+        for row in gdf_network.itertuples():
+            first = row.geometry.coords[0]
+            last = row.geometry.coords[-1]
+
+            data = list(row)[1:]
+            attributes = dict(zip(fields, data, strict=True))
+            if multigraph:
+                graph.add_edge(first, last, key=key, **attributes)
+                key += 1
+
+                if oneway_column:
+                    oneway = bool(getattr(row, oneway_column))
+                    if not oneway:
+                        graph.add_edge(last, first, key=key, **attributes)
+                        key += 1
+            else:
+                graph.add_edge(first, last, **attributes)
 
 
 def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
@@ -150,6 +201,7 @@ def gdf_to_nx(
     angles=True,
     angle="angle",
     oneway_column=None,
+    osmnx_like=False,
 ):
     """
     Convert a LineString GeoDataFrame to a ``networkx.MultiGraph`` or other
@@ -188,7 +240,10 @@ def gdf_to_nx(
         path traversal by specifying the boolean column in the GeoDataFrame. Note,
         that the reverse conversion ``nx_to_gdf(gdf_to_nx(gdf, directed=True,
         oneway_column="oneway"))`` will contain additional duplicated geometries.
-
+    osmnx_like: bool, default False
+        if osmnx_like=True, returns a MultiDiGraph object that is compatible
+        with OSMnx functions (edges have (u,v,key), nodes have (x,y) attributes
+        where coordinates are stored).
     Returns
     -------
     net : networkx.Graph, networkx.MultiGraph, networkx.DiGraph, networkx.MultiDiGraph
@@ -235,11 +290,16 @@ def gdf_to_nx(
     <networkx.classes.multigraph.MultiGraph object at 0x7f8cf9150fd0>
 
     """
+    if osmnx_like and (not directed or not multigraph or approach == "dual"):
+        raise ValueError(
+            "OSMnx-compatible graphs must be directed, of multigraph type, and using the primal approach."
+        )
+
     gdf_network = gdf_network.copy()
     if "key" in gdf_network.columns:
         gdf_network.rename(columns={"key": "__key"}, inplace=True)
 
-    if multigraph and directed:
+    if (multigraph and directed) or osmnx_like:
         net = nx.MultiDiGraph()
     elif multigraph and not directed:
         net = nx.MultiGraph()
@@ -251,14 +311,15 @@ def gdf_to_nx(
     net.graph["crs"] = gdf_network.crs
     gdf_network[length] = gdf_network.geometry.length
     fields = list(gdf_network.columns)
-
     if approach == "primal":
         if oneway_column and not directed:
             raise ValueError(
                 "Bidirectional lines are only supported for directed graphs."
             )
 
-        _generate_primal(net, gdf_network, fields, multigraph, oneway_column)
+        _generate_primal(
+            net, gdf_network, fields, multigraph, osmnx_like, oneway_column
+        )
 
     elif approach == "dual":
         if directed:
