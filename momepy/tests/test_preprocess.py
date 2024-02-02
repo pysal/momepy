@@ -196,6 +196,7 @@ class TestPreprocessing:
                 rebuild_edges_method="banana",
             )
 
+
 def test_FaceArtifacts():
     pytest.importorskip("esda")
     osmnx = pytest.importorskip("osmnx")

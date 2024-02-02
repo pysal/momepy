@@ -1258,9 +1258,11 @@ class Linearity:
         self.gdf = gdf
 
         euclidean = gdf.geometry.apply(
-            lambda geom: self._dist(geom.coords[0], geom.coords[-1])
-            if geom.geom_type == "LineString"
-            else np.nan
+            lambda geom: (
+                self._dist(geom.coords[0], geom.coords[-1])
+                if geom.geom_type == "LineString"
+                else np.nan
+            )
         )
         self.series = euclidean / gdf.geometry.length
 

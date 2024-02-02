@@ -150,9 +150,9 @@ def preprocess(
                         geoms.append(blg[blg["mm_uid"] == j].iloc[0].geometry)
                         blg.drop(blg[blg["mm_uid"] == j].index[0], inplace=True)
                 new_geom = shapely.ops.unary_union(geoms)
-                blg.loc[
-                    blg.loc[blg["mm_uid"] == key].index[0], blg.geometry.name
-                ] = new_geom
+                blg.loc[blg.loc[blg["mm_uid"] == key].index[0], blg.geometry.name] = (
+                    new_geom
+                )
 
         blg.drop(delete, inplace=True)
     return blg[buildings.columns]
@@ -1568,7 +1568,9 @@ class FaceArtifacts:
                 [gdf.unary_union]
             ).geoms,  # get parts of the collection from polygonize
             crs=gdf.crs,
-        ).explode(ignore_index=True)  # shouldn't be needed but doesn't hurt to ensure
+        ).explode(
+            ignore_index=True
+        )  # shouldn't be needed but doesn't hurt to ensure
 
         # Store geometries as a GeoDataFrame
         self.polygons = gpd.GeoDataFrame(geometry=polygons)
