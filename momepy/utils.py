@@ -81,7 +81,7 @@ def _generate_primal(
 
     if osmnx_like:
 
-        gdf_network["geometry"] = gdf_network["geometry"].apply(
+        gdf_network.geometry = gdf_network.geometry.apply(
             lambda x: linemerge(x) if x.geom_type == "MultiLineString" else x
         )
         gdf_network = gdf_network.explode(index_parts=False)
