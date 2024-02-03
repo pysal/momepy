@@ -90,8 +90,8 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
         else:
             graph.add_edge(first, last, **attributes)
 
-        node_attrs = {node: {"x": node[0], "y": node[1]} for node in graph.nodes}
-        nx.set_node_attributes(graph, node_attrs)
+    node_attrs = {node: {"x": node[0], "y": node[1]} for node in graph.nodes}
+    nx.set_node_attributes(graph, node_attrs)
 
 
 def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
