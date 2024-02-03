@@ -71,7 +71,6 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
             stacklevel=3,
         )
 
-    key = 0
     for row in gdf_network.itertuples():
         first = row.geometry.coords[0]
         last = row.geometry.coords[-1]
@@ -79,14 +78,12 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
         data = list(row)[1:]
         attributes = dict(zip(fields, data, strict=True))
         if multigraph:
-            graph.add_edge(first, last, key=key, **attributes)
-            key += 1
+            graph.add_edge(first, last, **attributes)
 
             if oneway_column:
                 oneway = bool(getattr(row, oneway_column))
                 if not oneway:
-                    graph.add_edge(last, first, key=key, **attributes)
-                    key += 1
+                    graph.add_edge(last, first, **attributes)
         else:
             graph.add_edge(first, last, **attributes)
 
