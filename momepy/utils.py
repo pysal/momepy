@@ -50,7 +50,7 @@ def _angle(a, b, c):
 
 def _make_edgetuples(nodelist):
     """Zip list of nodes into list of edgetuples. Helper function for _generate_primal"""
-    return [z for z in zip(nodelist, nodelist[1:])]
+    return [z for z in zip(nodelist[:-1], nodelist[1:], strict=True)]
 
 
 def _generate_primal(
