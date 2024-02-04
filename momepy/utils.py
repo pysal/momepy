@@ -71,7 +71,6 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
             stacklevel=3,
         )
 
-    key = 0
     for row in gdf_network.itertuples():
         first = row.geometry.coords[0]
         last = row.geometry.coords[-1]
@@ -79,16 +78,17 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
         data = list(row)[1:]
         attributes = dict(zip(fields, data, strict=True))
         if multigraph:
-            graph.add_edge(first, last, key=key, **attributes)
-            key += 1
+            graph.add_edge(first, last, **attributes)
 
             if oneway_column:
                 oneway = bool(getattr(row, oneway_column))
                 if not oneway:
-                    graph.add_edge(last, first, key=key, **attributes)
-                    key += 1
+                    graph.add_edge(last, first, **attributes)
         else:
             graph.add_edge(first, last, **attributes)
+
+    node_attrs = {node: {"x": node[0], "y": node[1]} for node in graph.nodes}
+    nx.set_node_attributes(graph, node_attrs)
 
 
 def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
@@ -150,6 +150,7 @@ def gdf_to_nx(
     angles=True,
     angle="angle",
     oneway_column=None,
+    integer_labels=False,
 ):
     """
     Convert a LineString GeoDataFrame to a ``networkx.MultiGraph`` or other
@@ -188,6 +189,10 @@ def gdf_to_nx(
         path traversal by specifying the boolean column in the GeoDataFrame. Note,
         that the reverse conversion ``nx_to_gdf(gdf_to_nx(gdf, directed=True,
         oneway_column="oneway"))`` will contain additional duplicated geometries.
+    integer_labels : bool, default False
+        Convert node labels to integers. By default, node labels are tuples with (x, y)
+        coordinates. Set to True to encode them as integers. Note that the x, and y
+        coordinates are always preserved as node attributes.
 
     Returns
     -------
@@ -272,6 +277,9 @@ def gdf_to_nx(
         raise ValueError(
             f"Approach '{approach}' is not supported. Use 'primal' or 'dual'."
         )
+
+    if integer_labels:
+        net = nx.convert_node_labels_to_integers(net)
 
     return net
 

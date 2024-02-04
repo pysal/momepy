@@ -27,7 +27,7 @@ class TestUtils:
         with pytest.raises(ValueError, match="The dataset 'sffgkt' is not available."):
             mm.datasets.get_path("sffgkt")
 
-    def test_gdf_to_nx(self):
+    def test_gdf_to_nx_warnings(self):
         with pytest.warns(
             RuntimeWarning, match="The given network does not contain any LineString."
         ):
@@ -39,9 +39,16 @@ class TestUtils:
         ):
             mm.gdf_to_nx(self.df_points_and_linestring)
 
+    def test_gdf_to_nx(self):
         nx = mm.gdf_to_nx(self.df_streets)
         assert nx.number_of_nodes() == 29
         assert nx.number_of_edges() == 35
+        assert nx.nodes[(1603585.6402153103, 6464428.773867372)] == {
+            "x": 1603585.6402153103,
+            "y": 6464428.773867372,
+        }
+
+    def test_gdf_to_nx_dual(self):
         dual = mm.gdf_to_nx(self.df_streets, approach="dual")
         assert dual.number_of_nodes() == 35
         assert dual.number_of_edges() == 74
@@ -60,6 +67,7 @@ class TestUtils:
         assert nx.number_of_nodes() == 29
         assert nx.number_of_edges() == 35
 
+    def test_gdf_to_nx_directed(self):
         nx = mm.gdf_to_nx(self.df_streets, multigraph=False, directed=True)
         assert isinstance(nx, networkx.DiGraph)
         assert nx.number_of_nodes() == 29
@@ -78,6 +86,7 @@ class TestUtils:
         with pytest.raises(ValueError, match="Bidirectional lines"):
             mm.gdf_to_nx(self.df_streets, directed=False, oneway_column="oneway")
 
+    def test_gdf_to_nx_angles(self):
         dual = mm.gdf_to_nx(self.df_streets, approach="dual", angles=False)
         assert (
             dual.edges[
@@ -98,7 +107,7 @@ class TestUtils:
         dual = mm.gdf_to_nx(
             self.df_streets, approach="dual", angles=False, multigraph=False
         )
-        assert isinstance(nx, networkx.Graph)
+        assert isinstance(dual, networkx.Graph)
         assert (
             dual.edges[
                 (1603499.42326969, 6464328.7520580515),
@@ -108,7 +117,7 @@ class TestUtils:
         )
 
         dual = mm.gdf_to_nx(self.df_streets, approach="dual", multigraph=False)
-        assert isinstance(nx, networkx.Graph)
+        assert isinstance(dual, networkx.Graph)
         assert dual.edges[
             (1603499.42326969, 6464328.7520580515),
             (1603510.1061735682, 6464204.555117119),
@@ -117,6 +126,14 @@ class TestUtils:
         with pytest.raises(ValueError, match="Directed graphs are not supported"):
             mm.gdf_to_nx(self.df_streets, approach="dual", directed=True)
 
+    def test_gdf_to_nx_labels(self):
+        nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
+        assert nx.number_of_nodes() == 29
+        assert nx.number_of_edges() == 35
+        assert nx.nodes[0] == {
+            "x": 1603585.6402153103,
+            "y": 6464428.773867372,
+        }
     def test_nx_to_gdf(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)
