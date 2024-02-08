@@ -130,7 +130,7 @@ def circular_compactness(geometry: GeoDataFrame | GeoSeries) -> Series:
     Series
     """
     return geometry.area / (
-        np.pi * shapely.minimum_bounding_radius(geometry.geometry) ** 2
+        np.pi * shapely.minimum_bounding_radius(geometry.geometry.array) ** 2
     )
 
 
@@ -220,7 +220,9 @@ def rectangularity(geometry: GeoDataFrame | GeoSeries) -> Series:
     -------
     Series
     """
-    return geometry.area / shapely.minimum_rotated_rectangle(geometry.geometry).area
+    return geometry.area / shapely.area(
+        shapely.minimum_rotated_rectangle(geometry.geometry.array)
+    )
 
 
 def shape_index(
@@ -351,8 +353,10 @@ def equivalent_rectangular_index(geometry: GeoDataFrame | GeoSeries) -> Series:
     -------
     Series
     """
-    bbox = shapely.minimum_rotated_rectangle(geometry.geometry)
-    return np.sqrt(geometry.area / bbox.area) * (bbox.length / geometry.length)
+    bbox = shapely.minimum_rotated_rectangle(geometry.geometry.array)
+    return np.sqrt(geometry.area / shapely.area(bbox)) * (
+        shapely.length(bbox) / geometry.length
+    )
 
 
 def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
@@ -377,9 +381,9 @@ def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
     -------
     Series
     """
-    bbox = shapely.minimum_rotated_rectangle(geometry.geometry)
-    a = bbox.area
-    p = bbox.length
+    bbox = shapely.minimum_rotated_rectangle(geometry.geometry.array)
+    a = shapely.area(bbox)
+    p = shapely.length(bbox)
     sqrt = np.maximum(p**2 - 16 * a, 0)
 
     elo1 = ((p - np.sqrt(sqrt)) / 4) / ((p / 2) - ((p - np.sqrt(sqrt)) / 4))
@@ -461,8 +465,9 @@ def linearity(geometry: GeoDataFrame | GeoSeries) -> Series:
     Series
     """
     return (
-        shapely.get_point(geometry.geometry, 0).distance(
-            shapely.get_point(geometry.geometry, -1)
+        shapely.distance(
+            shapely.get_point(geometry.geometry.array, 0),
+            shapely.get_point(geometry.geometry.array, -1),
         )
         / geometry.length
     )
