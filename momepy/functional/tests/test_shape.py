@@ -2,9 +2,12 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import pytest
-from pandas.testing import assert_index_equal, assert_series_equal
+from packaging.version import Version
+from pandas.testing import assert_frame_equal, assert_index_equal, assert_series_equal
 
 import momepy as mm
+
+GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 
 def assert_result(result, expected, geometry):
@@ -121,6 +124,7 @@ class TestDimensions:
         )
         assert_series_equal(r, r2)
 
+    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_corners(self):
         expected = {
             "mean": 10.3125,
@@ -148,3 +152,179 @@ class TestDimensions:
         }
         r = mm.corners(self.df_buildings, include_interiors=True)
         assert_result(r, expected, self.df_buildings)
+
+    @pytest.mark.skipif(GPD_013, reason="get_coordinates() not available")
+    def test_corners_error(self):
+        with pytest.raises(ImportError, match="momepy.corners requires geopandas 0.13"):
+            mm.corners(self.df_buildings)
+
+    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
+    def test_squareness(self):
+        expected = {
+            "mean": 5.229888125861968,
+            "sum": 753.1038901241234,
+            "min": 0.028139949189984748,
+            "max": 41.04115291780464,
+        }
+        r = mm.squareness(self.df_buildings)
+        assert_result(r, expected, self.df_buildings)
+
+        expected = {
+            "mean": 8.30047963732215,
+            "sum": 1195.2690677743897,
+            "min": 0.028139949189984748,
+            "max": 52.875516523230516,
+        }
+        r = mm.squareness(self.df_buildings, eps=1)
+        assert_result(r, expected, self.df_buildings)
+
+        expected = {
+            "mean": 5.32348682306419,
+            "sum": 766.5821025212433,
+            "min": 0.028139949189984748,
+            "max": 41.04115291780464,
+        }
+        r = mm.squareness(self.df_buildings, include_interiors=True)
+        assert_result(r, expected, self.df_buildings)
+
+    @pytest.mark.skipif(GPD_013, reason="get_coordinates() not available")
+    def test_squareness_error(self):
+        with pytest.raises(
+            ImportError, match="momepy.squareness requires geopandas 0.13"
+        ):
+            mm.squareness(self.df_buildings)
+
+    def test_equivalent_rectangular_index(self):
+        expected = {
+            "mean": 0.9307591166031689,
+            "sum": 134.02931279085632,
+            "min": 0.44313707855781465,
+            "max": 1.0090920542155701,
+        }
+        r = mm.equivalent_rectangular_index(self.df_buildings)
+        assert_result(r, expected, self.df_buildings)
+
+    def test_elongation(self):
+        expected = {
+            "mean": 0.8046747233732038,
+            "sum": 115.87316016574134,
+            "min": 0.2608278715025736,
+            "max": 0.9975111632520667,
+        }
+        r = mm.elongation(self.df_buildings)
+        assert_result(r, expected, self.df_buildings)
+
+    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
+    def test_centroid_corner_distance(self):
+        expected = pd.DataFrame(
+            {
+                "mean": {
+                    "count": 144.0,
+                    "mean": 15.5203360663233,
+                    "std": 6.093122141583696,
+                    "min": 4.854313172218458,
+                    "25%": 13.412728528289005,
+                    "50%": 15.609796287245382,
+                    "75%": 17.69178717016742,
+                    "max": 58.76338773692563,
+                },
+                "std": {
+                    "count": 144.0,
+                    "mean": 2.829917240070652,
+                    "std": 2.823411898664825,
+                    "min": 0.0017021571743907728,
+                    "25%": 1.2352146286567187,
+                    "50%": 2.128549075430912,
+                    "75%": 3.757463233035704,
+                    "max": 22.922367806062553,
+                },
+            }
+        )
+        r = mm.centroid_corner_distance(self.df_buildings)
+        assert_frame_equal(r.describe(), expected)
+
+        expected = pd.DataFrame(
+            {
+                "mean": {
+                    "count": 144.0,
+                    "mean": 15.454415227361714,
+                    "std": 6.123921386925624,
+                    "min": 4.854313172218458,
+                    "25%": 13.01290636950394,
+                    "50%": 15.497887115707538,
+                    "75%": 17.63008289695232,
+                    "max": 59.2922704452347,
+                },
+                "std": {
+                    "count": 144.0,
+                    "mean": 2.8582735179300514,
+                    "std": 2.7943793134508357,
+                    "min": 0.0017021571743907728,
+                    "25%": 1.2296334024258928,
+                    "50%": 2.1468383325089695,
+                    "75%": 3.757463233035704,
+                    "max": 22.924246335383152,
+                },
+            }
+        )
+        r = mm.centroid_corner_distance(self.df_buildings, eps=1)
+        assert_frame_equal(r.describe(), expected)
+
+        expected = pd.DataFrame(
+            {
+                "mean": {
+                    "count": 144.0,
+                    "mean": 15.464353525824205,
+                    "std": 5.940640521286903,
+                    "min": 4.854313172218458,
+                    "25%": 13.412728528289005,
+                    "50%": 15.609796287245382,
+                    "75%": 17.69178717016742,
+                    "max": 58.76338773692563,
+                },
+                "std": {
+                    "count": 144.0,
+                    "mean": 2.8992936136803515,
+                    "std": 2.8859313144712324,
+                    "min": 0.0017021571743907728,
+                    "25%": 1.2656882908488725,
+                    "50%": 2.2163184044891224,
+                    "75%": 3.911029451756276,
+                    "max": 22.922367806062553,
+                },
+            }
+        )
+        r = mm.centroid_corner_distance(self.df_buildings, include_interiors=True)
+        assert_frame_equal(r.describe(), expected)
+
+    @pytest.mark.skipif(GPD_013, reason="get_coordinates() not available")
+    def test_centroid_corner_distance_error(self):
+        with pytest.raises(
+            ImportError, match="momepy.centroid_corner_distance requires geopandas 0.13"
+        ):
+            mm.centroid_corner_distance(self.df_buildings)
+
+    def test_linearity(self):
+        expected = {
+            "mean": 0.9976310491404173,
+            "sum": 34.91708671991461,
+            "min": 0.9801618536039246,
+            "max": 1,
+        }
+        r = mm.linearity(self.df_streets)
+        assert_result(r, expected, self.df_streets)
+
+    def test_compactness_weighted_axis(self):
+        expected = {
+            "mean": 17.592071297082306,
+            "sum": 2533.258266779852,
+            "min": 3.2803162516228723,
+            "max": 208.5887465292061,
+        }
+        r = mm.compactness_weighted_axis(self.df_buildings)
+        assert_result(r, expected, self.df_buildings)
+
+        r2 = mm.compactness_weighted_axis(
+            self.df_buildings, mm.longest_axis_length(self.df_buildings)
+        )
+        assert_series_equal(r, r2)

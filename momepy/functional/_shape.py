@@ -1,7 +1,9 @@
+import geopandas as gpd
 import numpy as np
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from numpy.typing import NDArray
+from packaging.version import Version
 from pandas import DataFrame, Series
 
 from momepy.functional import _dimension
@@ -18,12 +20,14 @@ __all__ = [
     "shape_index",
     "corners",
     "squareness",
-    "eri",
+    "equivalent_rectangular_index",
     "elongation",
     "centroid_corner_distance",
     "linearity",
-    "cwa",
+    "compactness_weighted_axis",
 ]
+
+GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 
 def form_factor(
@@ -268,6 +272,8 @@ def corners(
     -------
     Series
     """
+    if not GPD_013:
+        raise ImportError("momepy.corners requires geopandas 0.13 or later. ")
 
     def _count_corners(points: DataFrame, eps: float) -> int:
         pts = points.values[:-1]
@@ -310,10 +316,14 @@ def squareness(
     -------
     Series
     """
+    if not GPD_013:
+        raise ImportError(
+            "momepy.centroid_corner_distance requires geopandas 0.13 or later. "
+        )
 
     def _squareness(points: DataFrame, eps: float) -> int:
         pts = points.values[:-1]
-        true_angles, degrees = _true_angles_mask(pts, eps=eps)
+        true_angles, degrees = _true_angles_mask(pts, eps=eps, return_degrees=True)
 
         return np.nanmean(np.abs(90 - degrees[true_angles]))
 
@@ -325,7 +335,7 @@ def squareness(
     return coords.groupby(level=0).apply(_squareness, eps=eps)
 
 
-def eri(geometry: GeoDataFrame | GeoSeries) -> Series:
+def equivalent_rectangular_index(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the equivalent rectangular index of each object given its geometry.
 
     .. math::
@@ -372,21 +382,12 @@ def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
     bbox = shapely.minimum_rotated_rectangle(geometry.geometry)
     a = bbox.area
     p = bbox.length
-    cond1 = p**2
-    cond2 = 16 * a
-    bigger = cond1 >= cond2
-    sqrt = np.empty(len(a))
-    sqrt[bigger] = cond1[bigger] - cond2[bigger]
-    sqrt[~bigger] = 0
+    sqrt = np.maximum(p**2 - 16 * a, 0)
 
-    # calculate both width/length and length/width
     elo1 = ((p - np.sqrt(sqrt)) / 4) / ((p / 2) - ((p - np.sqrt(sqrt)) / 4))
     elo2 = ((p + np.sqrt(sqrt)) / 4) / ((p / 2) - ((p + np.sqrt(sqrt)) / 4))
 
-    # use the smaller one (e.g. shorter/longer)
-    res = np.empty(len(a))
-    res[elo1 <= elo2] = elo1[elo1 <= elo2]
-    res[~(elo1 <= elo2)] = elo2[~(elo1 <= elo2)]
+    res = np.where(elo1 <= elo2, elo1, elo2)
 
     return Series(res, index=geometry.index, name="elongation")
 
@@ -395,7 +396,7 @@ def centroid_corner_distance(
     geometry: GeoDataFrame | GeoSeries,
     eps: float = 10,
     include_interiors: bool = False,
-) -> Series:
+) -> DataFrame:
     """Calculates the centroid-corner distance of each object given its geometry.
 
     As a corner is considered a point where the angle between two consecutive segments
@@ -416,13 +417,17 @@ def centroid_corner_distance(
     DataFrame
         DataFrame with columns 'mean' and 'std'
     """
+    if not GPD_013:
+        raise ImportError(
+            "momepy.centroid_corner_distance requires geopandas 0.13 or later. "
+        )
 
     def _ccd(points: DataFrame, eps: float) -> Series:
         centroid = points.values[0, 2:]
         pts = points.values[:-1, :2]
 
         true_angles = _true_angles_mask(pts, eps=eps)
-        dists = np.linalg.norm(points[true_angles] - centroid, axis=1)
+        dists = np.linalg.norm(pts[true_angles] - centroid, axis=1)
         return Series({"mean": np.nanmean(dists), "std": np.nanstd(dists)})
 
     if include_interiors:
@@ -465,7 +470,7 @@ def linearity(geometry: GeoDataFrame | GeoSeries) -> Series:
     )
 
 
-def cwa(
+def compactness_weighted_axis(
     geometry: GeoDataFrame | GeoSeries,
     longest_axis_length: NDArray[np.float_] | Series | None = None,
 ) -> Series:
