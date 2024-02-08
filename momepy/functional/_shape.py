@@ -272,21 +272,8 @@ def corners(
     """
 
     def _count_corners(points: DataFrame, eps: float) -> int:
-        points = points.values[:-1]
-        a = np.roll(points, 1, axis=0)
-        b = points
-        c = np.roll(points, -1, axis=0)
-
-        ba = a - b
-        bc = c - b
-
-        cosine_angle = np.sum(ba * bc, axis=1) / (
-            np.linalg.norm(ba, axis=1) * np.linalg.norm(bc, axis=1)
-        )
-        angles = np.arccos(cosine_angle)
-        degrees = np.degrees(angles)
-
-        true_angles = np.logical_or(degrees <= 180 - eps, degrees >= 180 + eps)
+        pts = points.values[:-1]
+        true_angles = _true_angles_mask(pts, eps=eps)
         corners = np.count_nonzero(true_angles)
 
         return corners
@@ -327,21 +314,8 @@ def squareness(
     """
 
     def _squareness(points: DataFrame, eps: float) -> int:
-        points = points.values[:-1]
-        a = np.roll(points, 1, axis=0)
-        b = points
-        c = np.roll(points, -1, axis=0)
-
-        ba = a - b
-        bc = c - b
-
-        cosine_angle = np.sum(ba * bc, axis=1) / (
-            np.linalg.norm(ba, axis=1) * np.linalg.norm(bc, axis=1)
-        )
-        angles = np.arccos(cosine_angle)
-        degrees = np.degrees(angles)
-
-        true_angles = np.logical_or(degrees <= 180 - eps, degrees >= 180 + eps)
+        pts = points.values[:-1]
+        true_angles, degrees = _true_angles_mask(pts, eps=eps)
 
         return np.nanmean(np.abs(90 - degrees[true_angles]))
 
@@ -373,3 +347,190 @@ def eri(geometry: GeoDataFrame | GeoSeries) -> Series:
     """
     bbox = shapely.minimum_rotated_rectangle(geometry.geometry)
     return np.sqrt(geometry.area / bbox.area) * (bbox.length / geometry.length)
+
+
+def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
+    """Calculates the elongation of each object given its geometry.
+
+    The elongation is defined as the elongation of the minimum bounding rectangle.
+
+    .. math::
+        {{p - \\sqrt{p^2 - 16a}} \\over {4}} \\over
+        {{{p} \\over {2}} - {{p - \\sqrt{p^2 - 16a}} \\over {4}}}
+
+    where `a` is the area of the object and `p` its perimeter.
+
+    Based on :cite:`gil2012`.
+
+    Parameters
+    ----------
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
+
+    Returns
+    -------
+    Series
+    """
+    bbox = shapely.minimum_rotated_rectangle(geometry.geometry)
+    a = bbox.area
+    p = bbox.length
+    cond1 = p**2
+    cond2 = 16 * a
+    bigger = cond1 >= cond2
+    sqrt = np.empty(len(a))
+    sqrt[bigger] = cond1[bigger] - cond2[bigger]
+    sqrt[~bigger] = 0
+
+    # calculate both width/length and length/width
+    elo1 = ((p - np.sqrt(sqrt)) / 4) / ((p / 2) - ((p - np.sqrt(sqrt)) / 4))
+    elo2 = ((p + np.sqrt(sqrt)) / 4) / ((p / 2) - ((p + np.sqrt(sqrt)) / 4))
+
+    # use the smaller one (e.g. shorter/longer)
+    res = np.empty(len(a))
+    res[elo1 <= elo2] = elo1[elo1 <= elo2]
+    res[~(elo1 <= elo2)] = elo2[~(elo1 <= elo2)]
+
+    return Series(res, index=geometry.index, name="elongation")
+
+
+def centroid_corner_distance(
+    geometry: GeoDataFrame | GeoSeries,
+    eps: float = 10,
+    include_interiors: bool = False,
+) -> Series:
+    """Calculates the centroid-corner distance of each object given its geometry.
+
+    As a corner is considered a point where the angle between two consecutive segments
+    deviates from 180 degrees by more than ``eps``.
+
+    Parameters
+    ----------
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
+    eps : float, optional
+        Deviation from 180 degrees to consider a corner, by default 10
+    include_interiors : bool, optional
+        If True, polygon interiors are included in the calculation. If False, only
+        exterior is considered, by default False
+
+    Returns
+    -------
+    DataFrame
+        DataFrame with columns 'mean' and 'std'
+    """
+
+    def _ccd(points: DataFrame, eps: float) -> Series:
+        centroid = points.values[0, 2:]
+        pts = points.values[:-1, :2]
+
+        true_angles = _true_angles_mask(pts, eps=eps)
+        dists = np.linalg.norm(points[true_angles] - centroid, axis=1)
+        return Series({"mean": np.nanmean(dists), "std": np.nanstd(dists)})
+
+    if include_interiors:
+        coords = geometry.get_coordinates(index_parts=False)
+    else:
+        coords = geometry.exterior.get_coordinates(index_parts=False)
+    coords[["cent_x", "cent_y"]] = geometry.centroid.get_coordinates(index_parts=False)
+    return coords.groupby(level=0).apply(_ccd, eps=eps)
+
+
+def linearity(geometry: GeoDataFrame | GeoSeries) -> Series:
+    """Calculates the linearity of each LineString
+
+    The linearity is defined as the ratio of the length of the segment between the first
+    and last point to the length of the LineString. While other geometry types are
+    accepted, the result is not well defined.
+
+    .. math::
+        \\frac{l_{euclidean}}{l_{segment}}
+
+    where `l` is the length of the LineString.
+
+    Adapted from :cite:`araldi2019`.
+
+
+    Parameters
+    ----------
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing lines to analyse.
+
+    Returns
+    -------
+    Series
+    """
+    return (
+        shapely.get_point(geometry.geometry, 0).distance(
+            shapely.get_point(geometry.geometry, -1)
+        )
+        / geometry.length
+    )
+
+
+def cwa(
+    geometry: GeoDataFrame | GeoSeries,
+    longest_axis_length: NDArray[np.float_] | Series | None = None,
+) -> Series:
+    """Calculates the compactness-weighted axis of each object in a given GeoDataFrame.
+
+    .. math::
+        d_{i} \\times\\left(\\frac{4}{\\pi}-\\frac{16 (area_{i})}
+        {perimeter_{i}^{2}}\\right)
+
+    Parameters
+    ----------
+    geometry : GeoDataFrame | GeoSeries
+         A GeoDataFrame or GeoSeries containing polygons to analyse.
+    longest_axis_length : NDArray[np.float_] | Series | None, optional
+        array of longest axis lengths. If None, it will be calculated, by default None
+
+    Returns
+    -------
+    Series
+    """
+    if longest_axis_length is None:
+        longest_axis_length = _dimension.longest_axis_length(geometry)
+
+    return longest_axis_length * (
+        (4 / np.pi) - (16 * geometry.area) / (geometry.length**2)
+    )
+
+
+# helper functions
+
+
+def _true_angles_mask(
+    points: NDArray[np.float_], eps: float, return_degrees: bool = False
+) -> NDArray[np.bool_] | tuple[NDArray[np.bool_], NDArray[np.float_]]:
+    """Calculates the mask of true angles.
+
+    Parameters
+    ----------
+    points : NDArray[np.float_]
+        array of points
+    eps : float
+        Deviation from 180 degrees to consider a corner
+    return_degrees : bool, optional
+        If True, returns also degrees, by default False
+
+    Returns
+    -------
+    NDArray[np.bool_] | tuple[NDArray[np.bool_], NDArray[np.float_]]
+        boolean array or a tuple of boolean array and float array of degrees
+    """
+    a = np.roll(points, 1, axis=0)
+    b = points
+    c = np.roll(points, -1, axis=0)
+
+    ba = a - b
+    bc = c - b
+
+    cosine_angle = np.sum(ba * bc, axis=1) / (
+        np.linalg.norm(ba, axis=1) * np.linalg.norm(bc, axis=1)
+    )
+    angles = np.arccos(cosine_angle)
+    degrees = np.degrees(angles)
+
+    if return_degrees:
+        return np.logical_or(degrees <= 180 - eps, degrees >= 180 + eps), degrees
+    return np.logical_or(degrees <= 180 - eps, degrees >= 180 + eps)
