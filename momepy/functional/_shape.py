@@ -317,9 +317,7 @@ def squareness(
     Series
     """
     if not GPD_013:
-        raise ImportError(
-            "momepy.centroid_corner_distance requires geopandas 0.13 or later. "
-        )
+        raise ImportError("momepy.squareness requires geopandas 0.13 or later. ")
 
     def _squareness(points: DataFrame, eps: float) -> int:
         pts = points.values[:-1]
