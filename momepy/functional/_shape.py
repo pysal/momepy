@@ -9,7 +9,7 @@ from momepy.functional import _dimension
 __all__ = [
     "form_factor",
     "fractal_dimension",
-    "volume_facade_ratio",
+    "facade_ratio",
     "circular_compactness",
     "square_compactness",
     "convexity",
@@ -18,6 +18,11 @@ __all__ = [
     "shape_index",
     "corners",
     "squareness",
+    "eri",
+    "elongation",
+    "centroid_corner_distance",
+    "linearity",
+    "cwa",
 ]
 
 
@@ -59,9 +64,8 @@ def form_factor(
 
 
 def fractal_dimension(
-    area: NDArray[np.float_] | Series,
-    perimeter: NDArray[np.float_] | Series,
-) -> NDArray[np.float_] | Series:
+    geometry: GeoDataFrame | GeoSeries,
+) -> Series:
     """Calculates fractal dimensionbased on area and perimeter.
 
     .. math::
@@ -71,28 +75,24 @@ def fractal_dimension(
 
     Parameters
     ----------
-    area : NDArray[np.float_] | Series
-        array of areas
-    perimeter : NDArray[np.float_] | Series
-        array of perimeters
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
 
     Returns
     -------
-    NDArray[np.float_] | Series
-        array of a type depending on the input
+    Series
     """
-    return (2 * np.log(perimeter / 4)) / np.log(area)
+    return (2 * np.log(geometry.length / 4)) / np.log(geometry.area)
 
 
-def volume_facade_ratio(
+def facade_ratio(
     geometry: GeoDataFrame | GeoSeries,
-    height: NDArray[np.float_] | Series,
 ) -> Series:
     """
-    Calculates the volume-to-facade ratio of each object given its geometry and height.
+    Calculates the facade ratio of each object given its geometry.
 
     .. math::
-        volume \\over perimeter * height
+        area \\over perimeter
 
     Adapted from :cite:`schirmer2015`.
 
@@ -100,14 +100,12 @@ def volume_facade_ratio(
     ----------
     geometry : GeoDataFrame | GeoSeries
         A GeoDataFrame or GeoSeries containing polygons to analyse.
-    height : NDArray[np.float_] | Series
-        array of heights
 
     Returns
     -------
     Series
     """
-    return (geometry.area * height) / (geometry.length * height)
+    return geometry.area / geometry.length
 
 
 def circular_compactness(geometry: GeoDataFrame | GeoSeries) -> Series:
