@@ -72,12 +72,12 @@ def floor_area(
     return area * (height // floor_height)
 
 
-def courtyard_area(gdf: GeoDataFrame | GeoSeries) -> Series:
+def courtyard_area(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates area of holes within geometry - area of courtyards.
 
     Parameters
     ----------
-    gdf : GeoDataFrame | GeoSeries
+    geometry : GeoDataFrame | GeoSeries
         A GeoDataFrame or GeoSeries containing polygons to analyse.
 
     Returns
@@ -85,14 +85,16 @@ def courtyard_area(gdf: GeoDataFrame | GeoSeries) -> Series:
     Series
     """
     return Series(
-        shapely.area(shapely.polygons(shapely.get_exterior_ring(gdf.geometry.array)))
-        - gdf.area,
-        index=gdf.index,
+        shapely.area(
+            shapely.polygons(shapely.get_exterior_ring(geometry.geometry.array))
+        )
+        - geometry.area,
+        index=geometry.index,
         name="courtyard_area",
     )
 
 
-def longest_axis_length(gdf: GeoDataFrame | GeoSeries) -> Series:
+def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the length of the longest axis of object.
 
     Axis is defined as a
@@ -104,26 +106,28 @@ def longest_axis_length(gdf: GeoDataFrame | GeoSeries) -> Series:
 
     Parameters
     ----------
-    gdf : GeoDataFrame | GeoSeries
+    geometry : GeoDataFrame | GeoSeries
         A GeoDataFrame or GeoSeries containing polygons to analyse.
 
     Returns
     -------
     Series
     """
-    return shapely.minimum_bounding_radius(gdf.geometry) * 2
+    return shapely.minimum_bounding_radius(geometry.geometry) * 2
 
 
-def perimeter_wall(gdf: GeoDataFrame | GeoSeries, graph: Graph | None = None) -> Series:
+def perimeter_wall(
+    geometry: GeoDataFrame | GeoSeries, graph: Graph | None = None
+) -> Series:
     """
     Calculate the perimeter wall length the joined structure.
 
     Parameters
     ----------
-    gdf : GeoDataFrame | GeoSeries
+    geometry : GeoDataFrame | GeoSeries
         A GeoDataFrame or GeoSeries containing polygons to analyse.
     graph : Graph | None, optional
-        Graph encoding Queen contiguity of ``gdf``. If ``None`` Queen contiguity is
+        Graph encoding Queen contiguity of ``geometry``. If ``None`` Queen contiguity is
         built on the fly.
 
     Returns
@@ -132,12 +136,12 @@ def perimeter_wall(gdf: GeoDataFrame | GeoSeries, graph: Graph | None = None) ->
     """
 
     if graph is None:
-        graph = Graph.build_contiguity(gdf)
+        graph = Graph.build_contiguity(geometry)
 
     isolates = graph.isolates
 
     # measure perimeter walls of connected components while ignoring isolates
-    blocks = gdf.drop(isolates)
+    blocks = geometry.drop(isolates)
     component_perimeter = (
         blocks[[blocks.geometry.name]]
         .set_geometry(blocks.buffer(0.01))  # type: ignore
@@ -146,8 +150,8 @@ def perimeter_wall(gdf: GeoDataFrame | GeoSeries, graph: Graph | None = None) ->
     )
 
     # combine components with isolates
-    results = Series(np.nan, index=gdf.index, name="perimeter_wall")
-    results.loc[isolates] = gdf.geometry[isolates].exterior.length
+    results = Series(np.nan, index=geometry.index, name="perimeter_wall")
+    results.loc[isolates] = geometry.geometry[isolates].exterior.length
     results.loc[results.index.drop(isolates)] = component_perimeter.loc[
         graph.component_labels.loc[results.index.drop(isolates)]
     ].values
