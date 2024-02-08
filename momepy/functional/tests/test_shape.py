@@ -389,11 +389,13 @@ class TestEquality:
         ).series
         assert_series_equal(new, old, check_names=False)
 
+    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_corners(self):
         new = mm.corners(self.df_buildings)
         old = mm.Corners(self.df_buildings).series
         assert_series_equal(new, old, check_names=False)
 
+    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_squareness(self):
         new = mm.squareness(self.df_buildings, eps=5)
         old = mm.Squareness(self.df_buildings).series
@@ -409,6 +411,7 @@ class TestEquality:
         old = mm.Elongation(self.df_streets).series
         assert_series_equal(new, old, check_names=False)
 
+    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_centroid_corner_distance(self):
         new = mm.centroid_corner_distance(self.df_buildings)
         ccd = mm.CentroidCorners(self.df_buildings)
