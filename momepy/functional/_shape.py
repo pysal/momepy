@@ -321,7 +321,7 @@ def squareness(
     if not GPD_013:
         raise ImportError("momepy.squareness requires geopandas 0.13 or later. ")
 
-    def _squareness(points: DataFrame, eps: float) -> int:
+    def _squareness(points: DataFrame, eps: float):
         pts = points.values[:-1]
         true_angles, degrees = _true_angles_mask(pts, eps=eps, return_degrees=True)
 
