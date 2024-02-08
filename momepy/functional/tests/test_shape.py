@@ -18,12 +18,11 @@ def assert_result(result, expected, geometry):
     assert_index_equal(result.index, geometry.index)
 
 
-class TestDimensions:
+class TestShape:
     def setup_method(self):
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
-        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
 
     def test_form_factor(self):
@@ -328,3 +327,102 @@ class TestDimensions:
             self.df_buildings, mm.longest_axis_length(self.df_buildings)
         )
         assert_series_equal(r, r2)
+
+
+class TestEquality:
+    def setup_method(self):
+        test_file_path = mm.datasets.get_path("bubenec")
+        self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
+        self.df_streets = gpd.read_file(test_file_path, layer="streets")
+        self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
+
+    def test_form_factor(self):
+        new = mm.form_factor(self.df_buildings, self.df_buildings.height)
+        old = mm.FormFactor(
+            self.df_buildings,
+            volumes=self.df_buildings.height * self.df_buildings.area,
+            heights=self.df_buildings.height,
+        ).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_fractal_dimension(self):
+        new = mm.fractal_dimension(self.df_buildings)
+        old = mm.FractalDimension(self.df_buildings).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_facade_ratio(self):
+        new = mm.facade_ratio(self.df_buildings)
+        old = mm.VolumeFacadeRatio(self.df_buildings, "height").series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_circular_compactness(self):
+        new = mm.circular_compactness(self.df_buildings)
+        old = mm.CircularCompactness(self.df_buildings).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_square_compactness(self):
+        new = mm.square_compactness(self.df_buildings)
+        old = mm.SquareCompactness(self.df_buildings).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_convexity(self):
+        new = mm.convexity(self.df_buildings)
+        old = mm.Convexity(self.df_buildings).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_courtyard_index(self):
+        new = mm.courtyard_index(self.df_buildings)
+        old = mm.CourtyardIndex(
+            self.df_buildings, mm.courtyard_area(self.df_buildings)
+        ).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_rectangularity(self):
+        new = mm.rectangularity(self.df_buildings)
+        old = mm.Rectangularity(self.df_buildings).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_shape_index(self):
+        new = mm.shape_index(self.df_buildings)
+        old = mm.ShapeIndex(
+            self.df_buildings, mm.longest_axis_length(self.df_buildings)
+        ).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_corners(self):
+        new = mm.corners(self.df_buildings)
+        old = mm.Corners(self.df_buildings).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_squareness(self):
+        new = mm.squareness(self.df_buildings, eps=5)
+        old = mm.Squareness(self.df_buildings).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_equivalent_rectangular_index(self):
+        new = mm.equivalent_rectangular_index(self.df_buildings)
+        old = mm.EquivalentRectangularIndex(self.df_buildings).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_elongation(self):
+        new = mm.elongation(self.df_streets)
+        old = mm.Elongation(self.df_streets).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_centroid_corner_distance(self):
+        new = mm.centroid_corner_distance(self.df_buildings)
+        ccd = mm.CentroidCorners(self.df_buildings)
+        mean = ccd.mean
+        std = ccd.std
+        old = pd.DataFrame({"mean": mean, "std": std})
+        assert_frame_equal(new, old, check_names=False)
+
+    def test_linearity(self):
+        new = mm.linearity(self.df_streets)
+        old = mm.Linearity(self.df_streets).series
+        assert_series_equal(new, old, check_names=False)
+
+    def test_compactness_weighted_axis(self):
+        new = mm.compactness_weighted_axis(self.df_buildings)
+        old = mm.CompactnessWeightedAxis(self.df_buildings).series
+        assert_series_equal(new, old, check_names=False)
