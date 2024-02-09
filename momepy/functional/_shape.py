@@ -70,7 +70,7 @@ def form_factor(
 def fractal_dimension(
     geometry: GeoDataFrame | GeoSeries,
 ) -> Series:
-    """Calculates fractal dimensionbased on area and perimeter.
+    """Calculates fractal dimension based on area and perimeter.
 
     .. math::
         {2log({{perimeter} \\over {4}})} \\over log(area)
