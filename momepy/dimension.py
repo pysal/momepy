@@ -12,6 +12,7 @@ import shapely
 from tqdm.auto import tqdm
 
 from .shape import _circle_radius
+from .utils import deprecated, removed
 
 __all__ = [
     "Area",
@@ -29,6 +30,7 @@ __all__ = [
 ]
 
 
+@removed("`.area` attribute of a GeoDataFrame")
 class Area:
     """
     Calculates the area of each object in a given GeoDataFrame. It can be used for any
@@ -62,6 +64,7 @@ class Area:
         self.series = self.gdf.geometry.area
 
 
+@removed("`.length` attribute of a GeoDataFrame")
 class Perimeter:
     """
     Calculates perimeter of each object in a given GeoDataFrame. It can be used for any
@@ -94,6 +97,7 @@ class Perimeter:
         self.series = self.gdf.geometry.length
 
 
+@deprecated("volume")
 class Volume:
     """
     Calculates the volume of each object in a
@@ -138,30 +142,12 @@ class Volume:
     """
 
     def __init__(self, gdf, heights, areas=None):
-        self.gdf = gdf
+        from .functional.dimension import volume
 
-        gdf = gdf.copy()
-        if not isinstance(heights, str):
-            gdf["mm_h"] = heights
-            heights = "mm_h"
-        self.heights = gdf[heights]
-
-        if areas is not None:
-            if not isinstance(areas, str):
-                gdf["mm_a"] = areas
-                areas = "mm_a"
-            self.areas = gdf[areas]
-        else:
-            self.areas = gdf.geometry.area
-        try:
-            self.series = self.areas * self.heights
-
-        except KeyError as err:
-            raise KeyError(
-                "Column not found. Define heights and areas or set areas to None."
-            ) from err
+        self.series = volume(gdf, heights=heights, areas=areas)
 
 
+@deprecated("floor_area")
 class FloorArea:
     """
     Calculates floor area of each object based on height and area. The number of
@@ -842,6 +828,7 @@ class CoveredArea:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("perimeter_wall")
 class PerimeterWall:
     """
     Calculate the perimeter wall length of the joined structure.

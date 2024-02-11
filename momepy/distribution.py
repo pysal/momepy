@@ -11,7 +11,7 @@ import pandas as pd
 import shapely
 from tqdm.auto import tqdm  # progress bar
 
-from .utils import _azimuth
+from .utils import _azimuth, deprecated
 
 __all__ = [
     "Orientation",
@@ -98,6 +98,7 @@ class Orientation:
         self.series = pd.Series(results, index=gdf.index)
 
 
+@deprecated("shared_walls")
 class SharedWalls:
     """
     Calculate the length of shared walls of adjacent elements (typically buildings).
@@ -132,21 +133,13 @@ class SharedWalls:
     """
 
     def __init__(self, gdf):
-        self.gdf = gdf
+        from .functional.distribution import shared_walls
 
-        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
-        left = gdf.geometry.take(inp).reset_index(drop=True)
-        right = gdf.geometry.take(res).reset_index(drop=True)
-        intersections = left.intersection(right).length
-        results = intersections.groupby(inp).sum().reset_index(
-            drop=True
-        ) - gdf.geometry.length.reset_index(drop=True)
-        results.index = gdf.index
-
-        self.series = results
+        self.series = shared_walls(gdf)
 
 
-class SharedWallsRatio(SharedWalls):
+@deprecated("shared_walls_ratio")
+class SharedWallsRatio:
     """
     Calculate shared walls ratio of adjacent elements (typically buildings).
 
@@ -187,16 +180,9 @@ class SharedWallsRatio(SharedWalls):
     """
 
     def __init__(self, gdf, perimeters=None):
-        super().__init__(gdf)
+        from .functional.distribution import shared_walls_ratio
 
-        if perimeters is None:
-            self.perimeters = gdf.geometry.length
-        elif isinstance(perimeters, str):
-            self.perimeters = gdf[perimeters]
-        else:
-            self.perimeters = perimeters
-
-        self.series = self.series / self.perimeters
+        self.series = shared_walls_ratio(gdf, perimeters=perimeters)
 
 
 class StreetAlignment:
