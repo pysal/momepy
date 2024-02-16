@@ -9,6 +9,7 @@ import libpysal
 import numpy as np
 import pandas as pd
 import shapely
+from packaging.version import Version
 from scipy.spatial import Voronoi
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
@@ -23,6 +24,8 @@ __all__ = [
     "enclosures",
     "get_network_ratio",
 ]
+
+GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
 
 def buffered_limit(gdf, buffer=100):
@@ -448,9 +451,14 @@ class Tessellation:
         enclosures["position"] = range(len(enclosures))
 
         # determine which polygons should be split
-        inp, res = buildings.sindex.query_bulk(
-            enclosures.geometry, predicate="intersects"
-        )
+        if GPD_GE_013:
+            inp, res = buildings.sindex.query(
+                enclosures.geometry, predicate="intersects"
+            )
+        else:
+            inp, res = buildings.sindex.query_bulk(
+                enclosures.geometry, predicate="intersects"
+            )
         unique, counts = np.unique(inp, return_counts=True)
         splits = unique[counts > 1]
         single = unique[counts == 1]
@@ -998,9 +1006,14 @@ def enclosures(
             )
         additional = pd.concat([gdf.geometry for gdf in additional_barriers])
 
-        inp, res = enclosures.sindex.query_bulk(
-            additional.geometry, predicate="intersects"
-        )
+        if GPD_GE_013:
+            inp, res = enclosures.sindex.query(
+                additional.geometry, predicate="intersects"
+            )
+        else:
+            inp, res = enclosures.sindex.query_bulk(
+                additional.geometry, predicate="intersects"
+            )
         unique = np.unique(res)
 
         new = []
@@ -1042,9 +1055,14 @@ def enclosures(
                 "`limit` requires a GeoDataFrame or GeoSeries with Polygon or "
                 "MultiPolygon geometry to be used with `clip=True`."
             )
-        _, encl_index = final_enclosures.representative_point().sindex.query_bulk(
-            limit.geometry, predicate="contains"
-        )
+        if GPD_GE_013:
+            _, encl_index = final_enclosures.representative_point().sindex.query(
+                limit.geometry, predicate="contains"
+            )
+        else:
+            _, encl_index = final_enclosures.representative_point().sindex.query_bulk(
+                limit.geometry, predicate="contains"
+            )
         keep = np.unique(encl_index)
         return final_enclosures.iloc[keep]
 

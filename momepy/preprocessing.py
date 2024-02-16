@@ -12,6 +12,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import shapely
+from packaging.version import Version
 from scipy.signal import find_peaks
 from scipy.stats import gaussian_kde
 from shapely.geometry import LineString, Point
@@ -32,6 +33,8 @@ __all__ = [
     "consolidate_intersections",
     "FaceArtifacts",
 ]
+
+GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
 
 def preprocess(
@@ -855,9 +858,14 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     """
     # selecting the lines that are touching but not covered by
     touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
-    edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
-        edges.geometry, predicate="covered_by"
-    )
+    if GPD_GE_013:
+        edges_idx, _ = rab_multipolygons.sindex.query(
+            edges.geometry, predicate="covered_by"
+        )
+    else:
+        edges_idx, _ = rab_multipolygons.sindex.query_bulk(
+            edges.geometry, predicate="covered_by"
+        )
     idx_drop = edges.index.take(edges_idx)
     touching_idx = touching.index
     ls = list(set(touching_idx) - set(idx_drop))
