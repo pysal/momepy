@@ -12,6 +12,7 @@ from shapely.geometry import LineString, MultiPoint, Polygon
 
 import momepy as mm
 
+GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
 class TestElements:
     def setup_method(self):
@@ -134,10 +135,13 @@ class TestElements:
         assert not blocks.tessellation_id.isna().any()
         assert not blocks.buildings_id.isna().any()
         assert len(blocks.blocks) == 9
-        assert (
-            len(blocks.blocks.sindex.query_bulk(blocks.blocks.geometry, "overlaps")[0])
-            == 0
-        )
+        if GPD_GE_013:
+            assert len(blocks.blocks.sindex.query(blocks.blocks.geometry, "overlaps")[0]) == 0
+        else:
+            assert (
+                len(blocks.blocks.sindex.query_bulk(blocks.blocks.geometry, "overlaps")[0])
+                == 0
+            )
 
     def test_get_network_id(self):
         buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, "nID")
