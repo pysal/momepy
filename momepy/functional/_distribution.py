@@ -11,7 +11,7 @@ GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
 
 def orientation(geometry: GeoDataFrame | GeoSeries) -> Series:
-    """Calculate the orientation of object.
+    """Calculate the orientation of objects.
 
     The 'orientation' is defined as the deviation of orientation of the bounding
     rectangle from cardinal directions. As such it is within a range 0 - 45. The
