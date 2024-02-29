@@ -57,12 +57,6 @@ def orientation(geometry: GeoDataFrame | GeoSeries) -> Series:
         dtype=float,
         name="orientation",
     )
-    # buildings
-    # 3.23 s ± 77 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    # 932 ms ± 12.5 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    # streets
-    # 374 ms ± 5.56 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    # 62 ms ± 681 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
 
 def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
@@ -95,7 +89,3 @@ def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
     results = Series(0.0, index=geometry.index, name="shared_walls")
     results.loc[walls.index] = walls
     return results
-
-    # 8.68 s ± 28.7 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    # 10.3 s ± 17.2 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    # but more correct
