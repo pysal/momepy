@@ -2,10 +2,11 @@ import geopandas as gpd
 import numpy as np
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
+from libpysal.graph import Graph
 from packaging.version import Version
 from pandas import Series
 
-__all__ = ["orientation", "shared_walls"]
+__all__ = ["orientation", "shared_walls", "alignment"]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
@@ -89,3 +90,34 @@ def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
     results = Series(0.0, index=geometry.index, name="shared_walls")
     results.loc[walls.index] = walls
     return results
+
+
+def alignment(orientation: Series, graph: Graph) -> Series:
+    """Calculate the mean deviation of orientation adjacent elements
+
+    .. math::
+        \\frac{1}{n}\\sum_{i=1}^n dev_i=\\frac{dev_1+dev_2+\\cdots+dev_n}{n}
+
+    Takes orientation of adjacent elemtents defined in ``graph`` and calculates the
+    mean deviation.
+
+    Notes
+    -----
+    The index of ``orientation`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    orientation : pd.Series
+        A series containing orientation (e.g. measured by the :func:`orientation`
+        function) indexed using the same index that has been used to build the graph.
+    graph : libpysal.graph.Graph
+        Graph representing spatial relationships between elements.
+
+    Returns
+    -------
+    Series
+    """
+    orientation_expanded = orientation.loc[graph._adjacency.index.get_level_values(1)]
+    orientation_expanded.index = graph._adjacency.index.get_level_values(0)
+    return (orientation_expanded - orientation).abs().groupby(level=0).mean()

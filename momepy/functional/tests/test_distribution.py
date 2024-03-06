@@ -1,4 +1,6 @@
 import geopandas as gpd
+from libpysal.graph import Graph
+from pandas.testing import assert_series_equal
 
 import momepy as mm
 
@@ -10,6 +12,7 @@ class TestDistribution:
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
+        self.graph = Graph.build_knn(self.df_buildings.centroid, k=5)
 
     def test_orientation(self):
         expected = {
@@ -39,3 +42,35 @@ class TestDistribution:
         }
         r = mm.shared_walls(self.df_buildings)
         assert_result(r, expected, self.df_buildings)
+
+    def test_alignment(self):
+        orientation = mm.orientation(self.df_buildings)
+        expected = {
+            "mean": 2.90842367974375,
+            "sum": 418.8130098831,
+            "min": 0.03635249292455285,
+            "max": 21.32311946014944,
+        }
+        r = mm.alignment(orientation, self.graph)
+        assert_result(r, expected, self.df_buildings)
+
+
+class TestEquality:
+    def setup_method(self):
+        test_file_path = mm.datasets.get_path("bubenec")
+        self.df_buildings = gpd.read_file(test_file_path, layer="buildings").set_index(
+            "uID"
+        )
+        self.graph = Graph.build_knn(self.df_buildings.centroid, k=5)
+        self.df_buildings["orientation"] = mm.orientation(self.df_buildings)
+
+    def test_alignment(self):
+        new = mm.alignment(self.df_buildings["orientation"], self.graph)
+        old = mm.Alignment(
+            self.df_buildings.reset_index(),
+            self.graph.to_W(),
+            "uID",
+            "orientation",
+            verbose=False,
+        ).series
+        assert_series_equal(new, old, check_names=False, check_index=False)
