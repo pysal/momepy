@@ -54,6 +54,16 @@ class TestDistribution:
         r = mm.alignment(orientation, self.graph)
         assert_result(r, expected, self.df_buildings)
 
+    def test_neighbor_distance(self):
+        expected = {
+            "mean": 14.254601392635818,
+            "sum": 2052.662600539558,
+            "min": 2.0153493186952085,
+            "max": 42.164831456311475,
+        }
+        r = mm.neighbor_distance(self.df_buildings, self.graph)
+        assert_result(r, expected, self.df_buildings)
+
 
 class TestEquality:
     def setup_method(self):
@@ -72,5 +82,12 @@ class TestEquality:
             "uID",
             "orientation",
             verbose=False,
+        ).series
+        assert_series_equal(new, old, check_names=False, check_index=False)
+
+    def test_neighbor_distance(self):
+        new = mm.neighbor_distance(self.df_buildings, self.graph)
+        old = mm.NeighborDistance(
+            self.df_buildings.reset_index(), self.graph.to_W(), "uID", verbose=False
         ).series
         assert_series_equal(new, old, check_names=False, check_index=False)

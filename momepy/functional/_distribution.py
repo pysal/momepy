@@ -6,7 +6,7 @@ from libpysal.graph import Graph
 from packaging.version import Version
 from pandas import Series
 
-__all__ = ["orientation", "shared_walls", "alignment"]
+__all__ = ["orientation", "shared_walls", "alignment", "neighbor_distance"]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
@@ -98,7 +98,7 @@ def alignment(orientation: Series, graph: Graph) -> Series:
     .. math::
         \\frac{1}{n}\\sum_{i=1}^n dev_i=\\frac{dev_1+dev_2+\\cdots+dev_n}{n}
 
-    Takes orientation of adjacent elemtents defined in ``graph`` and calculates the
+    Takes orientation of adjacent elements defined in ``graph`` and calculates the
     mean deviation.
 
     Notes
@@ -121,3 +121,34 @@ def alignment(orientation: Series, graph: Graph) -> Series:
     orientation_expanded = orientation.loc[graph._adjacency.index.get_level_values(1)]
     orientation_expanded.index = graph._adjacency.index.get_level_values(0)
     return (orientation_expanded - orientation).abs().groupby(level=0).mean()
+
+
+def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
+    """Calculate the mean distance to adjacent elements.
+
+    Takes geometry of adjacent elements defined in ``graph`` and calculates the
+    mean distance.
+
+    Notes
+    -----
+    The index of ``geometry`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing geometries to analyse.
+    graph : libpysal.graph.Graph
+        Graph representing spatial relationships between elements.
+
+    Returns
+    -------
+    Series
+    """
+    geoms = geometry.geometry.loc[graph._adjacency.index.get_level_values(1)]
+    geoms.index = graph._adjacency.index.get_level_values(0)
+    mean_distance = (
+        (geoms.distance(geometry.geometry, align=True)).groupby(level=0).mean()
+    )
+    mean_distance.loc[graph.isolates] = np.nan
+    return mean_distance
