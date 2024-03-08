@@ -227,8 +227,6 @@ def mean_interbuilding_distance(
     return Series(
         mean_distances, index=geometry.index, name="mean_interbuilding_distance"
     )
-    # 35s new
-    # 57s old
 
 
 def building_adjacency(
@@ -272,8 +270,3 @@ def building_adjacency(
     result.name = "building_adjacency"
     result.index.name = None
     return result
-
-    # old: 251 ms ± 14.6 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    # new: 422 ms ± 12.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    #  of which 330 ms is assign_self_weight which will be used in other functins so
-    # I'm wondering if it is worth adding a keyword `self_weighted=True` to skip this.
