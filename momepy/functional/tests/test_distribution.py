@@ -13,6 +13,7 @@ class TestDistribution:
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.graph = Graph.build_knn(self.df_buildings.centroid, k=5)
+        self.contiguity = Graph.build_contiguity(self.df_buildings)
 
     def test_orientation(self):
         expected = {
@@ -74,6 +75,16 @@ class TestDistribution:
         r = mm.mean_interbuilding_distance(self.df_buildings, self.graph)
         assert_result(r, expected, self.df_buildings)
 
+    def test_building_adjacency(self):
+        expected = {
+            "mean": 0.4402777777777778,
+            "sum": 63.4,
+            "min": 0.2,
+            "max": 1,
+        }
+        r = mm.building_adjacency(self.graph, self.contiguity.assign_self_weight())
+        assert_result(r, expected, self.df_buildings, exact=False)
+
 
 class TestEquality:
     def setup_method(self):
@@ -83,6 +94,7 @@ class TestEquality:
         )
         self.graph = Graph.build_knn(self.df_buildings.centroid, k=5)
         self.df_buildings["orientation"] = mm.orientation(self.df_buildings)
+        self.contiguity = Graph.build_contiguity(self.df_buildings)
 
     def test_alignment(self):
         new = mm.alignment(self.df_buildings["orientation"], self.graph)
@@ -105,6 +117,13 @@ class TestEquality:
     def test_mean_interbuilding_distance(self):
         new = mm.mean_interbuilding_distance(self.df_buildings, self.graph)
         old = mm.MeanInterbuildingDistance(
+            self.df_buildings.reset_index(), self.graph.to_W(), "uID", verbose=False
+        ).series
+        assert_series_equal(new, old, check_names=False, check_index=False)
+
+    def test_building_adjacency(self):
+        new = mm.building_adjacency(self.graph.assign_self_weight(), self.contiguity)
+        old = mm.BuildingAdjacency(
             self.df_buildings.reset_index(), self.graph.to_W(), "uID", verbose=False
         ).series
         assert_series_equal(new, old, check_names=False, check_index=False)

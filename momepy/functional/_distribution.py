@@ -16,6 +16,7 @@ __all__ = [
     "alignment",
     "neighbor_distance",
     "mean_interbuilding_distance",
+    "building_adjacency",
 ]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
@@ -227,3 +228,54 @@ def mean_interbuilding_distance(
     return Series(
         results_list, index=geometry.index, name="mean_interbuilding_distance"
     )
+    # 57.4 s ± 1.57 s per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    # 1min 2s ± 3.78 s per loop (mean ± std. dev. of 7 runs, 1 loop each)
+
+
+def building_adjacency(
+    neighborhood_graph: Graph,
+    contiguity_graph: Graph,
+) -> Series:
+    """Calculate the level of building adjacency.
+
+    Building adjacency reflects how much buildings tend to join together into larger
+    structures. It is calculated as a ratio of joined built-up structures captured by
+    ``contiguity_graph`` and buildings within the neighborhood defined in
+    ``neighborhood_graph``.
+
+    Adapted from :cite:`vanderhaegen2017`.
+
+    Notes
+    -----
+    Both graphs must be built on the same index.
+
+    If you want to consider the geometry
+    part of its own neighborhood and include it in calculation, ensure you assign
+    self-weights to the ``contiguity_graph`` using
+    ``contiguity_graph.assign_self_weight()``.
+
+    Parameters
+    ----------
+    neighborhood_graph : Graph
+        Graph representing the extent around each geometry within which to calculate
+        the level of building adjacency. This can be a distance based graph, KNN graph,
+        higher order contiguity, etc.
+    contiguity_graph : Graph
+        Graph representing contiguity between geometries.
+
+    Returns
+    -------
+    Series
+    """
+    components = contiguity_graph.component_labels
+
+    grouper = components.loc[
+        neighborhood_graph._adjacency.index.get_level_values(1)
+    ].groupby(neighborhood_graph._adjacency.index.get_level_values(0))
+    result = grouper.agg("nunique") / grouper.agg("count")
+    result.name = "building_adjacency"
+    result.index.name = None
+    return result
+
+    # old: 251 ms ± 14.6 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    # new: 57.3 ms ± 1.26 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)

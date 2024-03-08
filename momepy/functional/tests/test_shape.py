@@ -10,12 +10,12 @@ import momepy as mm
 GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 
-def assert_result(result, expected, geometry):
+def assert_result(result, expected, geometry, **kwargs):
     """Check the expected values and types of the result."""
     for key, value in expected.items():
         assert getattr(result, key)() == pytest.approx(value)
     assert isinstance(result, pd.Series)
-    assert_index_equal(result.index, geometry.index)
+    assert_index_equal(result.index, geometry.index, **kwargs)
 
 
 class TestShape:
