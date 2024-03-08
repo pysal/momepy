@@ -64,6 +64,16 @@ class TestDistribution:
         r = mm.neighbor_distance(self.df_buildings, self.graph)
         assert_result(r, expected, self.df_buildings)
 
+    def test_mean_interbuilding_distance(self):
+        expected = {
+            "mean": 16.46438739026651,
+            "sum": 2370.871784198377,
+            "min": 12.279734781239485,
+            "max": 25.45874022563638,
+        }
+        r = mm.mean_interbuilding_distance(self.df_buildings, self.graph)
+        assert_result(r, expected, self.df_buildings)
+
 
 class TestEquality:
     def setup_method(self):
@@ -88,6 +98,13 @@ class TestEquality:
     def test_neighbor_distance(self):
         new = mm.neighbor_distance(self.df_buildings, self.graph)
         old = mm.NeighborDistance(
+            self.df_buildings.reset_index(), self.graph.to_W(), "uID", verbose=False
+        ).series
+        assert_series_equal(new, old, check_names=False, check_index=False)
+
+    def test_mean_interbuilding_distance(self):
+        new = mm.mean_interbuilding_distance(self.df_buildings, self.graph)
+        old = mm.MeanInterbuildingDistance(
             self.df_buildings.reset_index(), self.graph.to_W(), "uID", verbose=False
         ).series
         assert_series_equal(new, old, check_names=False, check_index=False)

@@ -1,12 +1,22 @@
+import warnings
+
 import geopandas as gpd
+import networkx as nx
 import numpy as np
+import pandas as pd
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from packaging.version import Version
 from pandas import Series
 
-__all__ = ["orientation", "shared_walls", "alignment", "neighbor_distance"]
+__all__ = [
+    "orientation",
+    "shared_walls",
+    "alignment",
+    "neighbor_distance",
+    "mean_interbuilding_distance",
+]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
@@ -152,3 +162,68 @@ def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Serie
     )
     mean_distance.loc[graph.isolates] = np.nan
     return mean_distance
+
+
+def mean_interbuilding_distance(
+    geometry: GeoDataFrame | GeoSeries, graph: Graph, order: int = 3
+) -> Series:
+    """Calculate the mean distance between adjacent geometries within a set neighborhood
+
+    For each building, this function defines a neighborhood (ego graph) based on the
+    neighbors within a defined ``order`` of contigity along the graph. It then
+    calculates the mean distance between adjacent buildings within this neighborhood.
+    Typically, ``graph`` represents contiguity derived from tessellation cells or plots
+    linked to buildings.
+
+    Notes
+    -----
+    The index of ``geometry`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing geometries to analyse.
+    graph : libpysal.graph.Graph
+        Graph representing spatial relationships between elements.
+    order : int
+        The order of contiguity defining the extent of the neighborhood.
+
+    Returns
+    -------
+    Series
+    """
+    distance = pd.Series(
+        shapely.distance(
+            geometry.geometry.loc[graph._adjacency.index.get_level_values(0)].values,
+            geometry.geometry.loc[graph._adjacency.index.get_level_values(1)].values,
+        ),
+        index=graph._adjacency.index,
+        name="distance",
+    )
+
+    nx_graph = nx.from_pandas_edgelist(
+        distance.reset_index(), source="focal", target="neighbor", edge_attr="distance"
+    )
+
+    results_list = []
+    for uid in geometry.index:
+        try:
+            sub = nx.ego_graph(nx_graph, uid, radius=order)
+            results_list.append(
+                np.mean(
+                    np.array([data["distance"] for _, _, data in sub.edges(data=True)])
+                )
+            )
+        # this may happen if the graph comes from tessellation thad does not fully match
+        except nx.NodeNotFound:
+            warnings.warn(
+                f"Geometry with the index {uid} not found in the graph.",
+                UserWarning,
+                stacklevel=2,
+            )
+            results_list.append(np.nan)
+
+    return Series(
+        results_list, index=geometry.index, name="mean_interbuilding_distance"
+    )
