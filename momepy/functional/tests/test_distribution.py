@@ -14,6 +14,7 @@ class TestDistribution:
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.graph = Graph.build_knn(self.df_buildings.centroid, k=5)
         self.contiguity = Graph.build_contiguity(self.df_buildings)
+        self.neighborhood_graph = self.graph.higher_order(3, lower_order=True)
 
     def test_orientation(self):
         expected = {
@@ -67,22 +68,24 @@ class TestDistribution:
 
     def test_mean_interbuilding_distance(self):
         expected = {
-            "mean": 16.46438739026651,
-            "sum": 2370.871784198377,
-            "min": 12.279734781239485,
-            "max": 25.45874022563638,
+            "mean": 13.018190603684694,
+            "sum": 1874.6194469305958,
+            "min": 6.623582625492466,
+            "max": 22.513464171665948,
         }
-        r = mm.mean_interbuilding_distance(self.df_buildings, self.graph)
+        r = mm.mean_interbuilding_distance(
+            self.df_buildings, self.graph, self.neighborhood_graph
+        )
         assert_result(r, expected, self.df_buildings)
 
     def test_building_adjacency(self):
         expected = {
-            "mean": 0.4402777777777778,
-            "sum": 63.4,
-            "min": 0.2,
-            "max": 1,
+            "mean": 0.3784722222222222,
+            "sum": 54.5,
+            "min": 0.16666666666666666,
+            "max": 0.8333333333333334,
         }
-        r = mm.building_adjacency(self.graph, self.contiguity.assign_self_weight())
+        r = mm.building_adjacency(self.contiguity, self.graph)
         assert_result(r, expected, self.df_buildings, exact=False)
 
 
@@ -92,9 +95,16 @@ class TestEquality:
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings").set_index(
             "uID"
         )
+        self.df_tessellation = gpd.read_file(
+            test_file_path, layer="tessellation"
+        ).set_index("uID")
         self.graph = Graph.build_knn(self.df_buildings.centroid, k=5)
         self.df_buildings["orientation"] = mm.orientation(self.df_buildings)
         self.contiguity = Graph.build_contiguity(self.df_buildings)
+        self.tessellation_contiguity = Graph.build_contiguity(self.df_tessellation)
+        self.neighborhood_graph = self.tessellation_contiguity.higher_order(
+            3, lower_order=True
+        )
 
     def test_alignment(self):
         new = mm.alignment(self.df_buildings["orientation"], self.graph)
@@ -115,14 +125,19 @@ class TestEquality:
         assert_series_equal(new, old, check_names=False, check_index=False)
 
     def test_mean_interbuilding_distance(self):
-        new = mm.mean_interbuilding_distance(self.df_buildings, self.graph)
+        new = mm.mean_interbuilding_distance(
+            self.df_buildings, self.tessellation_contiguity, self.neighborhood_graph
+        )
         old = mm.MeanInterbuildingDistance(
-            self.df_buildings.reset_index(), self.graph.to_W(), "uID", verbose=False
+            self.df_buildings.reset_index(),
+            self.tessellation_contiguity.to_W(),
+            "uID",
+            verbose=False,
         ).series
         assert_series_equal(new, old, check_names=False, check_index=False)
 
     def test_building_adjacency(self):
-        new = mm.building_adjacency(self.graph.assign_self_weight(), self.contiguity)
+        new = mm.building_adjacency(self.contiguity, self.graph)
         old = mm.BuildingAdjacency(
             self.df_buildings.reset_index(), self.graph.to_W(), "uID", verbose=False
         ).series

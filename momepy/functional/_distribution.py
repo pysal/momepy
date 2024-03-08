@@ -1,7 +1,4 @@
-import warnings
-
 import geopandas as gpd
-import networkx as nx
 import numpy as np
 import pandas as pd
 import shapely
@@ -9,6 +6,7 @@ from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from packaging.version import Version
 from pandas import Series
+from scipy import sparse
 
 __all__ = [
     "orientation",
@@ -166,29 +164,32 @@ def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Serie
 
 
 def mean_interbuilding_distance(
-    geometry: GeoDataFrame | GeoSeries, graph: Graph, order: int = 3
+    geometry: GeoDataFrame | GeoSeries,
+    adjacency_graph: Graph,
+    neighborhood_graph: Graph,
 ) -> Series:
     """Calculate the mean distance between adjacent geometries within a set neighborhood
 
-    For each building, this function defines a neighborhood (ego graph) based on the
-    neighbors within a defined ``order`` of contigity along the graph. It then
-    calculates the mean distance between adjacent buildings within this neighborhood.
-    Typically, ``graph`` represents contiguity derived from tessellation cells or plots
-    linked to buildings.
+    For each building, this function takes a neighborhood based on the neighbors within
+    a ``neighborhood_graph`` and calculates the mean distance between adjacent buildings
+    within this neighborhood where adjacency is captured by ``adjacency_graph``.
 
     Notes
     -----
-    The index of ``geometry`` must match the index along which the ``graph`` is
+    The index of ``geometry`` must match the index along which both of the graphs are
     built.
 
     Parameters
     ----------
     geometry : GeoDataFrame | GeoSeries
         A GeoDataFrame or GeoSeries containing geometries to analyse.
-    graph : libpysal.graph.Graph
-        Graph representing spatial relationships between elements.
-    order : int
-        The order of contiguity defining the extent of the neighborhood.
+    adjacency_graph : libpysal.graph.Graph
+        Graph representing the adjacency of geometries. Typically, this is a contiguity
+        graph derived from tessellation cells linked to buildings.
+    neighborhood_graph : libpysal.graph.Graph
+        Graph representing the extent around each geometry within which to calculate
+        the mean interbuilding distance. This can be a distance based graph, KNN graph,
+        higher order contiguity, etc.
 
     Returns
     -------
@@ -196,45 +197,43 @@ def mean_interbuilding_distance(
     """
     distance = pd.Series(
         shapely.distance(
-            geometry.geometry.loc[graph._adjacency.index.get_level_values(0)].values,
-            geometry.geometry.loc[graph._adjacency.index.get_level_values(1)].values,
+            geometry.geometry.loc[
+                adjacency_graph._adjacency.index.get_level_values(0)
+            ].values,
+            geometry.geometry.loc[
+                adjacency_graph._adjacency.index.get_level_values(1)
+            ].values,
         ),
-        index=graph._adjacency.index,
+        index=adjacency_graph._adjacency.index,
         name="distance",
     )
 
-    nx_graph = nx.from_pandas_edgelist(
-        distance.reset_index(), source="focal", target="neighbor", edge_attr="distance"
+    distance_matrix = (
+        distance.astype("Sparse[float]").sparse.to_coo(sort_labels=True)[0].tocsr()
     )
+    neighborhood_matrix = sparse.coo_matrix(neighborhood_graph.sparse).tocsr()
 
-    results_list = []
-    for uid in geometry.index:
-        try:
-            sub = nx.ego_graph(nx_graph, uid, radius=order)
-            results_list.append(
-                np.mean(
-                    np.array([data["distance"] for _, _, data in sub.edges(data=True)])
-                )
-            )
-        # this may happen if the graph comes from tessellation thad does not fully match
-        except nx.NodeNotFound:
-            warnings.warn(
-                f"Geometry with the index {uid} not found in the graph.",
-                UserWarning,
-                stacklevel=2,
-            )
-            results_list.append(np.nan)
+    mean_distances = np.zeros(distance_matrix.shape[0], dtype=float)
+
+    for i in range(distance_matrix.shape[0]):
+        neighborhood_indices = np.append(neighborhood_matrix[i].indices, i)
+
+        if len(neighborhood_indices) == 0:
+            mean_distances[i] = np.nan
+
+        sub_matrix = distance_matrix[neighborhood_indices][:, neighborhood_indices]
+        mean_distances[i] = sub_matrix.sum() / sub_matrix.nnz
 
     return Series(
-        results_list, index=geometry.index, name="mean_interbuilding_distance"
+        mean_distances, index=geometry.index, name="mean_interbuilding_distance"
     )
-    # 57.4 s ± 1.57 s per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    # 1min 2s ± 3.78 s per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    # 35s new
+    # 57s old
 
 
 def building_adjacency(
-    neighborhood_graph: Graph,
     contiguity_graph: Graph,
+    neighborhood_graph: Graph,
 ) -> Series:
     """Calculate the level of building adjacency.
 
@@ -249,25 +248,22 @@ def building_adjacency(
     -----
     Both graphs must be built on the same index.
 
-    If you want to consider the geometry
-    part of its own neighborhood and include it in calculation, ensure you assign
-    self-weights to the ``contiguity_graph`` using
-    ``contiguity_graph.assign_self_weight()``.
-
     Parameters
     ----------
-    neighborhood_graph : Graph
+    contiguity_graph : libpysal.graph.Graph
+        Graph representing contiguity between geometries, typically a rook contiguity
+        graph derived from buildings.
+    neighborhood_graph : libpysal.graph.Graph
         Graph representing the extent around each geometry within which to calculate
         the level of building adjacency. This can be a distance based graph, KNN graph,
         higher order contiguity, etc.
-    contiguity_graph : Graph
-        Graph representing contiguity between geometries.
 
     Returns
     -------
     Series
     """
     components = contiguity_graph.component_labels
+    neighborhood_graph = neighborhood_graph.assign_self_weight()
 
     grouper = components.loc[
         neighborhood_graph._adjacency.index.get_level_values(1)
@@ -278,4 +274,6 @@ def building_adjacency(
     return result
 
     # old: 251 ms ± 14.6 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    # new: 57.3 ms ± 1.26 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+    # new: 422 ms ± 12.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    #  of which 330 ms is assign_self_weight which will be used in other functins so
+    # I'm wondering if it is worth adding a keyword `self_weighted=True` to skip this.
