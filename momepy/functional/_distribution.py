@@ -261,7 +261,15 @@ def building_adjacency(
     Series
     """
     components = contiguity_graph.component_labels
-    neighborhood_graph = neighborhood_graph.assign_self_weight()
+
+    # check if self-weights are present, otherwise assign them to treat self as part of
+    # the neighborhood
+    has_self_weights = (
+        neighborhood_graph._adjacency.index.get_level_values("focal")
+        == neighborhood_graph._adjacency.index.get_level_values("neighbor")
+    ).sum() == neighborhood_graph.n
+    if not has_self_weights:
+        neighborhood_graph = neighborhood_graph.assign_self_weight()
 
     grouper = components.loc[
         neighborhood_graph._adjacency.index.get_level_values(1)
