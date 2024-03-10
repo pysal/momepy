@@ -217,10 +217,6 @@ def mean_interbuilding_distance(
 
     for i in range(distance_matrix.shape[0]):
         neighborhood_indices = np.append(neighborhood_matrix[i].indices, i)
-
-        if len(neighborhood_indices) == 0:
-            mean_distances[i] = np.nan
-
         sub_matrix = distance_matrix[neighborhood_indices][:, neighborhood_indices]
         mean_distances[i] = sub_matrix.sum() / sub_matrix.nnz
 
