@@ -58,6 +58,7 @@ class Area:
     """
 
     def __init__(self, gdf):
+        # TODO: deprecate and point people to .area
         self.gdf = gdf
         self.series = self.gdf.geometry.area
 
@@ -90,6 +91,7 @@ class Perimeter:
     """
 
     def __init__(self, gdf):
+        # TODO: deprecate and point people to .length
         self.gdf = gdf
         self.series = self.gdf.geometry.length
 
@@ -138,6 +140,7 @@ class Volume:
     """
 
     def __init__(self, gdf, heights, areas=None):
+        # TODO: deprecate in favor of volume
         self.gdf = gdf
 
         gdf = gdf.copy()
@@ -210,6 +213,7 @@ class FloorArea:
     """
 
     def __init__(self, gdf, heights, areas=None):
+        # TODO: deprecate in favor of floor_area
         self.gdf = gdf
 
         gdf = gdf.copy()
@@ -264,6 +268,7 @@ class CourtyardArea:
     """
 
     def __init__(self, gdf, areas=None):
+        # TODO: deprecate in favor of courtyard_area
         self.gdf = gdf
 
         gdf = gdf.copy()
@@ -311,6 +316,7 @@ class LongestAxisLength:
     """
 
     def __init__(self, gdf):
+        # TODO: deprecate in favor of longest_axis_length
         self.gdf = gdf
         hulls = gdf.geometry.convex_hull.exterior
         self.series = hulls.apply(lambda g: _circle_radius(list(g.coords))) * 2
@@ -396,6 +402,8 @@ class AverageCharacter:
         mode="all",
         verbose=True,
     ):
+        # TODO: This is just a fancy lag. It should probably live in Graph itself and be
+        # TODO: refactored either on top of sparse array or pandas.groupby.
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -534,6 +542,8 @@ class StreetProfile:
         distance=10,
         tick_length=50,
     ):
+        # TODO: turn into a function with a variable return like np.unique. Maybe
+        # TODO: check if we can avoid some of the loops
         self.left = left
         self.right = right
         self.distance = distance
@@ -749,6 +759,9 @@ class WeightedCharacter:
     def __init__(
         self, gdf, values, spatial_weights, unique_id, areas=None, verbose=True
     ):
+        # TODO: Refactoring project note: This is a lag using a graph where weight
+        # TODO: represents row-normalied area. It now includes self but that shall be
+        # TODO: optional.
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -821,6 +834,9 @@ class CoveredArea:
     """
 
     def __init__(self, gdf, spatial_weights, unique_id, verbose=True):
+        # TODO: Refactoring project note: This is just a lag with binary weights over
+        # TODO: the area using the graph with self-weights. Maybe point to that?
+
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -881,6 +897,7 @@ class PerimeterWall:
     """
 
     def __init__(self, gdf, spatial_weights=None, verbose=True):
+        # TODO: deprecate in favor of perimeter_wall
         self.gdf = gdf
 
         if spatial_weights is None:
@@ -960,6 +977,10 @@ class SegmentsLength:
     """
 
     def __init__(self, gdf, spatial_weights=None, mean=False, verbose=True):
+        # TODO: Refactoring project note: This is just a lag with binary (sum) or
+        # TODO: row-standardized graph that includes self weight over lenghts.
+        # TODO: Worth wrapping or point to lag? Probably latter?
+
         self.gdf = gdf
 
         if spatial_weights is None:
