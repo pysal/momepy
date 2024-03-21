@@ -12,9 +12,11 @@ class TestDistribution:
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
+        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
         self.graph = Graph.build_knn(self.df_buildings.centroid, k=5)
         self.contiguity = Graph.build_contiguity(self.df_buildings)
         self.neighborhood_graph = self.graph.higher_order(3, lower_order=True)
+        self.tess_contiguity = Graph.build_contiguity(self.df_tessellation)
 
     def test_orientation(self):
         expected = {
@@ -88,6 +90,25 @@ class TestDistribution:
         r = mm.building_adjacency(self.contiguity, self.graph)
         assert_result(r, expected, self.df_buildings, exact=False)
 
+    def test_neighbors(self):
+        expected = {
+            "mean": 5.180555555555555,
+            "sum": 746,
+            "min": 2,
+            "max": 12,
+        }
+        r = mm.neighbors(self.df_tessellation, self.tess_contiguity, weighted=False)
+        assert_result(r, expected, self.df_buildings, exact=False, check_names=False)
+
+        expected = {
+            "mean": 0.029066398893536072,
+            "sum": 4.185561440669194,
+            "min": 0.008659386154613532,
+            "max": 0.08447065801729325,
+        }
+        r = mm.neighbors(self.df_tessellation, self.tess_contiguity, weighted=True)
+        assert_result(r, expected, self.df_buildings, exact=False, check_names=False)
+
 
 class TestEquality:
     def setup_method(self):
@@ -140,5 +161,30 @@ class TestEquality:
         new = mm.building_adjacency(self.contiguity, self.graph)
         old = mm.BuildingAdjacency(
             self.df_buildings.reset_index(), self.graph.to_W(), "uID", verbose=False
+        ).series
+        assert_series_equal(new, old, check_names=False, check_index=False)
+
+    def test_neighbors(self):
+        new = mm.neighbors(
+            self.df_tessellation, self.tessellation_contiguity, weighted=False
+        )
+        old = mm.Neighbors(
+            self.df_tessellation.reset_index(),
+            self.tessellation_contiguity.to_W(),
+            "uID",
+            weighted=False,
+            verbose=False,
+        ).series
+        assert_series_equal(new, old, check_names=False, check_index=False)
+
+        new = mm.neighbors(
+            self.df_tessellation, self.tessellation_contiguity, weighted=True
+        )
+        old = mm.Neighbors(
+            self.df_tessellation.reset_index(),
+            self.tessellation_contiguity.to_W(),
+            "uID",
+            weighted=True,
+            verbose=False,
         ).series
         assert_series_equal(new, old, check_names=False, check_index=False)

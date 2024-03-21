@@ -15,6 +15,7 @@ __all__ = [
     "neighbor_distance",
     "mean_interbuilding_distance",
     "building_adjacency",
+    "neighbors",
 ]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
@@ -274,3 +275,41 @@ def building_adjacency(
     result.name = "building_adjacency"
     result.index.name = None
     return result
+
+
+def neighbors(
+    geometry: GeoDataFrame | GeoSeries, graph: Graph, weighted=False
+) -> pd.Series:
+    """Calculate the number of neighbours captured by ``graph``.
+
+    If ``weighted=True``, the number of neighbours will be divided by the perimeter of
+    the object to return a relative value (neighbors per meter).
+
+    Adapted from :cite:`hermosilla2012`.
+
+    Notes
+    -----
+    The index of ``geometry`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    gdf : gpd.GeoDataFrame
+        GeoDataFrame containing geometries to analyse.
+    graph : libpysal.graph.Graph
+        Graph representing spatial relationships between elements.
+    weighted : bool
+        If True, the number of neighbours will be divided by the perimeter of the object
+        to return a relative value (neighbors per meter).
+
+    Returns
+    -------
+    pd.Series
+    """
+    if weighted:
+        r = graph.cardinalities / geometry.length
+    else:
+        r = graph.cardinalities
+
+    r.name = "neighbors"
+    return r
