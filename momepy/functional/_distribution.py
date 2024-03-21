@@ -313,8 +313,3 @@ def neighbors(
 
     r.name = "neighbors"
     return r
-
-    # CPU times: user 49.5 ms, sys: 121 ms, total: 170 ms
-    # Wall time: 179 ms
-    # 25.7 ms ± 190 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
-    # 549 ms ± 2.07 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
