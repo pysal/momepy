@@ -9,6 +9,7 @@ from .diversity import *
 from .elements import *
 from .functional._dimension import *
 from .functional._distribution import *
+from .functional._elements import *
 from .functional._shape import *
 from .graph import *
 from .intensity import *
