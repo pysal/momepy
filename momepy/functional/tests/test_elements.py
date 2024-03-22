@@ -1,6 +1,7 @@
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import pytest
 from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
 from pandas.testing import assert_index_equal
@@ -112,3 +113,38 @@ class TestElements:
         )
 
         assert_geodataframe_equal(tessellation, no_threshold_check)
+
+    def test_verify_tessellation(self):
+        df = self.df_buildings
+        b = df.total_bounds
+        x = np.mean([b[0], b[2]])
+        y = np.mean([b[1], b[3]])
+
+        df = pd.concat(
+            [
+                df,
+                gpd.GeoDataFrame(
+                    {"uID": [145]},
+                    geometry=[
+                        Polygon([(x, y), (x, y + 1), (x + 1, y)]),
+                    ],
+                    index=[144],
+                ),
+            ]
+        )
+        tessellation = mm.morphological_tessellation(
+            df, clip=self.df_streets.buffer(50)
+        )
+        with (
+            pytest.warns(
+                UserWarning, match="Tessellation does not fully match buildings"
+            ),
+            pytest.warns(
+                UserWarning, match="Tessellation contains MultiPolygon elements"
+            ),
+        ):
+            collapsed, multi = mm.verify_tessellation(tessellation, df)
+        assert_index_equal(collapsed, pd.Index([144]))
+        assert_index_equal(
+            multi, pd.Index([1, 46, 57, 62, 103, 105, 129, 130, 134, 136, 137])
+        )

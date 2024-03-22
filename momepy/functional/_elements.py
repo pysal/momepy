@@ -275,7 +275,7 @@ def verify_tessellation(tesselation, geometry):
         warnings.warn(
             message=(
                 "Tessellation does not fully match buildings. "
-                f"{len(collapsed)} element(s) collapsed "
+                f"{len(collapsed)} element(s) disappeared "
                 f"during generation. Index of the affected elements: {collapsed}."
             ),
             category=UserWarning,
