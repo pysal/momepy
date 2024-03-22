@@ -122,7 +122,7 @@ def enclosed_tessellation(
 
     All three types can be tested using :class:`momepy.CheckTessellationInput`.
 
-    The idnex of the resulting GeoDataFrame links the input buildings with the output
+    The index of the resulting GeoDataFrame links the input buildings with the output
     geometry. Enclosures with no buildings are also included in the output with negative
     index. Ensure that the input geometry has unique non-negative index for this to work
     correctly.
