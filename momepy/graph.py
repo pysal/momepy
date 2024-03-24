@@ -3,7 +3,6 @@
 # connectivity.py
 # definitions of connectivity characters
 import collections
-import math
 
 import networkx as nx
 import numpy as np
@@ -895,28 +894,29 @@ def betweenness_centrality(
 
 def _euclidean(n, m):
     """Helper for straightness."""
-    return math.sqrt((n[0] - m[0]) ** 2 + (n[1] - m[1]) ** 2)
+    return np.sqrt((n[:, 0] - m[:, 0]) ** 2 + (n[:, 1] - m[:, 1]) ** 2)
 
 
 def _straightness_centrality(graph, weight, normalized=True):
     """Calculates straightness centrality."""
+    import graphblas_algorithms as ga
+
     straightness_centrality = dict.fromkeys(graph.nodes(), 0)
 
-    for n in graph.nodes():
-        sp = nx.single_source_dijkstra_path_length(graph, n, weight=weight)
+    nodes = np.array(graph.nodes)
+    graph = ga.Graph.from_networkx(graph, weight=weight)
+    g_len = len(graph)
 
-        if len(sp) > 0 and len(graph) > 1:
-            straightness = 0
-            for target in sp:
-                if n != target:
-                    network_dist = sp[target]
-                    euclidean_dist = _euclidean(n, target)
-                    straightness = straightness + (euclidean_dist / network_dist)
-            straightness_centrality[n] = straightness * (1 / (len(graph) - 1))
-            # normalize to number of nodes-1 in connected part
-            if normalized and len(sp) > 1:
-                s = (len(graph) - 1) / (len(sp) - 1)
-                straightness_centrality[n] *= s
+    ap = nx.all_pairs_bellman_ford_path_length(graph)
+
+    for n, sp in ap:
+        euclidean_dist = _euclidean(nodes, np.array(n).reshape(1, -1))
+        network_dist = sp.vector.to_coo()[1]
+        sc = np.nansum(euclidean_dist / network_dist) * (1 / (g_len - 1))
+        if normalized and len(sp) > 1:
+            sc *= (g_len - 1) / (len(sp) - 1)
+        straightness_centrality[n] = sc
+
     return straightness_centrality
 
 
