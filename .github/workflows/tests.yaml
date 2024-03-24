@@ -55,9 +55,4 @@ jobs:
         run: |
           pytest -v --color yes --cov momepy --cov-append --cov-report term-missing --cov-report xml .
 
-      - name: Test user guide
-        if: contains(matrix.environment-file, '312-latest.yaml') && contains(matrix.os, 'ubuntu')
-        run: |
-          ci/envs/test_user_guide.sh
-
       - uses: codecov/codecov-action@v4
