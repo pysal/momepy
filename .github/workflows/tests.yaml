@@ -8,6 +8,12 @@ on:
       - "*"
   schedule:
     - cron: "0 0 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Manual test execution
+        default: test
+        required: false
 
 jobs:
   Test:
