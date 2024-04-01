@@ -20,7 +20,6 @@ from shapely.geometry import LineString, MultiLineString
 
 
 class COINS:
-
     """
     Calculates natural continuity and hierarchy of street networks in a given
     GeoDataFrame using the COINS algorithm.

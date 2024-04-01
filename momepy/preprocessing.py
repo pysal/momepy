@@ -153,9 +153,9 @@ def preprocess(
                         geoms.append(blg[blg["mm_uid"] == j].iloc[0].geometry)
                         blg.drop(blg[blg["mm_uid"] == j].index[0], inplace=True)
                 new_geom = shapely.ops.unary_union(geoms)
-                blg.loc[
-                    blg.loc[blg["mm_uid"] == key].index[0], blg.geometry.name
-                ] = new_geom
+                blg.loc[blg.loc[blg["mm_uid"] == key].index[0], blg.geometry.name] = (
+                    new_geom
+                )
 
         blg.drop(delete, inplace=True)
     return blg[buildings.columns]
