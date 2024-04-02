@@ -418,7 +418,6 @@ class CellAlignment:
 
 
 class Alignment:
-
     """
     Calculate the mean deviation of solar orientation of objects on adjacent cells
     from an object.

@@ -153,9 +153,9 @@ def preprocess(
                         geoms.append(blg[blg["mm_uid"] == j].iloc[0].geometry)
                         blg.drop(blg[blg["mm_uid"] == j].index[0], inplace=True)
                 new_geom = shapely.ops.unary_union(geoms)
-                blg.loc[
-                    blg.loc[blg["mm_uid"] == key].index[0], blg.geometry.name
-                ] = new_geom
+                blg.loc[blg.loc[blg["mm_uid"] == key].index[0], blg.geometry.name] = (
+                    new_geom
+                )
 
         blg.drop(delete, inplace=True)
     return blg[buildings.columns]
@@ -1237,10 +1237,10 @@ def _get_rebuilt_edges(
     """
     # Determine what endpoints were made into clusters:
     edges_gdf["origin_cluster"] = edges_gdf[edge_from_att].apply(
-        lambda u: nodes_dict[u] if u in nodes_dict else -1
+        lambda u: nodes_dict.get(u, -1)
     )
     edges_gdf["destination_cluster"] = edges_gdf[edge_to_att].apply(
-        lambda v: nodes_dict[v] if v in nodes_dict else -1
+        lambda v: nodes_dict.get(v, -1)
     )
 
     # Determine what edges need to be simplified (either between diff.

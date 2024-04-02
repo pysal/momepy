@@ -55,8 +55,8 @@ momepy = ["datasets/bubenec.gpkg", "datasets/tests.gpkg"]
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "W", "I", "UP", "N", "B", "A", "C4", "SIM", "ARG"]
-ignore = ["B006", "F403", "SIM108"]
+lint.select = ["E", "F", "W", "I", "UP", "N", "B", "A", "C4", "SIM", "ARG"]
+lint.ignore = ["B006", "F403", "SIM108"]
 exclude = ["momepy/tests/*", "docs/*", "benchmarks/*"]
 
 [tool.coverage.run]
