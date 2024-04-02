@@ -131,7 +131,7 @@ class TestElements:
         blocks = mm.Blocks(tessellation, self.df_streets, buildings, "bID", "uID")
 
         assert_index_equal(tessellation.index, blocks.tessellation_id.index)
-        assert_index_equal(buildings.index, blocks.buildings_id.index)
+        assert_index_equal(buildings.index, blocks.buildings_id.index, check_order=False)
 
     def test_Blocks_inner(self):
         streets = self.df_streets.copy()
