@@ -318,18 +318,17 @@ def neighbors(
 
 def street_alignment(
     building_orientation: Series,
-    stret_orientation: Series,
+    street_orientation: Series,
     street_index: Series,
 ) -> Series:
     """Calulate the deviation of the building orientation from the street orientation.
-
 
     Parameters
     ----------
     building_orientation : Series
         Series with the orientation of buildings. Can be measured using
         :func:`orientation`.
-    stret_orientation : Series
+    street_orientation : Series
         Series with the orientation of streets. Can be measured using
         :func:`orientation`.
     street_index : Series
