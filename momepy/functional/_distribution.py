@@ -16,6 +16,7 @@ __all__ = [
     "mean_interbuilding_distance",
     "building_adjacency",
     "neighbors",
+    "street_alignment",
 ]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
@@ -279,7 +280,7 @@ def building_adjacency(
 
 def neighbors(
     geometry: GeoDataFrame | GeoSeries, graph: Graph, weighted=False
-) -> pd.Series:
+) -> Series:
     """Calculate the number of neighbours captured by ``graph``.
 
     If ``weighted=True``, the number of neighbours will be divided by the perimeter of
@@ -304,7 +305,7 @@ def neighbors(
 
     Returns
     -------
-    pd.Series
+    Series
     """
     if weighted:
         r = graph.cardinalities / geometry.length
@@ -313,3 +314,29 @@ def neighbors(
 
     r.name = "neighbors"
     return r
+
+
+def street_alignment(
+    building_orientation: Series,
+    street_orientation: Series,
+    street_index: Series,
+) -> Series:
+    """Calulate the deviation of the building orientation from the street orientation.
+
+    Parameters
+    ----------
+    building_orientation : Series
+        Series with the orientation of buildings. Can be measured using
+        :func:`orientation`.
+    street_orientation : Series
+        Series with the orientation of streets. Can be measured using
+        :func:`orientation`.
+    street_index : Series
+        Series with the index of the street to which the building belongs. Can be
+        retrieved using :func:`momepy.get_nearest_street`.
+
+    Returns
+    -------
+    Series
+    """
+    return (building_orientation - street_orientation.loc[street_index].values).abs()

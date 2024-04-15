@@ -15,6 +15,7 @@ __all__ = [
     "morphological_tessellation",
     "enclosed_tessellation",
     "verify_tessellation",
+    "get_nearest_street",
 ]
 
 
@@ -295,3 +296,44 @@ def verify_tessellation(tesselation, geometry):
             stacklevel=2,
         )
     return collapsed, multipolygons
+
+
+def get_nearest_street(
+    buildings: gpd.GeoSeries | gpd.GeoDataFrame,
+    streets: gpd.GeoSeries | gpd.GeoDataFrame,
+    max_distance: float | None = None,
+) -> np.ndarray:
+    """Identify the nearest street for each building.
+
+    Parameters
+    ----------
+    buildings : gpd.GeoSeries | gpd.GeoDataFrame
+        GeoSeries or GeoDataFrame of buildings
+    streets : gpd.GeoSeries | gpd.GeoDataFrame
+        GeoSeries or GeoDataFrame of streets
+    max_distance : float | None, optional
+        Maximum distance within which to query for nearest street. Must be
+        greater than 0. By default None, indicating no distance limit. Note that it is
+        advised to set a limit to avoid long processing times.
+
+    Notes
+    -----
+    In case of multiple streets within the same distance, only one is returned.
+
+    Returns
+    -------
+    np.ndarray
+        array containing the index of the nearest street for each building
+    """
+    blg_idx, str_idx = streets.sindex.nearest(
+        buildings.geometry, return_all=False, max_distance=max_distance
+    )
+
+    if streets.index.dtype == "object":
+        ids = np.empty(len(buildings), dtype=object)
+    else:
+        ids = np.empty(len(buildings), dtype=np.float32)
+        ids[:] = np.nan
+
+    ids[blg_idx] = streets.index[str_idx]
+    return ids
