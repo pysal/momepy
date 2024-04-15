@@ -148,3 +148,29 @@ class TestElements:
         assert_index_equal(
             multi, pd.Index([1, 46, 57, 62, 103, 105, 129, 130, 134, 136, 137])
         )
+
+    def test_get_nearest_street(self):
+        streets = self.df_streets.copy()
+        nearest = mm.get_nearest_street(self.df_buildings, streets)
+        assert len(nearest) == len(self.df_buildings)
+        expected = np.array(
+            [0, 1, 2, 5, 6, 8, 10, 11, 12, 14, 16, 19, 21, 24, 25, 26, 28, 32, 33, 34]
+        )
+        expected_counts = np.array(
+            [9, 1, 12, 5, 7, 15, 1, 3, 4, 1, 3, 9, 9, 6, 5, 5, 15, 6, 10, 18]
+        )
+        unique, counts = np.unique(nearest, return_counts=True)
+        np.testing.assert_array_equal(unique, expected)
+        np.testing.assert_array_equal(counts, expected_counts)
+
+        # induce missing
+        nearest = mm.get_nearest_street(self.df_buildings, streets, 10)
+        expected = np.array([2.0, 34.0, np.nan])
+        expected_counts = np.array([3, 4, 137])
+        unique, counts = np.unique(nearest, return_counts=True)
+        np.testing.assert_array_equal(unique, expected)
+        np.testing.assert_array_equal(counts, expected_counts)
+
+        streets.index = streets.index.astype(str)
+        nearest = mm.get_nearest_street(self.df_buildings, streets, 10)
+        assert (nearest == None).sum() == 137  # noqa: E711

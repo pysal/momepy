@@ -109,6 +109,19 @@ class TestDistribution:
         r = mm.neighbors(self.df_tessellation, self.tess_contiguity, weighted=True)
         assert_result(r, expected, self.df_buildings, exact=False, check_names=False)
 
+    def test_street_alignment(self):
+        building_orientation = mm.orientation(self.df_buildings)
+        street_orientation = mm.orientation(self.df_streets)
+        street_index = mm.get_nearest_street(self.df_buildings, self.df_streets)
+        expected = {
+            "mean": 2.024707906317863,
+            "sum": 291.5579385097722,
+            "min": 0.0061379200252815,
+            "max": 20.357934749623894,
+        }
+        r = mm.street_alignment(building_orientation, street_orientation, street_index)
+        assert_result(r, expected, self.df_buildings)
+
 
 class TestEquality:
     def setup_method(self):
@@ -119,8 +132,10 @@ class TestEquality:
         self.df_tessellation = gpd.read_file(
             test_file_path, layer="tessellation"
         ).set_index("uID")
+        self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.graph = Graph.build_knn(self.df_buildings.centroid, k=5)
         self.df_buildings["orientation"] = mm.orientation(self.df_buildings)
+        self.df_streets["orientation"] = mm.orientation(self.df_streets)
         self.contiguity = Graph.build_contiguity(self.df_buildings)
         self.tessellation_contiguity = Graph.build_contiguity(self.df_tessellation)
         self.neighborhood_graph = self.tessellation_contiguity.higher_order(
@@ -186,5 +201,22 @@ class TestEquality:
             "uID",
             weighted=True,
             verbose=False,
+        ).series
+        assert_series_equal(new, old, check_names=False, check_index=False)
+
+    def test_street_alignment(self):
+        street_index = mm.get_nearest_street(self.df_buildings, self.df_streets)
+        self.df_buildings["nID"] = street_index
+        new = mm.street_alignment(
+            self.df_buildings["orientation"],
+            self.df_streets["orientation"],
+            street_index,
+        )
+        old = mm.StreetAlignment(
+            self.df_buildings.reset_index(),
+            self.df_streets.reset_index(),
+            "orientation",
+            left_network_id="nID",
+            right_network_id="index",
         ).series
         assert_series_equal(new, old, check_names=False, check_index=False)
