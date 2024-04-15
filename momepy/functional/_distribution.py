@@ -1,6 +1,5 @@
 import geopandas as gpd
 import numpy as np
-import pandas as pd
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
@@ -119,7 +118,7 @@ def alignment(orientation: Series, graph: Graph) -> Series:
 
     Parameters
     ----------
-    orientation : pd.Series
+    orientation : Series
         A series containing orientation (e.g. measured by the :func:`orientation`
         function) indexed using the same index that has been used to build the graph.
     graph : libpysal.graph.Graph
@@ -197,7 +196,7 @@ def mean_interbuilding_distance(
     -------
     Series
     """
-    distance = pd.Series(
+    distance = Series(
         shapely.distance(
             geometry.geometry.loc[
                 adjacency_graph._adjacency.index.get_level_values(0)
@@ -295,7 +294,7 @@ def neighbors(
 
     Parameters
     ----------
-    gdf : gpd.GeoDataFrame
+    gdf : GeoDataFrame | GeoSeries
         GeoDataFrame containing geometries to analyse.
     graph : libpysal.graph.Graph
         Graph representing spatial relationships between elements.
