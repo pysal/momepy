@@ -339,4 +339,4 @@ def street_alignment(
     -------
     Series
     """
-    return (building_orientation - stret_orientation.loc[street_index].values).abs()
+    return (building_orientation - street_orientation.loc[street_index].values).abs()
