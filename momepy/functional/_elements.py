@@ -4,6 +4,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import shapely
+from geopandas import GeoDataFrame, GeoSeries
 from joblib import Parallel, delayed
 from libpysal.cg import voronoi_frames
 from packaging.version import Version
@@ -20,15 +21,11 @@ __all__ = [
 
 
 def morphological_tessellation(
-    geometry: gpd.GeoSeries | gpd.GeoDataFrame,
-    clip: str
-    | shapely.Geometry
-    | gpd.GeoSeries
-    | gpd.GeoDataFrame
-    | None = "bounding_box",
+    geometry: GeoSeries | GeoDataFrame,
+    clip: str | shapely.Geometry | GeoSeries | GeoDataFrame | None = "bounding_box",
     shrink: float = 0.4,
     segment: float = 0.5,
-) -> gpd.GeoSeries:
+) -> GeoSeries:
     """Generate morphological tessellation.
 
     Morpohological tessellation is a method to divide space into cells based on
@@ -56,9 +53,9 @@ def morphological_tessellation(
 
     Parameters
     ----------
-    geometry : gpd.GeoSeries | gpd.GeoDataFrame
+    geometry : GeoSeries | GeoDataFrame
         A GeoDataFrame or GeoSeries containing buildings to tessellate the space around.
-    clip : str | shapely.Geometry | gpd.GeoSeries | gpd.GeoDataFrame | None
+    clip : str | shapely.Geometry | GeoSeries | GeoDataFrame | None
         Polygon used to clip the Voronoi polygons, by default "bounding_box". You can
         pass any option accepted by :func:`libpysal.cg.voronoi_frames` or geopandas
         object that will be automatically unioned.
@@ -70,7 +67,7 @@ def morphological_tessellation(
 
     Returns
     -------
-    gpd.GeoSeries
+    GeoSeries
         GeoSeries with an index matching the index of input geometry
 
     See also
@@ -79,7 +76,7 @@ def morphological_tessellation(
     momepy.CheckTessellationInput
     momepy.verify_tessellation
     """
-    if isinstance(clip, gpd.GeoSeries | gpd.GeoDataFrame):
+    if isinstance(clip, GeoSeries | GeoDataFrame):
         clip = clip.union_all() if GPD_GE_10 else clip.unary_union
 
     return voronoi_frames(
@@ -93,13 +90,13 @@ def morphological_tessellation(
 
 
 def enclosed_tessellation(
-    geometry: gpd.GeoSeries | gpd.GeoDataFrame,
-    enclosures: gpd.GeoSeries,
+    geometry: GeoSeries | GeoDataFrame,
+    enclosures: GeoSeries,
     shrink: float = 0.4,
     segment: float = 0.5,
     threshold: float = 0.05,
     n_jobs: int = -1,
-) -> gpd.GeoDataFrame:
+) -> GeoDataFrame:
     """Generate enclosed tessellation
 
     Enclosed tessellation is an enhanced :func:`morphological_tessellation`, based on
@@ -130,9 +127,9 @@ def enclosed_tessellation(
 
     Parameters
     ----------
-    geometry : gpd.GeoSeries | gpd.GeoDataFrame
+    geometry : GeoSeries | GeoDataFrame
         A GeoDataFrame or GeoSeries containing buildings to tessellate the space around.
-    enclosures : gpd.GeoSeries
+    enclosures : GeoSeries
         The enclosures geometry, which can be generated using :func:`momepy.enclosures`.
     shrink : float, optional
         The distance for negative buffer to generate space between adjacent polygons).
@@ -151,7 +148,7 @@ def enclosed_tessellation(
 
     Returns
     -------
-    gpd.GeoDataFrame
+    GeoDataFrame
         GeoDataFrame with an index matching the index of input geometry and a column
         matching the index of input enclosures.
 
@@ -238,7 +235,7 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
         tess[enclosure_id] = ix
         return tess
 
-    return gpd.GeoDataFrame(
+    return GeoDataFrame(
         {enclosure_id: ix},
         geometry=[poly],
         index=[-1],
@@ -258,9 +255,9 @@ def verify_tessellation(tesselation, geometry):
 
     Parameters
     ----------
-    tesselation : gpd.GeoSeries | gpd.GeoDataFrame
+    tesselation : GeoSeries | GeoDataFrame
         tessellation geometry
-    geometry : gpd.GeoSeries | gpd.GeoDataFrame
+    geometry : GeoSeries | GeoDataFrame
         building geometry used to generate tessellation
 
     Returns
@@ -299,17 +296,17 @@ def verify_tessellation(tesselation, geometry):
 
 
 def get_nearest_street(
-    buildings: gpd.GeoSeries | gpd.GeoDataFrame,
-    streets: gpd.GeoSeries | gpd.GeoDataFrame,
+    buildings: GeoSeries | GeoDataFrame,
+    streets: GeoSeries | GeoDataFrame,
     max_distance: float | None = None,
 ) -> np.ndarray:
     """Identify the nearest street for each building.
 
     Parameters
     ----------
-    buildings : gpd.GeoSeries | gpd.GeoDataFrame
+    buildings : GeoSeries | GeoDataFrame
         GeoSeries or GeoDataFrame of buildings
-    streets : gpd.GeoSeries | gpd.GeoDataFrame
+    streets : GeoSeries | GeoDataFrame
         GeoSeries or GeoDataFrame of streets
     max_distance : float | None, optional
         Maximum distance within which to query for nearest street. Must be
