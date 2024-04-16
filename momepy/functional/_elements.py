@@ -199,19 +199,28 @@ def enclosed_tessellation(
         delayed(_tess)(*t, threshold, shrink, segment, index_name) for t in tuples
     )
 
+    new_df = pd.concat(new, axis=0)
+
+    # some enclosures had building intersections that did not meet the threshold
+    if -1 in new_df.index:
+        unchanged_in_new = new_df.loc[[-1]]
+        new_df = new_df.drop(-1)
+        clean_blocks = pd.concat(
+            [enclosures.drop(altered).drop(columns="position"), unchanged_in_new]
+        )
+    else:
+        clean_blocks = enclosures.drop(altered).drop(columns="position")
+
+    # assign negative index to enclosures with no buildings
+    clean_blocks.index = range(-len(clean_blocks), 0, 1)
+
     # get building index for enclosures with single building
     singles = enclosures.iloc[single]
     singles.index = singles.position.loc[single].apply(
         lambda ix: geometry.iloc[res[inp == ix]].index[0]
     )
     # combine results
-    clean_blocks = enclosures.drop(altered)
-    clean_blocks.index = range(
-        -len(clean_blocks), 0, 1
-    )  # assign negative index to enclosures with no buildings
-    return pd.concat(
-        new + [singles.drop(columns="position"), clean_blocks.drop(columns="position")]
-    )
+    return pd.concat([new_df, singles.drop(columns="position"), clean_blocks])
 
 
 def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
