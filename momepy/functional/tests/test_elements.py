@@ -134,10 +134,11 @@ class TestElements:
         )
         assert not threshold_elimination.index.duplicated().any()
         assert_index_equal(threshold_elimination.index, tessellation.index)
-        assert_geodataframe_equal(
-            tessellation.sort_values("geometry").reset_index(drop=True),
-            threshold_elimination.sort_values("geometry").reset_index(drop=True),
-        )
+        if GPD_GE_013:
+            assert_geodataframe_equal(
+                tessellation.sort_values("geometry").reset_index(drop=True),
+                threshold_elimination.sort_values("geometry").reset_index(drop=True),
+            )
 
     def test_verify_tessellation(self):
         df = self.df_buildings
