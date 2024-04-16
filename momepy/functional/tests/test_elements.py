@@ -6,7 +6,7 @@ from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
 from pandas.testing import assert_index_equal
 from shapely import affinity
-from shapely.geometry import MultiPoint, Polygon
+from shapely.geometry import MultiPoint, Polygon, box
 
 import momepy as mm
 
@@ -113,6 +113,31 @@ class TestElements:
         )
 
         assert_geodataframe_equal(tessellation, no_threshold_check)
+
+        buildings = pd.concat(
+            [
+                self.df_buildings,
+                gpd.GeoDataFrame(
+                    {"uID": [145, 146]},
+                    geometry=[
+                        box(1603283, 6464150, 1603316, 6464234),
+                        box(1603293, 6464150, 1603316, 6464244),
+                    ],
+                    crs=self.df_buildings.crs,
+                    index=[144, 145],
+                ),
+            ]
+        )
+
+        threshold_elimination = mm.enclosed_tessellation(
+            buildings, self.enclosures.geometry, threshold=0.99, n_jobs=1
+        )
+        assert not threshold_elimination.index.duplicated().any()
+        assert_index_equal(threshold_elimination.index, tessellation.index)
+        assert_geodataframe_equal(
+            tessellation.sort_values("geometry").reset_index(drop=True),
+            threshold_elimination.sort_values("geometry").reset_index(drop=True),
+        )
 
     def test_verify_tessellation(self):
         df = self.df_buildings
