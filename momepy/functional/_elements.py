@@ -201,7 +201,7 @@ def enclosed_tessellation(
 
     new_df = pd.concat(new, axis=0)
 
-    # some enclosures had building intersections that did not meet the thrqeshold
+    # some enclosures had building intersections that did not meet the threshold
     if -1 in new_df.index:
         unchanged_in_new = new_df.loc[[-1]]
         new_df = new_df.drop(-1)
