@@ -3,9 +3,12 @@ import numpy as np
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
+from numpy.typing import NDArray
 from packaging.version import Version
-from pandas import Series
-from scipy import sparse
+from pandas import DataFrame, Series
+from scipy import sparse, stats
+
+from ..utils import limit_range
 
 __all__ = [
     "orientation",
@@ -16,6 +19,7 @@ __all__ = [
     "building_adjacency",
     "neighbors",
     "street_alignment",
+    "describe",
 ]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
@@ -339,3 +343,79 @@ def street_alignment(
     Series
     """
     return (building_orientation - street_orientation.loc[street_index].values).abs()
+
+
+def describe(
+    values: NDArray[np.float_] | Series,
+    graph: Graph,
+    q: tuple[float, float] | None = None,
+    include_mode: bool = False,
+) -> DataFrame:
+    """Describe the distribution of values within a set neighbourhood.
+
+    Given the graph, computes the descriptive statisitcs of values within the
+    neighbourhood of each node. Optionally, the values can be limited to a certain
+    quantile range before computing the statistics.
+
+    Notes
+    -----
+    The index of ``values`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    values : NDArray[np.float_] | Series
+        array of values
+    graph : libpysal.graph.Graph
+        Graph representing spatial relationships between elements.
+    q : tuple[float, float] | None, optional
+        tuple of percentages for the percentiles to compute. Values must be between 0
+        and 100 inclusive. When set, values below and above the percentiles will be
+        discarded before computation of the average. The percentiles are computed for
+        each neighborhood. By default None
+    include_mode : False
+        Compute mode along with other statistics. Default is False. Mode is
+        computationally expensive and not useful for continous variables.
+
+    Returns
+    -------
+    DataFrame
+        A DataFrame with descriptive statistics
+    """
+
+    def _describe(values, q, include_mode=False):
+        """Helper function to calculate average."""
+        values = limit_range(values, q)
+
+        results = [
+            np.mean(values),
+            np.median(values),
+            np.std(values),
+            np.min(values),
+            np.max(values),
+            np.sum(values),
+        ]
+        if include_mode:
+            results.append(stats.mode(values, keepdims=False)[0])
+        return results
+
+    if not isinstance(values, Series):
+        values = Series(values)
+
+    grouper = values.take(graph._adjacency.index.codes[1]).groupby(
+        graph._adjacency.index.codes[0]
+    )
+
+    if q is None:
+        stat_ = grouper.agg(["mean", "median", "std", "min", "max", "sum"])
+        if include_mode:
+            stat_["mode"] = grouper.agg(lambda x: stats.mode(x, keepdims=False)[0])
+    else:
+        agg = graph.apply(values, _describe, q=q, include_mode=include_mode)
+        stat_ = DataFrame(zip(*agg, strict=True)).T
+        cols = ["mean", "median", "std", "min", "max", "sum"]
+        if include_mode:
+            cols.append("mode")
+        stat_.columns = cols
+
+    return stat_
