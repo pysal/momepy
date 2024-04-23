@@ -438,7 +438,7 @@ class AverageCharacter:
                 values_list = data.loc[neighbours]
 
                 if rng:
-                    values_list = limit_range(values_list, rng=rng)
+                    values_list = limit_range(values_list.values, rng=rng)
                 if "mean" in mode:
                     means.append(np.mean(values_list))
                 if "median" in mode:
