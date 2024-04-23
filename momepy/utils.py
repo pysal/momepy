@@ -469,7 +469,6 @@ def limit_range(vals, rng):
         The limited array.
     """
 
-    vals = np.asarray(vals)
     nan_tracker = np.isnan(vals)
 
     if (len(vals) > 2) and (not nan_tracker.all()):

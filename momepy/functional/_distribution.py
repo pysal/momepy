@@ -385,7 +385,7 @@ def describe(
 
     def _describe(values, q, include_mode=False):
         """Helper function to calculate average."""
-        values = limit_range(values, q)
+        values = limit_range(values.values, q)
 
         results = [
             np.mean(values),
@@ -411,7 +411,7 @@ def describe(
         if include_mode:
             stat_["mode"] = grouper.agg(lambda x: stats.mode(x, keepdims=False)[0])
     else:
-        agg = graph.apply(values, _describe, q=q, include_mode=include_mode)
+        agg = grouper.apply(_describe, q=q, include_mode=include_mode)
         stat_ = DataFrame(zip(*agg, strict=True)).T
         cols = ["mean", "median", "std", "min", "max", "sum"]
         if include_mode:
