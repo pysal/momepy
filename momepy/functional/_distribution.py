@@ -346,7 +346,7 @@ def street_alignment(
 
 
 def describe(
-    values: NDArray[np.float_] | Series,
+    y: NDArray[np.float_] | Series,
     graph: Graph,
     q: tuple[float, float] | None = None,
     include_mode: bool = False,
@@ -364,8 +364,8 @@ def describe(
 
     Parameters
     ----------
-    values : NDArray[np.float_] | Series
-        An array of values.
+    y : NDArray[np.float_] | Series
+        An 1D array of numeric values to be described.
     graph : libpysal.graph.Graph
         Graph representing spatial relationships between elements.
     q : tuple[float, float] | None, optional
@@ -399,10 +399,10 @@ def describe(
             results.append(stats.mode(values, keepdims=False)[0])
         return results
 
-    if not isinstance(values, Series):
-        values = Series(values)
+    if not isinstance(y, Series):
+        y = Series(y)
 
-    grouper = values.take(graph._adjacency.index.codes[1]).groupby(
+    grouper = y.take(graph._adjacency.index.codes[1]).groupby(
         graph._adjacency.index.codes[0]
     )
 
