@@ -7,7 +7,7 @@ from pandas.testing import assert_frame_equal, assert_series_equal
 
 import momepy as mm
 
-from ._testing import assert_result
+from .conftest import assert_result
 
 GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
