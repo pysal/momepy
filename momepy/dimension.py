@@ -402,8 +402,7 @@ class AverageCharacter:
         mode="all",
         verbose=True,
     ):
-        # TODO: This is just a fancy lag. It should probably live in Graph itself and be
-        # TODO: refactored either on top of sparse array or pandas.groupby.
+        # TODO: deprecate in favor of momepy.describe
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
