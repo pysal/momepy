@@ -3,19 +3,13 @@ import numpy as np
 import pandas as pd
 import pytest
 from packaging.version import Version
-from pandas.testing import assert_frame_equal, assert_index_equal, assert_series_equal
+from pandas.testing import assert_frame_equal, assert_series_equal
 
 import momepy as mm
 
+from .conftest import assert_result
+
 GPD_013 = Version(gpd.__version__) >= Version("0.13")
-
-
-def assert_result(result, expected, geometry, **kwargs):
-    """Check the expected values and types of the result."""
-    for key, value in expected.items():
-        assert getattr(result, key)() == pytest.approx(value)
-    assert isinstance(result, pd.Series)
-    assert_index_equal(result.index, geometry.index, **kwargs)
 
 
 class TestShape:

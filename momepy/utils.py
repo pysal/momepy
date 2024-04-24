@@ -469,7 +469,6 @@ def limit_range(vals, rng):
         The limited array.
     """
 
-    vals = np.asarray(vals)
     nan_tracker = np.isnan(vals)
 
     if (len(vals) > 2) and (not nan_tracker.all()):
@@ -479,11 +478,9 @@ def limit_range(vals, rng):
             method = {"interpolation": "nearest"}
         rng = sorted(rng)
         if nan_tracker.any():
-            lower = np.nanpercentile(vals, rng[0], **method)
-            higher = np.nanpercentile(vals, rng[1], **method)
+            lower, higher = np.nanpercentile(vals, rng, **method)
         else:
-            lower = np.percentile(vals, rng[0], **method)
-            higher = np.percentile(vals, rng[1], **method)
+            lower, higher = np.percentile(vals, rng, **method)
         vals = vals[(lower <= vals) & (vals <= higher)]
 
     return vals

@@ -4,7 +4,7 @@ from pandas.testing import assert_series_equal
 
 import momepy as mm
 
-from .test_shape import assert_result
+from .conftest import assert_result
 
 
 class TestDistribution:
