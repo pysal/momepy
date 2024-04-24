@@ -4,7 +4,10 @@ from numpy.typing import NDArray
 from pandas import DataFrame, Series
 from scipy import stats
 
-from ..utils import limit_range
+try:
+    from numba import njit
+except ModuleNotFoundError:
+    from libpysal.common import jit as njit
 
 __all__ = ["describe"]
 
@@ -47,9 +50,30 @@ def describe(
         A DataFrame with descriptive statistics.
     """
 
+    @njit
+    def _mode(array):
+        """Custom mode function for numba."""
+        array = np.sort(array.ravel())
+        mask = np.empty(array.shape, dtype=np.bool_)
+        mask[:1] = True
+        mask[1:] = array[1:] != array[:-1]
+        unique = array[mask]
+        idx = np.nonzero(mask)[0]
+        idx = np.append(idx, mask.size)
+        counts = np.diff(idx)
+        return unique[np.argmax(counts)]
+
+    @njit
     def _describe(values, q, include_mode=False):
         """Helper function to calculate average."""
-        values = limit_range(values.values, q)
+        nan_tracker = np.isnan(values)
+
+        if (len(values) > 2) and (not nan_tracker.all()):
+            if nan_tracker.any():
+                lower, higher = np.nanpercentile(values, q)
+            else:
+                lower, higher = np.percentile(values, q)
+            values = values[(lower <= values) & (values <= higher)]
 
         results = [
             np.mean(values),
@@ -60,7 +84,7 @@ def describe(
             np.sum(values),
         ]
         if include_mode:
-            results.append(stats.mode(values, keepdims=False)[0])
+            results.append(_mode(values))
         return results
 
     if not isinstance(y, Series):
@@ -75,7 +99,7 @@ def describe(
         if include_mode:
             stat_["mode"] = grouper.agg(lambda x: stats.mode(x, keepdims=False)[0])
     else:
-        agg = grouper.agg(_describe, q=q, include_mode=include_mode)
+        agg = grouper.agg(lambda x: _describe(x.values, q=q, include_mode=include_mode))
         stat_ = DataFrame(zip(*agg, strict=True)).T
         cols = ["mean", "median", "std", "min", "max", "sum"]
         if include_mode:
