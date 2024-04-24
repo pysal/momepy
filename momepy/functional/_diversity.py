@@ -75,7 +75,7 @@ def describe(
         if include_mode:
             stat_["mode"] = grouper.agg(lambda x: stats.mode(x, keepdims=False)[0])
     else:
-        agg = grouper.apply(_describe, q=q, include_mode=include_mode)
+        agg = grouper.agg(_describe, q=q, include_mode=include_mode)
         stat_ = DataFrame(zip(*agg, strict=True)).T
         cols = ["mean", "median", "std", "min", "max", "sum"]
         if include_mode:
