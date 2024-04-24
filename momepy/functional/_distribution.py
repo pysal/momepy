@@ -365,14 +365,14 @@ def describe(
     Parameters
     ----------
     values : NDArray[np.float_] | Series
-        array of values
+        An array of values.
     graph : libpysal.graph.Graph
         Graph representing spatial relationships between elements.
     q : tuple[float, float] | None, optional
-        tuple of percentages for the percentiles to compute. Values must be between 0
+        Tuple of percentages for the percentiles to compute. Values must be between 0
         and 100 inclusive. When set, values below and above the percentiles will be
         discarded before computation of the average. The percentiles are computed for
-        each neighborhood. By default None
+        each neighborhood. By default None.
     include_mode : False
         Compute mode along with other statistics. Default is False. Mode is
         computationally expensive and not useful for continous variables.
@@ -380,7 +380,7 @@ def describe(
     Returns
     -------
     DataFrame
-        A DataFrame with descriptive statistics
+        A DataFrame with descriptive statistics.
     """
 
     def _describe(values, q, include_mode=False):
