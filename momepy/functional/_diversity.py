@@ -1,12 +1,9 @@
+import warnings
+
 import numpy as np
 from libpysal.graph import Graph
 from numpy.typing import NDArray
 from pandas import DataFrame, Series
-
-try:
-    from numba import njit
-except ModuleNotFoundError:
-    from libpysal.common import jit as njit
 
 __all__ = ["describe"]
 
@@ -28,6 +25,9 @@ def describe(
     The index of ``values`` must match the index along which the ``graph`` is
     built.
 
+    The numba package is used extensively in this function to accelerate the computation
+    of statistics. Without numba, these computations may become slow on large data.
+
     Parameters
     ----------
     y : NDArray[np.float_] | Series
@@ -48,6 +48,17 @@ def describe(
     DataFrame
         A DataFrame with descriptive statistics.
     """
+    try:
+        from numba import njit
+    except (ModuleNotFoundError, ImportError):
+        warnings.warn(
+            "The numba package is used extensively in this function to accelerate the"
+            " computation of statistics but it is not installed or  cannot be imported."
+            " Without numba, these computations may become slow on large data.",
+            UserWarning,
+            stacklevel=2,
+        )
+        from libpysal.common import jit as njit
 
     @njit
     def _mode(array):
