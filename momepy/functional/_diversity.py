@@ -2,7 +2,6 @@ import numpy as np
 from libpysal.graph import Graph
 from numpy.typing import NDArray
 from pandas import DataFrame, Series
-from scipy import stats
 
 try:
     from numba import njit
@@ -97,7 +96,7 @@ def describe(
     if q is None:
         stat_ = grouper.agg(["mean", "median", "std", "min", "max", "sum"])
         if include_mode:
-            stat_["mode"] = grouper.agg(lambda x: stats.mode(x, keepdims=False)[0])
+            stat_["mode"] = grouper.agg(lambda x: _mode(x.values))
     else:
         agg = grouper.agg(lambda x: _describe(x.values, q=q, include_mode=include_mode))
         stat_ = DataFrame(zip(*agg, strict=True)).T
