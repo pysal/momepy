@@ -47,6 +47,14 @@ dependencies = [
 Home = "http://momepy.org"
 Repository = "https://github.com/pysal/momepy"
 
+[project.optional-dependencies]
+plus = [
+    "numba",
+    "inequality",
+    "mapclassify",
+    "esda",
+]
+
 [tool.setuptools.packages.find]
 include = ["momepy", "momepy.*"]
 

@@ -13,6 +13,7 @@ dependencies:
   - shapely>=2
   - esda
   - tqdm
+  - numba
   # testing
   - codecov
   - pytest
