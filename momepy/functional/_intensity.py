@@ -1,13 +1,11 @@
 import geopandas as gpd
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
-from packaging.version import Version
 from pandas import Series
-from shapely import buffer, get_num_interior_rings, unary_union
+import shapely
 
 __all__ = ["courtyards"]
 
-GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 
 def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
@@ -22,20 +20,22 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
     graph : libpysal.graph.Graph
         A spatial weights matrix for the geodataframe,
         it is used to denote adjacent buildings.
+
     Returns
-    ----------
-    series : Series
+    -------
+    Series
         A Series containing the resulting values.
 
     Examples
     --------
-    >>> courtyards = mm.calculate_courtyards(buildings_df, graph)"""
+    >>> courtyards = mm.calculate_courtyards(buildings_df, graph)
+    """
 
-    # helper function to carry out the per group calculations
     def _calculate_courtyards(group):
-        return get_num_interior_rings(unary_union(buffer(group.values, 0.01)))
+    """helper function to carry out the per group calculations"""
+        return shapely.get_num_interior_rings(shapely.union_all(shapely.buffer(group.values, 0.01)))
 
-    ## calculate per group courtyards
+    # calculate per group courtyards
     temp_result = (
         geometry["geometry"]
         .groupby(graph.component_labels.values)

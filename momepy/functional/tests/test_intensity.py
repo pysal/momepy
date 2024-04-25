@@ -1,14 +1,12 @@
 import geopandas as gpd
 import numpy as np
 from libpysal.graph import Graph
-from packaging.version import Version
 from pandas.testing import assert_series_equal
 
 import momepy as mm
 
 from .conftest import assert_result
 
-GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 
 class TestIntensity:
