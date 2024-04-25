@@ -8,7 +8,6 @@ import momepy as mm
 from .conftest import assert_result
 
 
-
 class TestIntensity:
     def setup_method(self):
         test_file_path = mm.datasets.get_path("bubenec")
@@ -35,11 +34,8 @@ class TestIntensity:
         ).assign_self_weight()
 
     def test_courtyards(self):
-        check = 0.6805555555555556
         courtyards = mm.courtyards(self.df_buildings, self.buildings_graph)
-
-        expected = {"mean": check}
-
+        expected = {"mean": 0.6805555555555556, "sum": 98, "min": 0, "max": 1}
         assert_result(courtyards, expected, self.df_buildings)
 
 

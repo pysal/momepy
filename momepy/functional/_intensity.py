@@ -1,11 +1,9 @@
-import geopandas as gpd
+import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from pandas import Series
-import shapely
 
 __all__ = ["courtyards"]
-
 
 
 def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
@@ -32,8 +30,10 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
     """
 
     def _calculate_courtyards(group):
-    """helper function to carry out the per group calculations"""
-        return shapely.get_num_interior_rings(shapely.union_all(shapely.buffer(group.values, 0.01)))
+        """helper function to carry out the per group calculations"""
+        return shapely.get_num_interior_rings(
+            shapely.union_all(shapely.buffer(group.values, 0.01))
+        )
 
     # calculate per group courtyards
     temp_result = (
