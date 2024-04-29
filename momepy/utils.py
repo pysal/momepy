@@ -96,7 +96,9 @@ def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
     graph.graph["approach"] = "dual"
     key = 0
 
-    sw = libpysal.weights.Queen.from_dataframe(gdf_network, silence_warnings=True)
+    sw = libpysal.weights.Queen.from_dataframe(
+        gdf_network, silence_warnings=True, use_index=False
+    )
     cent = gdf_network.geometry.centroid
     gdf_network["temp_x_coords"] = cent.x
     gdf_network["temp_y_coords"] = cent.y

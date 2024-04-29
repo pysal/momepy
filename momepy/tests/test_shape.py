@@ -3,7 +3,7 @@ import math
 import geopandas as gpd
 import numpy as np
 import pytest
-from shapely.geometry import MultiLineString, Point, Polygon, MultiPolygon
+from shapely.geometry import MultiLineString, MultiPolygon, Point, Polygon
 
 import momepy as mm
 from momepy.shape import _circle_area

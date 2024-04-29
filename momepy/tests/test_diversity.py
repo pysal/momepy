@@ -114,7 +114,7 @@ class TestDiversity:
             self.df_tessellation.area - self.df_tessellation.area.mean()
         )
         with pytest.raises(ValueError):
-            mm.Gini(self.df_tessellation, "negative", self.sw, "uID").series
+            mm.Gini(self.df_tessellation, "negative", self.sw, "uID").series  # noqa: B018
         assert (
             mm.Gini(self.df_tessellation, "area", self.sw_drop, "uID")
             .series.isna()
@@ -220,7 +220,9 @@ class TestDiversity:
 
         _data = {"uID": [9999], "area": 1.0}
         _pgon = [Polygon(((0, 0), (0, 1), (1, 1), (1, 0)))]
-        _gdf = gpd.GeoDataFrame(_data, index=[9999], geometry=_pgon)
+        _gdf = gpd.GeoDataFrame(
+            _data, index=[9999], geometry=_pgon, crs=self.df_tessellation.crs
+        )
 
         perc = mm.Percentiles(
             pd.concat([self.df_tessellation, _gdf]),

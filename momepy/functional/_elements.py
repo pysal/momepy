@@ -10,7 +10,7 @@ from libpysal.cg import voronoi_frames
 from packaging.version import Version
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
-GPD_GE_10 = Version(gpd.__version__) >= Version("1.0.0")
+GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 
 __all__ = [
     "morphological_tessellation",
