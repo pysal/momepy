@@ -10,6 +10,7 @@ import momepy as mm
 from .conftest import assert_result
 
 GPD_013 = Version(gpd.__version__) >= Version("0.13")
+PD_210 = Version(gpd.__version__) >= Version("2.1.0")
 
 
 class TestDiscribe:
@@ -180,6 +181,9 @@ class TestDescribeReached:
         assert max(df["fl_area"]["sum"]) == pytest.approx(79169.31385861784)
         assert max(df["fl_area"]["mean"]) == pytest.approx(7916.931385861784)
 
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous versions"
+    )
     def test_describe_reached_sw(self):
         df_sw = mm.describe_reached(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph
@@ -234,6 +238,9 @@ class TestDescribeReached:
             new_area_mean, old_area_mean.fillna(0), check_names=False, check_dtype=False
         )
 
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous versions"
+    )
     def test_describe_reached_equiality_sw(self):
         new_df = mm.describe_reached(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph

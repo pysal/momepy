@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from libpysal.graph import Graph
 from numpy.typing import NDArray
+from packaging.version import Version
 from pandas import DataFrame, Series
 
 try:
@@ -138,6 +139,7 @@ def describe(
     DataFrame
         A DataFrame with descriptive statistics.
     """
+
     if not isinstance(y, Series):
         y = Series(y)
 
@@ -189,6 +191,9 @@ def describe_reached(
     -------
     DataFrame
     """
+
+    if Version(pd.__version__) <= Version("2.1.0"):
+        raise NotImplementedError("Please update to a newer version of pandas.")
 
     if (result_index is None) and (graph is None):
         raise ValueError(
