@@ -2,8 +2,8 @@ import geopandas as gpd
 import numpy as np
 import pytest
 import shapely
-from packaging.version import Version
 from libpysal.weights import Queen
+from packaging.version import Version
 
 import momepy as mm
 
@@ -173,7 +173,9 @@ class TestDistribution:
         assert self.df_streets["dev"].mean() == pytest.approx(check)
 
     def test_BuildingAdjacency(self):
-        sw = Queen.from_dataframe(self.df_buildings, ids="uID", silence_warnings=True)
+        sw = Queen.from_dataframe(
+            self.df_buildings, ids="uID", silence_warnings=True, use_index=False
+        )
         swh = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         self.df_buildings["adj_sw"] = mm.BuildingAdjacency(
             self.df_buildings,

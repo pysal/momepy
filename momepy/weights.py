@@ -122,11 +122,11 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True
     elif gdf is not None:
         if contiguity == "queen":
             first_order = libpysal.weights.Queen.from_dataframe(
-                gdf, ids=ids, silence_warnings=silent
+                gdf, ids=ids, silence_warnings=silent, use_index=False
             )
         elif contiguity == "rook":
             first_order = libpysal.weights.Rook.from_dataframe(
-                gdf, ids=ids, silence_warnings=silent
+                gdf, ids=ids, silence_warnings=silent, use_index=False
             )
         else:
             raise ValueError(f"{contiguity} is not supported. Use 'queen' or 'rook'.")

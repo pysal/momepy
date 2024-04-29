@@ -88,7 +88,9 @@ def preprocess(
         print("Loop", loop + 1, f"out of {loops}.") if verbose else None
         blg.reset_index(inplace=True, drop=True)
         blg["mm_uid"] = range(len(blg))
-        sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
+        sw = libpysal.weights.contiguity.Rook.from_dataframe(
+            blg, silence_warnings=True, use_index=False
+        )
         blg["neighbors"] = sw.neighbors.values()
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
         blg["circu"] = CircularCompactness(blg).series
@@ -152,7 +154,7 @@ def preprocess(
                     if not subset.empty:
                         geoms.append(blg[blg["mm_uid"] == j].iloc[0].geometry)
                         blg.drop(blg[blg["mm_uid"] == j].index[0], inplace=True)
-                new_geom = shapely.ops.unary_union(geoms)
+                new_geom = shapely.union_all(geoms)
                 blg.loc[blg.loc[blg["mm_uid"] == key].index[0], blg.geometry.name] = (
                     new_geom
                 )
@@ -238,13 +240,13 @@ def remove_false_nodes(gdf):
 
         # remove incorrect geometries and append fixed versions
         df = df.drop(merge)
-        final = gpd.GeoSeries(new).explode(ignore_index=True)
+        final = gpd.GeoSeries(new, crs=df.crs).explode(ignore_index=True)
         if isinstance(gdf, gpd.GeoDataFrame):
             return pd.concat(
                 [
                     df,
                     gpd.GeoDataFrame(
-                        {df.geometry.name: final}, geometry=df.geometry.name
+                        {df.geometry.name: final}, geometry=df.geometry.name, crs=df.crs
                     ),
                 ],
                 ignore_index=True,
@@ -757,7 +759,7 @@ def _selecting_rabs_from_poly(
         rab_adj.index.name = "index"
 
         # adding a hausdorff_distance threshold
-        rab_adj["hdist"] = 0
+        rab_adj["hdist"] = 0.0
         # TODO: (should be a way to vectorize)
         for i, group in rab_adj.groupby("index_right"):
             for g in group.itertuples():
@@ -1312,7 +1314,7 @@ def _get_rebuilt_edges(
     cols_drop = ["new_origin_pt", "new_destination_pt"]
     new_edges_gdf = new_edges_gdf.drop(columns=cols_drop)
 
-    new_edges_gdf = new_edges_gdf.set_geometry("new_geometry", drop=True)
+    new_edges_gdf = new_edges_gdf.set_geometry("new_geometry")
     new_edges_gdf.loc[:, "length"] = new_edges_gdf.length
 
     # Update the indices:
@@ -1573,10 +1575,9 @@ class FaceArtifacts:
         # Polygonize street network
         polygons = gpd.GeoSeries(
             shapely.polygonize(  # polygonize
-                [gdf.unary_union]
-            ).geoms,  # get parts of the collection from polygonize
-            crs=gdf.crs,
-        ).explode(ignore_index=True)  # shouldn't be needed but doesn't hurt to ensure
+                [gdf.dissolve().geometry.item()]
+            )
+        ).explode(ignore_index=True)
 
         # Store geometries as a GeoDataFrame
         self.polygons = gpd.GeoDataFrame(geometry=polygons)

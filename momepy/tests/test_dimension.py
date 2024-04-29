@@ -219,7 +219,7 @@ class TestDimensions:
 
         # avoid infinity
         blg = gpd.GeoDataFrame(
-            dict(height=[2, 5]),
+            {"height": [2, 5]},
             geometry=[
                 Point(0, 0).buffer(10, cap_style=3),
                 Point(30, 0).buffer(10, cap_style=3),

@@ -61,7 +61,7 @@ class COINS:
     -----
     The LineStrings of the ``edge_gdf`` are not expected to overlap. If you are creating
     it using OSMnx, don't forget to cast the graph to undirected using
-    ``osmnx.get_undirected(G)`` prior converting it to a GeoDataFrame.
+    ``osmnx.convert.to_undirected(G)`` prior converting it to a GeoDataFrame.
     """
 
     def __init__(self, edge_gdf, angle_threshold=0):

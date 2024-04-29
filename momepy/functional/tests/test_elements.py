@@ -21,7 +21,8 @@ class TestElements:
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.limit = mm.buffered_limit(self.df_buildings, 50)
         self.enclosures = mm.enclosures(
-            self.df_streets, gpd.GeoSeries([self.limit.exterior])
+            self.df_streets,
+            gpd.GeoSeries([self.limit.exterior], crs=self.df_streets.crs),
         )
 
     def test_morphological_tessellation(self):
@@ -77,6 +78,7 @@ class TestElements:
                         affinity.rotate(df.geometry.iloc[0], 12),
                     ],
                     index=[144, 145, 146],
+                    crs=df.crs,
                 ),
             ]
         )
@@ -155,6 +157,7 @@ class TestElements:
                         Polygon([(x, y), (x, y + 1), (x + 1, y)]),
                     ],
                     index=[144],
+                    crs=df.crs,
                 ),
             ]
         )

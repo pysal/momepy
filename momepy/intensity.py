@@ -5,9 +5,13 @@
 
 import collections
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
+from packaging.version import Version
 from tqdm.auto import tqdm  # progress bar
+
+GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 
 __all__ = [
     "AreaRatio",
@@ -247,7 +251,9 @@ class Courtyards:
             print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 
-            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            spatial_weights = Queen.from_dataframe(
+                gdf, silence_warnings=True, use_index=False
+            )
 
         self.sw = spatial_weights
         # dict to store nr of courtyards for each uID
@@ -264,7 +270,11 @@ class Courtyards:
                 to_join = components[components == comp].index
                 joined = gdf.loc[to_join]
                 # buffer to avoid multipolygons where buildings touch by corners only
-                dissolved = joined.geometry.buffer(0.01).unary_union
+                dissolved = (
+                    joined.buffer(0.01).union_all()
+                    if GPD_GE_10
+                    else joined.buffer(0.01).unary_union
+                )
                 interiors = len(list(dissolved.interiors))
                 for b in to_join:
                     courtyards[b] = interiors  # fill dict with values
