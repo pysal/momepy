@@ -1,8 +1,9 @@
 import geopandas as gpd
+import numpy as np
 import pytest
 from libpysal.graph import Graph
 from packaging.version import Version
-from pandas.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal, assert_series_equal
 
 import momepy as mm
 
@@ -11,7 +12,7 @@ from .conftest import assert_result
 GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 
-class TestDistribution:
+class TestDiscribe:
     def setup_method(self):
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
@@ -115,3 +116,141 @@ class TestDistribution:
         r2 = mm.describe(area.values, self.graph)
 
         assert_frame_equal(r, r2)
+
+
+class TestDescribeReached:
+    def setup_method(self):
+        test_file_path = mm.datasets.get_path("bubenec")
+        self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
+        self.df_streets = gpd.read_file(test_file_path, layer="streets")
+        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
+        self.df_streets["nID"] = mm.unique_id(self.df_streets)
+        self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
+        self.df_tessellation["area"] = self.df_tessellation.geometry.area
+        self.df_buildings["area"] = self.df_buildings.geometry.area
+        self.df_buildings["fl_area"] = mm.FloorArea(self.df_buildings, "height").series
+        self.df_buildings["nID"] = mm.get_network_id(
+            self.df_buildings, self.df_streets, "nID"
+        )
+        blocks = mm.Blocks(
+            self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
+        )
+        self.blocks = blocks.blocks
+        self.df_buildings["bID"] = blocks.buildings_id
+        self.df_tessellation["bID"] = blocks.tessellation_id
+        self.graph = (
+            Graph.build_contiguity(self.df_streets.set_index("nID"), rook=False)
+            .higher_order(k=2, lower_order=True)
+            .assign_self_weight()
+        )
+
+    def test_describe_reached_input(self):
+        with pytest.raises(
+            ValueError,
+            match=("One of result_index or graph has to be specified, but not both."),
+        ):
+            mm.describe_reached(self.df_buildings[["area"]], self.df_buildings["nID"])
+
+        with pytest.raises(
+            ValueError,
+            match=("One of result_index or graph has to be specified, but not both."),
+        ):
+            mm.describe_reached(
+                self.df_buildings[["area"]],
+                self.df_buildings["nID"],
+                result_index=self.df_streets.index,
+                graph=self.graph,
+            )
+
+    def test_describe_reached(self):
+        df = mm.describe_reached(
+            self.df_buildings[["area", "fl_area"]],
+            self.df_buildings["nID"],
+            self.df_streets.index,
+        )
+        # not using assert_result since the method
+        # is returning an aggregation, indexed based on nID
+        # not testing std, there are different implementations:
+        # OO momepy uses ddof=0, functional momepy - ddof=1
+        assert max(df["area"]["count"]) == 18
+        assert max(df["area"]["sum"]) == pytest.approx(18085.45897711331)
+        assert max(df["area"]["mean"]) == pytest.approx(1808.5458977113315)
+
+        assert max(df["fl_area"]["count"]) == 18
+        assert max(df["fl_area"]["sum"]) == pytest.approx(79169.31385861784)
+        assert max(df["fl_area"]["mean"]) == pytest.approx(7916.931385861784)
+
+    def test_describe_reached_sw(self):
+        df_sw = mm.describe_reached(
+            self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph
+        )
+
+        # not using assert_result since the method
+        # is returning an aggregation, indexed based on nID
+        assert max(df_sw["fl_area"]["count"]) == 138
+
+    def test_describe_reached_input_equality(self):
+        island_result_df = mm.describe_reached(
+            self.df_buildings[["area"]], self.df_buildings["nID"], self.df_streets.index
+        )
+        island_result_series = mm.describe_reached(
+            self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
+        )
+        island_result_ndarray = mm.describe_reached(
+            self.df_buildings["area"].values,
+            self.df_buildings["nID"].values,
+            self.df_streets.index,
+        )
+
+        assert np.allclose(
+            island_result_df.values, island_result_series.values, equal_nan=True
+        )
+        assert np.allclose(
+            island_result_df.values, island_result_ndarray.values, equal_nan=True
+        )
+
+    def test_describe_reached_equiality(self):
+        new_df = mm.describe_reached(
+            self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
+        )
+
+        new_count = new_df["area"]["count"]
+        old_count = mm.Reached(self.df_streets, self.df_buildings, "nID", "nID").series
+        assert_series_equal(new_count, old_count, check_names=False, check_dtype=False)
+
+        new_area = new_df["area"]["sum"]
+        old_area = mm.Reached(
+            self.df_streets, self.df_buildings, "nID", "nID", mode="sum"
+        ).series
+        assert_series_equal(
+            new_area, old_area.fillna(0), check_names=False, check_dtype=False
+        )
+
+        new_area_mean = new_df["area"]["mean"]
+        old_area_mean = mm.Reached(
+            self.df_streets, self.df_buildings, "nID", "nID", mode="mean"
+        ).series
+        assert_series_equal(
+            new_area_mean, old_area_mean.fillna(0), check_names=False, check_dtype=False
+        )
+
+    def test_describe_reached_equiality_sw(self):
+        new_df = mm.describe_reached(
+            self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph
+        )
+
+        new_fl_area = new_df["fl_area"]["sum"]
+
+        sw = mm.sw_high(k=2, gdf=self.df_streets)
+        old_fl_area = mm.Reached(
+            self.df_streets,
+            self.df_buildings,
+            "nID",
+            "nID",
+            spatial_weights=sw,
+            mode="sum",
+            values="fl_area",
+        ).series
+        assert_series_equal(
+            new_fl_area, old_fl_area, check_names=False, check_dtype=False
+        )
