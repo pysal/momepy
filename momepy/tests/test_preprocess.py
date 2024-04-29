@@ -167,7 +167,7 @@ class TestPreprocessing:
     @pytest.mark.parametrize("method", ["spider", "euclidean", "extend"])
     def test_consolidate_intersections(self, method):
         ox = pytest.importorskip("osmnx")
-        graph = ox.get_undirected(ox.load_graphml(self.test_file_path3))
+        graph = ox.convert.to_undirected(ox.load_graphml(self.test_file_path3))
 
         tol = 30
         graph_simplified = mm.consolidate_intersections(
@@ -186,7 +186,7 @@ class TestPreprocessing:
 
     def test_consolidate_intersections_unsupported(self):
         ox = pytest.importorskip("osmnx")
-        graph = ox.get_undirected(ox.load_graphml(self.test_file_path3))
+        graph = ox.convert.to_undirected(ox.load_graphml(self.test_file_path3))
         with pytest.raises(ValueError, match="Simplification 'banana' not recognized"):
             mm.consolidate_intersections(
                 graph,
