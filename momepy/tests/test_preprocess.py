@@ -214,7 +214,7 @@ def test_FaceArtifacts():
     )
     streets_graph = osmnx.projection.project_graph(streets_graph)
     gdf = osmnx.graph_to_gdfs(
-        osmnx.get_undirected(streets_graph),
+        osmnx.convert.to_undirected(streets_graph),
         nodes=False,
         edges=True,
         node_geometry=False,
