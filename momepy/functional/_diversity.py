@@ -7,16 +7,11 @@ from numpy.typing import NDArray
 from packaging.version import Version
 from pandas import DataFrame, Series
 
+throw_numba_warning = False
 try:
     from numba import njit
 except (ModuleNotFoundError, ImportError):
-    warnings.warn(
-        "The numba package is used extensively in this function to accelerate the"
-        " computation of statistics but it is not installed or  cannot be imported."
-        " Without numba, these computations may become slow on large data.",
-        UserWarning,
-        stacklevel=2,
-    )
+    throw_numba_warning = True
     from libpysal.common import jit as njit
 
 __all__ = ["describe", "describe_reached"]
@@ -140,6 +135,15 @@ def describe(
         A DataFrame with descriptive statistics.
     """
 
+    if throw_numba_warning:
+        warnings.warn(
+            "The numba package is used extensively in this function to accelerate the"
+            " computation of statistics but it is not installed or  cannot be imported."
+            " Without numba, these computations may become slow on large data.",
+            UserWarning,
+            stacklevel=2,
+        )
+
     if not isinstance(y, Series):
         y = Series(y)
 
@@ -151,12 +155,12 @@ def describe(
 
 
 def describe_reached(
-    y, y_group, result_index=None, graph=None, q=None, include_mode=False
+    y, graph_index, result_index=None, graph=None, q=None, include_mode=False
 ) -> DataFrame:
     """
-    Calculates statistics of ``y`` objects reached on a street network.
-    Requires a ``y_group`` that links the ``y`` objects to streets (or ``graph``)
-    assigned beforehand (e.g. using :py:func:`momepy.get_network_id`).
+    Calculates statistics of ``y`` objects reached on a neighbourhood graph.
+    Requires a ``graph_index`` that links the ``y`` objects to ``graph`` or streets
+    assigned beforehand (e.g. using :py:func:`momepy.get_nearest_street`).
     The number of elements within neighbourhood defined in ``graph``. If
     ``graph`` is ``None``, it will assume topological distance ``0`` (element itself)
     and ``result_index`` is required in order to arrange the results.
@@ -171,7 +175,7 @@ def describe_reached(
     ----------
     y : DataFrame | Series | numpy.array
         A GeoDataFrame containing objects to analyse.
-    y_group : Series | numpy.array
+    graph_index : Series | numpy.array
         The unique ID that specifies the aggregation
         of ``y`` objects to ``graph`` groups.
     result_index : pd.Index (default None)
@@ -195,6 +199,15 @@ def describe_reached(
     if Version(pd.__version__) <= Version("2.1.0"):
         raise NotImplementedError("Please update to a newer version of pandas.")
 
+    if throw_numba_warning:
+        warnings.warn(
+            "The numba package is used extensively in this function to accelerate the"
+            " computation of statistics but it is not installed or  cannot be imported."
+            " Without numba, these computations may become slow on large data.",
+            UserWarning,
+            stacklevel=2,
+        )
+
     if (result_index is None) and (graph is None):
         raise ValueError(
             "One of result_index or graph has to be specified, but not both."
@@ -210,23 +223,23 @@ def describe_reached(
 
     if isinstance(y, np.ndarray):
         y = pd.Series(y, name="obs_index")
-    elif isinstance(y, Series):
+    if isinstance(y, Series):
         y = y.to_frame()
 
-    if isinstance(y_group, np.ndarray):
-        y_group = pd.Series(y_group, name="neighbor")
+    if isinstance(graph_index, np.ndarray):
+        graph_index = pd.Series(graph_index, name="neighbor")
     else:
-        y_group = y_group.rename("neighbor")
+        graph_index = graph_index.rename("neighbor")
 
     # aggregate data
     if graph is None:
-        grouper = y.groupby(y_group)
+        grouper = y.groupby(graph_index)
 
     else:
-        # y.index needs renaming, since multiindixes
+        # y.index needs renaming, since multiindices
         # without explicit names cannot be joined
         df_multi_index = (
-            y.rename_axis("obs_index").set_index(y_group, append=True).swaplevel()
+            y.rename_axis("obs_index").set_index(graph_index, append=True).swaplevel()
         )
         combined_index = graph.adjacency.index.join(df_multi_index.index).dropna()
         grouper = y.loc[combined_index.get_level_values(-1)].groupby(
@@ -236,10 +249,14 @@ def describe_reached(
     stats = _compute_stats(grouper, q, include_mode)
 
     result = pd.DataFrame(
-        np.zeros((result_index.shape[0], stats.shape[1])), index=result_index
+        np.full((result_index.shape[0], stats.shape[1]), np.nan), index=result_index
     )
     result.loc[stats.index.values] = stats.values
     result.columns = stats.columns
-    result = result.fillna(0)
+    # fill only counts with zeros, other stats are NA
+    result.loc[:, (y.columns, ["count"])] = result.loc[
+        :, (y.columns, ["count"])
+    ].fillna(0)
+    result.index.names = result_index.names
 
     return result
