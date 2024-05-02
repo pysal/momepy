@@ -7,11 +7,12 @@ from numpy.typing import NDArray
 from packaging.version import Version
 from pandas import DataFrame, Series
 
-throw_numba_warning = False
 try:
     from numba import njit
+
+    HAS_NUMBA = True
 except (ModuleNotFoundError, ImportError):
-    throw_numba_warning = True
+    HAS_NUMBA = False
     from libpysal.common import jit as njit
 
 __all__ = ["describe", "describe_reached"]
@@ -36,11 +37,22 @@ def _describe(values, q, include_mode=False):
     """Helper function to calculate average."""
     nan_tracker = np.isnan(values)
 
-    if (len(values) > 2) and (not nan_tracker.all()):
-        if nan_tracker.any():
-            lower, higher = np.nanpercentile(values, q)
-        else:
-            lower, higher = np.percentile(values, q)
+    if nan_tracker.all():
+        return [
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+        ]
+
+    else:
+        values = values[~np.isnan(values)]
+
+    if len(values) > 2:
+        lower, higher = np.percentile(values, q)
         values = values[(lower <= values) & (values <= higher)]
 
     results = [
@@ -52,8 +64,10 @@ def _describe(values, q, include_mode=False):
         np.max(values),
         np.sum(values),
     ]
+
     if include_mode:
         results.append(_mode(values))
+
     return results
 
 
@@ -135,7 +149,7 @@ def describe(
         A DataFrame with descriptive statistics.
     """
 
-    if throw_numba_warning:
+    if not HAS_NUMBA:
         warnings.warn(
             "The numba package is used extensively in this function to accelerate the"
             " computation of statistics but it is not installed or  cannot be imported."
@@ -199,7 +213,7 @@ def describe_reached(
     if Version(pd.__version__) <= Version("2.1.0"):
         raise NotImplementedError("Please update to a newer version of pandas.")
 
-    if throw_numba_warning:
+    if not HAS_NUMBA:
         warnings.warn(
             "The numba package is used extensively in this function to accelerate the"
             " computation of statistics but it is not installed or  cannot be imported."
