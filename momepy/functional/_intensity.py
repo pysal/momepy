@@ -1,9 +1,11 @@
+import numpy as np
+import pandas as pd
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from pandas import Series
 
-__all__ = ["courtyards"]
+__all__ = ["courtyards", "node_density"]
 
 
 def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
@@ -48,3 +50,62 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
     )
 
     return result
+
+
+def node_density(left, right, graph, weighted=False) -> Series:
+    """
+    Calculate the density of nodes neighbours on street network defined in
+    ``spatial_weights``. Calculated as the number of neighbouring
+    nodes / cummulative length of street network within neighbours.
+    ``node_start``,  ``node_end``, ``mm_len`` is standard output of
+    :py:func:`momepy.nx_to_gdf` and is compulsory ``right`` to have
+    these columns.
+
+    Adapted from :cite:`dibble2017`.
+
+    Parameters
+    ----------
+    left : GeoDataFrame
+        A GeoDataFrame containing nodes of street network.
+    right : GeoDataFrame
+        A GeoDataFrame containing edges of street network.
+    graph :  libpysal.graph.Graph
+        A spatial weights matrix capturing relationship between nodes.
+    weighted : bool (default False)
+        If ``True``, density will take into account node degree as ``k-1``.
+
+    Returns
+    -------
+    Series
+        A Series containing resulting values.
+
+    Examples
+    --------
+    >>> nodes['density'] = mm.node_density(nodes, edges, sw)
+    """
+
+    if (
+        np.intersect1d(["node_start", "node_end", "mm_len"], right.columns).shape[0]
+        != 3
+    ):
+        raise ValueError(
+            "'node_start', 'node_end', 'mm_len' are needed for the calculations."
+        )
+
+    def _calc_nodedensity(group, edges):
+        """ "Helper function to calculate group values."""
+        neighbours = group.index.values
+
+        lengths = edges.loc[
+            np.in1d(edges["node_start"], neighbours)
+            & np.in1d(edges["node_end"], neighbours),
+            "mm_len",
+        ].sum()
+        return group.sum() / lengths if lengths else 0
+
+    if weighted:
+        summation_values = left["degree"] - 1
+    else:
+        summation_values = pd.Series(np.ones(left.shape[0]), index=left.index)
+
+    return graph.apply(summation_values, _calc_nodedensity, edges=right)
