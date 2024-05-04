@@ -1,11 +1,12 @@
 import warnings
 
+import geopandas as gpd
 import numpy as np
 from libpysal.graph import Graph
 from numpy.typing import NDArray
 from pandas import DataFrame, Series
 
-__all__ = ["describe"]
+__all__ = ["describe", "unweighted_percentile", "linearly_weighted_percentiles"]
 
 
 def describe(
@@ -117,3 +118,137 @@ def describe(
         stat_.columns = cols
 
     return stat_
+
+
+def unweighted_percentile(
+    data: DataFrame | Series,
+    graph: Graph,
+    percentiles: tuple | list = [25, 50, 75],
+    interpolation: str = "midpoint",
+):
+    """
+    Calculates the percentiles of values within
+    neighbours defined in ``graph``.
+
+    Parameters
+    ----------
+    data : DataFrame | Series
+        A DataFrame or Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for the data.
+    percentiles : array-like (default [25, 50, 75])
+        The percentiles to return.
+    interpolation : {'linear', 'lower', 'higher', 'midpoint', 'nearest'}
+        This optional parameter specifies the interpolation method to
+        use when the desired percentile lies between two data points
+        ``i < j``:
+
+        * ``'linear'``
+        * ``'lower'``
+        * ``'higher'``
+        * ``'nearest'``
+        * ``'midpoint'``
+
+        See the documentation of ``numpy.percentile`` for details.
+
+    Returns
+    --------
+    Dataframe
+        A Dataframe with columns as the results for each percentile
+
+    Examples
+    --------
+    >>> percentiles_df = mm.unweighted_percentile(tessellation_df['area'],
+    ...                                 graph)
+    """
+
+    from numpy.lib import NumpyVersion
+
+    if NumpyVersion(np.__version__) >= "1.22.0":
+        method = {"method": interpolation}
+    else:
+        method = {"interpolation": interpolation}
+
+    def _apply_percentile(values):
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message="All-NaN slice encountered")
+            return np.nanpercentile(values, percentiles, **method)
+
+    stats = graph.apply(data, _apply_percentile)
+    result = DataFrame(np.stack(stats), columns=percentiles, index=stats.index)
+    return result
+
+
+def linearly_weighted_percentiles(
+    data: DataFrame | Series,
+    geometry: gpd.GeoDataFrame,
+    graph: Graph,
+    percentiles: tuple | list = [25, 50, 75],
+):
+    """
+    Calculates the percentiles of values within
+    neighbours defined in ``graph`` using weighted distance decay. Linear
+    inverse distance between the centroids in ``geometry`` is used as a weight.
+
+    Parameters
+    ----------
+    data : DataFrame | Series
+        A DataFrame or Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for the data.
+    geometry : GeoDataFrame
+        The original GeoDataFrame.
+    percentiles : array-like (default [25, 50, 75])
+        The percentiles to return.
+
+    Returns
+    --------
+    Dataframe
+        A Dataframe with columns as the results for each percentile
+
+    Examples
+    --------
+    >>> percentiles_df = mm.linearly_weighted_percentiles(
+    ...                                 tessellation_df['area'],
+    ...                                 tessellation_df.geometry,
+    ...                                 graph)
+    """
+
+    from scipy.spatial.distance import cdist
+
+    centroids = geometry.centroid
+    xys = np.vstack((centroids.x, centroids.y)).T
+    data = np.hstack((xys, data.values.reshape(data.shape[0], -1)))
+
+    def _apply_weights(group):
+        focal = np.where(group.index.values == group.name)[0]
+        neighbours = np.where(group.index.values != group.name)[0]
+
+        distances = cdist(
+            group.iloc[focal, [0, 1]], group.iloc[neighbours, [0, 1]].values
+        ).flatten()
+        distance_decay = 1 / distances
+
+        vals = group.iloc[neighbours, 2:].values.flatten()
+        sorter = np.argsort(vals)
+        vals = vals[sorter]
+
+        nan_mask = np.isnan(vals)
+        if nan_mask.all():
+            return np.array([np.nan] * len(percentiles))
+
+        sample_weight = distance_decay[sorter][~nan_mask]
+        weighted_quantiles = np.cumsum(sample_weight) - 0.5 * sample_weight
+        weighted_quantiles /= np.sum(sample_weight)
+        interpolate = np.interp(
+            [x / 100 for x in percentiles],
+            weighted_quantiles,
+            vals[~nan_mask],
+        )
+        return interpolate
+
+    stats = graph.apply(data, _apply_weights).values
+    result = DataFrame(np.stack(stats), columns=percentiles, index=graph.unique_ids)
+    return result
