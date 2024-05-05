@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
-from pandas.testing import assert_index_equal
+from pandas.testing import assert_index_equal, assert_series_equal
 from shapely import affinity
 from shapely.geometry import MultiPoint, Polygon, box
 
@@ -203,3 +203,60 @@ class TestElements:
         streets.index = streets.index.astype(str)
         nearest = mm.get_nearest_street(self.df_buildings, streets, 10)
         assert (nearest == None).sum() == 137  # noqa: E711
+
+    def test_blocks(self):
+        blocks, buildings_id, tessellation_id = mm.generate_blocks(
+            self.df_tessellation, self.df_streets, self.df_buildings, "bID"
+        )
+        assert not tessellation_id.isna().any()
+        assert not buildings_id.isna().any()
+        assert len(blocks) == 8
+
+        with pytest.raises(ValueError, match="'uID' column cannot be"):
+            mm.generate_blocks(
+                self.df_tessellation, self.df_streets, self.df_buildings, "uID"
+            )
+
+    def test_blocks_inner(self):
+        streets = self.df_streets.copy()
+        streets.loc[35, "geometry"] = (
+            self.df_buildings.geometry.iloc[141]
+            .representative_point()
+            .buffer(20)
+            .exterior
+        )
+        blocks, buildings_id, tessellation_id = mm.generate_blocks(
+            self.df_tessellation, streets, self.df_buildings, "bID"
+        )
+        assert not tessellation_id.isna().any()
+        assert not buildings_id.isna().any()
+        assert len(blocks) == 9
+        if GPD_GE_013:
+            assert len(blocks.sindex.query(blocks.geometry, "overlaps")[0]) == 0
+        else:
+            assert len(blocks.sindex.query_bulk(blocks.geometry, "overlaps")[0]) == 0
+
+
+class TestElementsEquivalence:
+    def setup_method(self):
+        test_file_path = mm.datasets.get_path("bubenec")
+        self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
+        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
+        self.df_streets = gpd.read_file(test_file_path, layer="streets")
+        self.limit = mm.buffered_limit(self.df_buildings, 50)
+        self.enclosures = mm.enclosures(
+            self.df_streets,
+            gpd.GeoSeries([self.limit.exterior], crs=self.df_streets.crs),
+        )
+
+    def test_blocks(self):
+        blocks, buildings_id, tessellation_id = mm.generate_blocks(
+            self.df_tessellation, self.df_streets, self.df_buildings, "bID"
+        )
+        res = mm.Blocks(
+            self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
+        )
+
+        assert_geodataframe_equal(blocks, res.blocks)
+        assert_series_equal(buildings_id, res.buildings_id)
+        assert_series_equal(tessellation_id, res.tessellation_id)

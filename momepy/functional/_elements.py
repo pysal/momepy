@@ -7,6 +7,7 @@ import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from joblib import Parallel, delayed
 from libpysal.cg import voronoi_frames
+from libpysal.graph import Graph
 from packaging.version import Version
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
@@ -17,6 +18,7 @@ __all__ = [
     "enclosed_tessellation",
     "verify_tessellation",
     "get_nearest_street",
+    "generate_blocks",
 ]
 
 
@@ -343,3 +345,89 @@ def get_nearest_street(
 
     ids[blg_idx] = streets.index[str_idx]
     return ids
+
+
+def generate_blocks(
+    tessellation: GeoDataFrame,
+    edges: GeoDataFrame,
+    buildings: GeoDataFrame,
+    id_name: str = "bID",
+):
+    """
+    Generate blocks based on buildings, tessellation, and street network.
+    Dissolves tessellation cells based on street-network based polygons.
+    Links resulting ID to ``buildings`` and ``tessellation`` and returns
+    ``blocks``, ``buildings_ds`` and ``tessellation`` ids.
+
+    Parameters
+    ----------
+    tessellation : GeoDataFrame
+        A GeoDataFrame containing morphological tessellation.
+    edges : GeoDataFrame
+        A GeoDataFrame containing a street network.
+    buildings : GeoDataFrame
+        A GeoDataFrame containing buildings.
+    id_name : str
+        The name of the unique blocks ID column to be generated.
+
+    Returns
+    -------
+    blocks : GeoDataFrame
+        A GeoDataFrame containing generated blocks.
+    buildings_ids : Series
+        A Series derived from buildings with block ID.
+    tessellation_ids : Series
+        A Series derived from morphological tessellation with block ID.
+
+    Examples
+    --------
+    >>> blocks, buildings_id, tessellation_id = mm.generate_blocks(tessellation_df,
+    ... streets_df, buildings_df, 'bID')
+    >>> blocks.head()
+        bID	geometry
+    0	1.0	POLYGON ((1603560.078648818 6464202.366899694,...
+    1	2.0	POLYGON ((1603457.225976106 6464299.454696888,...
+    2	3.0	POLYGON ((1603056.595487018 6464093.903488506,...
+    3	4.0	POLYGON ((1603260.943782872 6464141.327631323,...
+    4	5.0	POLYGON ((1603183.399594798 6463966.109982309,...
+    """
+    if id_name in buildings.columns:
+        raise ValueError(f"'{id_name}' column cannot be in the buildings GeoDataFrame.")
+
+    # slice the tessellations by the street network
+    cut = gpd.overlay(
+        tessellation,
+        gpd.GeoDataFrame(geometry=edges.buffer(0.001)),
+        how="difference",
+    )
+    cut = cut.explode(ignore_index=True)
+    # touching tessellations form a block
+    weights = Graph.build_contiguity(cut)
+    cut["component"] = weights.component_labels
+
+    # generate block geometries
+    buildings_c = buildings.copy()
+    buildings_c.geometry = buildings_c.representative_point()  # make points
+    centroids_temp_id = gpd.sjoin(
+        buildings_c,
+        cut[[cut.geometry.name, "component"]],
+        how="left",
+        predicate="within",
+    )
+    cells_copy = tessellation[[tessellation.geometry.name]].merge(
+        centroids_temp_id[["component"]], right_index=True, left_index=True, how="left"
+    )
+    blocks = cells_copy.dissolve(by="component").explode(ignore_index=True)
+    blocks[id_name] = range(len(blocks))
+    blocks = blocks[[id_name, blocks.geometry.name]]
+
+    # assign block ids to buildings and tessellations
+    centroids_w_bl_id2 = gpd.sjoin(buildings_c, blocks, how="left", predicate="within")
+    buildings_id = centroids_w_bl_id2[id_name]
+
+    cells_m = tessellation.merge(
+        centroids_w_bl_id2[[id_name]], left_index=True, right_index=True, how="left"
+    )
+    tessellation_id = cells_m[id_name]
+
+    return blocks, buildings_id, tessellation_id
