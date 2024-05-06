@@ -166,7 +166,7 @@ class TestDescribe:
     )
     def test_describe_reached(self):
         df = mm.describe_reached(
-            self.df_buildings[["area", "fl_area"]],
+            self.df_buildings["area"],
             self.df_buildings["nID"],
             self.df_streets.index,
         )
@@ -191,9 +191,15 @@ class TestDescribe:
             "count": 35,
             "mean": 4.114285714285714,
         }
-        assert_result(df["area"]["count"], expected_area_count, self.df_streets)
-        assert_result(df["area"]["sum"], expected_area_sum, self.df_streets)
-        assert_result(df["area"]["mean"], expected_area_mean, self.df_streets)
+        assert_result(df["count"], expected_area_count, self.df_streets)
+        assert_result(df["sum"], expected_area_sum, self.df_streets)
+        assert_result(df["mean"], expected_area_mean, self.df_streets)
+
+        df = mm.describe_reached(
+            self.df_buildings["fl_area"].values,
+            self.df_buildings["nID"],
+            self.df_streets.index,
+        )
 
         expected_fl_area_sum = {
             "min": 1894.492021221426,
@@ -213,9 +219,9 @@ class TestDescribe:
             "count": 35,
             "mean": 4.114285714285714,
         }
-        assert_result(df["fl_area"]["count"], expected_fl_area_count, self.df_streets)
-        assert_result(df["fl_area"]["sum"], expected_fl_area_sum, self.df_streets)
-        assert_result(df["fl_area"]["mean"], expected_fl_area_mean, self.df_streets)
+        assert_result(df["count"], expected_fl_area_count, self.df_streets)
+        assert_result(df["sum"], expected_fl_area_sum, self.df_streets)
+        assert_result(df["mean"], expected_fl_area_mean, self.df_streets)
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
@@ -227,18 +233,16 @@ class TestDescribe:
 
         # not using assert_result since the method
         # is returning an aggregation, indexed based on nID
-        assert max(df_sw["fl_area"]["count"]) == 138
+        assert max(df_sw["count"]) == 138
         expected = {"min": 6, "max": 138, "count": 35, "mean": 67.8}
-        assert_result(
-            df_sw["fl_area"]["count"], expected, self.df_streets, check_names=False
-        )
+        assert_result(df_sw["count"], expected, self.df_streets, check_names=False)
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_describe_reached_input_equality(self):
         island_result_df = mm.describe_reached(
-            self.df_buildings[["area"]], self.df_buildings["nID"], self.df_streets.index
+            self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
         )
         island_result_series = mm.describe_reached(
             self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
@@ -255,6 +259,22 @@ class TestDescribe:
         assert np.allclose(
             island_result_df.values, island_result_ndarray.values, equal_nan=True
         )
+
+    def test_na_results(self):
+        nan_areas = self.df_buildings["area"]
+        nan_areas.iloc[range(0, len(self.df_buildings), 3),] = np.nan
+
+        pandas_agg_vals = mm.describe_reached(
+            nan_areas,
+            self.df_buildings["nID"],
+            self.df_streets.index,
+        )
+
+        numba_agg_vals = mm.describe_reached(
+            nan_areas, self.df_buildings["nID"], self.df_streets.index, q=(0, 100)
+        )
+
+        assert_frame_equal(pandas_agg_vals, numba_agg_vals)
 
 
 class TestDescribeEquality:
@@ -292,17 +312,17 @@ class TestDescribeEquality:
             self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
         )
 
-        new_count = new_df["area"]["count"]
+        new_count = new_df["count"]
         old_count = mm.Reached(self.df_streets, self.df_buildings, "nID", "nID").series
         assert_series_equal(new_count, old_count, check_names=False, check_dtype=False)
 
-        new_area = new_df["area"]["sum"]
+        new_area = new_df["sum"]
         old_area = mm.Reached(
             self.df_streets, self.df_buildings, "nID", "nID", mode="sum"
         ).series
         assert_series_equal(new_area, old_area, check_names=False, check_dtype=False)
 
-        new_area_mean = new_df["area"]["mean"]
+        new_area_mean = new_df["mean"]
         old_area_mean = mm.Reached(
             self.df_streets, self.df_buildings, "nID", "nID", mode="mean"
         ).series
@@ -318,7 +338,7 @@ class TestDescribeEquality:
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
         )
 
-        new_fl_area = new_df["fl_area"]["sum"]
+        new_fl_area = new_df["sum"]
 
         sw = mm.sw_high(k=2, gdf=self.df_streets)
         old_fl_area = mm.Reached(
