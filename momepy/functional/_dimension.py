@@ -11,6 +11,8 @@ __all__ = [
     "courtyard_area",
     "longest_axis_length",
     "perimeter_wall",
+    "weighted_character",
+    "covered_area",
 ]
 
 
@@ -157,3 +159,73 @@ def perimeter_wall(
     ].values
 
     return results
+
+
+def weighted_character(
+    values: np.ndarray | Series, areas: np.ndarray | Series, graph: Graph
+) -> Series:
+    """
+    Calculates the weighted character. Character weighted by the area
+    of the objects within neighbors defined in ``graph``.
+    Results are index based on ``graph``.
+
+    .. math::
+        \\frac{\\sum_{i=1}^{n} {character_{i} * area_{i}}}{\\sum_{i=1}^{n} area_{i}}
+
+    Adapted from :cite:`dibble2017`.
+
+    Parameters
+    ----------
+    values : np.array, pd.Series
+        The character values to be weighted.
+    values : np.array, pd.Series
+        The area values to be used as weightss
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for values and areas.
+
+    Returns
+    -------
+    Series
+        A Series containing the resulting values.
+
+    Examples
+    --------
+    >>> res = mm.weighted_character(buildings_df['height'],
+    ...                     buildings_df.geometry.area, graph)
+    """
+    data = np.vstack((values, areas)).T
+    stats = graph.apply(
+        data, lambda x: np.sum(x.iloc[:, 0] * x.iloc[:, 1]) / np.sum(x.iloc[:, 1])
+    )
+
+    result = Series(np.nan, index=graph.unique_ids)
+    result.loc[stats.index.values] = stats.values
+    return result
+
+
+def covered_area(areas: np.ndarray | Series, graph: Graph) -> Series:
+    """
+    Calculates the area covered by neighbours, which is total area covered
+    by neighbours defined in ``graph`` and the element itself.
+    Results are index based on ``graph``.
+
+    Parameters
+    ----------
+    areas : np.array, pd.Series
+        The area values to be used as weightss
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for values and areas.
+
+    Returns
+    -------
+    Series
+        A Series containing the resulting values.
+
+    Examples
+    --------
+    >>> res = mm.covered_area(buildings_df.geometry.area, graph)
+    """
+    stats = graph.apply(areas, lambda x: np.sum(x))
+    result = Series(np.nan, index=graph.unique_ids)
+    result.loc[stats.index.values] = stats.values
+    return result
