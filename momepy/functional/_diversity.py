@@ -181,7 +181,7 @@ def describe_reached(
     graph_index: np.ndarray | Series,
     result_index: pd.Index = None,
     graph: Graph = None,
-    q: tuple | list = None,
+    q: tuple | list | None = None,
     include_mode: bool = False,
 ) -> DataFrame:
     """

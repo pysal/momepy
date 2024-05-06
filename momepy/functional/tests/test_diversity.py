@@ -260,6 +260,9 @@ class TestDescribe:
             island_result_df.values, island_result_ndarray.values, equal_nan=True
         )
 
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous pandas versions"
+    )
     def test_na_results(self):
         nan_areas = self.df_buildings["area"]
         nan_areas.iloc[range(0, len(self.df_buildings), 3),] = np.nan
