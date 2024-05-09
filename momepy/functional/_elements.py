@@ -402,7 +402,7 @@ def generate_blocks(
     )
     cut = cut.explode(ignore_index=True)
     # touching tessellations form a block
-    weights = Graph.build_contiguity(cut)
+    weights = Graph.build_contiguity(cut, rook=False)
     cut["component"] = weights.component_labels
 
     # generate block geometries
