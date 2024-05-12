@@ -1,4 +1,4 @@
-files: 'momepy\/'
+files: 'docs\/|benchmarks\/|momepy\/'
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.4.4"
