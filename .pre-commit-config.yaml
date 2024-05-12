@@ -1,4 +1,3 @@
-files: "docs\/"
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.4.4"

@@ -186,7 +186,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "momepy.tex", "momepy Documentation", "Martin Fleischmann", "manual")
+    (
+        master_doc,
+        "momepy.tex",
+        "momepy Documentation",
+        "Martin Fleischmann",
+        "manual",
+    )
 ]
 
 
@@ -232,10 +238,11 @@ epub_title = project
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ["search.html"]
 
-# Add redirect for previously existing pages, each item is like `(from_old, to_new)`
+# Add redirect for previously existing pages,
+# each item is like `(from_old, to_new)`
 
 rediraffe_redirects = {
-    "user_guide/elements/preprocessing.ipynb": "user_guide/preprocessing/simple_preprocessing.ipynb",  # noqa
+    "user_guide/elements/preprocessing.ipynb": "user_guide/preprocessing/simple_preprocessing.ipynb",  # noqa: E501
 }
 
 # -- Extension configuration -------------------------------------------------
