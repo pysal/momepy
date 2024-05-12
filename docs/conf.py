@@ -42,7 +42,7 @@ autodoc_mock_imports = [
 # -- Project information -----------------------------------------------------
 
 project = "momepy"
-copyright = "2018-, Martin Fleischmann and PySAL Developers"
+copyright = "2018-, Martin Fleischmann and PySAL Developers"  # noqa: A001
 author = "Martin Fleischmann"
 
 # The short X.Y version
@@ -261,7 +261,7 @@ nbsphinx_prolog = r"""
         | Interactive online version: :raw-html:`<a href="https://mybinder.org/v2/gh/pysal/momepy/master?urlpath=lab/tree/docs/{{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
 
         __ https://github.com/pysal/momepy/blob/master/docs/{{ docname }}
-"""
+"""  # noqa: E501
 
 
 def linkcode_resolve(domain, info):
