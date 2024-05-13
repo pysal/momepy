@@ -124,7 +124,7 @@ def describe(
 ) -> DataFrame:
     """Describe the distribution of values within a set neighbourhood.
 
-    Given the graph, computes the descriptive statisitcs of values within the
+    Given the graph, computes the descriptive statistics of values within the
     neighbourhood of each node. Optionally, the values can be limited to a certain
     quantile range before computing the statistics.
 
@@ -184,19 +184,27 @@ def describe_reached(
     q: tuple | list | None = None,
     include_mode: bool = False,
 ) -> DataFrame:
-    """Calculates statistics of ``y`` objects reached on a neighbourhood graph.
-    
-    Requires a ``graph_index`` that links the ``y`` objects to ``graph`` or streets
-    assigned beforehand (e.g. using :py:func:`momepy.get_nearest_street`).
-    The number of elements within neighbourhood are defined in ``graph``. If
-    ``graph`` is ``None``, it will assume topological distance ``0`` (element itself)
-    and ``result_index`` is required in order to arrange the results.
-    If ``graph``, the results are arranged according to the spatial weights ordering.
+    """Describe the distribution of values reached on a neighbourhood graph.
+
+    Given a neighborhood graph or a grouping, computes the descriptive statistics
+    of values reached. Optionally, the values can be limited to a certain
+    quantile range before computing the statistics.
+
     The statistics calculated are count, sum, mean, median, std.
     Optionally, mode can be calculated, or the statistics can be calculated in
     quantiles ``q``.
 
+    The neighbourhood is defined in ``graph``. If ``graph`` is ``None``,
+    the function will assume topological distance ``0`` (element itself)
+    and ``result_index`` is required in order to arrange the results.
+    If ``graph``, the results are arranged according to the spatial weights ordering.
+
     Adapted from :cite:`hermosilla2012` and :cite:`feliciotti2018`.
+
+    Notes
+    -----
+    The numba package is used extensively in this function to accelerate the computation
+    of statistics. Without numba, these computations may become slow on large data.
 
     Parameters
     ----------
@@ -206,10 +214,10 @@ def describe_reached(
         The unique ID that specifies the aggregation
         of ``y`` objects to ``graph`` groups.
     result_index : pd.Index (default None)
-        An index that specifies how to order the results when ``graph`` is None. 
+        An index that specifies how to order the results when ``graph`` is None.
         When ``graph`` is given, the index is derived from its unique IDs.
     graph : libpysal.graph.Graph (default None)
-        A spatial weights matrix of the streets.
+        A spatial weights matrix of the element ``y`` is grouped into.
     q : tuple[float, float] | None, optional
         Tuple of percentages for the percentiles to compute. Values must be between 0
         and 100 inclusive. When set, values below and above the percentiles will be
@@ -222,6 +230,15 @@ def describe_reached(
     Returns
     -------
     DataFrame
+
+    Examples
+    --------
+    >>> res = mm.describe_reached(
+    ...         tessellation['area'], tessellation['nID'] , graph=streets_q1
+    ...     )
+    >>> streets["tessalations_reached"] = res['count']
+    >>> streets["tessalations_reached_area"] = res['sum']
+
     """
 
     if Version(pd.__version__) <= Version("2.1.0"):
