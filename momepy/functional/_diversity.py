@@ -184,8 +184,8 @@ def describe_reached(
     q: tuple | list | None = None,
     include_mode: bool = False,
 ) -> DataFrame:
-    """
-    Calculates statistics of ``y`` objects reached on a neighbourhood graph.
+    """Calculates statistics of ``y`` objects reached on a neighbourhood graph.
+    
     Requires a ``graph_index`` that links the ``y`` objects to ``graph`` or streets
     assigned beforehand (e.g. using :py:func:`momepy.get_nearest_street`).
     The number of elements within neighbourhood are defined in ``graph``. If
@@ -206,7 +206,8 @@ def describe_reached(
         The unique ID that specifies the aggregation
         of ``y`` objects to ``graph`` groups.
     result_index : pd.Index (default None)
-        An index that specifies how to order the results.
+        An index that specifies how to order the results when ``graph`` is None. 
+        When ``graph`` is given, the index is derived from its unique IDs.
     graph : libpysal.graph.Graph (default None)
         A spatial weights matrix of the streets.
     q : tuple[float, float] | None, optional
@@ -224,7 +225,7 @@ def describe_reached(
     """
 
     if Version(pd.__version__) <= Version("2.1.0"):
-        raise ImportError("Please update to a newer version of pandas.")
+        raise ImportError("pandas 2.1.0 or newer is required to use this function.")
 
     if not HAS_NUMBA:
         warnings.warn(
