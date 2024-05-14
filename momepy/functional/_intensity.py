@@ -52,14 +52,18 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
     return result
 
 
-def node_density(left, right, graph, weighted=False) -> Series:
-    """
-    Calculate the density of nodes neighbours on street network defined in
-    ``spatial_weights``. Calculated as the number of neighbouring
-    nodes / cummulative length of street network within neighbours.
-    ``node_start``,  ``node_end``, ``mm_len`` is standard output of
-    :py:func:`momepy.nx_to_gdf` and is compulsory ``right`` to have
+def node_density(
+    left: GeoDataFrame, right: GeoDataFrame, graph: Graph, weighted: bool = False
+) -> Series:
+    """Calculate the density of nodes neighbours on street network defined in
+    ``graph``.
+
+    Calculated as the number of neighbouring
+    nodes / cumulative length of street network within neighbours.
+    ``node_start``,  ``node_end``, is standard output of
+    :py:func:`momepy.nx_to_gdf` and is compulsory for ``right`` to have
     these columns.
+    If ``weighted``, a ``degree`` column is also required in ``left``.
 
     Adapted from :cite:`dibble2017`.
 
@@ -81,26 +85,27 @@ def node_density(left, right, graph, weighted=False) -> Series:
 
     Examples
     --------
-    >>> nodes['density'] = mm.node_density(nodes, edges, sw)
+    >>> nodes['density'] = mm.node_density(nodes, edges, graph)
     """
 
-    if (
-        np.intersect1d(["node_start", "node_end", "mm_len"], right.columns).shape[0]
-        != 3
-    ):
+    required_cols = ["node_start", "node_end"]
+    if not np.isin(required_cols, right.columns).all():
         raise ValueError(
-            "'node_start', 'node_end', 'mm_len' are needed for the calculations."
+            f"Columns { *required_cols, } are needed in "
+            "right GeoDataframe for the calculations."
+        )
+    if weighted and ("degree" not in left.columns):
+        raise ValueError(
+            "Degree column is needed in " "left GeoDataframe for density calculations."
         )
 
     def _calc_nodedensity(group, edges):
         """ "Helper function to calculate group values."""
         neighbours = group.index.values
-
-        lengths = edges.loc[
-            np.in1d(edges["node_start"], neighbours)
-            & np.in1d(edges["node_end"], neighbours),
-            "mm_len",
-        ].sum()
+        locs = np.in1d(edges["node_start"], neighbours) & np.in1d(
+            edges["node_end"], neighbours
+        )
+        lengths = edges.loc[locs].geometry.length.sum()
         return group.sum() / lengths if lengths else 0
 
     if weighted:
