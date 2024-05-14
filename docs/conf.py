@@ -42,7 +42,7 @@ autodoc_mock_imports = [
 # -- Project information -----------------------------------------------------
 
 project = "momepy"
-copyright = "2018-, Martin Fleischmann and PySAL Developers"
+copyright = "2018-, Martin Fleischmann and PySAL Developers"  # noqa: A001
 author = "Martin Fleischmann"
 
 # The short X.Y version
@@ -186,7 +186,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "momepy.tex", "momepy Documentation", "Martin Fleischmann", "manual")
+    (
+        master_doc,
+        "momepy.tex",
+        "momepy Documentation",
+        "Martin Fleischmann",
+        "manual",
+    )
 ]
 
 
@@ -232,10 +238,11 @@ epub_title = project
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ["search.html"]
 
-# Add redirect for previously existing pages, each item is like `(from_old, to_new)`
+# Add redirect for previously existing pages,
+# each item is like `(from_old, to_new)`
 
 rediraffe_redirects = {
-    "user_guide/elements/preprocessing.ipynb": "user_guide/preprocessing/simple_preprocessing.ipynb",  # noqa
+    "user_guide/elements/preprocessing.ipynb": "user_guide/preprocessing/simple_preprocessing.ipynb",  # noqa: E501
 }
 
 # -- Extension configuration -------------------------------------------------
@@ -261,7 +268,7 @@ nbsphinx_prolog = r"""
         | Interactive online version: :raw-html:`<a href="https://mybinder.org/v2/gh/pysal/momepy/master?urlpath=lab/tree/docs/{{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
 
         __ https://github.com/pysal/momepy/blob/master/docs/{{ docname }}
-"""
+"""  # noqa: E501
 
 
 def linkcode_resolve(domain, info):
