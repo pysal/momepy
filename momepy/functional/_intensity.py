@@ -55,8 +55,8 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
 def node_density(
     left: GeoDataFrame, right: GeoDataFrame, graph: Graph, weighted: bool = False
 ) -> Series:
-    """Calculate the density of nodes neighbours on street network defined in
-    ``graph``.
+    """Calculate the density of a node's neighbours (for all nodes)
+    on the street network defined in ``graph``.
 
     Calculated as the number of neighbouring
     nodes / cumulative length of street network within neighbours.
