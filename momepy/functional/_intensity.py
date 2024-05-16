@@ -53,7 +53,7 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
 
 
 def node_density(
-    left: GeoDataFrame, right: GeoDataFrame, graph: Graph, weighted: bool = False
+    nodes: GeoDataFrame, edges: GeoDataFrame, graph: Graph, weighted: bool = False
 ) -> Series:
     """Calculate the density of a node's neighbours (for all nodes)
     on the street network defined in ``graph``.
@@ -61,18 +61,18 @@ def node_density(
     Calculated as the number of neighbouring
     nodes / cumulative length of street network within neighbours.
     ``node_start``,  ``node_end``, is standard output of
-    :py:func:`momepy.nx_to_gdf` and is compulsory for ``right`` to have
+    :py:func:`momepy.nx_to_gdf` and is compulsory for ``edges`` to have
     these columns.
-    If ``weighted``, a ``degree`` column is also required in ``left``.
+    If ``weighted``, a ``degree`` column is also required in ``nodes``.
 
     Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
-    left : GeoDataFrame
-        A GeoDataFrame containing nodes of street network.
-    right : GeoDataFrame
-        A GeoDataFrame containing edges of street network.
+    nodes : GeoDataFrame
+        A GeoDataFrame containing nodes of a street network.
+    edges : GeoDataFrame
+        A GeoDataFrame containing edges of a street network.
     graph :  libpysal.graph.Graph
         A spatial weights matrix capturing relationship between nodes.
     weighted : bool (default False)
@@ -89,15 +89,12 @@ def node_density(
     """
 
     required_cols = ["node_start", "node_end"]
-    if not np.isin(required_cols, right.columns).all():
-        raise ValueError(
-            f"Columns { *required_cols, } are needed in "
-            "right GeoDataframe for the calculations."
-        )
-    if weighted and ("degree" not in left.columns):
-        raise ValueError(
-            "Degree column is needed in " "left GeoDataframe for density calculations."
-        )
+    for col in required_cols:
+        if col not in edges.columns:
+            raise ValueError(f"Column {col} is needed in the edges GeoDataframe.")
+
+    if weighted and ("degree" not in nodes.columns):
+        raise ValueError("Column degree is needed in nodes GeoDataframe.")
 
     def _calc_nodedensity(group, edges):
         """ "Helper function to calculate group values."""
@@ -109,8 +106,8 @@ def node_density(
         return group.sum() / lengths if lengths else 0
 
     if weighted:
-        summation_values = left["degree"] - 1
+        summation_values = nodes["degree"] - 1
     else:
-        summation_values = pd.Series(np.ones(left.shape[0]), index=left.index)
+        summation_values = pd.Series(np.ones(nodes.shape[0]), index=nodes.index)
 
-    return graph.apply(summation_values, _calc_nodedensity, edges=right)
+    return graph.apply(summation_values, _calc_nodedensity, edges=edges)

@@ -1,5 +1,6 @@
 import geopandas as gpd
 import numpy as np
+import pytest
 from libpysal.graph import Graph
 from pandas.testing import assert_series_equal
 
@@ -70,6 +71,24 @@ class TestIntensity:
             "min": 0.004808273240207287,
         }
         assert_result(island, expected_island, nodes, check_names=False)
+
+        with pytest.raises(
+            ValueError,
+            match=("Column node_start is needed in the edges GeoDataframe."),
+        ):
+            mm.node_density(nodes, nodes, g)
+
+        with pytest.raises(
+            ValueError,
+            match=("Column node_end is needed in the edges GeoDataframe."),
+        ):
+            mm.node_density(nodes, edges["node_start"].to_frame(), g)
+
+        with pytest.raises(
+            ValueError,
+            match=("Column degree is needed in nodes GeoDataframe."),
+        ):
+            mm.node_density(edges, edges, g, weighted=True)
 
 
 class TestIntensityEquality:
