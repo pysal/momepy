@@ -97,7 +97,7 @@ def node_density(
         raise ValueError("Column degree is needed in nodes GeoDataframe.")
 
     def _calc_nodedensity(group, edges):
-        """ "Helper function to calculate group values."""
+        """Helper function to calculate group values."""
         neighbours = group.index.values
         locs = np.in1d(edges["node_start"], neighbours) & np.in1d(
             edges["node_end"], neighbours
