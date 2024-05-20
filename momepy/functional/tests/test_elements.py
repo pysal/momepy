@@ -142,6 +142,23 @@ class TestElements:
                 threshold_elimination.sort_values("geometry").reset_index(drop=True),
             )
 
+        tessellation_df = mm.enclosed_tessellation(
+            self.df_buildings,
+            self.enclosures,
+        )
+        assert_geodataframe_equal(tessellation, tessellation_df)
+
+        custom_index = self.enclosures
+        custom_index.index = (custom_index.index + 100).astype(str)
+        tessellation_custom_index = mm.enclosed_tessellation(
+            self.df_buildings,
+            custom_index,
+        )
+        assert (tessellation_custom_index.geom_type == "Polygon").all()
+        assert tessellation_custom_index.crs == self.df_buildings.crs
+        assert (self.df_buildings.index.isin(tessellation_custom_index.index)).all()
+        assert tessellation_custom_index.enclosure_index.isin(custom_index.index).all()
+
     def test_verify_tessellation(self):
         df = self.df_buildings
         b = df.total_bounds
