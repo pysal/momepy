@@ -352,6 +352,7 @@ def buffered_limit(
     buffer: float | str = 100,
     min_buffer: float = 0,
     max_buffer: float = 100,
+    **kwargs,
 ) -> shapely.Geometry:
     """
     Define limit for tessellation as a buffer around buildings.
@@ -376,6 +377,8 @@ def buffered_limit(
         The minimum adaptive buffer distance. By default 0.
     max_buffer : float, optional
         The maximum adaptive buffer distance. By default 100.
+    **kwargs
+        Keyword arguments passed to :meth:`geopandas.GeoSeries.buffer`.
 
     Returns
     -------
@@ -397,5 +400,7 @@ def buffered_limit(
     else:
         raise ValueError("buffer must be either 'adaptive' or a number")
     return (
-        gdf.buffer(buffer).union_all() if GPD_GE_10 else gdf.buffer(buffer).unary_union
+        gdf.buffer(buffer, **kwargs).union_all()
+        if GPD_GE_10
+        else gdf.buffer(buffer, **kwargs).unary_union
     )
