@@ -129,7 +129,7 @@ def enclosed_tessellation(
     ----------
     geometry : GeoSeries | GeoDataFrame
         A GeoDataFrame or GeoSeries containing buildings to tessellate the space around.
-    enclosures : GeoSeries
+    enclosures : GeoSeries | GeoDataFrame
         The enclosures geometry, which can be generated using :func:`momepy.enclosures`.
     shrink : float, optional
         The distance for negative buffer to generate space between adjacent polygons).
@@ -161,7 +161,7 @@ def enclosed_tessellation(
     """
 
     # convert to GeoDataFrame and add position (we will need it later)
-    enclosures = enclosures.to_frame()
+    enclosures = enclosures.geometry.to_frame()
     enclosures["position"] = range(len(enclosures))
 
     # preserve index name if exists
