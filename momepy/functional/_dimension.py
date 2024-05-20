@@ -121,8 +121,7 @@ def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
 def perimeter_wall(
     geometry: GeoDataFrame | GeoSeries, graph: Graph | None = None
 ) -> Series:
-    """
-    Calculate the perimeter wall length the joined structure.
+    """Calculate the perimeter wall length the joined structure.
 
     Parameters
     ----------
@@ -164,9 +163,9 @@ def perimeter_wall(
 def weighted_character(
     values: np.ndarray | Series, areas: np.ndarray | Series, graph: Graph
 ) -> Series:
-    """
-    Calculates the weighted character. Character weighted by the area
-    of the objects within neighbors defined in ``graph``.
+    """Calculates the weighted character.
+
+    Character weighted by the area of the objects within neighbors defined in ``graph``.
     Results are index based on ``graph``.
 
     .. math::
@@ -204,8 +203,7 @@ def weighted_character(
 
 
 def covered_area(areas: np.ndarray | Series, graph: Graph) -> Series:
-    """
-    Calculates the area covered by neighbours, which is total area covered
+    """Calculates the area covered by neighbours, which is total area covered
     by neighbours defined in ``graph`` and the element itself.
     Results are index based on ``graph``.
 
