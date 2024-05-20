@@ -147,146 +147,6 @@ class TestDescribe:
 
         assert_frame_equal(r, r2)
 
-    def test_unweighted_percentile(self):
-        perc = mm.unweighted_percentile(
-            self.df_tessellation["area"], self.diversity_graph
-        )
-        perc_expected = {
-            "count": 144,
-            "mean": 2101.4180678739017,
-            "min": 314.3067794345771,
-            "max": 4258.008903612521,
-        }
-        assert_frame_result(
-            perc, perc_expected, self.df_tessellation, check_names=False
-        )
-
-        perc = mm.unweighted_percentile(
-            pd.Series(list(range(8)) * 18, index=self.df_tessellation),
-            self.diversity_graph,
-        )
-        perc_expected = {
-            "count": 144,
-            "mean": 3.525462962962963,
-            "min": 1.0,
-            "max": 6.0,
-        }
-        assert_frame_result(
-            perc, perc_expected, self.df_tessellation, check_names=False
-        )
-
-        perc = mm.unweighted_percentile(
-            self.df_tessellation["area"], self.diversity_graph, percentiles=[30, 70]
-        )
-        perc_expected = {
-            "count": 144,
-            "mean": 2084.162921395619,
-            "min": 498.47425908072955,
-            "max": 4142.403794686796,
-        }
-        assert_frame_result(
-            perc, perc_expected, self.df_tessellation, check_names=False
-        )
-
-    def test_linearly_weighted_percentiles(self):
-        perc = mm.linearly_weighted_percentiles(
-            self.df_tessellation["area"],
-            self.df_tessellation.geometry,
-            self.diversity_graph,
-        )
-        perc_expected = {
-            "count": 144,
-            "mean": 1956.0672714756156,
-            "min": 110.43272692016959,
-            "max": 4331.418546462096,
-        }
-        assert_frame_result(
-            perc, perc_expected, self.df_tessellation, check_names=False
-        )
-
-        perc = mm.linearly_weighted_percentiles(
-            self.df_tessellation["area"],
-            self.df_tessellation.geometry,
-            self.diversity_graph,
-            percentiles=[30, 70],
-        )
-        perc_expected = {
-            "count": 144,
-            "mean": 1931.8544987242813,
-            "min": 122.04102848302165,
-            "max": 4148.563252265954,
-        }
-        assert_frame_result(
-            perc, perc_expected, self.df_tessellation, check_names=False
-        )
-
-
-class TestDiversityEquivalence:
-    def setup_method(self):
-        test_file_path = mm.datasets.get_path("bubenec")
-        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
-        self.df_tessellation["area"] = self.df_tessellation.geometry.area
-        self.sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
-        self.graph = (
-            Graph.build_contiguity(self.df_tessellation)
-            .higher_order(k=3, lower_order=True)
-            .assign_self_weight()
-        )
-
-    def test_unweighted_percentile(self):
-        perc_new = mm.unweighted_percentile(self.df_tessellation["area"], self.graph)
-        perc_old = mm.Percentiles(self.df_tessellation, "area", self.sw, "uID").frame
-        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
-
-        perc_new = mm.unweighted_percentile(
-            pd.Series(list(range(8)) * 18, index=self.df_tessellation), self.graph
-        )
-        perc_old = mm.Percentiles(
-            self.df_tessellation, list(range(8)) * 18, self.sw, "uID"
-        ).frame
-        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
-
-        perc_new = mm.unweighted_percentile(
-            self.df_tessellation["area"], self.graph, percentiles=[30, 70]
-        )
-        perc_old = mm.Percentiles(
-            self.df_tessellation, "area", self.sw, "uID", percentiles=[30, 70]
-        ).frame
-        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
-
-    def test_linearly_weighted_percentiles(self):
-        perc_new = mm.linearly_weighted_percentiles(
-            self.df_tessellation["area"], self.df_tessellation.geometry, self.graph
-        )
-        perc_old = mm.Percentiles(
-            self.df_tessellation,
-            "area",
-            self.sw,
-            "uID",
-            weighted="linear",
-            verbose=False,
-        ).frame
-
-        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
-
-        perc_new = mm.linearly_weighted_percentiles(
-            self.df_tessellation["area"],
-            self.df_tessellation.geometry,
-            self.graph,
-            percentiles=[30, 70],
-        )
-
-        perc_old = mm.Percentiles(
-            self.df_tessellation,
-            "area",
-            self.sw,
-            "uID",
-            percentiles=[30, 70],
-            weighted="linear",
-            verbose=False,
-        ).frame
-        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
-
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
@@ -426,6 +286,79 @@ class TestDiversityEquivalence:
 
         assert_frame_equal(pandas_agg_vals, numba_agg_vals)
 
+    def test_unweighted_percentile(self):
+        perc = mm.unweighted_percentile(
+            self.df_tessellation["area"], self.diversity_graph
+        )
+        perc_expected = {
+            "count": 144,
+            "mean": 2101.4180678739017,
+            "min": 314.3067794345771,
+            "max": 4258.008903612521,
+        }
+        assert_frame_result(
+            perc, perc_expected, self.df_tessellation, check_names=False
+        )
+
+        perc = mm.unweighted_percentile(
+            pd.Series(list(range(8)) * 18, index=self.df_tessellation),
+            self.diversity_graph,
+        )
+        perc_expected = {
+            "count": 144,
+            "mean": 3.525462962962963,
+            "min": 1.0,
+            "max": 6.0,
+        }
+        assert_frame_result(
+            perc, perc_expected, self.df_tessellation, check_names=False
+        )
+
+        perc = mm.unweighted_percentile(
+            self.df_tessellation["area"], self.diversity_graph, percentiles=[30, 70]
+        )
+        perc_expected = {
+            "count": 144,
+            "mean": 2084.162921395619,
+            "min": 498.47425908072955,
+            "max": 4142.403794686796,
+        }
+        assert_frame_result(
+            perc, perc_expected, self.df_tessellation, check_names=False
+        )
+
+    def test_linearly_weighted_percentiles(self):
+        perc = mm.linearly_weighted_percentiles(
+            self.df_tessellation["area"],
+            self.df_tessellation.geometry,
+            self.diversity_graph,
+        )
+        perc_expected = {
+            "count": 144,
+            "mean": 1956.0672714756156,
+            "min": 110.43272692016959,
+            "max": 4331.418546462096,
+        }
+        assert_frame_result(
+            perc, perc_expected, self.df_tessellation, check_names=False
+        )
+
+        perc = mm.linearly_weighted_percentiles(
+            self.df_tessellation["area"],
+            self.df_tessellation.geometry,
+            self.diversity_graph,
+            percentiles=[30, 70],
+        )
+        perc_expected = {
+            "count": 144,
+            "mean": 1931.8544987242813,
+            "min": 122.04102848302165,
+            "max": 4148.563252265954,
+        }
+        assert_frame_result(
+            perc, perc_expected, self.df_tessellation, check_names=False
+        )
+
 
 class TestDescribeEquality:
     def setup_method(self):
@@ -503,3 +436,71 @@ class TestDescribeEquality:
         assert_series_equal(
             new_fl_area, old_fl_area, check_names=False, check_dtype=False
         )
+
+    def test_unweighted_percentile(self):
+        sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
+        graph = (
+            Graph.build_contiguity(self.df_tessellation)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
+
+        perc_new = mm.unweighted_percentile(self.df_tessellation["area"], graph)
+        perc_old = mm.Percentiles(self.df_tessellation, "area", sw, "uID").frame
+        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
+
+        perc_new = mm.unweighted_percentile(
+            pd.Series(list(range(8)) * 18, index=self.df_tessellation), graph
+        )
+        perc_old = mm.Percentiles(
+            self.df_tessellation, list(range(8)) * 18, sw, "uID"
+        ).frame
+        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
+
+        perc_new = mm.unweighted_percentile(
+            self.df_tessellation["area"], graph, percentiles=[30, 70]
+        )
+        perc_old = mm.Percentiles(
+            self.df_tessellation, "area", sw, "uID", percentiles=[30, 70]
+        ).frame
+        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
+
+    def test_linearly_weighted_percentiles(self):
+        sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
+        graph = (
+            Graph.build_contiguity(self.df_tessellation)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
+
+        perc_new = mm.linearly_weighted_percentiles(
+            self.df_tessellation["area"], self.df_tessellation.geometry, graph
+        )
+        perc_old = mm.Percentiles(
+            self.df_tessellation,
+            "area",
+            sw,
+            "uID",
+            weighted="linear",
+            verbose=False,
+        ).frame
+
+        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
+
+        perc_new = mm.linearly_weighted_percentiles(
+            self.df_tessellation["area"],
+            self.df_tessellation.geometry,
+            graph,
+            percentiles=[30, 70],
+        )
+
+        perc_old = mm.Percentiles(
+            self.df_tessellation,
+            "area",
+            sw,
+            "uID",
+            percentiles=[30, 70],
+            weighted="linear",
+            verbose=False,
+        ).frame
+        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
