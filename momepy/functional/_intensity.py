@@ -116,9 +116,10 @@ def node_density(
 def block_counts(
     group_key: pd.Series | np.ndarray, graph: Graph, areas=None
 ) -> pd.Series:
-    """
-    Calculates the weighted number of blocks. The number of blocks within neighbours
-    defined in ``graph`` divided by the area covered by the neighbours.
+    """Calculates the weighted number of blocks.
+
+    The number of blocks within neighbours defined in ``graph``
+    divided by the area covered by the neighbours.
 
     Adapted from :cite:`dibble2017`.
 
