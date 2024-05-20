@@ -2,8 +2,8 @@ import geopandas as gpd
 import numpy as np
 import pytest
 from libpysal.weights import Queen
-from shapely.geometry import Point
 from pandas.testing import assert_series_equal
+from shapely.geometry import Point
 
 import momepy as mm
 
@@ -103,11 +103,13 @@ class TestIntensity:
         with pytest.raises(
             TypeError, match="Geometry type does not support weighting."
         ):
-            mm.Count(point_gdf, self.blocks, "nID", "bID", weighted=True).series
+            mm.Count(point_gdf, self.blocks, "nID", "bID", weighted=True).series  # noqa: B018
 
     def test_Courtyards(self):
         courtyards = mm.Courtyards(self.df_buildings).series
-        sw = Queen.from_dataframe(self.df_buildings, silence_warnings=True)
+        sw = Queen.from_dataframe(
+            self.df_buildings, silence_warnings=True, use_index=False
+        )
         courtyards_wm = mm.Courtyards(self.df_buildings, sw).series
         check = 0.6805555555555556
         assert courtyards.mean() == check

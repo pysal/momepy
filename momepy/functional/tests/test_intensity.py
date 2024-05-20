@@ -1,5 +1,6 @@
 import geopandas as gpd
 import numpy as np
+import pytest
 from libpysal.graph import Graph
 from pandas.testing import assert_series_equal
 
@@ -38,6 +39,57 @@ class TestIntensity:
         expected = {"mean": 0.6805555555555556, "sum": 98, "min": 0, "max": 1}
         assert_result(courtyards, expected, self.df_buildings)
 
+    def test_node_density(self):
+        nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
+        nx = mm.node_degree(nx)
+        nodes, edges, w = mm.nx_to_gdf(nx, spatial_weights=True)
+        g = Graph.from_W(w).higher_order(k=3, lower_order=True).assign_self_weight()
+
+        density = mm.node_density(nodes, edges, g)
+        expected_density = {
+            "count": 29,
+            "mean": 0.005534125924228438,
+            "max": 0.010177844322387136,
+            "min": 0.00427032489140038,
+        }
+        assert_result(density, expected_density, nodes, check_names=False)
+
+        weighted = mm.node_density(nodes, edges, g, weighted=True)
+        expected_weighted = {
+            "count": 29,
+            "mean": 0.010090861332429164,
+            "max": 0.020355688644774272,
+            "min": 0.0077472994887720905,
+        }
+        assert_result(weighted, expected_weighted, nodes, check_names=False)
+
+        island = mm.node_density(nodes, edges, Graph.from_W(w).assign_self_weight())
+        expected_island = {
+            "count": 29,
+            "mean": 0.01026753724860306,
+            "max": 0.029319191032027746,
+            "min": 0.004808273240207287,
+        }
+        assert_result(island, expected_island, nodes, check_names=False)
+
+        with pytest.raises(
+            ValueError,
+            match=("Column node_start is needed in the edges GeoDataframe."),
+        ):
+            mm.node_density(nodes, nodes, g)
+
+        with pytest.raises(
+            ValueError,
+            match=("Column node_end is needed in the edges GeoDataframe."),
+        ):
+            mm.node_density(nodes, edges["node_start"].to_frame(), g)
+
+        with pytest.raises(
+            ValueError,
+            match=("Column degree is needed in nodes GeoDataframe."),
+        ):
+            mm.node_density(edges, edges, g, weighted=True)
+
 
 class TestIntensityEquality:
     def setup_method(self):
@@ -69,4 +121,33 @@ class TestIntensityEquality:
         new_courtyards = mm.courtyards(self.df_buildings, self.buildings_graph)
         assert_series_equal(
             new_courtyards, old_courtyards, check_names=False, check_dtype=False
+        )
+
+    def test_node_density(self):
+        nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
+        nx = mm.node_degree(nx)
+        nodes, edges, w = mm.nx_to_gdf(nx, spatial_weights=True)
+        sw = mm.sw_high(k=3, weights=w)
+        g = Graph.from_W(w).higher_order(k=3, lower_order=True).assign_self_weight()
+
+        density_old = mm.NodeDensity(nodes, edges, sw).series
+        density_new = mm.node_density(nodes, edges, g)
+        assert_series_equal(
+            density_old, density_new, check_names=False, check_dtype=False
+        )
+
+        weighted_old = mm.NodeDensity(
+            nodes, edges, sw, weighted=True, node_degree="degree"
+        ).series
+        weighted_new = mm.node_density(nodes, edges, g, weighted=True)
+        assert_series_equal(
+            weighted_old, weighted_new, check_names=False, check_dtype=False
+        )
+
+        islands_old = mm.NodeDensity(nodes, edges, w).series
+        islands_new = mm.node_density(
+            nodes, edges, Graph.from_W(w).assign_self_weight()
+        )
+        assert_series_equal(
+            islands_old, islands_new, check_names=False, check_dtype=False
         )

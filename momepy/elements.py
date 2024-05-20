@@ -26,6 +26,7 @@ __all__ = [
 ]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
+GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 
 
 def buffered_limit(gdf, buffer=100):
@@ -52,7 +53,9 @@ def buffered_limit(gdf, buffer=100):
     >>> type(limit)
     shapely.geometry.polygon.Polygon
     """
-    return gdf.buffer(buffer).unary_union
+    return (
+        gdf.buffer(buffer).union_all() if GPD_GE_10 else gdf.buffer(buffer).unary_union
+    )
 
 
 class Tessellation:
@@ -242,7 +245,7 @@ class Tessellation:
             )
         else:
             if isinstance(limit, gpd.GeoSeries | gpd.GeoDataFrame):
-                limit = limit.unary_union
+                limit = limit.union_all() if GPD_GE_10 else limit.unary_union
 
             bounds = shapely.bounds(limit)
             centre_x = (bounds[0] + bounds[2]) / 2
@@ -624,7 +627,9 @@ class Blocks:
             how="difference",
         )
         cut = cut.explode(ignore_index=True)
-        weights = libpysal.weights.Queen.from_dataframe(cut, silence_warnings=True)
+        weights = libpysal.weights.Queen.from_dataframe(
+            cut, silence_warnings=True, use_index=False
+        )
         cut["component"] = weights.component_labels
         buildings_c = buildings.copy()
         buildings_c.geometry = buildings_c.representative_point()  # make points
@@ -986,7 +991,7 @@ def enclosures(
     """
     if limit is not None:
         if isinstance(limit, BaseGeometry):
-            limit = gpd.GeoSeries([limit])
+            limit = gpd.GeoSeries([limit], crs=primary_barriers.crs)
         if limit.geom_type.isin(["Polygon", "MultiPolygon"]).any():
             limit_b = limit.boundary
         else:
@@ -994,7 +999,7 @@ def enclosures(
         barriers = pd.concat([primary_barriers.geometry, limit_b.geometry])
     else:
         barriers = primary_barriers
-    unioned = barriers.unary_union
+    unioned = barriers.union_all() if GPD_GE_10 else barriers.unary_union
     polygons = polygonize(unioned)
     enclosures = gpd.GeoSeries(list(polygons), crs=primary_barriers.crs)
 
@@ -1034,11 +1039,12 @@ def enclosures(
             )  # keep only those within original polygon
             new += list(polygons[within])
 
-        final_enclosures = (
-            pd.concat(
-                [gpd.GeoSeries(enclosures).drop(unique), gpd.GeoSeries(new)]
-            ).reset_index(drop=True)
-        ).set_crs(primary_barriers.crs)
+        final_enclosures = pd.concat(
+            [
+                gpd.GeoSeries(enclosures).drop(unique),
+                gpd.GeoSeries(new, crs=primary_barriers.crs),
+            ]
+        ).reset_index(drop=True)
 
         final_enclosures = gpd.GeoDataFrame(
             {enclosure_id: range(len(final_enclosures))}, geometry=final_enclosures
