@@ -7,6 +7,7 @@ import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from joblib import Parallel, delayed
 from libpysal.cg import voronoi_frames
+from libpysal.graph import Graph
 from packaging.version import Version
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
@@ -17,6 +18,7 @@ __all__ = [
     "enclosed_tessellation",
     "verify_tessellation",
     "get_nearest_street",
+    "buffered_limit",
 ]
 
 
@@ -343,3 +345,57 @@ def get_nearest_street(
 
     ids[blg_idx] = streets.index[str_idx]
     return ids
+
+
+def buffered_limit(
+    gdf: GeoDataFrame | GeoSeries,
+    buffer: float | str = 100,
+    min_buffer: float = 0,
+    max_buffer: float = 100,
+) -> shapely.Geometry:
+    """
+    Define limit for tessellation as a buffer around buildings.
+
+    The function calculates a buffer around buildings and returns a MultiPolygon or
+    Polygon defining the study area. The buffer can be either a fixed number or
+    "adaptive" which calculates the buffer based on Gabriel graph.
+
+    See :cite:`fleischmann2020` for details.
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame | GeoSeries
+        A GeoDataFrame containing building footprints.
+    buffer : float | str, optional
+        A buffer around buildings limiting the extend of tessellation. If "adaptive",
+        the buffer is calculated based on Gabriel graph as the half of the maximum
+        distance between neighbors (represented as centroids) of each node + 10% of
+        such the maximum distance. The lower and upper bounds can be furhter specified
+        by ``min_buffer`` and ``max_buffer``. By default 100.
+    min_buffer : float, optional
+        The minimum adaptive buffer distance. By default 0.
+    max_buffer : float, optional
+        The maximum adaptive buffer distance. By default 100.
+
+    Returns
+    -------
+    MultiPolygon
+        A MultiPolygon or Polygon defining the study area.
+
+    Examples
+    --------
+    >>> limit = mm.buffered_limit(buildings_df)
+    >>> type(limit)
+    shapely.geometry.polygon.Polygon
+    """
+    if buffer == "adaptive":
+        gabriel = Graph.build_triangulation(gdf.centroid, "gabriel", kernel="identity")
+        max_dist = gabriel.aggregate("max")
+        buffer = np.clip(max_dist / 2 + max_dist * 0.1, min_buffer, max_buffer).values
+    elif isinstance(buffer, int | float):
+        pass
+    else:
+        raise ValueError("buffer must be either 'adaptive' or a number")
+    return (
+        gdf.buffer(buffer).union_all() if GPD_GE_10 else gdf.buffer(buffer).unary_union
+    )
