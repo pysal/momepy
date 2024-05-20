@@ -64,11 +64,14 @@ momepy = ["datasets/bubenec.gpkg", "datasets/tests.gpkg"]
 [tool.ruff]
 line-length = 88
 lint.select = ["E", "F", "W", "I", "UP", "N", "B", "A", "C4", "SIM", "ARG"]
-lint.ignore = ["B006", "F403", "SIM108"]
-exclude = ["docs/*", "benchmarks/*"]
+lint.ignore = ["B006", "SIM108"]
+include = ["*.py", "*.ipynb"]
+
 
 [tool.ruff.lint.per-file-ignores]
+"*__init__.py" = ["F403"]
 "momepy/tests/*" = ["N802", "N806"]
+"benchmarks/*" = ["ARG002", "N802", "N806"]
 
 [tool.coverage.run]
 source = ['momepy']
