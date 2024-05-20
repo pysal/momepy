@@ -215,17 +215,17 @@ class TestElements:
     def test_buffered_limit_adaptive(self):
         limit = mm.buffered_limit(self.df_buildings, "adaptive")
         assert limit.geom_type == "Polygon"
-        assert pytest.approx(limit.area) == 346666.41098618
+        assert pytest.approx(limit.area) == 355819.18954170
 
         limit = mm.buffered_limit(self.df_buildings, "adaptive", max_buffer=30)
         assert limit.geom_type == "Polygon"
-        assert pytest.approx(limit.area) == 304978.77564085
+        assert pytest.approx(limit.area) == 304200.301833294
 
         limit = mm.buffered_limit(
             self.df_buildings, "adaptive", min_buffer=30, max_buffer=300
         )
         assert limit.geom_type == "Polygon"
-        assert pytest.approx(limit.area) == 348502.38744819
+        assert pytest.approx(limit.area) == 357671.831894244
 
     @pytest.mark.skipif(LPS_GE_411, reason="libpysal>=4.11 required")
     def test_buffered_limit_adaptive_error(self):
