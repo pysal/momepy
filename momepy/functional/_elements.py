@@ -1,6 +1,7 @@
 import warnings
 
 import geopandas as gpd
+import libpysal
 import numpy as np
 import pandas as pd
 import shapely
@@ -12,6 +13,7 @@ from packaging.version import Version
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
+LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
 
 __all__ = [
     "morphological_tessellation",
@@ -392,13 +394,17 @@ def buffered_limit(
     shapely.geometry.polygon.Polygon
     """
     if buffer == "adaptive":
+        if not LPS_GE_411:
+            raise ImportError(
+                "Adaptive buffer requires libpysal 4.11 or higher."
+            )  # because https://github.com/pysal/libpysal/pull/709
         gabriel = Graph.build_triangulation(gdf.centroid, "gabriel", kernel="identity")
         max_dist = gabriel.aggregate("max")
         buffer = np.clip(max_dist / 2 + max_dist * 0.1, min_buffer, max_buffer).values
-    elif isinstance(buffer, int | float):
-        pass
-    else:
-        raise ValueError("buffer must be either 'adaptive' or a number")
+
+    elif not isinstance(buffer, int | float):
+        raise ValueError("`buffer` must be either 'adaptive' or a number.")
+
     return (
         gdf.buffer(buffer, **kwargs).union_all()
         if GPD_GE_10
