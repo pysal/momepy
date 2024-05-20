@@ -206,17 +206,22 @@ def enclosed_tessellation(
         unchanged_in_new = new_df.loc[[-1]]
         new_df = new_df.drop(-1)
         clean_blocks = pd.concat(
-            [enclosures.drop(altered).drop(columns="position"), unchanged_in_new]
+            [
+                enclosures.drop(enclosures.index[altered]).drop(columns="position"),
+                unchanged_in_new,
+            ]
         )
     else:
-        clean_blocks = enclosures.drop(altered).drop(columns="position")
+        clean_blocks = enclosures.drop(enclosures.index[altered]).drop(
+            columns="position"
+        )
 
     # assign negative index to enclosures with no buildings
     clean_blocks.index = range(-len(clean_blocks), 0, 1)
 
     # get building index for enclosures with single building
     singles = enclosures.iloc[single]
-    singles.index = singles.position.loc[single].apply(
+    singles.index = singles.position.loc[singles.index].apply(
         lambda ix: geometry.iloc[res[inp == ix]].index[0]
     )
     # combine results
