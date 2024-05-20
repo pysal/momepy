@@ -376,8 +376,7 @@ def cell_alignment(
 def shared_walls_ratio(
     shared_walls: np.ndarray | Series, perimeters: np.ndarray | Series
 ):
-    """
-    Calculate shared walls ratio of adjacent elements (typically buildings).
+    """Calculate shared walls ratio of adjacent elements (typically buildings).
 
     .. math::
         \\textit{length of shared walls} \\over perimeter
@@ -430,9 +429,8 @@ def _orient(geom):
 
 
 def neighboring_street_orientation_deviation(gdf: gpd.GeoDataFrame) -> Series:
-    """
-    Calculate the mean deviation of solar orientation of adjacent streets. The
-    orientation of a street segment is represented by the orientation of the line
+    """Calculate the mean deviation of solar orientation of adjacent streets.
+    The orientation of a street segment is represented by the orientation of the line
     connecting the first and last point of the segment.
 
     .. math::
