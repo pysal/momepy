@@ -91,7 +91,7 @@ def morphological_tessellation(
 
 def enclosed_tessellation(
     geometry: GeoSeries | GeoDataFrame,
-    enclosures: GeoSeries,
+    enclosures: GeoSeries | GeoDataFrame,
     shrink: float = 0.4,
     segment: float = 0.5,
     threshold: float = 0.05,
@@ -129,7 +129,7 @@ def enclosed_tessellation(
     ----------
     geometry : GeoSeries | GeoDataFrame
         A GeoDataFrame or GeoSeries containing buildings to tessellate the space around.
-    enclosures : GeoSeries
+    enclosures : GeoSeries | GeoDataFrame
         The enclosures geometry, which can be generated using :func:`momepy.enclosures`.
     shrink : float, optional
         The distance for negative buffer to generate space between adjacent polygons).
@@ -161,7 +161,7 @@ def enclosed_tessellation(
     """
 
     # convert to GeoDataFrame and add position (we will need it later)
-    enclosures = enclosures.to_frame()
+    enclosures = enclosures.geometry.to_frame()
     enclosures["position"] = range(len(enclosures))
 
     # preserve index name if exists
@@ -206,17 +206,22 @@ def enclosed_tessellation(
         unchanged_in_new = new_df.loc[[-1]]
         new_df = new_df.drop(-1)
         clean_blocks = pd.concat(
-            [enclosures.drop(altered).drop(columns="position"), unchanged_in_new]
+            [
+                enclosures.drop(enclosures.index[altered]).drop(columns="position"),
+                unchanged_in_new,
+            ]
         )
     else:
-        clean_blocks = enclosures.drop(altered).drop(columns="position")
+        clean_blocks = enclosures.drop(enclosures.index[altered]).drop(
+            columns="position"
+        )
 
     # assign negative index to enclosures with no buildings
     clean_blocks.index = range(-len(clean_blocks), 0, 1)
 
     # get building index for enclosures with single building
     singles = enclosures.iloc[single]
-    singles.index = singles.position.loc[single].apply(
+    singles.index = singles.position.loc[singles.index].apply(
         lambda ix: geometry.iloc[res[inp == ix]].index[0]
     )
     # combine results
