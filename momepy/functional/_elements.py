@@ -91,7 +91,7 @@ def morphological_tessellation(
 
 def enclosed_tessellation(
     geometry: GeoSeries | GeoDataFrame,
-    enclosures: GeoSeries,
+    enclosures: GeoSeries | GeoDataFrame,
     shrink: float = 0.4,
     segment: float = 0.5,
     threshold: float = 0.05,
