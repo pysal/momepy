@@ -241,7 +241,7 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
             > (shapely.area(blg.geometry.array) * threshold)
         ]
 
-    if len(blg) > 1:
+    if len(blg) >= 1:
         tess = voronoi_frames(
             blg,
             clip=poly,
