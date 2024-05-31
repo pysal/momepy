@@ -1,12 +1,16 @@
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import pytest
 from libpysal.graph import Graph
+from packaging.version import Version
 from pandas.testing import assert_series_equal
 
 import momepy as mm
 
 from .conftest import assert_result
+
+PD_210 = Version(pd.__version__) >= Version("2.1.0")
 
 
 class TestIntensity:
@@ -90,6 +94,9 @@ class TestIntensity:
         ):
             mm.node_density(edges, edges, g, weighted=True)
 
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous pandas versions"
+    )
     def test_area_ratio(self):
         car_block = mm.area_ratio(
             self.blocks.geometry.area,
@@ -188,6 +195,9 @@ class TestIntensityEquality:
             new_courtyards, old_courtyards, check_names=False, check_dtype=False
         )
 
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous pandas versions"
+    )
     def test_area_ratio(self):
         self.blocks["area"] = self.blocks.geometry.area
         car_block_new = mm.area_ratio(
