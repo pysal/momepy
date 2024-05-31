@@ -41,11 +41,11 @@ class TestIntensity:
         assert_result(courtyards, expected, self.df_buildings)
 
     def test_count(self):
-        eib = mm.count(self.blocks, self.df_buildings, self.df_buildings["bID"])
+        eib = mm.count(self.blocks, self.df_buildings["bID"])
         eib_expected = {"count": 8, "min": 8, "max": 26, "mean": 18.0}
         assert_result(eib, eib_expected, self.blocks)
 
-        weib = mm.count(self.blocks, self.df_buildings, self.df_buildings["bID"], True)
+        weib = mm.count(self.blocks, self.df_buildings["bID"], True)
         weib_expected = {
             "count": 8,
             "min": 0.0001518198309906747,
@@ -54,9 +54,7 @@ class TestIntensity:
         }
         assert_result(weib, weib_expected, self.blocks)
 
-        weis = mm.count(
-            self.df_streets, self.df_buildings, self.df_buildings["nID"], weighted=True
-        )
+        weis = mm.count(self.df_streets, self.df_buildings["nID"], weighted=True)
         weis_expected = {
             "count": 35,
             "min": 0.0,
@@ -78,7 +76,7 @@ class TestIntensity:
         with pytest.raises(
             TypeError, match="Geometry type does not support weighting."
         ):
-            mm.count(point_gdf, self.blocks, point_gdf["nID"], weighted=True)
+            mm.count(point_gdf, point_gdf["nID"], weighted=True)
 
     def test_node_density(self):
         nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
@@ -165,21 +163,17 @@ class TestIntensityEquality:
         )
 
     def test_count(self):
-        eib_new = mm.count(self.blocks, self.df_buildings, self.df_buildings["bID"])
+        eib_new = mm.count(self.blocks, self.df_buildings["bID"])
         eib_old = mm.Count(self.blocks, self.df_buildings, "bID", "bID").series
         assert_series_equal(eib_new, eib_old, check_names=False, check_dtype=False)
 
-        weib_new = mm.count(
-            self.blocks, self.df_buildings, self.df_buildings["bID"], True
-        )
+        weib_new = mm.count(self.blocks, self.df_buildings["bID"], True)
         weib_old = mm.Count(
             self.blocks, self.df_buildings, "bID", "bID", weighted=True
         ).series
         assert_series_equal(weib_new, weib_old, check_names=False, check_dtype=False)
 
-        weis_new = mm.count(
-            self.df_streets, self.df_buildings, self.df_buildings["nID"], weighted=True
-        )
+        weis_new = mm.count(self.df_streets, self.df_buildings["nID"], weighted=True)
         weis_old = mm.Count(
             self.df_streets, self.df_buildings, "nID", "nID", weighted=True
         ).series

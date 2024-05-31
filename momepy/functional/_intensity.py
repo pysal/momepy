@@ -115,8 +115,7 @@ def node_density(
 
 def count(
     left: GeoDataFrame,
-    right: GeoDataFrame,
-    right_group_key: Series | np.ndarray,
+    aggregation_key: Series,
     weighted=False,
 ) -> Series:
     """Calculate the number of elements within an aggregated structure.
@@ -136,10 +135,8 @@ def count(
     ----------
     left : GeoDaStaFrame
         A GeoDataFrame containing aggregation to analyse.
-    right : GeoDataFrame
-        A GeoDataFrame containing objects to analyse.
-    right_group_key: np.array | pd.Series
-        The group key that assigns objects from ``right`` to ``left``.
+    aggregation_key: Series
+        The group key that assigns objects to ``left``.
     weighted : bool (default False)
         If ``True``, count will be divided by the area or length.
 
@@ -150,16 +147,10 @@ def count(
     Examples
     --------
     >>> blocks_df['buildings_count'] = mm.count(blocks_df,
-    ...                                         buildings_df,
     ...                                         buildings_df['bID'])
     """
 
-    if isinstance(right_group_key, np.ndarray):
-        right_group_key = Series(right_group_key, index=right.index)
-
-    stats = (
-        right.loc[right_group_key.index.values].groupby(right_group_key.values).size()
-    )
+    stats = aggregation_key.value_counts().sort_index()
 
     # fill missing values with 0s
     results = Series(0, left.index)
