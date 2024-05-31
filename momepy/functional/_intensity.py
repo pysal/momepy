@@ -116,7 +116,7 @@ def node_density(
 
 
 def area_ratio(
-    left: Series, right: Series, right_group_key: Series | np.ndarray
+    covered: Series, covering: Series, aggregation_key: Series | np.ndarray
 ) -> pd.Series:
     """Calculate covered area ratio or floor area ratio of objects.
     .. math::
