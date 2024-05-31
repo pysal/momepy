@@ -1,4 +1,5 @@
 import geopandas as gpd
+import libpysal
 import numpy as np
 import pandas as pd
 import pytest
@@ -11,6 +12,7 @@ from shapely.geometry import MultiPoint, Polygon, box
 import momepy as mm
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
+LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
 
 
 class TestElements:
@@ -142,6 +144,23 @@ class TestElements:
                 threshold_elimination.sort_values("geometry").reset_index(drop=True),
             )
 
+        tessellation_df = mm.enclosed_tessellation(
+            self.df_buildings,
+            self.enclosures,
+        )
+        assert_geodataframe_equal(tessellation, tessellation_df)
+
+        custom_index = self.enclosures
+        custom_index.index = (custom_index.index + 100).astype(str)
+        tessellation_custom_index = mm.enclosed_tessellation(
+            self.df_buildings,
+            custom_index,
+        )
+        assert (tessellation_custom_index.geom_type == "Polygon").all()
+        assert tessellation_custom_index.crs == self.df_buildings.crs
+        assert (self.df_buildings.index.isin(tessellation_custom_index.index)).all()
+        assert tessellation_custom_index.enclosure_index.isin(custom_index.index).all()
+
     def test_verify_tessellation(self):
         df = self.df_buildings
         b = df.total_bounds
@@ -203,6 +222,40 @@ class TestElements:
         streets.index = streets.index.astype(str)
         nearest = mm.get_nearest_street(self.df_buildings, streets, 10)
         assert (nearest == None).sum() == 137  # noqa: E711
+
+    def test_buffered_limit(self):
+        limit = mm.buffered_limit(self.df_buildings, 50)
+        assert limit.geom_type == "Polygon"
+        assert pytest.approx(limit.area) == 366525.967849688
+
+    @pytest.mark.skipif(not LPS_GE_411, reason="libpysal>=4.11 required")
+    def test_buffered_limit_adaptive(self):
+        limit = mm.buffered_limit(self.df_buildings, "adaptive")
+        assert limit.geom_type == "Polygon"
+        assert pytest.approx(limit.area) == 355819.18954170
+
+        limit = mm.buffered_limit(self.df_buildings, "adaptive", max_buffer=30)
+        assert limit.geom_type == "Polygon"
+        assert pytest.approx(limit.area) == 304200.301833294
+
+        limit = mm.buffered_limit(
+            self.df_buildings, "adaptive", min_buffer=30, max_buffer=300
+        )
+        assert limit.geom_type == "Polygon"
+        assert pytest.approx(limit.area) == 357671.831894244
+
+    @pytest.mark.skipif(LPS_GE_411, reason="libpysal>=4.11 required")
+    def test_buffered_limit_adaptive_error(self):
+        with pytest.raises(
+            ImportError, match="Adaptive buffer requires libpysal 4.11 or higher."
+        ):
+            mm.buffered_limit(self.df_buildings, "adaptive")
+
+    def test_buffered_limit_error(self):
+        with pytest.raises(
+            ValueError, match="`buffer` must be either 'adaptive' or a number."
+        ):
+            mm.buffered_limit(self.df_buildings, "invalid")
 
     def test_blocks(self):
         blocks, buildings_id, tessellation_id = mm.generate_blocks(

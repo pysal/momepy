@@ -1,6 +1,7 @@
 import warnings
 
 import geopandas as gpd
+import libpysal
 import numpy as np
 import pandas as pd
 import shapely
@@ -13,6 +14,7 @@ from pandas import Series
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
+LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
 
 __all__ = [
     "morphological_tessellation",
@@ -20,6 +22,7 @@ __all__ = [
     "verify_tessellation",
     "get_nearest_street",
     "generate_blocks",
+    "buffered_limit",
 ]
 
 
@@ -94,7 +97,7 @@ def morphological_tessellation(
 
 def enclosed_tessellation(
     geometry: GeoSeries | GeoDataFrame,
-    enclosures: GeoSeries,
+    enclosures: GeoSeries | GeoDataFrame,
     shrink: float = 0.4,
     segment: float = 0.5,
     threshold: float = 0.05,
@@ -132,7 +135,7 @@ def enclosed_tessellation(
     ----------
     geometry : GeoSeries | GeoDataFrame
         A GeoDataFrame or GeoSeries containing buildings to tessellate the space around.
-    enclosures : GeoSeries
+    enclosures : GeoSeries | GeoDataFrame
         The enclosures geometry, which can be generated using :func:`momepy.enclosures`.
     shrink : float, optional
         The distance for negative buffer to generate space between adjacent polygons).
@@ -164,7 +167,7 @@ def enclosed_tessellation(
     """
 
     # convert to GeoDataFrame and add position (we will need it later)
-    enclosures = enclosures.to_frame()
+    enclosures = enclosures.geometry.to_frame()
     enclosures["position"] = range(len(enclosures))
 
     # preserve index name if exists
@@ -209,17 +212,22 @@ def enclosed_tessellation(
         unchanged_in_new = new_df.loc[[-1]]
         new_df = new_df.drop(-1)
         clean_blocks = pd.concat(
-            [enclosures.drop(altered).drop(columns="position"), unchanged_in_new]
+            [
+                enclosures.drop(enclosures.index[altered]).drop(columns="position"),
+                unchanged_in_new,
+            ]
         )
     else:
-        clean_blocks = enclosures.drop(altered).drop(columns="position")
+        clean_blocks = enclosures.drop(enclosures.index[altered]).drop(
+            columns="position"
+        )
 
     # assign negative index to enclosures with no buildings
     clean_blocks.index = range(-len(clean_blocks), 0, 1)
 
     # get building index for enclosures with single building
     singles = enclosures.iloc[single]
-    singles.index = singles.position.loc[single].apply(
+    singles.index = singles.position.loc[singles.index].apply(
         lambda ix: geometry.iloc[res[inp == ix]].index[0]
     )
     # combine results
@@ -426,3 +434,66 @@ def generate_blocks(
     tessellation_id = cells_m[id_name]
 
     return blocks, buildings_id, tessellation_id
+
+
+def buffered_limit(
+    gdf: GeoDataFrame | GeoSeries,
+    buffer: float | str = 100,
+    min_buffer: float = 0,
+    max_buffer: float = 100,
+    **kwargs,
+) -> shapely.Geometry:
+    """
+    Define limit for tessellation as a buffer around buildings.
+
+    The function calculates a buffer around buildings and returns a MultiPolygon or
+    Polygon defining the study area. The buffer can be either a fixed number or
+    "adaptive" which calculates the buffer based on Gabriel graph.
+
+    See :cite:`fleischmann2020` for details.
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame | GeoSeries
+        A GeoDataFrame containing building footprints.
+    buffer : float | str, optional
+        A buffer around buildings limiting the extend of tessellation. If "adaptive",
+        the buffer is calculated based on Gabriel graph as the half of the maximum
+        distance between neighbors (represented as centroids) of each node + 10% of
+        such the maximum distance. The lower and upper bounds can be furhter specified
+        by ``min_buffer`` and ``max_buffer``. By default 100.
+    min_buffer : float, optional
+        The minimum adaptive buffer distance. By default 0.
+    max_buffer : float, optional
+        The maximum adaptive buffer distance. By default 100.
+    **kwargs
+        Keyword arguments passed to :meth:`geopandas.GeoSeries.buffer`.
+
+    Returns
+    -------
+    MultiPolygon
+        A MultiPolygon or Polygon defining the study area.
+
+    Examples
+    --------
+    >>> limit = mm.buffered_limit(buildings_df)
+    >>> type(limit)
+    shapely.geometry.polygon.Polygon
+    """
+    if buffer == "adaptive":
+        if not LPS_GE_411:
+            raise ImportError(
+                "Adaptive buffer requires libpysal 4.11 or higher."
+            )  # because https://github.com/pysal/libpysal/pull/709
+        gabriel = Graph.build_triangulation(gdf.centroid, "gabriel", kernel="identity")
+        max_dist = gabriel.aggregate("max")
+        buffer = np.clip(max_dist / 2 + max_dist * 0.1, min_buffer, max_buffer).values
+
+    elif not isinstance(buffer, int | float):
+        raise ValueError("`buffer` must be either 'adaptive' or a number.")
+
+    return (
+        gdf.buffer(buffer, **kwargs).union_all()
+        if GPD_GE_10
+        else gdf.buffer(buffer, **kwargs).unary_union
+    )
