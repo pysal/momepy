@@ -5,6 +5,8 @@ from libpysal.graph import Graph
 from numpy.typing import NDArray
 from pandas import Series
 
+from ._diversity import describe
+
 __all__ = [
     "volume",
     "floor_area",
@@ -160,9 +162,7 @@ def perimeter_wall(
     return results
 
 
-def weighted_character(
-    values: np.ndarray | Series, areas: np.ndarray | Series, graph: Graph
-) -> Series:
+def weighted_character(values: Series, areas: Series, graph: Graph) -> Series:
     """Calculates the weighted character.
 
     Character weighted by the area of the objects within neighbors defined in ``graph``.
@@ -175,9 +175,9 @@ def weighted_character(
 
     Parameters
     ----------
-    values : np.array, pd.Series
+    values : pd.Series
         The character values to be weighted.
-    values : np.array, pd.Series
+    values : pd.Series
         The area values to be used as weightss
     graph : libpysal.graph.Graph
         A spatial weights matrix for values and areas.
@@ -192,24 +192,21 @@ def weighted_character(
     >>> res = mm.weighted_character(buildings_df['height'],
     ...                     buildings_df.geometry.area, graph)
     """
-    data = np.vstack((values, areas)).T
-    stats = graph.apply(
-        data, lambda x: np.sum(x.iloc[:, 0] * x.iloc[:, 1]) / np.sum(x.iloc[:, 1])
-    )
 
-    result = Series(np.nan, index=graph.unique_ids)
-    result.loc[stats.index.values] = stats.values
-    return result
+    stats = describe(values * areas, graph)["sum"]
+    agg_area = describe(areas, graph)["sum"]
+
+    return stats / agg_area
 
 
-def covered_area(areas: np.ndarray | Series, graph: Graph) -> Series:
+def covered_area(area: Series, graph: Graph) -> Series:
     """Calculates the area covered by neighbours, which is total area covered
     by neighbours defined in ``graph`` and the element itself.
     Results are index based on ``graph``.
 
     Parameters
     ----------
-    areas : np.array, pd.Series
+    areas : pd.Series
         The area values to be used as weightss
     graph : libpysal.graph.Graph
         A spatial weights matrix for values and areas.
@@ -223,7 +220,5 @@ def covered_area(areas: np.ndarray | Series, graph: Graph) -> Series:
     --------
     >>> res = mm.covered_area(buildings_df.geometry.area, graph)
     """
-    stats = graph.apply(areas, lambda x: np.sum(x))
-    result = Series(np.nan, index=graph.unique_ids)
-    result.loc[stats.index.values] = stats.values
-    return result
+
+    return describe(area, graph)["sum"]

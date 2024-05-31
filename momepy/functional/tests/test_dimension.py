@@ -95,6 +95,9 @@ class TestDimensions:
 
     def test_covered_area(self):
         covered_sw = mm.covered_area(self.df_tessellation.area, self.graph)
+
+        covered_sw2 = mm.covered_area(self.df_tessellation.area.values, self.graph)
+
         expected_covered_sw = {
             "sum": 11526021.19027327,
             "mean": 80041.81382134215,
@@ -102,7 +105,14 @@ class TestDimensions:
             "max": 131679.18084183024,
         }
         assert_result(
-            covered_sw, expected_covered_sw, self.df_tessellation, check_names=False
+            covered_sw,
+            expected_covered_sw,
+            self.df_tessellation,
+            check_names=False,
+            exact=False,
+        )
+        assert_series_equal(
+            covered_sw, covered_sw2, check_names=False, check_index_type=False
         )
 
     def test_weighted_char(self):
@@ -116,7 +126,11 @@ class TestDimensions:
             "max": 25.424162063245504,
         }
         assert_result(
-            weighted, weighted_expected, self.df_tessellation, check_names=False
+            weighted,
+            weighted_expected,
+            self.df_tessellation,
+            check_names=False,
+            exact=False,
         )
 
 
@@ -137,7 +151,9 @@ class TestDimensionEquivalence:
     def test_covered_area(self):
         covered_sw_new = mm.covered_area(self.df_tessellation.area, self.graph)
         covered_sw_old = mm.CoveredArea(self.df_tessellation, self.sw, "uID").series
-        assert_series_equal(covered_sw_new, covered_sw_old, check_names=False)
+        assert_series_equal(
+            covered_sw_new, covered_sw_old, check_names=False, check_index_type=False
+        )
 
     def test_weighted_char(self):
         weighted_new = mm.weighted_character(
@@ -146,4 +162,6 @@ class TestDimensionEquivalence:
         weighted_old = mm.WeightedCharacter(
             self.df_buildings, "height", self.sw, "uID"
         ).series
-        assert_series_equal(weighted_new, weighted_old, check_names=False)
+        assert_series_equal(
+            weighted_new, weighted_old, check_names=False, check_index_type=False
+        )
