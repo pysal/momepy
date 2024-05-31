@@ -116,7 +116,7 @@ def node_density(
 
 
 def area_ratio(
-    covered: Series, covering: Series, aggregation_key: Series | np.ndarray
+    area: Series, overlay: Series, aggregation_key: Series | np.ndarray = None
 ) -> pd.Series:
     """Calculate covered area ratio or floor area ratio of objects.
     .. math::
@@ -126,12 +126,12 @@ def area_ratio(
 
     Parameters
     ----------
-    left : Series
+    area : Series
         A GeoDataFrame with the areas of the objects being covered (e.g. land unit).
-    right : Series
+    overlay : Series
         A GeoDataFrame with the areas of the covering objects (e.g. building).
-    right_group_key: np.array | pd.Series
-        The group key that assigns objects from ``right`` to ``left``.
+    aggregation_key: np.array | pd.Series
+        The group key that assigns objects from ``overlay`` to ``area``.
 
     Returns
     -------
@@ -145,8 +145,11 @@ def area_ratio(
     ...                                       buildings_df['uID'])
     """
 
-    # if isinstance(right_group_key, np.ndarray):
-    #     right_group_key = pd.Series(right_group_key, index=right.index)
+    if aggregation_key is None:
+        return overlay / area
 
-    results = describe_reached(right, right_group_key, result_index=left.index)
-    return results["sum"] / left.values
+    if isinstance(aggregation_key, np.ndarray):
+        aggregation_key = pd.Series(aggregation_key, index=overlay.index)
+
+    results = describe_reached(overlay, aggregation_key, result_index=area.index)
+    return results["sum"] / area

@@ -115,6 +115,10 @@ class TestIntensity:
             self.df_buildings.set_index("uID").area,
             self.df_tessellation.set_index("uID").index,
         )
+        car3 = mm.area_ratio(
+            self.df_tessellation.geometry.area,
+            self.df_buildings.geometry.area,
+        )
         car_expected = {
             "mean": 0.3206556897709747,
             "max": 0.8754071653707558,
@@ -123,6 +127,7 @@ class TestIntensity:
         }
         assert_result(car, car_expected, self.df_tessellation)
         assert_result(car2, car_expected, self.df_tessellation.set_index("uID"))
+        assert_result(car3, car_expected, self.df_tessellation)
 
         car_sel = mm.area_ratio(
             self.df_tessellation.iloc[10:20]["area"],
