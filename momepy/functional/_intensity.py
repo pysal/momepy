@@ -5,6 +5,8 @@ from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from pandas import Series
 
+from momepy import describe
+
 __all__ = ["courtyards", "node_density", "block_counts"]
 
 
@@ -114,8 +116,8 @@ def node_density(
 
 
 def block_counts(
-    group_key: pd.Series | np.ndarray, graph: Graph, areas=None
-) -> pd.Series:
+    aggregation_key: Series | np.ndarray, graph: Graph, areas: Series = None
+) -> Series:
     """Calculates the weighted number of blocks.
 
     The number of blocks within neighbours defined in ``graph``
@@ -125,13 +127,12 @@ def block_counts(
 
     Parameters
     ----------
-    group_key: | pd.Series
-        The group key that denotes block membership.
-        has to be Series, to index the results.
+    aggregation_key: | pd.Series
+        The group key that denotes block membership of tessellations.
     graph : libpysal.graph.Graph
-        A spatial weights matrix for ``left``.
+        A spatial weights matrix for the tessellations.
     areas : Series, default None
-        Areas of the tesslations, if areas is none return pure count (``False``).
+        Areas of the tessellations, if areas is none return pure count.
 
     Returns
     -------
@@ -142,20 +143,14 @@ def block_counts(
     --------
     >>> tessellation_df['blocks_within_4'] = mm.block_counts(
     ...                                       df_tessellation['bID'],
-    ...                                       graph,
+    ...                                       graph_queen4,
     ...                                       buildings_df['uID'])
     """
 
+    results = describe(aggregation_key, graph, include_nunique=True)["nunique"]
+
     if areas is not None:
-        stats = graph.apply(
-            pd.concat([group_key, areas], axis=1),
-            lambda x: x.iloc[:, 0].unique().shape[0] / x.iloc[:, 1].sum(),
-        )
-
-    else:
-        stats = graph.apply(group_key, lambda x: x.unique().shape[0])
-
-    results = pd.Series(np.nan, group_key.index)
-    results.loc[stats.index.values] = stats.values
+        agg_areas = describe(areas, graph)["sum"]
+        results = results / agg_areas
 
     return results

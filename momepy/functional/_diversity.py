@@ -33,7 +33,7 @@ def _mode(array):
 
 
 @njit
-def _describe(values, q, include_mode=False):
+def _describe(values, q, include_mode=False, include_nunique=False):
     """Helper function to calculate average."""
     nan_tracker = np.isnan(values)
 
@@ -76,10 +76,13 @@ def _describe(values, q, include_mode=False):
     if include_mode:
         results.append(_mode(values))
 
+    if include_nunique:
+        results.append(np.unique(values).shape[0])
+
     return results
 
 
-def _compute_stats(grouper, q=None, include_mode=False):
+def _compute_stats(grouper, q=None, include_mode=False, include_nunique=False):
     """
     Fast compute of "count", "mean", "median", "std", "min", "max", "sum" statistics,
     with optional mode and quartile limits.
@@ -105,12 +108,23 @@ def _compute_stats(grouper, q=None, include_mode=False):
         stat_ = grouper.agg(["count", "mean", "median", "std", "min", "max", "sum"])
         if include_mode:
             stat_["mode"] = grouper.agg(lambda x: _mode(x.values))
+        if include_nunique:
+            stat_["nunique"] = grouper.agg("nunique")
     else:
-        agg = grouper.agg(lambda x: _describe(x.values, q=q, include_mode=include_mode))
+        agg = grouper.agg(
+            lambda x: _describe(
+                x.values,
+                q=q,
+                include_mode=include_mode,
+                include_nunique=include_nunique,
+            )
+        )
         stat_ = DataFrame(np.stack(agg.values), index=agg.index)
         cols = ["count", "mean", "median", "std", "min", "max", "sum"]
         if include_mode:
             cols.append("mode")
+        if include_nunique:
+            cols.append("nunique")
         stat_.columns = cols
 
     return stat_
@@ -121,6 +135,7 @@ def describe(
     graph: Graph,
     q: tuple[float, float] | None = None,
     include_mode: bool = False,
+    include_nunique: bool = False,
 ) -> DataFrame:
     """Describe the distribution of values within a set neighbourhood.
 
@@ -173,7 +188,7 @@ def describe(
         graph._adjacency.index.codes[0]
     )
 
-    return _compute_stats(grouper, q, include_mode)
+    return _compute_stats(grouper, q, include_mode, include_nunique)
 
 
 def describe_reached(
@@ -183,6 +198,7 @@ def describe_reached(
     graph: Graph = None,
     q: tuple | list | None = None,
     include_mode: bool = False,
+    include_nunique: bool = False,
 ) -> DataFrame:
     """Describe the distribution of values reached on a neighbourhood graph.
 
@@ -191,8 +207,8 @@ def describe_reached(
     quantile range before computing the statistics.
 
     The statistics calculated are count, sum, mean, median, std.
-    Optionally, mode can be calculated, or the statistics can be calculated in
-    quantiles ``q``.
+    Optionally, mode and number of unique elements can be calculated,
+    or the statistics can be calculated in quantiles ``q``.
 
     The neighbourhood is defined in ``graph``. If ``graph`` is ``None``,
     the function will assume topological distance ``0`` (element itself)
@@ -226,6 +242,8 @@ def describe_reached(
     include_mode : False
         Compute mode along with other statistics. Default is False. Mode is
         computationally expensive and not useful for continous variables.
+    include_nunique : False
+        Compute number of uniue elements along with other statistics. Default is False.
 
     Returns
     -------
@@ -290,7 +308,7 @@ def describe_reached(
             combined_index.get_level_values(0)
         )
 
-    stats = _compute_stats(grouper, q, include_mode)
+    stats = _compute_stats(grouper, q, include_mode, include_nunique)
 
     result = pd.DataFrame(
         np.full((result_index.shape[0], stats.shape[1]), np.nan), index=result_index

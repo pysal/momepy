@@ -106,6 +106,35 @@ class TestDescribe:
         }
         assert_result(r["mean"], expected_mean, self.df_buildings, exact=False)
 
+    def test_describe_nunique(self):
+        graph = (
+            Graph.build_contiguity(self.df_tessellation, rook=False)
+            .higher_order(k=5, lower_order=True)
+            .assign_self_weight()
+        )
+
+        unweighted_expected = {
+            "count": 144,
+            "min": 3,
+            "max": 8,
+            "mean": 5.222222222222222,
+        }
+
+        unweighted = mm.describe(
+            self.df_tessellation["bID"], graph, include_nunique=True
+        )["nunique"]
+        unweighted2 = mm.describe(
+            self.df_tessellation["bID"], graph, include_nunique=True, q=(0, 100)
+        )["nunique"]
+
+        assert_result(
+            unweighted, unweighted_expected, self.df_tessellation, exact=False
+        )
+        assert_result(
+            unweighted2, unweighted_expected, self.df_tessellation, exact=False
+        )
+        assert_series_equal(unweighted2, unweighted, check_dtype=False)
+
     @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_describe_mode(self):
         corners = mm.corners(self.df_buildings)

@@ -1,12 +1,16 @@
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import pytest
 from libpysal.graph import Graph
+from packaging.version import Version
 from pandas.testing import assert_series_equal
 
 import momepy as mm
 
 from .conftest import assert_result
+
+PD_210 = Version(pd.__version__) >= Version("2.1.0")
 
 
 class TestIntensity:
@@ -53,7 +57,9 @@ class TestIntensity:
             "max": 8,
             "mean": 5.222222222222222,
         }
-        assert_result(unweighted, unweighted_expected, self.df_tessellation)
+        assert_result(
+            unweighted, unweighted_expected, self.df_tessellation, exact=False
+        )
 
         count = mm.block_counts(
             self.df_tessellation["bID"], graph, self.df_tessellation["area"]
@@ -64,7 +70,7 @@ class TestIntensity:
             "max": 4.2502425045664464e-05,
             "mean": 3.142437439120778e-05,
         }
-        assert_result(count, count_expected, self.df_tessellation)
+        assert_result(count, count_expected, self.df_tessellation, exact=False)
 
     def test_node_density(self):
         nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
@@ -163,14 +169,24 @@ class TestIntensityEquality:
             self.df_tessellation, "bID", sw, "uID", weighted=False
         ).series
         assert_series_equal(
-            unweighted_new, unweighted_old, check_names=False, check_dtype=False
+            unweighted_new,
+            unweighted_old,
+            check_index_type=False,
+            check_names=False,
+            check_dtype=False,
         )
 
         count_new = mm.block_counts(
             self.df_tessellation["bID"], graph, self.df_tessellation["area"]
         )
         count_old = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").series
-        assert_series_equal(count_new, count_old, check_names=False, check_dtype=False)
+        assert_series_equal(
+            count_new,
+            count_old,
+            check_names=False,
+            check_dtype=False,
+            check_index_type=False,
+        )
 
     def test_node_density(self):
         nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
