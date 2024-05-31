@@ -3,11 +3,10 @@ import numpy as np
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
+from numpy.typing import NDArray
 from packaging.version import Version
 from pandas import Series
 from scipy import sparse
-
-from momepy.utils import _azimuth
 
 __all__ = [
     "orientation",
@@ -19,8 +18,6 @@ __all__ = [
     "neighbors",
     "street_alignment",
     "cell_alignment",
-    "shared_walls_ratio",
-    "neighboring_street_orientation_deviation",
 ]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
@@ -347,13 +344,18 @@ def street_alignment(
 
 
 def cell_alignment(
-    left_orientations: np.ndarray | Series, right_orientations: np.ndarray | Series
+    left_orientations: NDArray[np.float_] | Series,
+    right_orientations: NDArray[np.float_] | Series,
 ):
     """
     Calculate the difference between cell orientation and the orientation of object.
 
     .. math::
         \\left|{\\textit{building orientation} - \\textit{cell orientation}}\\right|
+
+    Note
+    ----
+    ``left_orientations`` and ``right_orientations`` must be aligned or have an index.
 
     Parameters
     ----------
@@ -370,98 +372,9 @@ def cell_alignment(
     -------
     Series
     """
+
+    if not isinstance(left_orientations, Series):
+        left_orientations = Series(left_orientations)
+    if not isinstance(right_orientations, Series):
+        right_orientations = Series(right_orientations)
     return (left_orientations - right_orientations).abs()
-
-
-def shared_walls_ratio(
-    shared_walls: np.ndarray | Series, perimeters: np.ndarray | Series
-):
-    """Calculate shared walls ratio of adjacent elements (typically buildings).
-
-    .. math::
-        \\textit{length of shared walls} \\over perimeter
-
-    Note that data needs to be topologically correct.
-    Overlapping polygons will lead to incorrect results.
-
-    Adapted from :cite:`hamaina2012a`.
-
-    Parameters
-    ----------
-    shared_walls : np.array, pd.Series
-        The  ``np.array``, or
-        `pd.Series`` shared wall polygons are stored. This
-        can be calculated using :func:`shared_walls`.
-    perimeters : np.array, pd.Series
-        The  ``np.array``, or
-        `pd.Series`` containing used perimeters values.
-        Typically the perimeters of the original GeoDataFrame
-        used to generate the shared walls.
-
-    Returns
-    -------
-    Series
-    """
-
-    return shared_walls / perimeters
-
-
-def _orient(geom):
-    start = geom.coords[0]
-    end = geom.coords[-1]
-    az = _azimuth(start, end)
-    if 90 > az >= 45:
-        diff = az - 45
-        az = az - 2 * diff
-    elif 135 > az >= 90:
-        diff = az - 90
-        az = az - 2 * diff
-        diff = az - 45
-        az = az - 2 * diff
-    elif 181 > az >= 135:
-        diff = az - 135
-        az = az - 2 * diff
-        diff = az - 90
-        az = az - 2 * diff
-        diff = az - 45
-        az = az - 2 * diff
-    return az
-
-
-def neighboring_street_orientation_deviation(gdf: gpd.GeoDataFrame) -> Series:
-    """Calculate the mean deviation of solar orientation of adjacent streets.
-    The orientation of a street segment is represented by the orientation of the line
-    connecting the first and last point of the segment.
-
-    .. math::
-        \\frac{1}{n}\\sum_{i=1}^n dev_i=\\frac{dev_1+dev_2+\\cdots+dev_n}{n}
-
-    Parameters
-    ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects to analyse.
-
-    Returns
-    -------
-    Series
-    """
-
-    orientation = gdf.geometry.apply(_orient)
-
-    if GPD_GE_013:
-        inp, res = gdf.sindex.query(gdf.geometry, predicate="intersects")
-    else:
-        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
-    itself = inp == res
-    inp = inp[~itself]
-    res = res[~itself]
-
-    left = orientation.take(inp).reset_index(drop=True)
-    right = orientation.take(res).reset_index(drop=True)
-    deviations = (left - right).abs()
-    stats = deviations.groupby(inp).mean()
-
-    results = Series(np.nan, gdf.index.values)
-    # iloc since sindex query returns a numpy iloc array
-    results.iloc[stats.index.values] = stats.values
-    return results

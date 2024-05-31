@@ -129,6 +129,7 @@ class TestDistribution:
         df_tessellation["orient"] = tessori = mm.Orientation(df_tessellation).series
 
         align = mm.cell_alignment(blgori, tessori)
+        align2 = mm.cell_alignment(blgori.values, tessori.values)
         align_expected = {
             "count": 144,
             "mean": 2.60474658483889,
@@ -136,22 +137,7 @@ class TestDistribution:
             "min": 7.857417408274614e-06,
         }
         assert_result(align, align_expected, df_buildings)
-
-    def test_shared_walls_ratio(self):
-        sw = mm.shared_walls(self.df_buildings)
-        swr = mm.shared_walls_ratio(sw, self.df_buildings.geometry.length)
-        swr_expected = {}
-        assert_result(swr, swr_expected, self.df_buildings)
-
-    def test_neighboring_street_orientation_deviation(self):
-        dev = mm.neighboring_street_orientation_deviation(self.df_streets)
-        dev_expected = {
-            "count": 35,
-            "mean": 7.527840590385933,
-            "max": 20.907684600229896,
-            "min": 0.007987047658392754,
-        }
-        assert_result(dev, dev_expected, self.df_streets)
+        assert_series_equal(align, align2)
 
 
 class TestEquality:
@@ -265,17 +251,3 @@ class TestEquality:
         ).series
 
         assert_series_equal(align_new, align_old, check_names=False, check_dtype=False)
-
-    def test_shared_walls_ratio(self):
-        swr_old = mm.SharedWallsRatio(self.df_buildings).series
-
-        sw = mm.shared_walls(self.df_buildings)
-        swr_new = mm.shared_walls_ratio(sw, self.df_buildings.geometry.length)
-
-        assert_series_equal(swr_old, swr_new, check_names=False)
-
-    def test_neighboring_street_orientation_deviation(self):
-        dev_old = mm.NeighboringStreetOrientationDeviation(self.df_streets).series
-
-        dev_new = mm.neighboring_street_orientation_deviation(self.df_streets)
-        assert_series_equal(dev_old, dev_new, check_names=False)
