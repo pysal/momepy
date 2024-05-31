@@ -206,16 +206,11 @@ class TestElements:
 
     def test_blocks(self):
         blocks, buildings_id, tessellation_id = mm.generate_blocks(
-            self.df_tessellation, self.df_streets, self.df_buildings, "bID"
+            self.df_tessellation, self.df_streets, self.df_buildings
         )
         assert not tessellation_id.isna().any()
         assert not buildings_id.isna().any()
         assert len(blocks) == 8
-
-        with pytest.raises(ValueError, match="'uID' column cannot be"):
-            mm.generate_blocks(
-                self.df_tessellation, self.df_streets, self.df_buildings, "uID"
-            )
 
     def test_blocks_inner(self):
         streets = self.df_streets.copy()
@@ -226,7 +221,7 @@ class TestElements:
             .exterior
         )
         blocks, buildings_id, tessellation_id = mm.generate_blocks(
-            self.df_tessellation, streets, self.df_buildings, "bID"
+            self.df_tessellation, streets, self.df_buildings
         )
         assert not tessellation_id.isna().any()
         assert not buildings_id.isna().any()
@@ -251,12 +246,14 @@ class TestElementsEquivalence:
 
     def test_blocks(self):
         blocks, buildings_id, tessellation_id = mm.generate_blocks(
-            self.df_tessellation, self.df_streets, self.df_buildings, "bID"
+            self.df_tessellation, self.df_streets, self.df_buildings
         )
         res = mm.Blocks(
             self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
         )
 
-        assert_geodataframe_equal(blocks, res.blocks)
+        assert_geodataframe_equal(
+            blocks.geometry.to_frame(), res.blocks.geometry.to_frame()
+        )
         assert_series_equal(buildings_id, res.buildings_id)
         assert_series_equal(tessellation_id, res.tessellation_id)
