@@ -3,7 +3,10 @@ import pandas as pd
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
+from numpy.typing import NDArray
 from pandas import Series
+
+from momepy import describe
 
 __all__ = ["courtyards", "node_density", "density"]
 
@@ -114,7 +117,9 @@ def node_density(
 
 
 def density(
-    values: Series | np.ndarray, areas: Series | np.ndarray, graph: Graph
+    values: Series | NDArray[np.float_],
+    areas: Series | NDArray[np.float_],
+    graph: Graph,
 ) -> Series:
     """Calculate the gross density.
 
@@ -148,19 +153,11 @@ def density(
     """
 
     if isinstance(values, np.ndarray):
-        values = pd.DataFrame(values)
-    elif isinstance(values, pd.Series):
-        values = values.to_frame()
+        values = pd.Series(values)
 
     if isinstance(areas, np.ndarray):
         areas = pd.Series(values)
 
-    stats = graph.apply(
-        pd.concat((values, areas.rename("area")), axis=1),
-        lambda x: (x.loc[:, x.columns != "area"].sum() / x["area"].sum()),
-    )
-    result = pd.DataFrame(
-        np.full(values.shape, np.nan), index=values.index, columns=values.columns
-    )
-    result[values.columns] = stats[values.columns]
-    return result
+    stats = describe(values, graph)["sum"]
+    areas = describe(areas, graph)["sum"]
+    return stats / areas

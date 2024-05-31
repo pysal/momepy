@@ -54,7 +54,7 @@ class TestIntensity:
             "max": 2.450536855278486,
             "min": 0.9746481727569978,
         }
-        assert_result(dens_new["fl_area"], dens_expected, self.df_tessellation)
+        assert_result(dens_new, dens_expected, self.df_tessellation, exact=False)
 
     def test_node_density(self):
         nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
@@ -160,7 +160,11 @@ class TestIntensityEquality:
         ).series
 
         assert_series_equal(
-            dens_new["fl_area"], dens_old, check_names=False, check_dtype=False
+            dens_new,
+            dens_old,
+            check_names=False,
+            check_dtype=False,
+            check_index_type=False,
         )
 
     def test_node_density(self):
