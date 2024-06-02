@@ -16,7 +16,6 @@ from shapely.ops import polygonize
 from tqdm.auto import tqdm
 
 __all__ = [
-    "buffered_limit",
     "Tessellation",
     "Blocks",
     "get_network_id",
@@ -27,35 +26,6 @@ __all__ = [
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
-
-
-def buffered_limit(gdf, buffer=100):
-    """
-    Define limit for :class:`momepy.Tessellation` as a buffer around buildings.
-
-    See :cite:`fleischmann2020` for details.
-
-    Parameters
-    ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing building footprints.
-    buffer : float
-        A buffer around buildings limiting the extend of tessellation.
-
-    Returns
-    -------
-    MultiPolygon
-        A MultiPolygon or Polygon defining the study area.
-
-    Examples
-    --------
-    >>> limit = mm.buffered_limit(buildings_df)
-    >>> type(limit)
-    shapely.geometry.polygon.Polygon
-    """
-    return (
-        gdf.buffer(buffer).union_all() if GPD_GE_10 else gdf.buffer(buffer).unary_union
-    )
 
 
 class Tessellation:
