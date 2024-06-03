@@ -5,9 +5,7 @@ from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from pandas import Series
 
-from momepy import describe
-
-__all__ = ["courtyards", "node_density", "count_unique"]
+__all__ = ["courtyards", "node_density"]
 
 
 def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
@@ -113,44 +111,3 @@ def node_density(
         summation_values = pd.Series(np.ones(nodes.shape[0]), index=nodes.index)
 
     return graph.apply(summation_values, _calc_nodedensity, edges=edges)
-
-
-def count_unique(aggregation_key: Series, graph: Graph, area: Series = None) -> Series:
-    """Calculates the (area weighted) number of unique \\
-       ``aggregation_key`` aggregations reachable in ``graph``.
-
-    The unique number of aggregations within neighbours defined in ``graph``,
-    optionally divided by the area covered by the neighbours.
-
-    Adapted from :cite:`dibble2017`.
-
-    Parameters
-    ----------
-    aggregation_key: pd.Series
-        The group key that denotes group membership of ``graph`` elements.
-        For example, a Series linking tessellation cells to blocks (or enclosures).
-    graph : libpysal.graph.Graph
-        A spatial weights matrix for the tessellations.
-    area : Series, default None
-        Areas of the tessellations, if areas is none return unique count.
-
-    Returns
-    -------
-    Series
-
-
-    Examples
-    --------
-    >>> tessellation_df['blocks_within_4'] = mm.block_counts(
-    ...                                       df_tessellation['bID'],
-    ...                                       graph_queen4,
-    ...                                       buildings_df['uID'])
-    """
-
-    results = describe(aggregation_key, graph, include_nunique=True)["nunique"]
-
-    if area is not None:
-        agg_areas = describe(area, graph)["sum"]
-        results = results / agg_areas
-
-    return results

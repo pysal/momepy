@@ -135,6 +135,30 @@ class TestDescribe:
         )
         assert_series_equal(unweighted2, unweighted, check_dtype=False)
 
+    def test_count_unique_using_describe(self):
+        graph = (
+            Graph.build_contiguity(self.df_tessellation, rook=False)
+            .higher_order(k=5, lower_order=True)
+            .assign_self_weight()
+        )
+
+        count = mm.describe(self.df_tessellation["bID"], graph, include_nunique=True)[
+            "nunique"
+        ]
+
+        agg_areas = mm.describe(self.df_tessellation["area"], graph)["sum"]
+        weighted_count = count / agg_areas
+
+        weighted_count_expected = {
+            "count": 144,
+            "min": 2.0989616504225266e-05,
+            "max": 4.2502425045664464e-05,
+            "mean": 3.142437439120778e-05,
+        }
+        assert_result(
+            weighted_count, weighted_count_expected, self.df_tessellation, exact=False
+        )
+
     @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_describe_mode(self):
         corners = mm.corners(self.df_buildings)

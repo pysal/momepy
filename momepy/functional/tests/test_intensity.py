@@ -43,35 +43,6 @@ class TestIntensity:
         expected = {"mean": 0.6805555555555556, "sum": 98, "min": 0, "max": 1}
         assert_result(courtyards, expected, self.df_buildings)
 
-    def test_count_unique(self):
-        graph = (
-            Graph.build_contiguity(self.df_tessellation, rook=False)
-            .higher_order(k=5, lower_order=True)
-            .assign_self_weight()
-        )
-
-        unweighted = mm.count_unique(self.df_tessellation["bID"], graph)
-        unweighted_expected = {
-            "count": 144,
-            "min": 3,
-            "max": 8,
-            "mean": 5.222222222222222,
-        }
-        assert_result(
-            unweighted, unweighted_expected, self.df_tessellation, exact=False
-        )
-
-        count = mm.count_unique(
-            self.df_tessellation["bID"], graph, self.df_tessellation["area"]
-        )
-        count_expected = {
-            "count": 144,
-            "min": 2.0989616504225266e-05,
-            "max": 4.2502425045664464e-05,
-            "mean": 3.142437439120778e-05,
-        }
-        assert_result(count, count_expected, self.df_tessellation, exact=False)
-
     def test_node_density(self):
         nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
         nx = mm.node_degree(nx)
@@ -164,7 +135,9 @@ class TestIntensityEquality:
         )
         sw = mm.sw_high(k=5, gdf=self.df_tessellation, ids="uID")
 
-        unweighted_new = mm.count_unique(self.df_tessellation["bID"], graph)
+        unweighted_new = mm.describe(
+            self.df_tessellation["bID"], graph, include_nunique=True
+        )["nunique"]
         unweighted_old = mm.BlocksCount(
             self.df_tessellation, "bID", sw, "uID", weighted=False
         ).series
@@ -176,9 +149,8 @@ class TestIntensityEquality:
             check_dtype=False,
         )
 
-        count_new = mm.count_unique(
-            self.df_tessellation["bID"], graph, self.df_tessellation["area"]
-        )
+        agg_areas = mm.describe(self.df_tessellation["area"], graph)["sum"]
+        count_new = unweighted_new / agg_areas
         count_old = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").series
         assert_series_equal(
             count_new,
