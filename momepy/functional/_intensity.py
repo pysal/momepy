@@ -128,6 +128,7 @@ def count_unique(aggregation_key: Series, graph: Graph, area: Series = None) -> 
     ----------
     aggregation_key: pd.Series
         The group key that denotes group membership of ``graph`` elements.
+        For example, a Series linking tessellation cells to blocks (or enclosures).
     graph : libpysal.graph.Graph
         A spatial weights matrix for the tessellations.
     area : Series, default None
