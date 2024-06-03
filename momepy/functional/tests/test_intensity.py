@@ -43,14 +43,14 @@ class TestIntensity:
         expected = {"mean": 0.6805555555555556, "sum": 98, "min": 0, "max": 1}
         assert_result(courtyards, expected, self.df_buildings)
 
-    def test_blocks_counts(self):
+    def test_count_unique(self):
         graph = (
             Graph.build_contiguity(self.df_tessellation, rook=False)
             .higher_order(k=5, lower_order=True)
             .assign_self_weight()
         )
 
-        unweighted = mm.block_counts(self.df_tessellation["bID"], graph)
+        unweighted = mm.count_unique(self.df_tessellation["bID"], graph)
         unweighted_expected = {
             "count": 144,
             "min": 3,
@@ -61,7 +61,7 @@ class TestIntensity:
             unweighted, unweighted_expected, self.df_tessellation, exact=False
         )
 
-        count = mm.block_counts(
+        count = mm.count_unique(
             self.df_tessellation["bID"], graph, self.df_tessellation["area"]
         )
         count_expected = {
@@ -164,7 +164,7 @@ class TestIntensityEquality:
         )
         sw = mm.sw_high(k=5, gdf=self.df_tessellation, ids="uID")
 
-        unweighted_new = mm.block_counts(self.df_tessellation["bID"], graph)
+        unweighted_new = mm.count_unique(self.df_tessellation["bID"], graph)
         unweighted_old = mm.BlocksCount(
             self.df_tessellation, "bID", sw, "uID", weighted=False
         ).series
@@ -176,7 +176,7 @@ class TestIntensityEquality:
             check_dtype=False,
         )
 
-        count_new = mm.block_counts(
+        count_new = mm.count_unique(
             self.df_tessellation["bID"], graph, self.df_tessellation["area"]
         )
         count_old = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").series

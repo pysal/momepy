@@ -7,7 +7,7 @@ from pandas import Series
 
 from momepy import describe
 
-__all__ = ["courtyards", "node_density", "block_counts"]
+__all__ = ["courtyards", "node_density", "count_unique"]
 
 
 def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
@@ -115,24 +115,23 @@ def node_density(
     return graph.apply(summation_values, _calc_nodedensity, edges=edges)
 
 
-def block_counts(
-    aggregation_key: Series | np.ndarray, graph: Graph, areas: Series = None
-) -> Series:
-    """Calculates the weighted number of blocks.
+def count_unique(aggregation_key: Series, graph: Graph, areas: Series = None) -> Series:
+    """Calculates the (area weighted) number of unique \\
+       ``aggregation_key`` aggregations reachable in ``graph``.
 
-    The number of blocks within neighbours defined in ``graph``
-    divided by the area covered by the neighbours.
+    The unique number of aggregations within neighbours defined in ``graph``,
+    optionally divided by the area covered by the neighbours.
 
     Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
-    aggregation_key: | pd.Series
-        The group key that denotes block membership of tessellations.
+    aggregation_key: pd.Series
+        The group key that denotes group membership of ``graph`` elements.
     graph : libpysal.graph.Graph
         A spatial weights matrix for the tessellations.
     areas : Series, default None
-        Areas of the tessellations, if areas is none return pure count.
+        Areas of the tessellations, if areas is none return unique count.
 
     Returns
     -------
