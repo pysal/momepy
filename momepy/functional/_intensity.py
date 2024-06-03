@@ -115,7 +115,7 @@ def node_density(
     return graph.apply(summation_values, _calc_nodedensity, edges=edges)
 
 
-def count_unique(aggregation_key: Series, graph: Graph, areas: Series = None) -> Series:
+def count_unique(aggregation_key: Series, graph: Graph, area: Series = None) -> Series:
     """Calculates the (area weighted) number of unique \\
        ``aggregation_key`` aggregations reachable in ``graph``.
 
@@ -130,7 +130,7 @@ def count_unique(aggregation_key: Series, graph: Graph, areas: Series = None) ->
         The group key that denotes group membership of ``graph`` elements.
     graph : libpysal.graph.Graph
         A spatial weights matrix for the tessellations.
-    areas : Series, default None
+    area : Series, default None
         Areas of the tessellations, if areas is none return unique count.
 
     Returns
@@ -148,8 +148,8 @@ def count_unique(aggregation_key: Series, graph: Graph, areas: Series = None) ->
 
     results = describe(aggregation_key, graph, include_nunique=True)["nunique"]
 
-    if areas is not None:
-        agg_areas = describe(areas, graph)["sum"]
+    if area is not None:
+        agg_areas = describe(area, graph)["sum"]
         results = results / agg_areas
 
     return results

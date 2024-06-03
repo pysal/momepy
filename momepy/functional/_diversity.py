@@ -243,7 +243,7 @@ def describe_reached(
         Compute mode along with other statistics. Default is False. Mode is
         computationally expensive and not useful for continous variables.
     include_nunique : False
-        Compute number of uniue elements along with other statistics. Default is False.
+        Compute the number of unique elements along with other statistics. Default is False.
 
     Returns
     -------
