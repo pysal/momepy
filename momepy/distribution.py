@@ -13,7 +13,7 @@ import shapely
 from packaging.version import Version
 from tqdm.auto import tqdm  # progress bar
 
-from .utils import _azimuth, deprecated
+from .utils import _azimuth
 
 __all__ = [
     "Orientation",
@@ -102,7 +102,6 @@ class Orientation:
         self.series = pd.Series(results, index=gdf.index)
 
 
-@deprecated("momepy.shared_walls()")
 class SharedWalls:
     """
     Calculate the length of shared walls of adjacent elements (typically buildings).
@@ -137,6 +136,8 @@ class SharedWalls:
     """
 
     def __init__(self, gdf):
+        self.gdf = gdf
+
         if GPD_GE_013:
             inp, res = gdf.sindex.query(gdf.geometry, predicate="intersects")
         else:
@@ -152,7 +153,6 @@ class SharedWalls:
         self.series = results
 
 
-@deprecated("momepy.shared_walls_ratio() divided by perimeter length")
 class SharedWallsRatio(SharedWalls):
     """
     Calculate shared walls ratio of adjacent elements (typically buildings).

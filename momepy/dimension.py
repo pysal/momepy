@@ -907,7 +907,6 @@ class PerimeterWall:
     """
 
     def __init__(self, gdf, spatial_weights=None, verbose=True):
-        # TODO: deprecate in favor of perimeter_wall
         self.gdf = gdf
 
         if spatial_weights is None:
