@@ -20,7 +20,6 @@ from shapely.geometry import LineString, MultiLineString
 
 
 class COINS:
-
     """
     Calculates natural continuity and hierarchy of street networks in a given
     GeoDataFrame using the COINS algorithm.
@@ -62,7 +61,7 @@ class COINS:
     -----
     The LineStrings of the ``edge_gdf`` are not expected to overlap. If you are creating
     it using OSMnx, don't forget to cast the graph to undirected using
-    ``osmnx.get_undirected(G)`` prior converting it to a GeoDataFrame.
+    ``osmnx.convert.to_undirected(G)`` prior converting it to a GeoDataFrame.
     """
 
     def __init__(self, edge_gdf, angle_threshold=0):

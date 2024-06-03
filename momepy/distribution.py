@@ -5,10 +5,12 @@
 
 import math
 
+import geopandas as gpd
 import networkx as nx
 import numpy as np
 import pandas as pd
 import shapely
+from packaging.version import Version
 from tqdm.auto import tqdm  # progress bar
 
 from .utils import _azimuth, deprecated
@@ -26,6 +28,8 @@ __all__ = [
     "BuildingAdjacency",
     "Neighbors",
 ]
+
+GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
 
 class Orientation:
@@ -133,9 +137,19 @@ class SharedWalls:
     """
 
     def __init__(self, gdf):
-        from .functional.distribution import shared_walls
+        if GPD_GE_013:
+            inp, res = gdf.sindex.query(gdf.geometry, predicate="intersects")
+        else:
+            inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
+        left = gdf.geometry.take(inp).reset_index(drop=True)
+        right = gdf.geometry.take(res).reset_index(drop=True)
+        intersections = left.intersection(right).length
+        results = intersections.groupby(inp).sum().reset_index(
+            drop=True
+        ) - gdf.geometry.length.reset_index(drop=True)
+        results.index = gdf.index
 
-        self.series = shared_walls(gdf)
+        self.series = results
 
 
 @deprecated("shared_walls_ratio")
@@ -397,7 +411,6 @@ class CellAlignment:
 
 
 class Alignment:
-
     """
     Calculate the mean deviation of solar orientation of objects on adjacent cells
     from an object.
@@ -675,7 +688,10 @@ class NeighboringStreetOrientationDeviation:
         self.gdf = gdf
         self.orientation = gdf.geometry.apply(self._orient)
 
-        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
+        if GPD_GE_013:
+            inp, res = gdf.sindex.query(gdf.geometry, predicate="intersects")
+        else:
+            inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
         itself = inp == res
         inp = inp[~itself]
         res = res[~itself]

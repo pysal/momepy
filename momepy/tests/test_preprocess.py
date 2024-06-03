@@ -2,7 +2,6 @@ import geopandas as gpd
 import numpy as np
 import pytest
 from geopandas.testing import assert_geodataframe_equal
-from packaging.version import Version
 from shapely import affinity
 from shapely.geometry import LineString, MultiPoint, Point, Polygon
 from shapely.ops import polygonize
@@ -21,8 +20,9 @@ class TestPreprocessing:
         self.df_streets_rabs = gpd.read_file(test_file_path2, layer="test_rabs")
         plgns = polygonize(self.df_streets_rabs.geometry)
         self.df_rab_polys = gpd.GeoDataFrame(
-            geometry=[g for g in plgns], crs=self.df_streets_rabs.crs
+            geometry=list(plgns), crs=self.df_streets_rabs.crs
         )
+        self.test_file_path3 = mm.datasets.get_path("nyc_graph", extension="graphml")
 
     def test_preprocess(self):
         test_file_path2 = mm.datasets.get_path("tests")
@@ -164,6 +164,37 @@ class TestPreprocessing:
         assert len(check) == 65
         assert len(self.df_streets_rabs) == 88
 
+    @pytest.mark.parametrize("method", ["spider", "euclidean", "extend"])
+    def test_consolidate_intersections(self, method):
+        ox = pytest.importorskip("osmnx")
+        graph = ox.convert.to_undirected(ox.load_graphml(self.test_file_path3))
+
+        tol = 30
+        graph_simplified = mm.consolidate_intersections(
+            graph,
+            tolerance=tol,
+            rebuild_graph=True,
+            rebuild_edges_method=method,
+        )
+        nodes_simplified, edges_simplified = mm.nx_to_gdf(graph_simplified)
+
+        assert len(nodes_simplified) == 39
+        assert len(edges_simplified) == 66
+
+        if method != "euclidean":
+            assert edges_simplified.length.min() >= tol
+
+    def test_consolidate_intersections_unsupported(self):
+        ox = pytest.importorskip("osmnx")
+        graph = ox.convert.to_undirected(ox.load_graphml(self.test_file_path3))
+        with pytest.raises(ValueError, match="Simplification 'banana' not recognized"):
+            mm.consolidate_intersections(
+                graph,
+                tolerance=30,
+                rebuild_graph=True,
+                rebuild_edges_method="banana",
+            )
+
 
 def test_FaceArtifacts():
     pytest.importorskip("esda")
@@ -183,7 +214,7 @@ def test_FaceArtifacts():
     )
     streets_graph = osmnx.projection.project_graph(streets_graph)
     gdf = osmnx.graph_to_gdfs(
-        osmnx.get_undirected(streets_graph),
+        osmnx.convert.to_undirected(streets_graph),
         nodes=False,
         edges=True,
         node_geometry=False,

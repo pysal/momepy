@@ -6,13 +6,14 @@ dependencies:
   - dask
   - geopandas
   - inequality
-  - libpysal>=4.6.0
+  - libpysal>=4.10.0
   - networkx
   - osmnx
   - packaging
   - pandas!=1.5.0
   - shapely>=2
   - tqdm
+  - numba
   # testing
   - codecov
   - pytest

@@ -209,7 +209,7 @@ class Theil:
                 values_list = data.loc[neighbours]
 
                 if rng:
-                    values_list = limit_range(values_list, rng=rng)
+                    values_list = limit_range(values_list.values, rng=rng)
                 results_list.append(Theil(values_list).T)
             else:
                 results_list.append(np.nan)

@@ -5,7 +5,7 @@ dependencies:
   - python=3.10
   - geopandas
   - inequality
-  - libpysal>=4.6.0
+  - libpysal>=4.10.0
   - mapclassify
   - networkx
   - packaging
@@ -13,6 +13,7 @@ dependencies:
   - shapely>=2
   - esda
   - tqdm
+  - numba
   # testing
   - codecov
   - pytest

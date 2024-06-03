@@ -1,0 +1,27 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Fleischmann
+  given-names: Martin
+  orcid: "https://orcid.org/0000-0003-3319-3366"
+doi: 10.5281/zenodo.3368406
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Fleischmann
+    given-names: Martin
+    orcid: "https://orcid.org/0000-0003-3319-33660"
+  date-published: 2019-11-20
+  doi: 10.21105/joss.01807
+  issn: 2475-9066
+  issue: 43
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 1807
+  title: momepy - Urban Morphology Measuring Toolkit
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.01807"
+  volume: 4
+title: momepy - Urban Morphology Measuring Toolkit
+

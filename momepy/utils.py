@@ -120,7 +120,6 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
             stacklevel=3,
         )
 
-    key = 0
     for row in gdf_network.itertuples():
         first = row.geometry.coords[0]
         last = row.geometry.coords[-1]
@@ -128,16 +127,17 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
         data = list(row)[1:]
         attributes = dict(zip(fields, data, strict=True))
         if multigraph:
-            graph.add_edge(first, last, key=key, **attributes)
-            key += 1
+            graph.add_edge(first, last, **attributes)
 
             if oneway_column:
                 oneway = bool(getattr(row, oneway_column))
                 if not oneway:
-                    graph.add_edge(last, first, key=key, **attributes)
-                    key += 1
+                    graph.add_edge(last, first, **attributes)
         else:
             graph.add_edge(first, last, **attributes)
+
+    node_attrs = {node: {"x": node[0], "y": node[1]} for node in graph.nodes}
+    nx.set_node_attributes(graph, node_attrs)
 
 
 def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
@@ -145,7 +145,9 @@ def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
     graph.graph["approach"] = "dual"
     key = 0
 
-    sw = libpysal.weights.Queen.from_dataframe(gdf_network, silence_warnings=True)
+    sw = libpysal.weights.Queen.from_dataframe(
+        gdf_network, silence_warnings=True, use_index=False
+    )
     cent = gdf_network.geometry.centroid
     gdf_network["temp_x_coords"] = cent.x
     gdf_network["temp_y_coords"] = cent.y
@@ -199,6 +201,7 @@ def gdf_to_nx(
     angles=True,
     angle="angle",
     oneway_column=None,
+    integer_labels=False,
 ):
     """
     Convert a LineString GeoDataFrame to a ``networkx.MultiGraph`` or other
@@ -237,6 +240,10 @@ def gdf_to_nx(
         path traversal by specifying the boolean column in the GeoDataFrame. Note,
         that the reverse conversion ``nx_to_gdf(gdf_to_nx(gdf, directed=True,
         oneway_column="oneway"))`` will contain additional duplicated geometries.
+    integer_labels : bool, default False
+        Convert node labels to integers. By default, node labels are tuples with (x, y)
+        coordinates. Set to True to encode them as integers. Note that the x, and y
+        coordinates are always preserved as node attributes.
 
     Returns
     -------
@@ -322,6 +329,9 @@ def gdf_to_nx(
             f"Approach '{approach}' is not supported. Use 'primal' or 'dual'."
         )
 
+    if integer_labels:
+        net = nx.convert_node_labels_to_integers(net)
+
     return net
 
 
@@ -385,7 +395,11 @@ def _dual_to_gdf(net):
 
 
 def nx_to_gdf(
-    net, points=True, lines=True, spatial_weights=False, nodeID="nodeID"  # noqa
+    net,
+    points=True,
+    lines=True,
+    spatial_weights=False,
+    nodeID="nodeID",  # noqa: N803
 ):
     """
     Convert a ``networkx.Graph`` to a LineString GeoDataFrame and Point GeoDataFrame.
@@ -506,7 +520,6 @@ def limit_range(vals, rng):
         The limited array.
     """
 
-    vals = np.asarray(vals)
     nan_tracker = np.isnan(vals)
 
     if (len(vals) > 2) and (not nan_tracker.all()):
@@ -516,11 +529,9 @@ def limit_range(vals, rng):
             method = {"interpolation": "nearest"}
         rng = sorted(rng)
         if nan_tracker.any():
-            lower = np.nanpercentile(vals, rng[0], **method)
-            higher = np.nanpercentile(vals, rng[1], **method)
+            lower, higher = np.nanpercentile(vals, rng, **method)
         else:
-            lower = np.percentile(vals, rng[0], **method)
-            higher = np.percentile(vals, rng[1], **method)
+            lower, higher = np.percentile(vals, rng, **method)
         vals = vals[(lower <= vals) & (vals <= higher)]
 
     return vals

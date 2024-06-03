@@ -146,6 +146,7 @@ preprocessing
    :toctree: generated/
 
    close_gaps
+   consolidate_intersections
    CheckTessellationInput
    extend_lines
    FaceArtifacts

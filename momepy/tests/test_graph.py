@@ -1,7 +1,5 @@
 import geopandas as gpd
-import networkx as nx
 import pytest
-from packaging.version import Version
 
 import momepy as mm
 
@@ -124,7 +122,7 @@ class TestGraph:
             net2.edges[
                 (1603226.9576840235, 6464160.158361825),
                 (1603039.9632033885, 6464087.491175889),
-                8,
+                0,
             ]["betweenness"]
             == edge
         )
@@ -149,9 +147,9 @@ class TestGraph:
         net2 = mm.straightness_centrality(
             self.network, normalized=False, name="nonnorm"
         )
-        G = self.network.copy()
-        G.add_node(1)
-        net3 = mm.straightness_centrality(G)
+        g = self.network.copy()
+        g.add_node(1)
+        net3 = mm.straightness_centrality(g)
         check = 0.8574045143712158
         nonnorm = 0.8574045143712158
         assert (
@@ -176,7 +174,7 @@ class TestGraph:
             net.edges[
                 (1603226.9576840235, 6464160.158361825),
                 (1603039.9632033885, 6464087.491175889),
-                8,
+                0,
             ]["straightness"]
             == edge
         )

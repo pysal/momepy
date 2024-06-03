@@ -5,7 +5,7 @@ dependencies:
   - python=3.10
   - geopandas=0.12
   - inequality
-  - libpysal=4.6.0
+  - libpysal=4.10.0
   - mapclassify
   - networkx=2.7
   - numpy=1.22
@@ -13,6 +13,7 @@ dependencies:
   - pandas>=1.4.0,!=1.5.0,<2
   - shapely=2.0
   - tqdm=4.63.0
+  - numba=0.56
   # testing
   - codecov
   - pytest

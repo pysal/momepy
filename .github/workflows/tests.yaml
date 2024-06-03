@@ -8,6 +8,12 @@ on:
       - "*"
   schedule:
     - cron: "0 0 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Manual test execution
+        default: test
+        required: false
 
 jobs:
   Test:
@@ -25,9 +31,13 @@ jobs:
           - ci/envs/312-dev.yaml
         include:
           - environment-file: ci/envs/312-latest.yaml
-            os: macos-latest
+            os: macos-13 # Intel
+          - environment-file: ci/envs/312-latest.yaml
+            os: macos-14 # Apple Silicon
           - environment-file: ci/envs/312-latest.yaml
             os: windows-latest
+          - environment-file: ci/envs/312-min.yaml
+            os: ubuntu-latest
     defaults:
       run:
         shell: bash -l {0}
@@ -47,19 +57,4 @@ jobs:
         run: |
           pytest -v --color yes --cov momepy --cov-append --cov-report term-missing --cov-report xml .
 
-      - name: Test user guide
-        if: contains(matrix.environment-file, '312-latest.yaml') && contains(matrix.os, 'ubuntu')
-        run: |
-          ci/envs/test_user_guide.sh
-
-      - uses: codecov/codecov-action@v3
-
-      - name: Generate and publish the report
-        if: |
-          failure()
-          && github.event_name != 'pull_request'
-          && github.repository == 'pysal/momepy'
-          && steps.run_tests.outcome == 'failure'
-        uses: xarray-contrib/issue-from-pytest-log@v1
-        with:
-          log-path: pytest-log.jsonl
+      - uses: codecov/codecov-action@v4

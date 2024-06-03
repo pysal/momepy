@@ -6,13 +6,13 @@ dependencies:
   - geopandas
   - inequality
   - jupyter
-  - libpysal>=4.6.0
+  - libpysal>=4.10.0
   - mapclassify
   - matplotlib
-  - momepy
   - networkx
   - osmnx
   - pandas!=1.5.0
   - shapely>=2
-  - rtree
   - tqdm
+  - numba
+  - esda

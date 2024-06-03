@@ -5,14 +5,19 @@
 
 import math
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import scipy as sp
 import shapely
+from packaging.version import Version
 from tqdm.auto import tqdm
 
 from .shape import _circle_radius
 from .utils import deprecated, removed
+
+GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
+
 
 __all__ = [
     "Area",
@@ -60,6 +65,7 @@ class Area:
     """
 
     def __init__(self, gdf):
+        # TODO: deprecate and point people to .area
         self.gdf = gdf
         self.series = self.gdf.geometry.area
 
@@ -93,6 +99,7 @@ class Perimeter:
     """
 
     def __init__(self, gdf):
+        # TODO: deprecate and point people to .length
         self.gdf = gdf
         self.series = self.gdf.geometry.length
 
@@ -142,9 +149,28 @@ class Volume:
     """
 
     def __init__(self, gdf, heights, areas=None):
-        from .functional.dimension import volume
+        self.gdf = gdf
 
-        self.series = volume(gdf, heights=heights, areas=areas)
+        gdf = gdf.copy()
+        if not isinstance(heights, str):
+            gdf["mm_h"] = heights
+            heights = "mm_h"
+        self.heights = gdf[heights]
+
+        if areas is not None:
+            if not isinstance(areas, str):
+                gdf["mm_a"] = areas
+                areas = "mm_a"
+            self.areas = gdf[areas]
+        else:
+            self.areas = gdf.geometry.area
+        try:
+            self.series = self.areas * self.heights
+
+        except KeyError as err:
+            raise KeyError(
+                "Column not found. Define heights and areas or set areas to None."
+            ) from err
 
 
 @deprecated("floor_area")
@@ -196,6 +222,7 @@ class FloorArea:
     """
 
     def __init__(self, gdf, heights, areas=None):
+        # TODO: deprecate in favor of floor_area
         self.gdf = gdf
 
         gdf = gdf.copy()
@@ -250,6 +277,7 @@ class CourtyardArea:
     """
 
     def __init__(self, gdf, areas=None):
+        # TODO: deprecate in favor of courtyard_area
         self.gdf = gdf
 
         gdf = gdf.copy()
@@ -297,6 +325,7 @@ class LongestAxisLength:
     """
 
     def __init__(self, gdf):
+        # TODO: deprecate in favor of longest_axis_length
         self.gdf = gdf
         hulls = gdf.geometry.convex_hull.exterior
         self.series = hulls.apply(lambda g: _circle_radius(list(g.coords))) * 2
@@ -382,6 +411,7 @@ class AverageCharacter:
         mode="all",
         verbose=True,
     ):
+        # TODO: deprecate in favor of momepy.describe
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -424,7 +454,7 @@ class AverageCharacter:
                 values_list = data.loc[neighbours]
 
                 if rng:
-                    values_list = limit_range(values_list, rng=rng)
+                    values_list = limit_range(values_list.values, rng=rng)
                 if "mean" in mode:
                     means.append(np.mean(values_list))
                 if "median" in mode:
@@ -520,6 +550,8 @@ class StreetProfile:
         distance=10,
         tick_length=50,
     ):
+        # TODO: turn into a function with a variable return like np.unique. Maybe
+        # TODO: check if we can avoid some of the loops
         self.left = left
         self.right = right
         self.distance = distance
@@ -735,6 +767,9 @@ class WeightedCharacter:
     def __init__(
         self, gdf, values, spatial_weights, unique_id, areas=None, verbose=True
     ):
+        # TODO: Refactoring project note: This is a lag using a graph where weight
+        # TODO: represents row-normalied area. It now includes self but that shall be
+        # TODO: optional.
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -807,6 +842,9 @@ class CoveredArea:
     """
 
     def __init__(self, gdf, spatial_weights, unique_id, verbose=True):
+        # TODO: Refactoring project note: This is just a lag with binary weights over
+        # TODO: the area using the graph with self-weights. Maybe point to that?
+
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -868,13 +906,16 @@ class PerimeterWall:
     """
 
     def __init__(self, gdf, spatial_weights=None, verbose=True):
+        # TODO: deprecate in favor of perimeter_wall
         self.gdf = gdf
 
         if spatial_weights is None:
             print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 
-            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            spatial_weights = Queen.from_dataframe(
+                gdf, silence_warnings=True, use_index=False
+            )
             print("Spatial weights ready...") if verbose else None
         self.sw = spatial_weights
 
@@ -892,7 +933,11 @@ class PerimeterWall:
                 to_join = components[components == comp].index
                 joined = geom.iloc[to_join]
                 # buffer to avoid multipolygons where buildings touch by corners only
-                dissolved = joined.buffer(0.01).unary_union
+                dissolved = (
+                    joined.buffer(0.01).union_all()
+                    if GPD_GE_10
+                    else joined.buffer(0.01).unary_union
+                )
                 for b in to_join:
                     walls[b] = dissolved.exterior.length
 
@@ -947,13 +992,19 @@ class SegmentsLength:
     """
 
     def __init__(self, gdf, spatial_weights=None, mean=False, verbose=True):
+        # TODO: Refactoring project note: This is just a lag with binary (sum) or
+        # TODO: row-standardized graph that includes self weight over lenghts.
+        # TODO: Worth wrapping or point to lag? Probably latter?
+
         self.gdf = gdf
 
         if spatial_weights is None:
             print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 
-            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            spatial_weights = Queen.from_dataframe(
+                gdf, silence_warnings=True, use_index=False
+            )
             print("Spatial weights ready...") if verbose else None
         self.sw = spatial_weights
 
