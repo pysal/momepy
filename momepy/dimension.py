@@ -102,7 +102,7 @@ class Perimeter:
         self.series = self.gdf.geometry.length
 
 
-@deprecated("momepy.volume()")
+@deprecated("volume")
 class Volume:
     """
     Calculates the volume of each object in a
@@ -171,7 +171,7 @@ class Volume:
             ) from err
 
 
-@deprecated("momepy.floor_area()")
+@deprecated("floor_area")
 class FloorArea:
     """
     Calculates floor area of each object based on height and area. The number of
@@ -220,7 +220,6 @@ class FloorArea:
     """
 
     def __init__(self, gdf, heights, areas=None):
-        # TODO: deprecate in favor of floor_area
         self.gdf = gdf
 
         gdf = gdf.copy()
@@ -245,7 +244,7 @@ class FloorArea:
             ) from err
 
 
-@deprecated("momepy.courtyard_area()")
+@deprecated("courtyard_area")
 class CourtyardArea:
     """
     Calculates area of holes within geometry - area of courtyards.
@@ -295,7 +294,7 @@ class CourtyardArea:
         self.series = pd.Series(exts - gdf[areas], index=gdf.index)
 
 
-@deprecated("momepy.longest_axis_length()")
+@deprecated("longest_axis_length")
 class LongestAxisLength:
     """
     Calculates the length of the longest axis of object. Axis is defined as a
@@ -325,13 +324,12 @@ class LongestAxisLength:
     """
 
     def __init__(self, gdf):
-        # TODO: deprecate in favor of longest_axis_length
         self.gdf = gdf
         hulls = gdf.geometry.convex_hull.exterior
         self.series = hulls.apply(lambda g: _circle_radius(list(g.coords))) * 2
 
 
-@deprecated("momepy.describe()")
+@deprecated("describe")
 class AverageCharacter:
     """
     Calculates the average of a character within a set
@@ -412,7 +410,6 @@ class AverageCharacter:
         mode="all",
         verbose=True,
     ):
-        # TODO: deprecate in favor of momepy.describe
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -867,7 +864,7 @@ class CoveredArea:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
-@deprecated("momepy.perimeter_wall()")
+@deprecated("perimeter_wall")
 class PerimeterWall:
     """
     Calculate the perimeter wall length of the joined structure.
