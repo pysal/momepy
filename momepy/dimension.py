@@ -14,6 +14,7 @@ from packaging.version import Version
 from tqdm.auto import tqdm
 
 from .shape import _circle_radius
+from .utils import deprecated, removed
 
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 
@@ -34,6 +35,7 @@ __all__ = [
 ]
 
 
+@removed("`.area` attribute of a GeoDataFrame")
 class Area:
     """
     Calculates the area of each object in a given GeoDataFrame. It can be used for any
@@ -63,11 +65,11 @@ class Area:
     """
 
     def __init__(self, gdf):
-        # TODO: deprecate and point people to .area
         self.gdf = gdf
         self.series = self.gdf.geometry.area
 
 
+@removed("`.length` attribute of a GeoDataFrame")
 class Perimeter:
     """
     Calculates perimeter of each object in a given GeoDataFrame. It can be used for any
@@ -96,11 +98,11 @@ class Perimeter:
     """
 
     def __init__(self, gdf):
-        # TODO: deprecate and point people to .length
         self.gdf = gdf
         self.series = self.gdf.geometry.length
 
 
+@deprecated("volume")
 class Volume:
     """
     Calculates the volume of each object in a
@@ -145,7 +147,6 @@ class Volume:
     """
 
     def __init__(self, gdf, heights, areas=None):
-        # TODO: deprecate in favor of volume
         self.gdf = gdf
 
         gdf = gdf.copy()
@@ -170,6 +171,7 @@ class Volume:
             ) from err
 
 
+@deprecated("floor_area")
 class FloorArea:
     """
     Calculates floor area of each object based on height and area. The number of
@@ -218,7 +220,6 @@ class FloorArea:
     """
 
     def __init__(self, gdf, heights, areas=None):
-        # TODO: deprecate in favor of floor_area
         self.gdf = gdf
 
         gdf = gdf.copy()
@@ -243,6 +244,7 @@ class FloorArea:
             ) from err
 
 
+@deprecated("courtyard_area")
 class CourtyardArea:
     """
     Calculates area of holes within geometry - area of courtyards.
@@ -292,6 +294,7 @@ class CourtyardArea:
         self.series = pd.Series(exts - gdf[areas], index=gdf.index)
 
 
+@deprecated("longest_axis_length")
 class LongestAxisLength:
     """
     Calculates the length of the longest axis of object. Axis is defined as a
@@ -321,12 +324,12 @@ class LongestAxisLength:
     """
 
     def __init__(self, gdf):
-        # TODO: deprecate in favor of longest_axis_length
         self.gdf = gdf
         hulls = gdf.geometry.convex_hull.exterior
         self.series = hulls.apply(lambda g: _circle_radius(list(g.coords))) * 2
 
 
+@deprecated("describe")
 class AverageCharacter:
     """
     Calculates the average of a character within a set
@@ -407,7 +410,6 @@ class AverageCharacter:
         mode="all",
         verbose=True,
     ):
-        # TODO: deprecate in favor of momepy.describe
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -862,6 +864,7 @@ class CoveredArea:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("perimeter_wall")
 class PerimeterWall:
     """
     Calculate the perimeter wall length of the joined structure.
@@ -901,7 +904,6 @@ class PerimeterWall:
     """
 
     def __init__(self, gdf, spatial_weights=None, verbose=True):
-        # TODO: deprecate in favor of perimeter_wall
         self.gdf = gdf
 
         if spatial_weights is None:
