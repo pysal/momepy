@@ -32,7 +32,8 @@ def deprecated(new_way):
                 f"Class based API like `momepy.{func1.__name__}` is deprecated. "
                 f"Replace it with `momepy.{new_way}` to use functional API instead "
                 "or pin momepy version <1.0. Class-based API will be removed in 1.0. "
-                "See details at https://docs.momepy.org/en/stable/migration.html",
+                # "See details at https://docs.momepy.org/en/stable/migration.html",
+                "",
                 FutureWarning,
                 stacklevel=2,
             )
@@ -56,7 +57,8 @@ def removed(new_way):
             warnings.warn(
                 f"`momepy.{func1.__name__}` is deprecated. Replace it with {new_way} "
                 "or pin momepy version <1.0. This class will be removed in 1.0. "
-                "See details at https://docs.momepy.org/en/stable/migration.html",
+                # "See details at https://docs.momepy.org/en/stable/migration.html"
+                "",
                 FutureWarning,
                 stacklevel=2,
             )

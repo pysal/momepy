@@ -102,7 +102,7 @@ class Orientation:
         self.series = pd.Series(results, index=gdf.index)
 
 
-@deprecated("shared_walls")
+@deprecated("momepy.shared_walls()")
 class SharedWalls:
     """
     Calculate the length of shared walls of adjacent elements (typically buildings).
@@ -152,8 +152,8 @@ class SharedWalls:
         self.series = results
 
 
-@deprecated("shared_walls_ratio")
-class SharedWallsRatio:
+@deprecated("momepy.shared_walls_ratio() divided by perimeter length")
+class SharedWallsRatio(SharedWalls):
     """
     Calculate shared walls ratio of adjacent elements (typically buildings).
 
@@ -194,9 +194,16 @@ class SharedWallsRatio:
     """
 
     def __init__(self, gdf, perimeters=None):
-        from .functional.distribution import shared_walls_ratio
+        super().__init__(gdf)
 
-        self.series = shared_walls_ratio(gdf, perimeters=perimeters)
+        if perimeters is None:
+            self.perimeters = gdf.geometry.length
+        elif isinstance(perimeters, str):
+            self.perimeters = gdf[perimeters]
+        else:
+            self.perimeters = perimeters
+
+        self.series = self.series / self.perimeters
 
 
 class StreetAlignment:

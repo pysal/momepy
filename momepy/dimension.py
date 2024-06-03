@@ -65,7 +65,6 @@ class Area:
     """
 
     def __init__(self, gdf):
-        # TODO: deprecate and point people to .area
         self.gdf = gdf
         self.series = self.gdf.geometry.area
 
@@ -99,12 +98,11 @@ class Perimeter:
     """
 
     def __init__(self, gdf):
-        # TODO: deprecate and point people to .length
         self.gdf = gdf
         self.series = self.gdf.geometry.length
 
 
-@deprecated("volume")
+@deprecated("momepy.volume()")
 class Volume:
     """
     Calculates the volume of each object in a
@@ -173,7 +171,7 @@ class Volume:
             ) from err
 
 
-@deprecated("floor_area")
+@deprecated("momepy.floor_area()")
 class FloorArea:
     """
     Calculates floor area of each object based on height and area. The number of
@@ -247,6 +245,7 @@ class FloorArea:
             ) from err
 
 
+@deprecated("momepy.courtyard_area()")
 class CourtyardArea:
     """
     Calculates area of holes within geometry - area of courtyards.
@@ -296,6 +295,7 @@ class CourtyardArea:
         self.series = pd.Series(exts - gdf[areas], index=gdf.index)
 
 
+@deprecated("momepy.longest_axis_length()")
 class LongestAxisLength:
     """
     Calculates the length of the longest axis of object. Axis is defined as a
@@ -331,6 +331,7 @@ class LongestAxisLength:
         self.series = hulls.apply(lambda g: _circle_radius(list(g.coords))) * 2
 
 
+@deprecated("momepy.describe()")
 class AverageCharacter:
     """
     Calculates the average of a character within a set
@@ -866,7 +867,7 @@ class CoveredArea:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
-@deprecated("perimeter_wall")
+@deprecated("momepy.perimeter_wall()")
 class PerimeterWall:
     """
     Calculate the perimeter wall length of the joined structure.
