@@ -374,6 +374,12 @@ def generate_blocks(
     buildings : GeoDataFrame
         A GeoDataFrame containing buildings.
 
+    Notes
+    -----
+    This function assumes morphological tessellation and 1:1 relationship
+    between buildings and cells. Tesselation cells that do not have buildings
+    can break the functionality.
+
     Returns
     -------
     blocks : GeoDataFrame
@@ -425,7 +431,6 @@ def generate_blocks(
 
     # assign block ids to buildings and tessellations
     centroids_w_bl_id2 = gpd.sjoin(buildings_c, blocks, how="left", predicate="within")
-    # return blocks, centroids_w_bl_id2
     buildings_id = centroids_w_bl_id2["index_right"]
     buildings_id.name = id_name
     cells_m = tessellation.merge(
