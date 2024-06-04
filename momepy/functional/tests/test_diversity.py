@@ -120,18 +120,27 @@ class TestDescribe:
             "mean": 5.222222222222222,
         }
 
-        unweighted = mm.describe(
-            self.df_tessellation["bID"], graph, include_nunique=True
+        unweighted = graph.describe(
+            self.df_tessellation["bID"], statistics=["nunique"]
         )["nunique"]
-        unweighted2 = mm.describe(
-            self.df_tessellation["bID"], graph, include_nunique=True, q=(0, 100)
+
+        unweighted2 = graph.describe(
+            self.df_tessellation["bID"], q=(0, 100), statistics=["nunique"]
         )["nunique"]
 
         assert_result(
-            unweighted, unweighted_expected, self.df_tessellation, exact=False
+            unweighted,
+            unweighted_expected,
+            self.df_tessellation,
+            exact=False,
+            check_names=False,
         )
         assert_result(
-            unweighted2, unweighted_expected, self.df_tessellation, exact=False
+            unweighted2,
+            unweighted_expected,
+            self.df_tessellation,
+            exact=False,
+            check_names=False,
         )
         assert_series_equal(unweighted2, unweighted, check_dtype=False)
 
@@ -142,13 +151,9 @@ class TestDescribe:
             .assign_self_weight()
         )
 
-        count = mm.describe(self.df_tessellation["bID"], graph, include_nunique=True)[
-            "nunique"
-        ]
-
-        agg_areas = mm.describe(self.df_tessellation["area"], graph)["sum"]
+        count = graph.describe(self.df_tessellation["bID"])["nunique"]
+        agg_areas = graph.describe(self.df_tessellation["area"])["sum"]
         weighted_count = count / agg_areas
-
         weighted_count_expected = {
             "count": 144,
             "min": 2.0989616504225266e-05,
@@ -156,7 +161,11 @@ class TestDescribe:
             "mean": 3.142437439120778e-05,
         }
         assert_result(
-            weighted_count, weighted_count_expected, self.df_tessellation, exact=False
+            weighted_count,
+            weighted_count_expected,
+            self.df_tessellation,
+            exact=False,
+            check_names=False,
         )
 
     @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
