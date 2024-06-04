@@ -302,6 +302,7 @@ class TestDescribe:
 
         assert_frame_equal(pandas_agg_vals, numba_agg_vals)
 
+    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_unweighted_percentile(self):
         perc = mm.percentile(self.df_tessellation["area"], self.diversity_graph)
         perc_expected = {
@@ -342,6 +343,7 @@ class TestDescribe:
             perc, perc_expected, self.df_tessellation, check_names=False
         )
 
+    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_distance_decay_linearly_weighted_percentiles(self):
         # setup weight decay graph
 
