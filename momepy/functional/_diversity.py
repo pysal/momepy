@@ -343,8 +343,8 @@ def percentile(
 
     Parameters
     ----------
-    y : DataFrame | Series
-        A DataFrame or Series containing the values to be analysed.
+    y : Series
+        A Series containing the values to be analysed.
     graph : libpysal.graph.Graph
         A spatial weights matrix for the data.
     q : array-like (default [25, 50, 75])
