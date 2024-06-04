@@ -19,9 +19,9 @@ __all__ = ["describe", "describe_reached"]
 
 
 @njit
-def _mode(array):
+def _mode(values, index):  # noqa: ARG001
     """Custom mode function for numba."""
-    array = np.sort(array.ravel())
+    array = np.sort(values.ravel())
     mask = np.empty(array.shape, dtype=np.bool_)
     mask[:1] = True
     mask[1:] = array[1:] != array[:-1]
@@ -33,99 +33,77 @@ def _mode(array):
 
 
 @njit
-def _describe(values, q, include_mode=False, include_nunique=False):
-    """Helper function to calculate average."""
+def _limit_range(values, index, low, high):  # noqa: ARG001
     nan_tracker = np.isnan(values)
 
-    if nan_tracker.all():
-        return [
-            np.nan,
-            np.nan,
-            np.nan,
-            np.nan,
-            np.nan,
-            np.nan,
-            np.nan,
-        ]
-
+    if (not nan_tracker.all()) & (len(values[~nan_tracker]) > 2):
+        lower, higher = np.percentile(values, (low, high))
     else:
-        values = values[~np.isnan(values)]
+        return ~nan_tracker
 
-    if len(values) > 2:
-        lower, higher = np.percentile(values, q)
-        values = values[(lower <= values) & (values <= higher)]
-
-    mean = np.mean(values)
-    n = values.shape[0]
-    if n == 1:
-        std = np.nan
-    else:
-        # for pandas compatability
-        std = np.sqrt(np.sum(np.abs(values - mean) ** 2) / (n - 1))
-
-    results = [
-        n,
-        mean,
-        np.median(values),
-        std,
-        np.min(values),
-        np.max(values),
-        np.sum(values),
-    ]
-
-    if include_mode:
-        results.append(_mode(values))
-
-    if include_nunique:
-        results.append(np.unique(values).shape[0])
-
-    return results
+    return (lower <= values) & (values <= higher)
 
 
-def _compute_stats(grouper, q=None, include_mode=False, include_nunique=False):
-    """
-    Fast compute of "count", "mean", "median", "std", "min", "max", "sum" statistics,
-    with optional mode and quartile limits.
+def percentile_limited_graph_grouper(y, graph_adjacency_index, q=(25, 75)):
+    """Carry out a filtration of graph neighbours based on quantiles, \\
+        specified in ``q``"""
+    grouper = (
+        y.take(graph_adjacency_index.codes[-1])
+        .reset_index(drop=True)
+        .groupby(graph_adjacency_index.codes[0])
+    )
+    to_keep = grouper.transform(_limit_range, q[0], q[1], engine="numba").values.astype(
+        bool
+    )
+    filtered_grouper = y.take(graph_adjacency_index.codes[-1][to_keep]).groupby(
+        graph_adjacency_index.codes[0][to_keep]
+    )
+    return filtered_grouper
+
+
+def percentile_limited_group_grouper(y, group_index, q=(25, 75)):
+    """Carry out a filtration of group members based on \\
+    quantiles, specified in ``q``"""
+    grouper = y.groupby(group_index)
+    to_keep = grouper.transform(_limit_range, q[0], q[1], engine="numba").values.astype(
+        bool
+    )
+    filtered_grouper = y[to_keep].groupby(group_index[to_keep])
+    return filtered_grouper
+
+
+def _compute_stats(grouper, to_compute: list[str] | None = None):
+    """Fast compute of "count", "mean", "median", "std", "min", "max", \\
+    "sum", "nunique" and "mode" within a grouper object. Using numba.
 
     Parameters
     ----------
     grouper : pandas.GroupBy
         Groupby Object which specifies the aggregations to be performed.
-    q : tuple[float, float] | None, optional
-        Tuple of percentages for the percentiles to compute. Values must be between 0
-        and 100 inclusive. When set, values below and above the percentiles will be
-        discarded before computation of the average. The percentiles are computed for
-        each neighborhood. By default None.
-    include_mode : False
-        Compute mode along with other statistics. Default is False. Mode is
-        computationally expensive and not useful for continous variables.
+    to_compute : List[str]
+        A list of stats functions to pass to groupby.agg
 
     Returns
     -------
     DataFrame
     """
-    if q is None:
-        stat_ = grouper.agg(["count", "mean", "median", "std", "min", "max", "sum"])
-        if include_mode:
-            stat_["mode"] = grouper.agg(lambda x: _mode(x.values))
-        if include_nunique:
-            stat_["nunique"] = grouper.agg("nunique")
-    else:
-        agg = grouper.agg(
-            lambda x: _describe(
-                x.values,
-                q=q,
-                include_mode=include_mode,
-                include_nunique=include_nunique,
-            )
-        )
-        stat_ = DataFrame(np.stack(agg.values), index=agg.index)
-        cols = ["count", "mean", "median", "std", "min", "max", "sum"]
-        if include_mode:
-            cols.append("mode")
-        if include_nunique:
-            cols.append("nunique")
-        stat_.columns = cols
+    if to_compute is None:
+        to_compute = [
+            "count",
+            "mean",
+            "median",
+            "std",
+            "min",
+            "max",
+            "sum",
+            "nunique",
+            "mode",
+        ]
+
+    agg_to_compute = [f for f in to_compute if f != "mode"]
+    stat_ = grouper.agg(agg_to_compute)
+    if "mode" in to_compute:
+        stat_["mode"] = grouper.agg(_mode, engine="numba")
 
     return stat_
 
@@ -134,8 +112,7 @@ def describe(
     y: NDArray[np.float_] | Series,
     graph: Graph,
     q: tuple[float, float] | None = None,
-    include_mode: bool = False,
-    include_nunique: bool = False,
+    to_compute: list[str] | None = None,
 ) -> DataFrame:
     """Describe the distribution of values within a set neighbourhood.
 
@@ -162,9 +139,10 @@ def describe(
         and 100 inclusive. When set, values below and above the percentiles will be
         discarded before computation of the average. The percentiles are computed for
         each neighborhood. By default None.
-    include_mode : False
-        Compute mode along with other statistics. Default is False. Mode is
-        computationally expensive and not useful for continous variables.
+    to_compute : List[str] | None
+        A list of stats functions to compute. If None, compute all
+        available functions - "count", "mean", "median",
+        "std", "min", "max", "sum", "nunique", "mode". By default None.
 
     Returns
     -------
@@ -184,11 +162,14 @@ def describe(
     if not isinstance(y, Series):
         y = Series(y)
 
-    grouper = y.take(graph._adjacency.index.codes[1]).groupby(
-        graph._adjacency.index.codes[0]
-    )
+    if q is None:
+        grouper = y.take(graph._adjacency.index.codes[1]).groupby(
+            graph._adjacency.index.codes[0]
+        )
+    else:
+        grouper = percentile_limited_graph_grouper(y, graph._adjacency.index, q=q)
 
-    return _compute_stats(grouper, q, include_mode, include_nunique)
+    return _compute_stats(grouper, to_compute)
 
 
 def describe_reached(
@@ -206,9 +187,8 @@ def describe_reached(
     of values reached. Optionally, the values can be limited to a certain
     quantile range before computing the statistics.
 
-    The statistics calculated are count, sum, mean, median, std.
-    Optionally, mode and number of unique elements can be calculated,
-    or the statistics can be calculated in quantiles ``q``.
+    The statistics calculated are count, sum, mean, median, std, nunique, mode.
+    The desired statistics to compute can be passed to ``to_compute``
 
     The neighbourhood is defined in ``graph``. If ``graph`` is ``None``,
     the function will assume topological distance ``0`` (element itself)
@@ -243,7 +223,8 @@ def describe_reached(
         Compute mode along with other statistics. Default is False. Mode is
         computationally expensive and not useful for continous variables.
     include_nunique : False
-        Compute the number of unique elements along with other statistics. Default is False.
+        Compute the number of unique elements along with other statistics.
+        Default is False.
 
     Returns
     -------
@@ -299,14 +280,21 @@ def describe_reached(
 
     # aggregate data
     if graph is None:
-        grouper = y.groupby(graph_index)
+        if q is None:
+            grouper = y.groupby(graph_index)
+        else:
+            grouper = percentile_limited_group_grouper(y, graph_index, q=q)
 
     else:
         df_multi_index = y.to_frame().set_index(graph_index, append=True).swaplevel()
         combined_index = graph.adjacency.index.join(df_multi_index.index).dropna()
-        grouper = y.loc[combined_index.get_level_values(-1)].groupby(
-            combined_index.get_level_values(0)
-        )
+
+        if q is None:
+            grouper = y.loc[combined_index.get_level_values(-1)].groupby(
+                combined_index.get_level_values(0)
+            )
+        else:
+            grouper = percentile_limited_graph_grouper(y, combined_index, q=q)
 
     stats = _compute_stats(grouper, q, include_mode, include_nunique)
 
