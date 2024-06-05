@@ -39,23 +39,6 @@ class TestIntensity:
         expected = {"mean": 0.6805555555555556, "sum": 98, "min": 0, "max": 1}
         assert_result(courtyards, expected, self.df_buildings)
 
-    def test_density(self):
-        graph = (
-            Graph.build_contiguity(self.df_tessellation, rook=False)
-            .higher_order(k=3, lower_order=True)
-            .assign_self_weight()
-        )
-        dens_new = mm.density(
-            self.df_buildings["fl_area"], self.df_tessellation.geometry.area, graph
-        )
-        dens_expected = {
-            "count": 144,
-            "mean": 1.6615871155383324,
-            "max": 2.450536855278486,
-            "min": 0.9746481727569978,
-        }
-        assert_result(dens_new, dens_expected, self.df_tessellation, exact=False)
-
     def test_node_density(self):
         nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
         nx = mm.node_degree(nx)
@@ -147,9 +130,10 @@ class TestIntensityEquality:
             .higher_order(k=3, lower_order=True)
             .assign_self_weight()
         )
-        dens_new = mm.density(
-            self.df_buildings["fl_area"], self.df_tessellation.geometry.area, graph
-        )
+
+        fl_area = graph.describe(self.df_buildings["fl_area"])["sum"]
+        tess_area = graph.describe(self.df_tessellation["area"])["sum"]
+        dens_new = fl_area / tess_area
 
         dens_old = mm.Density(
             self.df_tessellation,

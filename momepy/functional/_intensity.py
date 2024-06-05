@@ -3,12 +3,9 @@ import pandas as pd
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
-from numpy.typing import NDArray
 from pandas import Series
 
-from momepy import describe
-
-__all__ = ["courtyards", "node_density", "density"]
+__all__ = ["courtyards", "node_density"]
 
 
 def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
@@ -114,50 +111,3 @@ def node_density(
         summation_values = pd.Series(np.ones(nodes.shape[0]), index=nodes.index)
 
     return graph.apply(summation_values, _calc_nodedensity, edges=edges)
-
-
-def density(
-    values: Series | NDArray[np.float_],
-    areas: Series | NDArray[np.float_],
-    graph: Graph,
-) -> Series:
-    """Calculate the gross density.
-
-    .. math::
-        \\frac{\\sum \\text {values}}{\\sum \\text {areas}}
-
-    Adapted from :cite:`dibble2017`.
-
-    Parameters
-    ----------
-    values : pd.Series | np.ndarray
-        The character values for density calculations.
-        The index is used to arrange the final results.
-    areas : np.array | pd.Series
-        The area values for the density calculations,
-        an ``np.ndarray``, or ``pd.Series``.
-    graph : libpysal.graph.Graph
-        A spatial weights matrix for the geodataframe,
-        it is used to denote adjacent elements.
-
-    Returns
-    -------
-    DataFrame
-
-
-    Examples
-    --------
-    >>> tessellation_df['floor_area_dens'] = mm.density(tessellation_df['floor_area'],
-    ...                                                 tessellation_df['area'],
-    ...                                                 graph)
-    """
-
-    if isinstance(values, np.ndarray):
-        values = pd.Series(values)
-
-    if isinstance(areas, np.ndarray):
-        areas = pd.Series(values)
-
-    stats = describe(values, graph)["sum"]
-    areas = describe(areas, graph)["sum"]
-    return stats / areas
