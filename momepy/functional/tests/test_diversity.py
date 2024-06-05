@@ -2,6 +2,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import pytest
+import scipy
 from libpysal.graph import Graph
 from packaging.version import Version
 from pandas.testing import assert_frame_equal, assert_series_equal
@@ -12,6 +13,7 @@ from .conftest import assert_frame_result, assert_result
 
 GPD_013 = Version(gpd.__version__) >= Version("0.13")
 PD_210 = Version(pd.__version__) >= Version("2.1.0")
+SP_112 = Version(scipy.__version__) >= Version("1.12.0")
 
 
 class TestDescribe:
@@ -302,7 +304,7 @@ class TestDescribe:
 
         assert_frame_equal(pandas_agg_vals, numba_agg_vals)
 
-    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
+    @pytest.mark.skipif(not SP_112, reason="sparse matrix power requires scipy>=1.12.0")
     def test_unweighted_percentile(self):
         perc = mm.percentile(self.df_tessellation["area"], self.diversity_graph)
         perc_expected = {
@@ -343,7 +345,12 @@ class TestDescribe:
             perc, perc_expected, self.df_tessellation, check_names=False
         )
 
-    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
+        # test isolates
+        graph = Graph.build_contiguity(self.df_tessellation.iloc[:100])
+        perc = mm.percentile(self.df_tessellation["area"].iloc[:100], graph)
+        assert perc.loc[0].isna().all()
+
+    @pytest.mark.skipif(not SP_112, reason="sparse matrix power requires scipy>=1.12.0")
     def test_distance_decay_linearly_weighted_percentiles(self):
         # setup weight decay graph
 

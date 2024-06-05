@@ -351,7 +351,7 @@ def percentile(
         The percentiles to return.
 
     Returns
-    --------
+    -------
     Dataframe
         A Dataframe with columns as the results for each percentile
 
@@ -369,4 +369,5 @@ def percentile(
     q = tuple(q)
     stats = grouper.apply(lambda x: _interpolate(x.values, q))
     result = DataFrame(np.stack(stats), columns=q, index=stats.index)
+    result.loc[graph.isolates] = np.nan
     return result
