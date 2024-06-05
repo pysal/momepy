@@ -43,7 +43,7 @@ class TestDescribe:
 
     def test_describe(self):
         area = self.df_buildings.area
-        r = mm.describe(area, self.graph)
+        r = self.graph.describe(area)
 
         expected_mean = {
             "mean": 587.3761020554495,
@@ -96,7 +96,7 @@ class TestDescribe:
     def test_describe_quantile(self):
         graph = Graph.build_knn(self.df_buildings.centroid, k=15)
         area = self.df_buildings.area
-        r = mm.describe(area, graph, q=(25, 75))
+        r = graph.describe(area, q=(25, 75))
 
         expected_mean = {
             "mean": 601.6960154385389,
@@ -171,7 +171,7 @@ class TestDescribe:
     @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_describe_mode(self):
         corners = mm.corners(self.df_buildings)
-        r = mm.describe(corners, self.graph, include_mode=True)
+        r = self.graph.describe(corners)
 
         expected = {
             "mean": 6.152777777777778,
@@ -185,7 +185,7 @@ class TestDescribe:
     def test_describe_quantile_mode(self):
         graph = Graph.build_knn(self.df_buildings.centroid, k=15)
         corners = mm.corners(self.df_buildings)
-        r = mm.describe(corners, graph, q=(25, 75), include_mode=True)
+        r = graph.describe(corners, q=(25, 75))
 
         expected = {
             "mean": 6.958333333333333,
@@ -197,37 +197,16 @@ class TestDescribe:
 
     def test_describe_array(self):
         area = self.df_buildings.area
-        r = mm.describe(area, self.graph)
-        r2 = mm.describe(area.values, self.graph)
+        r = self.describe(area, self.graph)
+        r2 = self.graph.describe(area.values, self.graph)
 
         assert_frame_equal(r, r2)
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
-    def test_describe_reached_input(self):
-        with pytest.raises(
-            ValueError,
-            match=("One of result_index or graph has to be specified, but not both."),
-        ):
-            mm.describe_reached(self.df_buildings[["area"]], self.df_buildings["nID"])
-
-        with pytest.raises(
-            ValueError,
-            match=("One of result_index or graph has to be specified, but not both."),
-        ):
-            mm.describe_reached(
-                self.df_buildings[["area"]],
-                self.df_buildings["nID"],
-                result_index=self.df_streets.index,
-                graph=self.graph_sw,
-            )
-
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
     def test_describe_reached(self):
-        df = mm.describe_reached(
+        df = mm.describe_agg(
             self.df_buildings["area"],
             self.df_buildings["nID"],
             self.df_streets.index,
@@ -257,7 +236,7 @@ class TestDescribe:
         assert_result(df["sum"], expected_area_sum, self.df_streets)
         assert_result(df["mean"], expected_area_mean, self.df_streets)
 
-        df = mm.describe_reached(
+        df = mm.describe_agg(
             self.df_buildings["fl_area"].values,
             self.df_buildings["nID"],
             self.df_streets.index,
@@ -289,7 +268,7 @@ class TestDescribe:
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_describe_reached_sw(self):
-        df_sw = mm.describe_reached(
+        df_sw = mm.describe_reached_agg(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
         )
 
@@ -303,13 +282,13 @@ class TestDescribe:
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_describe_reached_input_equality(self):
-        island_result_df = mm.describe_reached(
+        island_result_df = mm.describe_agg(
             self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
         )
         island_result_series = mm.describe_reached(
             self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
         )
-        island_result_ndarray = mm.describe_reached(
+        island_result_ndarray = mm.describe_agg(
             self.df_buildings["area"].values,
             self.df_buildings["nID"].values,
             self.df_streets.index,
@@ -329,13 +308,13 @@ class TestDescribe:
         nan_areas = self.df_buildings["area"]
         nan_areas.iloc[range(0, len(self.df_buildings), 3),] = np.nan
 
-        pandas_agg_vals = mm.describe_reached(
+        pandas_agg_vals = mm.describe_agg(
             nan_areas,
             self.df_buildings["nID"],
             self.df_streets.index,
         )
 
-        numba_agg_vals = mm.describe_reached(
+        numba_agg_vals = mm.describe_agg(
             nan_areas, self.df_buildings["nID"], self.df_streets.index, q=(0, 100)
         )
 

@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 import pandas as pd
 from libpysal.graph import Graph
@@ -8,18 +6,21 @@ from pandas import DataFrame, Series
 
 try:
     # from numba import njit
-
     HAS_NUMBA = True
 except (ModuleNotFoundError, ImportError):
     HAS_NUMBA = False
     # from libpysal.common import jit as njit
 
-from libpysal.utils import _compute_stats, _limit_range, _percentile_filtration_grouper
+from libpysal.graph._utils import (
+    _compute_stats,
+    _limit_range,
+    _percentile_filtration_grouper,
+)
 
 __all__ = ["describe_agg", "describe_reached_agg"]
 
 
-def percentile_limited_group_grouper(y, group_index, q=(25, 75)):
+def _percentile_limited_group_grouper(y, group_index, q=(25, 75)):
     """Carry out a filtration of group members based on \\
     quantiles, specified in ``q``"""
     grouper = y.groupby(group_index)
@@ -30,16 +31,98 @@ def percentile_limited_group_grouper(y, group_index, q=(25, 75)):
     return filtered_grouper
 
 
-def describe_agg():
-    pass
+def describe_agg(
+    y: np.ndarray | Series,
+    aggregation_key: np.ndarray | Series,
+    result_index: pd.Index = None,
+    q: tuple[float, float] | list[float, float] | None = None,
+    to_compute: list[str] | None = None,
+) -> DataFrame:
+    """Describe the distribution of values within the groups of an aggregation.
+
+    The desired statistics to compute can be passed to ``to_compute``.
+    By default the statistics calculated are count,
+    sum, mean, median, std, nunique, mode.
+
+    Adapted from :cite:`hermosilla2012` and :cite:`feliciotti2018`.
+
+    Notes
+    -----
+    The numba package is used extensively in this function to accelerate the computation
+    of statistics. Without numba, these computations may become slow on large data.
+
+    Parameters
+    ----------
+    y : Series | numpy.array
+        A Series or numpy.array containing values to analyse.
+    graph_index : Series | numpy.array
+        The unique ID that specifies the aggregation
+        of ``y`` objects to ``graph`` groups.
+    result_index : pd.Index (default None)
+        An index that specifies how to order the results.
+    q : tuple[float, float] | None, optional
+        Tuple of percentages for the percentiles to compute. Values must be between 0
+        and 100 inclusive. When set, values below and above the percentiles will be
+        discarded before computation of the average. The percentiles are computed for
+        each neighborhood. By default None.
+    to_compute : list[str]
+        A list of stats functions to pass to groupby.agg.
+
+    Returns
+    -------
+    DataFrame
+
+    Examples
+    --------
+    >>> res = mm.describe_reached(
+    ...         tessellation['area'], tessellation['nID'] , graph=streets_q1
+    ...     )
+    >>> streets["tessalations_reached"] = res['count']
+    >>> streets["tessalations_reached_area"] = res['sum']
+
+    """
+
+    if Version(pd.__version__) <= Version("2.1.0"):
+        raise ImportError("pandas 2.1.0 or newer is required to use this function.")
+
+    # series indice needs renaming, since multiindices
+    # without explicit names cannot be joined
+    if isinstance(y, np.ndarray):
+        y = pd.Series(y)
+
+    if isinstance(aggregation_key, np.ndarray):
+        aggregation_key = pd.Series(aggregation_key)
+
+    # aggregate data
+    if q is None:
+        grouper = y.groupby(aggregation_key)
+    else:
+        grouper = _percentile_limited_group_grouper(y, aggregation_key, q=q)
+
+    stats = _compute_stats(grouper, to_compute=to_compute)
+
+    if result_index is None:
+        result_index = stats.index
+
+    # post processing to have the same behaviour as describe_reached_agg
+    result = pd.DataFrame(
+        np.full((result_index.shape[0], stats.shape[1]), np.nan), index=result_index
+    )
+    result.loc[stats.index.values] = stats.values
+    result.columns = stats.columns
+    # fill only counts with zeros, other stats are NA
+    result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
+    result.index.names = result_index.names
+
+    return result
 
 
 def describe_reached_agg(
     y: np.ndarray | Series,
     graph_index: np.ndarray | Series,
-    result_index: pd.Index = None,
-    graph: Graph = None,
-    q: tuple | list | None = None,
+    graph: Graph,
+    q: tuple[float, float] | list[float, float] | None = None,
+    to_compute: list[str] | None = None,
 ) -> DataFrame:
     """Describe the distribution of values reached on a neighbourhood graph.
 
@@ -69,9 +152,6 @@ def describe_reached_agg(
     graph_index : Series | numpy.array
         The unique ID that specifies the aggregation
         of ``y`` objects to ``graph`` groups.
-    result_index : pd.Index (default None)
-        An index that specifies how to order the results when ``graph`` is None.
-        When ``graph`` is given, the index is derived from its unique IDs.
     graph : libpysal.graph.Graph (default None)
         A spatial weights matrix of the element ``y`` is grouped into.
     q : tuple[float, float] | None, optional
@@ -79,7 +159,8 @@ def describe_reached_agg(
         and 100 inclusive. When set, values below and above the percentiles will be
         discarded before computation of the average. The percentiles are computed for
         each neighborhood. By default None.
-
+    to_compute : list[str]
+        A list of stats functions to pass to groupby.agg.
     Returns
     -------
     DataFrame
@@ -97,29 +178,6 @@ def describe_reached_agg(
     if Version(pd.__version__) <= Version("2.1.0"):
         raise ImportError("pandas 2.1.0 or newer is required to use this function.")
 
-    if not HAS_NUMBA:
-        warnings.warn(
-            "The numba package is used extensively in this function to accelerate the"
-            " computation of statistics but it is not installed or  cannot be imported."
-            " Without numba, these computations may become slow on large data.",
-            UserWarning,
-            stacklevel=2,
-        )
-
-    param_err = ValueError(
-        "One of result_index or graph has to be specified, but not both."
-    )
-    # case where params are none
-    if (result_index is None) and (graph is None):
-        raise param_err
-    elif result_index is None:
-        result_index = graph.unique_ids
-    elif graph is None:
-        result_index = result_index
-    # case where both params are passed
-    else:
-        raise param_err
-
     # series indice needs renaming, since multiindices
     # without explicit names cannot be joined
     if isinstance(y, np.ndarray):
@@ -133,32 +191,19 @@ def describe_reached_agg(
         graph_index = graph_index.rename("neighbor")
 
     # aggregate data
-    if graph is None:
-        if q is None:
-            grouper = y.groupby(graph_index)
-        else:
-            grouper = percentile_limited_group_grouper(y, graph_index, q=q)
+    df_multi_index = y.to_frame().set_index(graph_index, append=True).swaplevel()
+    combined_index = graph.adjacency.index.join(df_multi_index.index).dropna()
 
+    if q is None:
+        grouper = y.loc[combined_index.get_level_values(-1)].groupby(
+            combined_index.get_level_values(0)
+        )
     else:
-        df_multi_index = y.to_frame().set_index(graph_index, append=True).swaplevel()
-        combined_index = graph.adjacency.index.join(df_multi_index.index).dropna()
+        grouper = _percentile_filtration_grouper(y, combined_index, q=q)
 
-        if q is None:
-            grouper = y.loc[combined_index.get_level_values(-1)].groupby(
-                combined_index.get_level_values(0)
-            )
-        else:
-            grouper = _percentile_filtration_grouper(y, combined_index, q=q)
+    result = _compute_stats(grouper, to_compute)
 
-    stats = _compute_stats(grouper, q)
-
-    result = pd.DataFrame(
-        np.full((result_index.shape[0], stats.shape[1]), np.nan), index=result_index
-    )
-    result.loc[stats.index.values] = stats.values
-    result.columns = stats.columns
     # fill only counts with zeros, other stats are NA
     result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
-    result.index.names = result_index.names
 
     return result
