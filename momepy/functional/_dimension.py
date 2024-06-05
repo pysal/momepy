@@ -5,8 +5,6 @@ from libpysal.graph import Graph
 from numpy.typing import NDArray
 from pandas import Series
 
-from ._diversity import describe
-
 __all__ = [
     "volume",
     "floor_area",
@@ -14,7 +12,6 @@ __all__ = [
     "longest_axis_length",
     "perimeter_wall",
     "weighted_character",
-    "covered_area",
 ]
 
 
@@ -193,32 +190,7 @@ def weighted_character(values: Series, areas: Series, graph: Graph) -> Series:
     ...                     buildings_df.geometry.area, graph)
     """
 
-    stats = describe(values * areas, graph)["sum"]
-    agg_area = describe(areas, graph)["sum"]
+    stats = graph.describe(values * areas, statistics=["sum"])["sum"]
+    agg_area = graph.describe(areas, statistics=["sum"])["sum"]
 
     return stats / agg_area
-
-
-def covered_area(area: Series, graph: Graph) -> Series:
-    """Calculates the area covered by neighbours, which is total area covered
-    by neighbours defined in ``graph`` and the element itself.
-    Results are index based on ``graph``.
-
-    Parameters
-    ----------
-    areas : pd.Series
-        The area values to be used as weightss
-    graph : libpysal.graph.Graph
-        A spatial weights matrix for values and areas.
-
-    Returns
-    -------
-    Series
-        A Series containing the resulting values.
-
-    Examples
-    --------
-    >>> res = mm.covered_area(buildings_df.geometry.area, graph)
-    """
-
-    return describe(area, graph)["sum"]

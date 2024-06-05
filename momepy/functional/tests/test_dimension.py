@@ -93,28 +93,6 @@ class TestDimensions:
         pd.testing.assert_series_equal(result, result_given_graph)
         assert result[0] == pytest.approx(137.210, rel=1e-3)
 
-    def test_covered_area(self):
-        covered_sw = mm.covered_area(self.df_tessellation.area, self.graph)
-
-        covered_sw2 = mm.covered_area(self.df_tessellation.area.values, self.graph)
-
-        expected_covered_sw = {
-            "sum": 11526021.19027327,
-            "mean": 80041.81382134215,
-            "min": 26013.0106743472,
-            "max": 131679.18084183024,
-        }
-        assert_result(
-            covered_sw,
-            expected_covered_sw,
-            self.df_tessellation,
-            check_names=False,
-            exact=False,
-        )
-        assert_series_equal(
-            covered_sw, covered_sw2, check_names=False, check_index_type=False
-        )
-
     def test_weighted_char(self):
         weighted = mm.weighted_character(
             self.df_buildings.height, self.df_buildings.area, self.graph
@@ -149,7 +127,9 @@ class TestDimensionEquivalence:
         )
 
     def test_covered_area(self):
-        covered_sw_new = mm.covered_area(self.df_tessellation.area, self.graph)
+        covered_sw_new = self.graph.describe(
+            self.df_tessellation.area, statistics=["sum"]
+        )["sum"]
         covered_sw_old = mm.CoveredArea(self.df_tessellation, self.sw, "uID").series
         assert_series_equal(
             covered_sw_new, covered_sw_old, check_names=False, check_index_type=False
