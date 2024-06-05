@@ -51,7 +51,9 @@ class TestDescribe:
             "min": 50.44045729583316,
             "max": 1187.2662413659234,
         }
-        assert_result(r["mean"], expected_mean, self.df_buildings, exact=False)
+        assert_result(
+            r["mean"], expected_mean, self.df_buildings, exact=False, check_names=False
+        )
 
         expected_median = {
             "mean": 577.4640489818667,
@@ -59,7 +61,13 @@ class TestDescribe:
             "min": 50.43336175017242,
             "max": 1225.8094201694726,
         }
-        assert_result(r["median"], expected_median, self.df_buildings, exact=False)
+        assert_result(
+            r["median"],
+            expected_median,
+            self.df_buildings,
+            exact=False,
+            check_names=False,
+        )
 
         expected_std = {
             "mean": 255.59307136480083,
@@ -67,7 +75,9 @@ class TestDescribe:
             "min": 0.05050450812944085,
             "max": 1092.484902679786,
         }
-        assert_result(r["std"], expected_std, self.df_buildings, exact=False)
+        assert_result(
+            r["std"], expected_std, self.df_buildings, exact=False, check_names=False
+        )
 
         expected_min = {
             "mean": 349.53354434499295,
@@ -75,7 +85,9 @@ class TestDescribe:
             "min": 50.39387578315866,
             "max": 761.0313042971973,
         }
-        assert_result(r["min"], expected_min, self.df_buildings, exact=False)
+        assert_result(
+            r["min"], expected_min, self.df_buildings, exact=False, check_names=False
+        )
 
         expected_max = {
             "mean": 835.1307128394886,
@@ -83,7 +95,9 @@ class TestDescribe:
             "min": 50.49413435416841,
             "max": 2127.7522277389035,
         }
-        assert_result(r["max"], expected_max, self.df_buildings, exact=False)
+        assert_result(
+            r["max"], expected_max, self.df_buildings, exact=False, check_names=False
+        )
 
         expected_sum = {
             "mean": 1762.128306166348,
@@ -91,7 +105,9 @@ class TestDescribe:
             "min": 151.32137188749948,
             "max": 3561.79872409777,
         }
-        assert_result(r["sum"], expected_sum, self.df_buildings, exact=False)
+        assert_result(
+            r["sum"], expected_sum, self.df_buildings, exact=False, check_names=False
+        )
 
     def test_describe_quantile(self):
         graph = Graph.build_knn(self.df_buildings.centroid, k=15)
@@ -104,7 +120,9 @@ class TestDescribe:
             "min": 250.25984637364323,
             "max": 901.0028506943196,
         }
-        assert_result(r["mean"], expected_mean, self.df_buildings, exact=False)
+        assert_result(
+            r["mean"], expected_mean, self.df_buildings, exact=False, check_names=False
+        )
 
     def test_describe_nunique(self):
         graph = (
@@ -179,7 +197,9 @@ class TestDescribe:
             "min": 4,
             "max": 17,
         }
-        assert_result(r["mode"], expected, self.df_buildings, exact=False)
+        assert_result(
+            r["mode"], expected, self.df_buildings, exact=False, check_names=False
+        )
 
     @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_describe_quantile_mode(self):
@@ -193,14 +213,16 @@ class TestDescribe:
             "min": 4.0,
             "max": 12,
         }
-        assert_result(r["mode"], expected, self.df_buildings, exact=False)
+        assert_result(
+            r["mode"], expected, self.df_buildings, exact=False, check_names=False
+        )
 
     def test_describe_array(self):
         area = self.df_buildings.area
-        r = self.describe(area, self.graph)
-        r2 = self.graph.describe(area.values, self.graph)
+        r = self.graph.describe(area)
+        r2 = self.graph.describe(area.values)
 
-        assert_frame_equal(r, r2)
+        assert_frame_equal(r, r2, check_names=False)
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
@@ -285,7 +307,7 @@ class TestDescribe:
         island_result_df = mm.describe_agg(
             self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
         )
-        island_result_series = mm.describe_reached(
+        island_result_series = mm.describe_agg(
             self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
         )
         island_result_ndarray = mm.describe_agg(

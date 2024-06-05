@@ -23,7 +23,7 @@ __all__ = ["describe_agg", "describe_reached_agg"]
 def _percentile_limited_group_grouper(y, group_index, q=(25, 75)):
     """Carry out a filtration of group members based on \\
     quantiles, specified in ``q``"""
-    grouper = y.groupby(group_index)
+    grouper = y.reset_index(drop=True).groupby(group_index)
     to_keep = grouper.transform(_limit_range, q[0], q[1], engine="numba").values.astype(
         bool
     )
