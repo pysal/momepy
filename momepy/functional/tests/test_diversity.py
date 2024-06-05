@@ -304,7 +304,9 @@ class TestDescribe:
 
         assert_frame_equal(pandas_agg_vals, numba_agg_vals)
 
-    @pytest.mark.skipif(not SP_112, reason="sparse matrix power requires scipy>=1.12.0")
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous pandas versions"
+    )
     def test_unweighted_percentile(self):
         perc = mm.percentile(self.df_tessellation["area"], self.diversity_graph)
         perc_expected = {
@@ -350,7 +352,9 @@ class TestDescribe:
         perc = mm.percentile(self.df_tessellation["area"].iloc[:100], graph)
         assert perc.loc[0].isna().all()
 
-    @pytest.mark.skipif(not SP_112, reason="sparse matrix power requires scipy>=1.12.0")
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous pandas versions"
+    )
     def test_distance_decay_linearly_weighted_percentiles(self):
         # setup weight decay graph
 
