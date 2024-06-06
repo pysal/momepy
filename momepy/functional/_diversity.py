@@ -2,8 +2,8 @@ import warnings
 
 import numpy as np
 import pandas as pd
-import scipy as sp
 from libpysal.graph import Graph
+from libpysal.graph._utils import _percentile_filtration_grouper
 from numpy.typing import NDArray
 from packaging.version import Version
 from pandas import DataFrame, Series
@@ -26,8 +26,37 @@ __all__ = [
     "simpson",
     "shannon",
     "gini",
-    "unique",
+    "percentile",
 ]
+
+
+def _get_grouper(y, graph):
+    return y.take(graph._adjacency.index.codes[1]).groupby(
+        graph._adjacency.index.codes[0]
+    )
+
+
+@njit
+def _interpolate(values, q):
+    weights = values[:, 0]
+    group = values[:, 1]
+    nan_tracker = np.isnan(group)
+    if nan_tracker.all():
+        return np.array([float(np.nan) for _ in q])
+    group = group[~nan_tracker]
+    sorter = np.argsort(group)
+    group = group[sorter]
+    weights = weights[~nan_tracker][sorter]
+
+    xs = np.cumsum(weights) - 0.5 * weights
+    xs = xs / weights.sum()
+    ys = group
+    interpolate = np.interp(
+        [x / 100 for x in q],
+        xs,
+        ys,
+    )
+    return interpolate
 
 
 @njit
@@ -189,25 +218,22 @@ def describe(
 
 
 def values_range(
-    data: DataFrame | Series, graph: Graph, rng: tuple | list = (0, 100), **kwargs
+    y: Series | NDArray[np.float64], graph: Graph, q: tuple | list = (0, 100)
 ):
     """Calculates the range of values within neighbours defined in ``graph``.
-    Uses ``scipy.stats.iqr`` under the hood.
 
     Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
-    data : DataFrame | Series
+    data : Series
         A DataFrame or Series containing the values to be analysed.
     graph : libpysal.graph.Graph
         A spatial weights matrix for the data.
-    rng : tuple, list, optional (default (0,100)))
+    q : tuple, list, optional (default (0,100)))
         A two-element sequence containing floats between 0 and 100 (inclusive)
         that are the percentiles over which to compute the range.
         The order of the elements is not important.
-    **kwargs : dict
-        Optional arguments for ``scipy.stats.iqr``.
 
     Returns
     ----------
@@ -218,16 +244,14 @@ def values_range(
     --------
     >>> tessellation_df['area_IQR_3steps'] = mm.range(tessellation_df['area'],
     ...                                               graph,
-    ...                                               rng=(25, 75))
+    ...                                               q=(25, 75))
     """
 
-    def _apply_range(values):
-        return sp.stats.iqr(values, rng=rng, **kwargs)
-
-    return graph.apply(data, _apply_range)
+    stats = mm.percentile(y, graph, q=q)
+    return stats[max(q)] - stats[min(q)]
 
 
-def theil(data: DataFrame | Series, graph: Graph, rng: tuple | list = None):
+def theil(y: Series, graph: Graph, q: tuple | list = None):
     """Calculates the Theil measure of inequality of values within neighbours defined in
     ``graph``.
     Uses ``inequality.theil.Theil`` under the hood. Requires '`inequality`' package.
@@ -242,11 +266,11 @@ def theil(data: DataFrame | Series, graph: Graph, rng: tuple | list = None):
 
     Parameters
     ----------
-    data : DataFrame | Series
+    y : Series
         A DataFrame or Series containing the values to be analysed.
     graph : libpysal.graph.Graph
         A spatial weights matrix for the data.
-    rng : tuple, list, optional (default (0,100)))
+    q : tuple, list, optional (default (0,100)))
         A two-element sequence containing floats between 0 and 100 (inclusive)
         that are the percentiles over which to compute the range.
         The order of the elements is not important.
@@ -266,19 +290,19 @@ def theil(data: DataFrame | Series, graph: Graph, rng: tuple | list = None):
         from inequality.theil import Theil
     except ImportError as err:
         raise ImportError("The 'inequality' package is required.") from err
-    if rng:
-        from momepy import limit_range
 
-    def _apply_theil(values):
-        if rng:
-            values = limit_range(values, rng=rng)
-        return Theil(values).T
+    if q:
+        grouper = _percentile_filtration_grouper(y, graph._adjacency.index, q=q)
+    else:
+        grouper = _get_grouper(y, graph)
 
-    return graph.apply(data, _apply_theil)
+    result = grouper.apply(lambda x: Theil(x.values).T)
+    result.index = graph.unique_ids
+    return result
 
 
 def simpson(
-    data: DataFrame | Series,
+    y: Series,
     graph: Graph,
     binning: str = "HeadTailBreaks",
     gini_simpson: bool = False,
@@ -299,7 +323,7 @@ def simpson(
 
     Parameters
     ----------
-    data : DataFrame | Series
+    y : Series
         A DataFrame or Series containing the values to be analysed.
     graph : libpysal.graph.Graph
         A spatial weights matrix for the data.
@@ -337,7 +361,7 @@ def simpson(
             raise ImportError(
                 "The 'mapclassify >= 2.4.2` package is required."
             ) from err
-        bins = classify(data, scheme=binning, **classification_kwds).bins
+        bins = classify(y, scheme=binning, **classification_kwds).bins
     else:
         bins = None
 
@@ -348,7 +372,7 @@ def simpson(
             categorical=categorical,
         )
 
-    result = graph.apply(data, _apply_simpson_diversity)
+    result = graph.apply(y, _apply_simpson_diversity)
 
     if gini_simpson:
         result = 1 - result
@@ -358,7 +382,7 @@ def simpson(
 
 
 def shannon(
-    data: DataFrame | Series,
+    y: Series,
     graph: Graph,
     binning: str = "HeadTailBreaks",
     categorical: bool = False,
@@ -376,7 +400,7 @@ def shannon(
 
     Parameters
     ----------
-    data : DataFrame | Series
+    y : Series
         A DataFrame or Series containing the values to be analysed.
     graph : libpysal.graph.Graph
         A spatial weights matrix for the data.
@@ -403,7 +427,7 @@ def shannon(
     """
 
     if not categories:
-        categories = data.unique()
+        categories = y.unique()
 
     if not categorical:
         try:
@@ -412,17 +436,17 @@ def shannon(
             raise ImportError(
                 "The 'mapclassify >= 2.4.2` package is required."
             ) from err
-        bins = classify(data, scheme=binning, **classification_kwds).bins
+        bins = classify(y, scheme=binning, **classification_kwds).bins
     else:
         bins = categories
 
     def _apply_shannon(values):
         return mm.shannon_diversity(values, bins, categorical, categories)
 
-    return graph.apply(data, _apply_shannon)
+    return graph.apply(y, _apply_shannon)
 
 
-def gini(data: DataFrame | Series, graph: Graph, rng: tuple | list = None):
+def gini(y: Series, graph: Graph, q: tuple | list = None):
     """Calculates the Gini index of values within neighbours defined in ``graph``.
     Uses ``inequality.gini.Gini`` under the hood. Requires '`inequality`' package.
 
@@ -430,11 +454,11 @@ def gini(data: DataFrame | Series, graph: Graph, rng: tuple | list = None):
 
     Parameters
     ----------
-    data : DataFrame | Series
+    y :  Series
         A DataFrame or Series containing the values to be analysed.
     graph : libpysal.graph.Graph
         A spatial weights matrix for the data.
-    rng : tuple, list, optional (default (0,100)))
+    q : tuple, list, optional (default (0,100)))
         A two-element sequence containing floats between 0 and 100 (inclusive)
         that are the percentiles over which to compute the range.
         The order of the elements is not important.
@@ -454,54 +478,19 @@ def gini(data: DataFrame | Series, graph: Graph, rng: tuple | list = None):
     except ImportError as err:
         raise ImportError("The 'inequality' package is required.") from err
 
-    if data.min() < 0:
+    if y.min() < 0:
         raise ValueError(
             "Values contain negative numbers. Normalise data before"
             "using momepy.Gini."
         )
-    if rng:
-        from momepy import limit_range
+    if q:
+        grouper = _percentile_filtration_grouper(y, graph._adjacency.index, q=q)
+    else:
+        grouper = _get_grouper(y, graph)
 
-    def _apply_gini(values):
-        if isinstance(values, Series):
-            values = values.values
-        if rng:
-            values = limit_range(values, rng=rng)
-        return Gini(values).g
-
-    return graph.apply(data, _apply_gini)
-
-
-def unique(data: DataFrame | Series, graph: Graph, dropna: bool = True):
-    """Calculates the number of unique values within neighbours defined in ``graph``.
-
-    .. math::
-
-
-    Parameters
-    ----------
-    data : DataFrame | Series
-        A DataFrame or Series containing the values to be analysed.
-    graph : libpysal.graph.Graph
-        A spatial weights matrix for the data.
-    dropna : bool (default True)
-        Don’t include ``NaN`` in the counts of unique values.
-
-    Returns
-    ----------
-    Series
-        A Series containing resulting values.
-
-    Examples
-    --------
-    >>> tessellation_df['cluster_unique'] = mm.Unique(tessellation_df['cluster'],
-    ...                                              graph)
-    """
-
-    def _apply_range(values):
-        return values.nunique(dropna=dropna)
-
-    return graph.apply(data, _apply_range)
+    result = grouper.apply(lambda x: Gini(x.values).g)
+    result.index = graph.unique_ids
+    return result
 
 
 def describe_reached(
@@ -629,4 +618,46 @@ def describe_reached(
     result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
     result.index.names = result_index.names
 
+    return result
+
+
+def percentile(
+    y: Series,
+    graph: Graph,
+    q: tuple | list = [25, 50, 75],
+):
+    """Calculates linearly weighted percentiles of ``y`` values using
+    the neighbourhoods and weights defined in ``graph``.
+
+    The specific interpolation method implemented is "hazen".
+
+    Parameters
+    ----------
+    y : Series
+        A Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for the data.
+    q : array-like (default [25, 50, 75])
+        The percentiles to return.
+
+    Returns
+    -------
+    Dataframe
+        A Dataframe with columns as the results for each percentile
+
+    Examples
+    --------
+    >>> percentiles_df = mm.percentile(tessellation_df['area'],
+    ...                                 graph)
+    """
+
+    weights = graph._adjacency.values
+    vals = y.loc[graph._adjacency.index.get_level_values(1)]
+    vals = np.vstack((weights, vals)).T
+    vals = DataFrame(vals, columns=["weights", "values"])
+    grouper = vals.groupby(graph._adjacency.index.get_level_values(0))
+    q = tuple(q)
+    stats = grouper.apply(lambda x: _interpolate(x.values, q))
+    result = DataFrame(np.stack(stats), columns=q, index=stats.index)
+    result.loc[graph.isolates] = np.nan
     return result
