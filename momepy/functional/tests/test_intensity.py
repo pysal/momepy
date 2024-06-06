@@ -127,39 +127,6 @@ class TestIntensityEquality:
             new_courtyards, old_courtyards, check_names=False, check_dtype=False
         )
 
-    def test_blocks_counts(self):
-        graph = (
-            Graph.build_contiguity(self.df_tessellation, rook=False)
-            .higher_order(k=5, lower_order=True)
-            .assign_self_weight()
-        )
-        sw = mm.sw_high(k=5, gdf=self.df_tessellation, ids="uID")
-
-        unweighted_new = mm.describe(
-            self.df_tessellation["bID"], graph, include_nunique=True
-        )["nunique"]
-        unweighted_old = mm.BlocksCount(
-            self.df_tessellation, "bID", sw, "uID", weighted=False
-        ).series
-        assert_series_equal(
-            unweighted_new,
-            unweighted_old,
-            check_index_type=False,
-            check_names=False,
-            check_dtype=False,
-        )
-
-        agg_areas = mm.describe(self.df_tessellation["area"], graph)["sum"]
-        count_new = unweighted_new / agg_areas
-        count_old = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").series
-        assert_series_equal(
-            count_new,
-            count_old,
-            check_names=False,
-            check_dtype=False,
-            check_index_type=False,
-        )
-
     def test_node_density(self):
         nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
         nx = mm.node_degree(nx)

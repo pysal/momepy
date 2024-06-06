@@ -286,7 +286,9 @@ class Courtyards:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
-@removed("`.describe()` method of libpysal.Graph directly GeoDataFrame")
+@removed(
+    "a direct call to libpysal.Graph.describe, which provides the same functionality"
+)
 class BlocksCount:
     """
     Calculates the weighted number of blocks. The number of blocks within neighbours

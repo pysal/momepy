@@ -374,7 +374,7 @@ class TestDescribeEquality:
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_describe_reached_equality(self):
-        new_df = mm.describe_reached(
+        new_df = mm.describe_agg(
             self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
         )
 
@@ -400,7 +400,7 @@ class TestDescribeEquality:
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_describe_reached_equality_sw(self):
-        new_df = mm.describe_reached(
+        new_df = mm.describe_reached_agg(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
         )
 
@@ -418,4 +418,48 @@ class TestDescribeEquality:
         ).series
         assert_series_equal(
             new_fl_area, old_fl_area, check_names=False, check_dtype=False
+        )
+
+        old_mean_fl_area = mm.Reached(
+            self.df_streets,
+            self.df_buildings,
+            "nID",
+            "nID",
+            spatial_weights=sw,
+            mode="mean",
+            values="fl_area",
+        ).series
+        assert_series_equal(
+            new_df["mean"], old_mean_fl_area, check_names=False, check_dtype=False
+        )
+
+    def test_blocks_counts(self):
+        graph = (
+            Graph.build_contiguity(self.df_tessellation, rook=False)
+            .higher_order(k=5, lower_order=True)
+            .assign_self_weight()
+        )
+        sw = mm.sw_high(k=5, gdf=self.df_tessellation, ids="uID")
+
+        unweighted_new = graph.describe(self.df_tessellation["bID"])["nunique"]
+        unweighted_old = mm.BlocksCount(
+            self.df_tessellation, "bID", sw, "uID", weighted=False
+        ).series
+        assert_series_equal(
+            unweighted_new,
+            unweighted_old,
+            check_index_type=False,
+            check_names=False,
+            check_dtype=False,
+        )
+
+        agg_areas = graph.describe(self.df_tessellation["area"])["sum"]
+        count_new = unweighted_new / agg_areas
+        count_old = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").series
+        assert_series_equal(
+            count_new,
+            count_old,
+            check_names=False,
+            check_dtype=False,
+            check_index_type=False,
         )
