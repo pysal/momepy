@@ -63,7 +63,7 @@ def describe_agg(
     y: np.ndarray | Series,
     aggregation_key: np.ndarray | Series,
     result_index: pd.Index = None,
-    q: tuple[float, float] | list[float, float] | None = None,
+    q: tuple[float, float] | list[float] | None = None,
     to_compute: list[str] | None = None,
 ) -> DataFrame:
     """Describe the distribution of values within the groups of an aggregation.
@@ -149,7 +149,7 @@ def describe_reached_agg(
     y: np.ndarray | Series,
     graph_index: np.ndarray | Series,
     graph: Graph,
-    q: tuple[float, float] | list[float, float] | None = None,
+    q: tuple[float, float] | list[float] | None = None,
     to_compute: list[str] | None = None,
 ) -> DataFrame:
     """Describe the distribution of values reached on a neighbourhood graph.
