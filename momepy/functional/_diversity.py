@@ -251,7 +251,7 @@ def values_range(
     return stats[max(q)] - stats[min(q)]
 
 
-def theil(y: Series, graph: Graph, q: tuple | list = None):
+def theil(y: Series, graph: Graph, q: tuple | list | None = None):
     """Calculates the Theil measure of inequality of values within neighbours defined in
     ``graph``.
     Uses ``inequality.theil.Theil`` under the hood. Requires '`inequality`' package.
@@ -386,7 +386,7 @@ def shannon(
     graph: Graph,
     binning: str = "HeadTailBreaks",
     categorical: bool = False,
-    categories: list = None,
+    categories: list | None = None,
     **classification_kwds,
 ):
     """Calculates the Shannon index of values within neighbours defined in
@@ -446,7 +446,7 @@ def shannon(
     return graph.apply(y, _apply_shannon)
 
 
-def gini(y: Series, graph: Graph, q: tuple | list = None):
+def gini(y: Series, graph: Graph, q: tuple | list | None = None):
     """Calculates the Gini index of values within neighbours defined in ``graph``.
     Uses ``inequality.gini.Gini`` under the hood. Requires '`inequality`' package.
 
