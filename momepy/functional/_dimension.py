@@ -1,4 +1,7 @@
+import math
+
 import numpy as np
+import pandas as pd
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
@@ -12,6 +15,14 @@ __all__ = [
     "longest_axis_length",
     "perimeter_wall",
 ]
+
+try:
+    from numba import njit
+
+    HAS_NUMBA = True
+except (ModuleNotFoundError, ImportError):
+    HAS_NUMBA = False
+    from libpysal.common import jit as njit
 
 
 def volume(
@@ -157,3 +168,106 @@ def perimeter_wall(
     ].values
 
     return results
+
+
+def street_profile(left, right, distance=10, tick_length=50):
+    ## generate points for every street at `distance` intervals
+    segments = left.segmentize(distance)
+    coords, coord_indxs = shapely.get_coordinates(segments, return_index=True)
+    starts = ~pd.Series(coord_indxs).duplicated(keep="first")
+    ends = ~pd.Series(coord_indxs).duplicated(keep="last")
+    end_markers = starts | ends
+
+    ## generate tick streings
+    njit_ticks = generate_ticks(coords, end_markers.values, tick_length)
+    ticks = shapely.linestrings(njit_ticks.reshape(-1, 2, 2))
+
+    ## find the length of intersection of the nearest building for every tick
+    inp, res = right.geometry.sindex.query(ticks, predicate="intersects")
+    intersections = shapely.intersection(ticks[inp], right.geometry.array[res])
+    distances = shapely.distance(intersections, shapely.points(coords[inp // 2]))
+    min_distances = pd.Series(distances).groupby(inp).min()
+    dists = np.full((len(ticks),), np.nan)
+    dists[min_distances.index.values] = min_distances.values
+
+    ## generate tick values and groupby street
+    tick_coords = np.repeat(coord_indxs, 2)
+    res = pd.Series(dists).groupby(tick_coords).apply(generate_tick_values)
+    njit_result = np.concatenate(res).reshape((-1, 3))
+
+    ## replace nan width with tick_length
+    njit_result[np.isnan(njit_result[:, 0]), 0] = tick_length
+    return njit_result
+
+
+# angle between two points
+@njit
+def _get_angle_njit(x1, y1, x2, y2):
+    """
+    pt1, pt2 : tuple
+    """
+    x_diff = x2 - x1
+    y_diff = y2 - y1
+    return math.degrees(math.atan2(y_diff, x_diff))
+
+
+# get the second end point of a tick
+# p1 = bearing + 90
+@njit
+def _get_point_njit(x1, y1, bearing, dist):
+    bearing = math.radians(bearing)
+    x = x1 + dist * math.cos(bearing)
+    y = y1 + dist * math.sin(bearing)
+    return np.array((x, y))
+
+
+@njit
+def generate_ticks(list_points, end_markers, tick_length):
+    ticks = np.empty((len(list_points) * 2, 4), dtype=np.float64)
+
+    for i in range(len(list_points)):
+        tick_pos = i * 2
+        end = end_markers[i]
+        pt = list_points[i]
+
+        if end:
+            ticks[tick_pos, :] = np.array([pt[0], pt[1], pt[0], pt[1]])
+            ticks[tick_pos + 1, :] = np.array([pt[0], pt[1], pt[0], pt[1]])
+        else:
+            next_pt = list_points[i + 1]
+            njit_angle1 = _get_angle_njit(pt[0], pt[1], next_pt[0], next_pt[1])
+            njit_end_1 = _get_point_njit(
+                pt[0], pt[1], njit_angle1 + 90, tick_length / 2
+            )
+            njit_angle2 = _get_angle_njit(njit_end_1[0], njit_end_1[1], pt[0], pt[1])
+            njit_end_2 = _get_point_njit(
+                njit_end_1[0], njit_end_1[1], njit_angle2, tick_length
+            )
+            ticks[tick_pos, :] = np.array([njit_end_1[0], njit_end_1[1], pt[0], pt[1]])
+            ticks[tick_pos + 1, :] = np.array(
+                [njit_end_2[0], njit_end_2[1], pt[0], pt[1]]
+            )
+
+    return ticks
+
+
+def generate_tick_values(group):
+    s = group.values
+    f_sum = s.shape[0]
+
+    if f_sum == 0:
+        return [np.nan, np.nan, np.nan]
+    lefts = s[::2]
+    rights = s[1::2]
+    left_mean = np.nanmean(lefts)
+    right_mean = np.nanmean(rights)
+    width = (
+        np.mean([left_mean, right_mean]) * 2
+    )  # mean of mean distance to building on each side or something....
+
+    s_nan = np.isnan(s)
+
+    openness_score = np.nan if not f_sum else s_nan.sum() / f_sum  # how few buildings
+
+    deviation_score = np.nan if s_nan.all() else np.nanstd(s)  # deviation of buildings
+    return [width, openness_score, deviation_score]
