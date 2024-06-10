@@ -88,6 +88,7 @@ class TestDimensions:
         pd.testing.assert_series_equal(result, result_given_graph)
         assert result[0] == pytest.approx(137.210, rel=1e-3)
 
+    @pytest.mark.skipif(not GPD_013, reason="no attribute 'segmentize'")
     def test_street_profile(self):
         sp = mm.street_profile(
             self.df_streets,
@@ -149,6 +150,7 @@ class TestDimensionEquivalence:
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
 
+    @pytest.mark.skipif(not GPD_013, reason="no attribute 'segmentize'")
     def test_street_profile(self):
         sp_new = mm.street_profile(
             self.df_streets,
