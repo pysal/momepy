@@ -6,7 +6,7 @@ import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from numpy.typing import NDArray
-from pandas import Series
+from pandas import DataFrame, Series
 
 __all__ = [
     "volume",
@@ -171,7 +171,13 @@ def perimeter_wall(
     return results
 
 
-def street_profile(left, right, distance=10, tick_length=50, heights=None):
+def street_profile(
+    left: GeoDataFrame,
+    right: GeoDataFrame,
+    distance: int = 10,
+    tick_length: int = 50,
+    heights: None | Series = None,
+) -> DataFrame:
     """
     Calculates the street profile characters.
     This functions returns a DataFrame with widths (w), standard deviation of width(wd),
