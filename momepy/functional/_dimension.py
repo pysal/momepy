@@ -14,6 +14,7 @@ __all__ = [
     "courtyard_area",
     "longest_axis_length",
     "perimeter_wall",
+    "street_profile",
 ]
 
 try:
@@ -170,7 +171,46 @@ def perimeter_wall(
     return results
 
 
-def street_profile(left, right, distance=10, tick_length=50):
+def street_profile(left, right, distance=10, tick_length=50, heights=None):
+    """
+    Calculates the street profile characters.
+    This functions returns a DataFrame with widths (w), standard deviation of width(wd),
+    openness (o), heights (h), standard deviation of height (hd) and
+    ratio height/width (p). The algorithm generates perpendicular lines to the ``right``
+    dataframe features  every ``distance`` and measures values on intersections with
+    features of ``left``. If no feature is reached within ``tick_length`` its value
+    is set as width (being a theoretical maximum).
+
+    Derived from :cite:`araldi2019`.
+
+    Parameters
+    ----------
+    left : GeoDataFrame
+        A GeoDataFrame containing streets to analyse.
+    right : GeoDataFrame
+        A GeoDataFrame containing buildings along the streets.
+        Only Polygon geometries are currently supported.
+    distance : int (default 10)
+        The distance between perpendicular ticks.
+    tick_length : int (default 50)
+        The length of ticks.
+    heights: pd.Series (default None)
+        The ``pd.Series`` where building height are stored. If set to ``None``,
+        height and ratio height/width will not be calculated.
+
+    Returns
+    -------
+    DataFrame
+
+    Examples
+    --------
+    >>> street_prof = momepy.street_profile(streets_df,
+    ...                 buildings_df, heights=buildings_df['height'])
+    100%|██████████| 33/33 [00:02<00:00, 15.66it/s]
+    >>> streets_df['width'] = street_prof.w
+    >>> streets_df['deviations'] = street_prof.wd
+    """
+
     ## generate points for every street at `distance` intervals
     segments = left.segmentize(distance)
     coords, coord_indxs = shapely.get_coordinates(segments, return_index=True)
@@ -192,12 +232,28 @@ def street_profile(left, right, distance=10, tick_length=50):
 
     ## generate tick values and groupby street
     tick_coords = np.repeat(coord_indxs, 2)
-    res = pd.Series(dists).groupby(tick_coords).apply(generate_tick_values)
-    njit_result = np.concatenate(res).reshape((-1, 3))
-
-    ## replace nan width with tick_length
+    street_res = (
+        pd.Series(dists)
+        .groupby(tick_coords)
+        .apply(generate_street_tick_values, tick_length)
+    )
+    njit_result = np.concatenate(street_res).reshape((-1, 3))
     njit_result[np.isnan(njit_result[:, 0]), 0] = tick_length
-    return njit_result
+
+    final_result = pd.DataFrame(np.nan, columns=["w", "o", "wd"], index=left.index)
+    final_result.loc[street_res.index] = njit_result
+
+    ## if heights are available add heights stats to the result
+    if heights is not None:
+        min_heights = heights[res].groupby(inp).min()
+        tick_heights = np.full((len(ticks),), np.nan)
+        tick_heights[min_heights.index.values] = min_heights.values
+        heights_res = pd.Series(tick_heights).groupby(tick_coords).agg(["mean", "std"])
+        final_result["h"] = heights_res["mean"]
+        final_result["hd"] = heights_res["std"]
+        final_result["p"] = final_result["h"] / final_result["w"].replace(0, np.nan)
+
+    return final_result
 
 
 # angle between two points
@@ -251,20 +307,15 @@ def generate_ticks(list_points, end_markers, tick_length):
     return ticks
 
 
-def generate_tick_values(group):
+def generate_street_tick_values(group, tick_length):
     s = group.values
-    f_sum = s.shape[0]
 
-    if f_sum == 0:
-        return [np.nan, np.nan, np.nan]
     lefts = s[::2]
     rights = s[1::2]
-    left_mean = np.nanmean(lefts)
-    right_mean = np.nanmean(rights)
-    width = (
-        np.mean([left_mean, right_mean]) * 2
-    )  # mean of mean distance to building on each side or something....
-
+    left_mean = np.nanmean(lefts) if ~np.isnan(lefts).all() else tick_length / 2
+    right_mean = np.nanmean(rights) if ~np.isnan(rights).all() else tick_length / 2
+    width = np.mean([left_mean, right_mean]) * 2
+    f_sum = s.shape[0]
     s_nan = np.isnan(s)
 
     openness_score = np.nan if not f_sum else s_nan.sum() / f_sum  # how few buildings
