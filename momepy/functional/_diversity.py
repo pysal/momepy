@@ -102,8 +102,9 @@ def describe_agg(
 
     Examples
     --------
-    >>> res = mm.describe_reached(
-    ...         tessellation['area'], tessellation['nID'] , graph=streets_q1
+    >>> res = mm.describe_agg(
+    ...         tessellation['area'], tessellation['nID'] ,
+    ...         result_index=df_streets.index
     ...     )
     >>> streets["tessalations_reached"] = res['count']
     >>> streets["tessalations_reached_area"] = res['sum']
@@ -195,7 +196,7 @@ def describe_reached_agg(
 
     Examples
     --------
-    >>> res = mm.describe_reached(
+    >>> res = mm.describe_reached_agg(
     ...         tessellation['area'], tessellation['nID'] , graph=streets_q1
     ...     )
     >>> streets["tessalations_reached"] = res['count']
