@@ -18,30 +18,67 @@ class TestDimensions:
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
 
     def test_Area(self):
-        self.df_buildings["area"] = mm.Area(self.df_buildings).series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "`momepy.Area` is deprecated. Replace it with `.area` "
+                "attribute of a GeoDataFrame"
+            ),
+        ):
+            self.df_buildings["area"] = mm.Area(self.df_buildings).series
         check = self.df_buildings.geometry[0].area
         assert self.df_buildings["area"][0] == check
 
     def test_Perimeter(self):
-        self.df_buildings["perimeter"] = mm.Perimeter(self.df_buildings).series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "`momepy.Perimeter` is deprecated. Replace it with `.length` "
+                "attribute of a GeoDataFrame"
+            ),
+        ):
+            self.df_buildings["perimeter"] = mm.Perimeter(self.df_buildings).series
         check = self.df_buildings.geometry[0].length
         assert self.df_buildings["perimeter"][0] == check
 
     def test_Volume(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
-        self.df_buildings["volume"] = mm.Volume(
-            self.df_buildings, "height", "area"
-        ).series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.Volume` is deprecated. "
+                "Replace it with `momepy.volume`"
+            ),
+        ):
+            self.df_buildings["volume"] = mm.Volume(
+                self.df_buildings, "height", "area"
+            ).series
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings["volume"][0] == check
 
         area = self.df_buildings.geometry.area
         height = np.linspace(10.0, 30.0, 144)
-        self.df_buildings["volume"] = mm.Volume(self.df_buildings, height, area).series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.Volume` is deprecated. "
+                "Replace it with `momepy.volume`"
+            ),
+        ):
+            self.df_buildings["volume"] = mm.Volume(
+                self.df_buildings, height, area
+            ).series
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings["volume"][0] == check
 
-        self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height").series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.Volume` is deprecated. "
+                "Replace it with `momepy.volume`"
+            ),
+        ):
+            self.df_buildings["volume"] = mm.Volume(self.df_buildings, "height").series
         check = self.df_buildings.geometry[0].area * self.df_buildings.height[0]
         assert self.df_buildings["volume"][0] == check
 
@@ -52,22 +89,44 @@ class TestDimensions:
 
     def test_FloorArea(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
-        self.df_buildings["floor_area"] = mm.FloorArea(
-            self.df_buildings, "height", "area"
-        ).series
+
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.FloorArea` is deprecated. "
+                "Replace it with `momepy.floor_area`"
+            ),
+        ):
+            self.df_buildings["floor_area"] = mm.FloorArea(
+                self.df_buildings, "height", "area"
+            ).series
         check = self.df_buildings.geometry[0].area * (self.df_buildings.height[0] // 3)
         assert self.df_buildings["floor_area"][0] == check
 
         area = self.df_buildings.geometry.area
         height = np.linspace(10.0, 30.0, 144)
-        self.df_buildings["floor_area"] = mm.FloorArea(
-            self.df_buildings, height, area
-        ).series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.FloorArea` is deprecated. "
+                "Replace it with `momepy.floor_area`"
+            ),
+        ):
+            self.df_buildings["floor_area"] = mm.FloorArea(
+                self.df_buildings, height, area
+            ).series
         assert self.df_buildings["floor_area"][0] == check
 
-        self.df_buildings["floor_area"] = mm.FloorArea(
-            self.df_buildings, "height"
-        ).series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.FloorArea` is deprecated. "
+                "Replace it with `momepy.floor_area`"
+            ),
+        ):
+            self.df_buildings["floor_area"] = mm.FloorArea(
+                self.df_buildings, "height"
+            ).series
         assert self.df_buildings["floor_area"][0] == check
 
         with pytest.raises(KeyError, match="nonexistent"):
@@ -77,9 +136,17 @@ class TestDimensions:
 
     def test_CourtyardArea(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
-        self.df_buildings["courtyard_area"] = mm.CourtyardArea(
-            self.df_buildings, "area"
-        ).series
+
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.CourtyardArea` is deprecated. "
+                "Replace it with `momepy.courtyard_area`"
+            ),
+        ):
+            self.df_buildings["courtyard_area"] = mm.CourtyardArea(
+                self.df_buildings, "area"
+            ).series
         check = (
             Polygon(self.df_buildings.geometry[80].exterior).area
             - self.df_buildings.geometry[80].area
@@ -87,12 +154,29 @@ class TestDimensions:
         assert self.df_buildings["courtyard_area"][80] == check
 
         area = self.df_buildings.geometry.area
-        self.df_buildings["courtyard_area"] = mm.CourtyardArea(
-            self.df_buildings, area
-        ).series
+
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.CourtyardArea` is deprecated. "
+                "Replace it with `momepy.courtyard_area`"
+            ),
+        ):
+            self.df_buildings["courtyard_area"] = mm.CourtyardArea(
+                self.df_buildings, area
+            ).series
         assert self.df_buildings["courtyard_area"][80] == check
 
-        self.df_buildings["courtyard_area"] = mm.CourtyardArea(self.df_buildings).series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.CourtyardArea` is deprecated. "
+                "Replace it with `momepy.courtyard_area`"
+            ),
+        ):
+            self.df_buildings["courtyard_area"] = mm.CourtyardArea(
+                self.df_buildings
+            ).series
         assert self.df_buildings["courtyard_area"][80] == check
 
         with pytest.raises(KeyError, match="nonexistent"):
@@ -101,7 +185,16 @@ class TestDimensions:
             )
 
     def test_LongestAxisLength(self):
-        self.df_buildings["long_axis"] = mm.LongestAxisLength(self.df_buildings).series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.LongestAxisLength` is deprecated. "
+                "Replace it with `momepy.longest_axis_length`"
+            ),
+        ):
+            self.df_buildings["long_axis"] = mm.LongestAxisLength(
+                self.df_buildings
+            ).series
         check = (
             _make_circle(self.df_buildings.geometry[0].convex_hull.exterior.coords)[2]
             * 2
@@ -111,47 +204,95 @@ class TestDimensions:
     def test_AverageCharacter(self):
         spatial_weights = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         self.df_tessellation["area"] = area = self.df_tessellation.geometry.area
-        self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
-            self.df_tessellation,
-            values="area",
-            spatial_weights=spatial_weights,
-            unique_id="uID",
-            mode="mode",
-        ).mode
-        self.df_tessellation["mesh_array"] = mm.AverageCharacter(
-            self.df_tessellation,
-            values=area,
-            spatial_weights=spatial_weights,
-            unique_id="uID",
-            mode="median",
-        ).median
-        self.df_tessellation["mesh_id"] = mm.AverageCharacter(
-            self.df_tessellation,
-            spatial_weights=spatial_weights,
-            values="area",
-            rng=(10, 90),
-            unique_id="uID",
-        ).mean
-        self.df_tessellation["mesh_iq"] = mm.AverageCharacter(
-            self.df_tessellation,
-            spatial_weights=spatial_weights,
-            values="area",
-            rng=(25, 75),
-            unique_id="uID",
-        ).series
-        all_m = mm.AverageCharacter(
-            self.df_tessellation,
-            spatial_weights=spatial_weights,
-            values="area",
-            unique_id="uID",
-        )
-        two = mm.AverageCharacter(
-            self.df_tessellation,
-            spatial_weights=spatial_weights,
-            values="area",
-            unique_id="uID",
-            mode=["mean", "median"],
-        )
+
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.AverageCharacter` is deprecated. "
+                "Replace it with `momepy.describe`"
+            ),
+        ):
+            self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
+                self.df_tessellation,
+                values="area",
+                spatial_weights=spatial_weights,
+                unique_id="uID",
+                mode="mode",
+            ).mode
+
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.AverageCharacter` is deprecated. "
+                "Replace it with `momepy.describe`"
+            ),
+        ):
+            self.df_tessellation["mesh_array"] = mm.AverageCharacter(
+                self.df_tessellation,
+                values=area,
+                spatial_weights=spatial_weights,
+                unique_id="uID",
+                mode="median",
+            ).median
+
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.AverageCharacter` is deprecated. "
+                "Replace it with `momepy.describe`"
+            ),
+        ):
+            self.df_tessellation["mesh_id"] = mm.AverageCharacter(
+                self.df_tessellation,
+                spatial_weights=spatial_weights,
+                values="area",
+                rng=(10, 90),
+                unique_id="uID",
+            ).mean
+
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.AverageCharacter` is deprecated. "
+                "Replace it with `momepy.describe`"
+            ),
+        ):
+            self.df_tessellation["mesh_iq"] = mm.AverageCharacter(
+                self.df_tessellation,
+                spatial_weights=spatial_weights,
+                values="area",
+                rng=(25, 75),
+                unique_id="uID",
+            ).series
+
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.AverageCharacter` is deprecated. "
+                "Replace it with `momepy.describe`"
+            ),
+        ):
+            all_m = mm.AverageCharacter(
+                self.df_tessellation,
+                spatial_weights=spatial_weights,
+                values="area",
+                unique_id="uID",
+            )
+
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.AverageCharacter` is deprecated. "
+                "Replace it with `momepy.describe`"
+            ),
+        ):
+            two = mm.AverageCharacter(
+                self.df_tessellation,
+                spatial_weights=spatial_weights,
+                values="area",
+                unique_id="uID",
+                mode=["mean", "median"],
+            )
         with pytest.raises(ValueError, match="nonexistent is not supported as mode."):
             self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
                 self.df_tessellation,
@@ -267,8 +408,22 @@ class TestDimensions:
 
     def test_PerimeterWall(self):
         sw = sw_high(gdf=self.df_buildings, k=1)
-        wall = mm.PerimeterWall(self.df_buildings).series
-        wall_sw = mm.PerimeterWall(self.df_buildings, sw).series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.PerimeterWall` is deprecated. "
+                "Replace it with `momepy.perimeter_wall`"
+            ),
+        ):
+            wall = mm.PerimeterWall(self.df_buildings).series
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.PerimeterWall` is deprecated. "
+                "Replace it with `momepy.perimeter_wall`"
+            ),
+        ):
+            wall_sw = mm.PerimeterWall(self.df_buildings, sw).series
         assert wall[0] == wall_sw[0]
         assert wall[0] == pytest.approx(137.210, rel=1e-3)
 
