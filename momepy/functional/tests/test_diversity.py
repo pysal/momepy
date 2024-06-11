@@ -215,18 +215,16 @@ class TestDescribe:
             full_sw2, full_sw_expected, self.df_tessellation, check_names=False
         )
 
-        ## mismatch between percentile interpolation methods
-        # limit = mm.theil(
-        #     self.df_tessellation["area"], self.diversity_graph, q=(10, 90)
-        # )
-        # limit_expected = {
-        #     "count": 144,
-        #     "mean": 0.10575479289690606,
-        #     "min": 0.04633949101071495,
-        #     "max": 0.26582672704556626,
-        # }
+        # mismatch between percentile interpolation methods
+        limit = mm.theil(self.df_tessellation["area"], self.diversity_graph, q=(10, 90))
+        limit_expected = {
+            "count": 144,
+            "mean": 0.09689345872019642,
+            "min": 0.03089398223055910,
+            "max": 0.2726670141461655,
+        }
 
-        # assert_result(limit, limit_expected, self.df_tessellation, check_names=False)
+        assert_result(limit, limit_expected, self.df_tessellation, check_names=False)
 
         zeros = mm.theil(
             pd.Series(np.zeros(len(self.df_tessellation)), self.df_tessellation.index),
@@ -310,17 +308,15 @@ class TestDescribe:
             full_sw, full_sw_expected, self.df_tessellation, check_names=False
         )
 
-        ## mismatch between interpolation methods
-        # limit = mm.gini(
-        #     self.df_tessellation["area"], self.diversity_graph, q=(10, 90)
-        # )
-        # limit_expected = {
-        #     "count": 144,
-        #     "mean": 0.2525181248879755,
-        #     "min": 0.17049602697583713,
-        #     "max": 0.39018140635767645,
-        # }
-        # assert_result(limit, limit_expected, self.df_tessellation, check_names=False)
+        # mismatch between interpolation methods
+        limit = mm.gini(self.df_tessellation["area"], self.diversity_graph, q=(10, 90))
+        limit_expected = {
+            "count": 144,
+            "mean": 0.2417437064941186,
+            "min": 0.14098983070917345,
+            "max": 0.3978182288393458,
+        }
+        assert_result(limit, limit_expected, self.df_tessellation, check_names=False)
 
     def test_shannon(self):
         with pytest.raises(ValueError):
@@ -740,19 +736,21 @@ class TestDescribeEquality:
             full_sw_new, full_sw_old, check_dtype=False, check_names=False
         )
 
-        # ## old and new have different percentile interpolation methods
-        # limit_new = mm.theil(
-        #     self.df_tessellation["area"], self.graph_diversity, q=(10, 90)
-        # )
-        # limit_old = mm.Theil(
-        #     self.df_tessellation,
-        #     self.df_tessellation.area,
-        #     self.sw,
-        #     "uID",
-        #     rng=(10, 90),
-        # ).series
-        # assert_series_equal(limit_new, limit_old,
-        # check_dtype=False, check_names=False)
+        # old and new have different percentile interpolation methods
+        # therefore the comparison needs a higher rtol
+        limit_new = mm.theil(
+            self.df_tessellation["area"], self.graph_diversity, q=(10, 90)
+        )
+        limit_old = mm.Theil(
+            self.df_tessellation,
+            self.df_tessellation.area,
+            self.sw,
+            "uID",
+            rng=(10, 90),
+        ).series
+        assert_series_equal(
+            limit_new, limit_old, rtol=0.5, check_dtype=False, check_names=False
+        )
 
         zeros_new = mm.theil(
             pd.Series(np.zeros(len(self.df_tessellation)), self.df_tessellation.index),
@@ -816,14 +814,16 @@ class TestDescribeEquality:
         )
 
         # ## old and new have different interpolation methods
-        # limit_new = mm.gini(
-        #     self.df_tessellation["area"], self.graph_diversity, q=(10, 90)
-        # )
-        # limit_old = mm.Gini(
-        #     self.df_tessellation, "area", self.sw, "uID", rng=(10, 90)
-        # ).series
-        # assert_series_equal(limit_new, limit_old,
-        #  check_dtype=False, check_names=False)
+        ## there need higher rtol
+        limit_new = mm.gini(
+            self.df_tessellation["area"], self.graph_diversity, q=(10, 90)
+        )
+        limit_old = mm.Gini(
+            self.df_tessellation, "area", self.sw, "uID", rng=(10, 90)
+        ).series
+        assert_series_equal(
+            limit_new, limit_old, rtol=0.3, check_dtype=False, check_names=False
+        )
 
     def test_shannon(self):
         ht_sw_new = mm.shannon(self.df_tessellation["area"], self.graph_diversity)
