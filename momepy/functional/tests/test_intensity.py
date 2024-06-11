@@ -123,6 +123,34 @@ class TestIntensityEquality:
             new_courtyards, old_courtyards, check_names=False, check_dtype=False
         )
 
+    def test_density(self):
+        sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
+        graph = (
+            Graph.build_contiguity(self.df_tessellation, rook=False)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
+
+        fl_area = graph.describe(self.df_buildings["fl_area"])["sum"]
+        tess_area = graph.describe(self.df_tessellation["area"])["sum"]
+        dens_new = fl_area / tess_area
+
+        dens_old = mm.Density(
+            self.df_tessellation,
+            self.df_buildings["fl_area"],
+            sw,
+            "uID",
+            self.df_tessellation.area,
+        ).series
+
+        assert_series_equal(
+            dens_new,
+            dens_old,
+            check_names=False,
+            check_dtype=False,
+            check_index_type=False,
+        )
+
     def test_node_density(self):
         nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
         nx = mm.node_degree(nx)
