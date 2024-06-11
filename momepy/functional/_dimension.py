@@ -179,21 +179,21 @@ def street_profile(
     heights: None | Series = None,
 ) -> DataFrame:
     """Calculates the street profile characters.
- 
-    This functions returns a DataFrame with widths (w), standard deviation of width(wd),
-    openness (o), heights (h), standard deviation of height (hd) and
-    ratio height/width (p). The algorithm generates perpendicular lines to the ``right``
+
+    This functions returns a DataFrame with widths, standard deviation of width,
+    openness, heights, standard deviation of height and
+    ratio height/width. The algorithm generates perpendicular lines to the ``streets``
     dataframe features  every ``distance`` and measures values on intersections with
-    features of ``left``. If no feature is reached within ``tick_length`` its value
+    features of ``buildings``. If no feature is reached within ``tick_length`` its value
     is set as width (being a theoretical maximum).
 
     Derived from :cite:`araldi2019`.
 
     Parameters
     ----------
-    left : GeoDataFrame
+    streets : GeoDataFrame
         A GeoDataFrame containing streets to analyse.
-    right : GeoDataFrame
+    buildings : GeoDataFrame
         A GeoDataFrame containing buildings along the streets.
         Only Polygon geometries are currently supported.
     distance : int (default 10)
@@ -218,7 +218,7 @@ def street_profile(
     """
 
     ## generate points for every street at `distance` intervals
-    segments = left.segmentize(distance)
+    segments = streets.segmentize(distance)
     coords, coord_indxs = shapely.get_coordinates(segments, return_index=True)
     starts = ~pd.Series(coord_indxs).duplicated(keep="first")
     ends = ~pd.Series(coord_indxs).duplicated(keep="last")
@@ -229,8 +229,8 @@ def street_profile(
     ticks = shapely.linestrings(njit_ticks.reshape(-1, 2, 2))
 
     ## find the length of intersection of the nearest building for every tick
-    inp, res = right.geometry.sindex.query(ticks, predicate="intersects")
-    intersections = shapely.intersection(ticks[inp], right.boundary.array[res])
+    inp, res = buildings.geometry.sindex.query(ticks, predicate="intersects")
+    intersections = shapely.intersection(ticks[inp], buildings.boundary.array[res])
     distances = shapely.distance(intersections, shapely.points(coords[inp // 2]))
     min_distances = pd.Series(distances).groupby(inp).min()
     dists = np.full((len(ticks),), np.nan)
@@ -246,7 +246,9 @@ def street_profile(
     njit_result = np.concatenate(street_res).reshape((-1, 3))
     njit_result[np.isnan(njit_result[:, 0]), 0] = tick_length
 
-    final_result = pd.DataFrame(np.nan, columns=["width", "openness", "width_deviation"], index=left.index)
+    final_result = pd.DataFrame(
+        np.nan, columns=["width", "openness", "width_deviation"], index=streets.index
+    )
     final_result.loc[street_res.index] = njit_result
 
     ## if heights are available add heights stats to the result
@@ -255,9 +257,11 @@ def street_profile(
         tick_heights = np.full((len(ticks),), np.nan)
         tick_heights[min_heights.index.values] = min_heights.values
         heights_res = pd.Series(tick_heights).groupby(tick_coords).agg(["mean", "std"])
-        final_result["h"] = heights_res["mean"]
-        final_result["hd"] = heights_res["std"]
-        final_result["p"] = final_result["h"] / final_result["w"].replace(0, np.nan)
+        final_result["height"] = heights_res["mean"]
+        final_result["height_deviation"] = heights_res["std"]
+        final_result["hw_ratio"] = final_result["height"] / final_result[
+            "width"
+        ].replace(0, np.nan)
 
     return final_result
 

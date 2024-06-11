@@ -135,12 +135,30 @@ class TestDimensions:
             "max": 0.7432052069071473,
         }
 
-        assert_result(sp["w"], expected_w, self.df_streets)
-        assert_result(sp["wd"], expected_wd, self.df_streets)
-        assert_result(sp["o"], expected_o, self.df_streets)
-        assert_result(sp["h"], expected_h, self.df_streets)
-        assert_result(sp["hd"], expected_hd, self.df_streets)
-        assert_result(sp["p"], expected_p, self.df_streets)
+        assert_result(sp["width"], expected_w, self.df_streets)
+        assert_result(sp["width_deviation"], expected_wd, self.df_streets)
+        assert_result(sp["openness"], expected_o, self.df_streets)
+        assert_result(sp["height"], expected_h, self.df_streets)
+        assert_result(sp["height_deviation"], expected_hd, self.df_streets)
+        assert_result(sp["hw_ratio"], expected_p, self.df_streets)
+
+    def test_street_profile_infinity(self):
+        # avoid infinity
+        from shapely import LineString, Point
+
+        blg = gpd.GeoDataFrame(
+            {"height": [2, 5]},
+            geometry=[
+                Point(0, 0).buffer(10, cap_style=3),
+                Point(30, 0).buffer(10, cap_style=3),
+            ],
+        )
+        lines = gpd.GeoDataFrame(
+            geometry=[LineString([(-8, -8), (8, 8)]), LineString([(15, -10), (15, 10)])]
+        )
+        assert mm.StreetProfile(lines, blg, "height", 2).p.equals(
+            pd.Series([np.nan, 0.35])
+        )
 
 
 class TestDimensionEquivalence:
@@ -168,17 +186,23 @@ class TestDimensionEquivalence:
         )
 
         ## needs tolerance because the generate ticks are different
-        assert_series_equal(sp_new["w"], sp_old.w, rtol=1e-2, check_names=False)
+        assert_series_equal(sp_new["width"], sp_old.w, rtol=1e-2, check_names=False)
         assert_series_equal(
-            sp_new["wd"].replace(np.nan, 0), sp_old.wd, rtol=1, check_names=False
+            sp_new["width_deviation"].replace(np.nan, 0),
+            sp_old.wd,
+            rtol=1,
+            check_names=False,
         )
-        assert_series_equal(sp_new["o"], sp_old.o, rtol=1e-1, check_names=False)
+        assert_series_equal(sp_new["openness"], sp_old.o, rtol=1e-1, check_names=False)
         assert_series_equal(
-            sp_new["h"].replace(np.nan, 0), sp_old.h, check_names=False, rtol=1e-1
+            sp_new["height"].replace(np.nan, 0), sp_old.h, check_names=False, rtol=1e-1
         )
         assert_series_equal(
-            sp_new["hd"].replace(np.nan, 0), sp_old.hd, check_names=False, rtol=1e-1
+            sp_new["height_deviation"].replace(np.nan, 0),
+            sp_old.hd,
+            check_names=False,
+            rtol=1e-1,
         )
         assert_series_equal(
-            sp_new["p"].replace(np.nan, 0), sp_old.p, check_names=False, rtol=1
+            sp_new["hw_ratio"].replace(np.nan, 0), sp_old.p, check_names=False, rtol=1
         )
