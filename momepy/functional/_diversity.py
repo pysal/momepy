@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from libpysal.graph import Graph
+from numpy.typing import NDArray
 from packaging.version import Version
 from pandas import DataFrame, Series
 
@@ -65,8 +66,8 @@ def _percentile_limited_group_grouper(y, group_index, q=(25, 75)):
 
 
 def describe_agg(
-    y: np.ndarray | Series,
-    aggregation_key: np.ndarray | Series,
+    y: NDArray[np.float_] | Series,
+    aggregation_key: NDArray[np.float_] | Series,
     result_index: pd.Index = None,
     q: tuple[float, float] | list[float] | None = None,
     to_compute: list[str] | None = None,
@@ -88,11 +89,13 @@ def describe_agg(
     ----------
     y : Series | numpy.array
         A Series or numpy.array containing values to analyse.
-    graph_index : Series | numpy.array
+    aggregation_key : Series | numpy.array
         The unique ID that specifies the aggregation
-        of ``y`` objects to ``graph`` groups.
+        of ``y`` objects to groups.
     result_index : pd.Index (default None)
         An index that specifies how to order the results.
+        Use to align the results from the grouping to an external index.
+        If ``None`` the index from the computations is used.
     q : tuple[float, float] | None, optional
         Tuple of percentages for the percentiles to compute. Values must be between 0
         and 100 inclusive. When set, values below and above the percentiles will be
@@ -152,8 +155,8 @@ def describe_agg(
 
 
 def describe_reached_agg(
-    y: np.ndarray | Series,
-    graph_index: np.ndarray | Series,
+    y: NDArray[np.float_] | Series,
+    graph_index: NDArray[np.float_] | Series,
     graph: Graph,
     q: tuple[float, float] | list[float] | None = None,
     to_compute: list[str] | None = None,
