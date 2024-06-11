@@ -2,16 +2,18 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import pytest
+import scipy
 from libpysal.graph import Graph
 from packaging.version import Version
 from pandas.testing import assert_frame_equal, assert_series_equal
 
 import momepy as mm
 
-from .conftest import assert_result
+from .conftest import assert_frame_result, assert_result
 
 GPD_013 = Version(gpd.__version__) >= Version("0.13")
 PD_210 = Version(pd.__version__) >= Version("2.1.0")
+SP_112 = Version(scipy.__version__) >= Version("1.12.0")
 
 
 class TestDescribe:
@@ -40,6 +42,29 @@ class TestDescribe:
             .assign_self_weight()
         )
         self.graph = Graph.build_knn(self.df_buildings.centroid, k=3)
+        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
+        self.df_tessellation["area"] = self.df_tessellation.geometry.area
+        self.diversity_graph = (
+            Graph.build_contiguity(self.df_tessellation)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
+
+        graph = Graph.build_contiguity(self.df_tessellation, rook=False).higher_order(
+            k=3, lower_order=True
+        )
+        from shapely import distance
+
+        centroids = self.df_tessellation.centroid
+
+        def _distance_decay_weights(group):
+            focal = group.index[0][0]
+            neighbours = group.index.get_level_values(1)
+            distances = distance(centroids.loc[focal], centroids.loc[neighbours])
+            distance_decay = 1 / distances
+            return distance_decay.values
+
+        self.decay_graph = graph.transform(_distance_decay_weights)
 
     def test_describe(self):
         area = self.df_buildings.area
@@ -302,6 +327,89 @@ class TestDescribe:
             check_names=False,
         )
 
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous pandas versions"
+    )
+    def test_unweighted_percentile(self):
+        perc = mm.percentile(self.df_tessellation["area"], self.diversity_graph)
+        perc_expected = {
+            "count": 144,
+            "mean": 2109.739467856585,
+            "min": 314.3067794345771,
+            "max": 4258.008903612521,
+        }
+
+        assert_frame_result(
+            perc, perc_expected, self.df_tessellation, check_names=False
+        )
+
+        perc = mm.percentile(
+            pd.Series(list(range(8)) * 18, index=self.df_tessellation.index),
+            self.diversity_graph,
+        )
+        perc_expected = {
+            "count": 144,
+            "mean": 3.5283564814814814,
+            "min": 0.75,
+            "max": 6.0,
+        }
+        assert_frame_result(
+            perc, perc_expected, self.df_tessellation, check_names=False
+        )
+
+        perc = mm.percentile(
+            self.df_tessellation["area"], self.diversity_graph, q=[30, 70]
+        )
+        perc_expected = {
+            "count": 144,
+            "mean": 2096.4500111386724,
+            "min": 484.37546961694574,
+            "max": 4160.642824113784,
+        }
+        assert_frame_result(
+            perc, perc_expected, self.df_tessellation, check_names=False
+        )
+
+        # test isolates
+        graph = Graph.build_contiguity(self.df_tessellation.iloc[:100])
+        perc = mm.percentile(self.df_tessellation["area"].iloc[:100], graph)
+        assert perc.loc[0].isna().all()
+
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous pandas versions"
+    )
+    def test_distance_decay_linearly_weighted_percentiles(self):
+        # setup weight decay graph
+
+        perc = mm.percentile(
+            self.df_tessellation["area"],
+            self.decay_graph,
+        )
+        perc_expected = {
+            "count": 144,
+            "mean": 1956.0672714756156,
+            "min": 110.43272692016959,
+            "max": 4331.418546462096,
+        }
+        assert_frame_result(
+            perc, perc_expected, self.df_tessellation, check_names=False
+        )
+
+        perc = mm.percentile(
+            self.df_tessellation["area"],
+            self.decay_graph,
+            q=[30, 70],
+        )
+        perc_expected = {
+            "count": 144,
+            "mean": 1931.8544987242813,
+            "min": 122.04102848302165,
+            "max": 4148.563252265954,
+        }
+        assert_frame_result(
+            perc, perc_expected, self.df_tessellation, check_names=False
+        )
+
 
 class TestDescribeEquality:
     def setup_method(self):
@@ -329,6 +437,21 @@ class TestDescribeEquality:
             .assign_self_weight()
         )
         self.graph = Graph.build_knn(self.df_buildings.centroid, k=3)
+        graph = Graph.build_contiguity(self.df_tessellation, rook=False).higher_order(
+            k=3, lower_order=True
+        )
+        from shapely import distance
+
+        centroids = self.df_tessellation.centroid
+
+        def _distance_decay_weights(group):
+            focal = group.index[0][0]
+            neighbours = group.index.get_level_values(1)
+            distances = distance(centroids.loc[focal], centroids.loc[neighbours])
+            distance_decay = 1 / distances
+            return distance_decay.values
+
+        self.decay_graph = graph.transform(_distance_decay_weights)
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
@@ -379,3 +502,68 @@ class TestDescribeEquality:
         assert_series_equal(
             new_fl_area, old_fl_area, check_names=False, check_dtype=False
         )
+
+    def test_unweighted_percentile(self):
+        sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
+        graph = (
+            Graph.build_contiguity(self.df_tessellation)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
+
+        perc_new = mm.percentile(self.df_tessellation["area"], graph)
+        perc_old = mm.Percentiles(
+            self.df_tessellation, "area", sw, "uID", interpolation="hazen"
+        ).frame
+        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
+
+        perc_new = mm.percentile(
+            pd.Series(list(range(8)) * 18, index=self.df_tessellation.index), graph
+        )
+        perc_old = mm.Percentiles(
+            self.df_tessellation, list(range(8)) * 18, sw, "uID", interpolation="hazen"
+        ).frame
+        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
+
+        perc_new = mm.percentile(self.df_tessellation["area"], graph, q=[30, 70])
+        perc_old = mm.Percentiles(
+            self.df_tessellation,
+            "area",
+            sw,
+            "uID",
+            interpolation="hazen",
+            percentiles=[30, 70],
+        ).frame
+        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
+
+    def test_distance_decay_linearly_weighted_percentiles(self):
+        sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
+
+        perc_new = mm.percentile(self.df_tessellation["area"], self.decay_graph)
+        perc_old = mm.Percentiles(
+            self.df_tessellation,
+            "area",
+            sw,
+            "uID",
+            weighted="linear",
+            verbose=False,
+        ).frame
+
+        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
+
+        perc_new = mm.percentile(
+            self.df_tessellation["area"],
+            self.decay_graph,
+            q=[30, 70],
+        )
+
+        perc_old = mm.Percentiles(
+            self.df_tessellation,
+            "area",
+            sw,
+            "uID",
+            percentiles=[30, 70],
+            weighted="linear",
+            verbose=False,
+        ).frame
+        assert_frame_equal(perc_new, perc_old, check_dtype=False, check_names=False)
