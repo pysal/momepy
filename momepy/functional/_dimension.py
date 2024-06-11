@@ -172,14 +172,14 @@ def perimeter_wall(
 
 
 def street_profile(
-    left: GeoDataFrame,
-    right: GeoDataFrame,
-    distance: int = 10,
-    tick_length: int = 50,
+    streets: GeoDataFrame,
+    buildings: GeoDataFrame,
+    distance: float = 10,
+    tick_length: float = 50,
     heights: None | Series = None,
 ) -> DataFrame:
-    """
-    Calculates the street profile characters.
+    """Calculates the street profile characters.
+ 
     This functions returns a DataFrame with widths (w), standard deviation of width(wd),
     openness (o), heights (h), standard deviation of height (hd) and
     ratio height/width (p). The algorithm generates perpendicular lines to the ``right``
@@ -230,7 +230,7 @@ def street_profile(
 
     ## find the length of intersection of the nearest building for every tick
     inp, res = right.geometry.sindex.query(ticks, predicate="intersects")
-    intersections = shapely.intersection(ticks[inp], right.geometry.array[res])
+    intersections = shapely.intersection(ticks[inp], right.boundary.array[res])
     distances = shapely.distance(intersections, shapely.points(coords[inp // 2]))
     min_distances = pd.Series(distances).groupby(inp).min()
     dists = np.full((len(ticks),), np.nan)
@@ -246,7 +246,7 @@ def street_profile(
     njit_result = np.concatenate(street_res).reshape((-1, 3))
     njit_result[np.isnan(njit_result[:, 0]), 0] = tick_length
 
-    final_result = pd.DataFrame(np.nan, columns=["w", "o", "wd"], index=left.index)
+    final_result = pd.DataFrame(np.nan, columns=["width", "openness", "width_deviation"], index=left.index)
     final_result.loc[street_res.index] = njit_result
 
     ## if heights are available add heights stats to the result
