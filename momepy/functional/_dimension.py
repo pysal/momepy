@@ -159,7 +159,9 @@ def perimeter_wall(
     return results
 
 
-def weighted_character(values: Series, areas: Series, graph: Graph) -> Series:
+def weighted_character(
+    y: NDArray[np.float_] | Series, areas: NDArray[np.float_] | Series, graph: Graph
+) -> Series:
     """Calculates the weighted character.
 
     Character weighted by the area of the objects within neighbors defined in ``graph``.
@@ -172,7 +174,7 @@ def weighted_character(values: Series, areas: Series, graph: Graph) -> Series:
 
     Parameters
     ----------
-    values : pd.Series
+    y : pd.Series
         The character values to be weighted.
     values : pd.Series
         The area values to be used as weightss
@@ -190,7 +192,7 @@ def weighted_character(values: Series, areas: Series, graph: Graph) -> Series:
     ...                     buildings_df.geometry.area, graph)
     """
 
-    stats = graph.describe(values * areas, statistics=["sum"])["sum"]
+    stats = graph.describe(y * areas, statistics=["sum"])["sum"]
     agg_area = graph.describe(areas, statistics=["sum"])["sum"]
 
     return stats / agg_area
