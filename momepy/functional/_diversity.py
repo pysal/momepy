@@ -52,9 +52,14 @@ def _percentile_limited_group_grouper(y, group_index, q=(25, 75)):
     """Carry out a filtration of group members based on \\
     quantiles, specified in ``q``"""
     grouper = y.reset_index(drop=True).groupby(group_index)
-    to_keep = grouper.transform(_limit_range, q[0], q[1], engine="numba").values.astype(
-        bool
-    )
+    if HAS_NUMBA:
+        to_keep = grouper.transform(
+            _limit_range, q[0], q[1], engine="numba"
+        ).values.astype(bool)
+    else:
+        to_keep = grouper.transform(
+            lambda x: _limit_range(x.values, x.index, q[0], q[1])
+        ).values.astype(bool)
     filtered_grouper = y[to_keep].groupby(group_index[to_keep])
     return filtered_grouper
 
