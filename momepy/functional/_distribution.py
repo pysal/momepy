@@ -346,7 +346,7 @@ def street_alignment(
 def cell_alignment(
     left_orientations: NDArray[np.float64] | Series,
     right_orientations: NDArray[np.float64] | Series,
-):
+) -> Series:
     """
     Calculate the difference between cell orientation and the orientation of object.
 
@@ -360,13 +360,11 @@ def cell_alignment(
     Parameters
     ----------
     left_orientations : np.array, pd.Series
-        The  ``np.array``, or
-        `pd.Series`` with orientation of cells. This
-        can be calculated using :func:`orientation`.
+        The ``np.array``, or `pd.Series`` with orientation of cells.
+        This can be calculated using :func:`orientation`.
     right_orientations : np.array, pd.Series
-        The ``np.array`` or ``pd.Series``
-        with orientation of objects. This
-        can be calculated using :func:`orientation`.
+        The ``np.array`` or ``pd.Series`` with orientation of objects.
+        This can be calculated using :func:`orientation`.
 
     Returns
     -------
