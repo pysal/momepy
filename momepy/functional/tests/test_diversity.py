@@ -304,6 +304,29 @@ class TestDescribe:
 
         assert_frame_equal(pandas_agg_vals, numba_agg_vals)
 
+    def test_density(self):
+        graph = (
+            Graph.build_contiguity(self.df_tessellation, rook=False)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
+        fl_area = graph.describe(self.df_buildings["fl_area"])["sum"]
+        tess_area = graph.describe(self.df_tessellation["area"])["sum"]
+        dens_new = fl_area / tess_area
+        dens_expected = {
+            "count": 144,
+            "mean": 1.6615871155383324,
+            "max": 2.450536855278486,
+            "min": 0.9746481727569978,
+        }
+        assert_result(
+            dens_new,
+            dens_expected,
+            self.df_tessellation,
+            exact=False,
+            check_names=False,
+        )
+
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
