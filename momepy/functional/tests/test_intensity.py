@@ -98,6 +98,8 @@ class TestIntensity:
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_area_ratio(self):
+        ## change to describe_agg when merged
+
         car_block = mm.area_ratio(
             self.blocks.geometry.area,
             self.df_buildings["area"],

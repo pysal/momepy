@@ -15,7 +15,34 @@ except (ModuleNotFoundError, ImportError):
     HAS_NUMBA = False
     from libpysal.common import jit as njit
 
-__all__ = ["describe", "describe_reached"]
+__all__ = [
+    "describe",
+    "describe_reached",
+    "percentile",
+]
+
+
+@njit
+def _interpolate(values, q):
+    weights = values[:, 0]
+    group = values[:, 1]
+    nan_tracker = np.isnan(group)
+    if nan_tracker.all():
+        return np.array([float(np.nan) for _ in q])
+    group = group[~nan_tracker]
+    sorter = np.argsort(group)
+    group = group[sorter]
+    weights = weights[~nan_tracker][sorter]
+
+    xs = np.cumsum(weights) - 0.5 * weights
+    xs = xs / weights.sum()
+    ys = group
+    interpolate = np.interp(
+        [x / 100 for x in q],
+        xs,
+        ys,
+    )
+    return interpolate
 
 
 @njit
@@ -301,4 +328,46 @@ def describe_reached(
     result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
     result.index.names = result_index.names
 
+    return result
+
+
+def percentile(
+    y: Series,
+    graph: Graph,
+    q: tuple | list = [25, 50, 75],
+):
+    """Calculates linearly weighted percentiles of ``y`` values using
+    the neighbourhoods and weights defined in ``graph``.
+
+    The specific interpolation method implemented is "hazen".
+
+    Parameters
+    ----------
+    y : Series
+        A Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for the data.
+    q : array-like (default [25, 50, 75])
+        The percentiles to return.
+
+    Returns
+    -------
+    Dataframe
+        A Dataframe with columns as the results for each percentile
+
+    Examples
+    --------
+    >>> percentiles_df = mm.percentile(tessellation_df['area'],
+    ...                                 graph)
+    """
+
+    weights = graph._adjacency.values
+    vals = y.loc[graph._adjacency.index.get_level_values(1)]
+    vals = np.vstack((weights, vals)).T
+    vals = DataFrame(vals, columns=["weights", "values"])
+    grouper = vals.groupby(graph._adjacency.index.get_level_values(0))
+    q = tuple(q)
+    stats = grouper.apply(lambda x: _interpolate(x.values, q))
+    result = DataFrame(np.stack(stats), columns=q, index=stats.index)
+    result.loc[graph.isolates] = np.nan
     return result

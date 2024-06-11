@@ -5,9 +5,7 @@ from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from pandas import Series
 
-from momepy import describe_reached
-
-__all__ = ["courtyards", "node_density", "area_ratio"]
+__all__ = ["courtyards", "node_density"]
 
 
 def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
@@ -113,43 +111,3 @@ def node_density(
         summation_values = pd.Series(np.ones(nodes.shape[0]), index=nodes.index)
 
     return graph.apply(summation_values, _calc_nodedensity, edges=edges)
-
-
-def area_ratio(
-    area: Series, overlay: Series, aggregation_key: Series | np.ndarray = None
-) -> pd.Series:
-    """Calculate covered area ratio or floor area ratio of objects.
-    .. math::
-        \\textit{covering object area} \\over \\textit{covered object area}
-
-    Adapted from :cite:`schirmer2015`.
-
-    Parameters
-    ----------
-    area : Series
-        A GeoDataFrame with the areas of the objects being covered (e.g. land unit).
-    overlay : Series
-        A GeoDataFrame with the areas of the covering objects (e.g. building).
-    aggregation_key: np.array | pd.Series
-        The group key that assigns objects from ``overlay`` to ``area``.
-
-    Returns
-    -------
-    Series
-
-
-    Examples
-    --------
-    >>> tessellation_df['CAR'] = mm.area_ratio(tessellation_df['area'],
-    ...                                       buildings_df['area'],
-    ...                                       buildings_df['uID'])
-    """
-
-    if aggregation_key is None:
-        return overlay / area
-
-    if isinstance(aggregation_key, np.ndarray):
-        aggregation_key = pd.Series(aggregation_key, index=overlay.index)
-
-    results = describe_reached(overlay, aggregation_key, result_index=area.index)
-    return results["sum"] / area

@@ -18,6 +18,57 @@ __all__ = [
 ]
 
 
+def deprecated(new_way):
+    """
+    Decorator to mark classes as deprecated and point towards functional API.
+    """
+
+    def decorator(func1):
+        import functools
+
+        @functools.wraps(func1)
+        def new_func1(*args, **kwargs):
+            warnings.warn(
+                f"Class based API like `momepy.{func1.__name__}` is deprecated. "
+                f"Replace it with `momepy.{new_way}` to use functional API instead "
+                "or pin momepy version <1.0. Class-based API will be removed in 1.0. "
+                # "See details at https://docs.momepy.org/en/stable/migration.html",
+                "",
+                FutureWarning,
+                stacklevel=2,
+            )
+            return func1(*args, **kwargs)
+
+        return new_func1
+
+    return decorator
+
+
+def removed(new_way):
+    """
+    Decorator to mark classes as deprecated and removed from momepy.
+    """
+
+    def decorator(func1):
+        import functools
+
+        @functools.wraps(func1)
+        def new_func1(*args, **kwargs):
+            warnings.warn(
+                f"`momepy.{func1.__name__}` is deprecated. Replace it with {new_way} "
+                "or pin momepy version <1.0. This class will be removed in 1.0. "
+                # "See details at https://docs.momepy.org/en/stable/migration.html"
+                "",
+                FutureWarning,
+                stacklevel=2,
+            )
+            return func1(*args, **kwargs)
+
+        return new_func1
+
+    return decorator
+
+
 def unique_id(objects):
     """
     Add an attribute with a unique ID to each row of a GeoDataFrame.
