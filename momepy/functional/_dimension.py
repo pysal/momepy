@@ -227,7 +227,7 @@ def street_profile(
     This functions returns a DataFrame with widths, standard deviation of width,
     openness, heights, standard deviation of height and
     ratio height/width. The algorithm generates perpendicular lines to the ``streets``
-    dataframe features  every ``distance`` and measures values on intersections with
+    dataframe features every ``distance`` and measures values on intersections with
     features of ``buildings``. If no feature is reached within ``tick_length`` its value
     is set as width (being a theoretical maximum).
 
