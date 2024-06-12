@@ -293,7 +293,7 @@ def values_range(
         The order of the elements is not important.
 
     Returns
-    ----------
+    -------
     Series
         A Series containing resulting values.
 
@@ -339,7 +339,7 @@ def theil(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
         The order of the elements is not important.
 
     Returns
-    ----------
+    -------
     Series
         A Series containing resulting values.
 
@@ -489,7 +489,7 @@ def shannon(
         For details see `mapclassify documentation <https://pysal.org/mapclassify>`_.
 
     Returns
-    ----------
+    -------
     Series
         A Series containing resulting values.
 
@@ -540,7 +540,7 @@ def gini(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
         The order of the elements is not important.
 
     Returns
-    ----------
+    -------
     Series
         A Series containing resulting values.
 
