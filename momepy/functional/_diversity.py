@@ -79,8 +79,8 @@ def _percentile_limited_group_grouper(y, group_index, q=(25, 75)):
 
 
 def describe_agg(
-    y: NDArray[np.float_] | Series,
-    aggregation_key: NDArray[np.float_] | Series,
+    y: NDArray[np.float64] | Series,
+    aggregation_key: NDArray[np.float64] | Series,
     result_index: pd.Index = None,
     q: tuple[float, float] | list[float] | None = None,
     statistics: list[str] | None = None,
@@ -171,8 +171,8 @@ def describe_agg(
 
 
 def describe_reached_agg(
-    y: NDArray[np.float_] | Series,
-    graph_index: NDArray[np.float_] | Series,
+    y: NDArray[np.float64] | Series,
+    graph_index: NDArray[np.float64] | Series,
     graph: Graph,
     q: tuple[float, float] | list[float] | None = None,
     statistics: list[str] | None = None,
