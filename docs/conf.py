@@ -259,7 +259,9 @@ autosummary_imported_members = True
 numpydoc_show_class_members = True
 class_members_toctree = True
 numpydoc_show_inherited_class_members = True
+numpydoc_class_members_toctree = False
 numpydoc_use_plots = True
+autodoc_typehints = "none"
 
 nbsphinx_prolog = r"""
 {% set docname = env.doc2path(env.docname, base=None) %}

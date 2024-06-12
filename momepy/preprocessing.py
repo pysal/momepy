@@ -966,62 +966,53 @@ def roundabout_simplification(
 
     If ``include_adjacent`` is True, adjacent polygons to the actual roundabout are
     also selected for simplification if two conditions are met:
-        - the area of adjacent polygons is less than the actual roundabout
-        - adjacent polygons do not extend beyond a factor of the diameter of the actual
-        roundabout.
-        This uses hausdorff_distance algorithm.
+
+    - the area of adjacent polygons is less than the actual roundabout
+    - adjacent polygons do not extend beyond a factor of the diameter of the actual
+      roundabout. This uses hausdorff_distance algorithm.
 
     Parameters
     ----------
     edges : GeoDataFrame
         GeoDataFrame containing LineString geometry of urban network
     polys : GeoDataFrame
-        GeoDataFrame containing Polygon geometry derived from polygonyzing
-        ``edges`` GeoDataFrame.
+        GeoDataFrame containing Polygon geometry derived from polygonyzing ``edges``
+        GeoDataFrame.
     area_col : string
         Column name containing area values if ``polys`` GeoDataFrame contains such
         information. Otherwise, it will
     circom_threshold : float (default 0.7)
         Circular compactness threshold to select roundabouts from ``polys``
-        GeoDataFrame.
-        Polygons with a higher or equal threshold value will be considered for
-        simplification.
+        GeoDataFrame. Polygons with a higher or equal threshold value will be considered
+        for simplification.
     area_threshold : float (default 0.85)
         Percentile threshold value from the area of ``polys`` to leave as input
-        geometry.
-        Polygons with a higher or equal threshold will be considered as urban blocks
-        not considered
-        for simplification.
+        geometry. Polygons with a higher or equal threshold will be considered as urban
+        blocks not considered for simplification.
     include_adjacent : boolean (default True)
         Adjacent polygons to be considered also as part of the simplification.
     diameter_factor : float (default 1.5)
-        The factor to be applied to the diameter of each roundabout that determines
-        how far an adjacent polygon can stretch until it is no longer considered part
-        of the overall roundabout group. Only applyies when include_adjacent = True.
+        The factor to be applied to the diameter of each roundabout that determines how
+        far an adjacent polygon can stretch until it is no longer considered part of the
+        overall roundabout group. Only applyies when include_adjacent = True.
     center_type : string (default 'centroid')
-        Method to use for converging the incoming LineStrings.
-        Current list of options available : 'centroid', 'mean'.
-        - 'centroid': selects the centroid of the actual roundabout (ignoring adjacent
-        geometries)
-        - 'mean': calculates the mean coordinates from the points of polygons (including
-         adjacent geometries)
+        Method to use for converging the incoming LineStrings. Current list of options
+        available : 'centroid', 'mean'. - 'centroid': selects the centroid of the actual
+        roundabout (ignoring adjacent geometries) - 'mean': calculates the mean
+        coordinates from the points of polygons (including adjacent geometries)
     angle_threshold : int, float (default 0)
         The angle threshold for the COINS algorithm. Only used when multiple incoming
-        LineStrings
-        arrive at the same Point to the roundabout or to the adjacent polygons if set
-        as True.
-        eg. when two 'edges' touch the roundabout at the same point, COINS algorithm
-        will evaluate which of those
-        incoming lines should be extended according to their deflection angle.
-        Segments will only be considered a part of the same street if the deflection
-        angle
-        is above the threshold.
+        LineStrings arrive at the same Point to the roundabout or to the adjacent
+        polygons if set as True. eg. when two 'edges' touch the roundabout at the same
+        point, COINS algorithm will evaluate which of those incoming lines should be
+        extended according to their deflection angle. Segments will only be considered a
+        part of the same street if the deflection angle is above the threshold.
 
     Returns
     -------
     GeoDataFrame
-        GeoDataFrame with an updated geometry and an additional
-        column labeling modified edges.
+        GeoDataFrame with an updated geometry and an additional column labeling modified
+        edges.
     """
     if len(edges[edges.geom_type != "LineString"]) > 0:
         raise TypeError(
