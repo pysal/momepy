@@ -11,6 +11,8 @@ import pandas as pd
 from packaging.version import Version
 from tqdm.auto import tqdm  # progress bar
 
+from .utils import removed
+
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 
 __all__ = [
@@ -284,6 +286,9 @@ class Courtyards:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@removed(
+    "a direct call to libpysal.Graph.describe, which provides the same functionality"
+)
 class BlocksCount:
     """
     Calculates the weighted number of blocks. The number of blocks within neighbours

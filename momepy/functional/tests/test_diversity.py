@@ -44,8 +44,6 @@ class TestDescribe:
             .assign_self_weight()
         )
         self.graph = Graph.build_knn(self.df_buildings.centroid, k=3)
-        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
-        self.df_tessellation["area"] = self.df_tessellation.geometry.area
         self.diversity_graph = (
             Graph.build_contiguity(self.df_tessellation)
             .higher_order(k=3, lower_order=True)
@@ -76,7 +74,7 @@ class TestDescribe:
 
     def test_describe(self):
         area = self.df_buildings.area
-        r = mm.describe(area, self.graph)
+        r = self.graph.describe(area)
 
         expected_mean = {
             "mean": 587.3761020554495,
@@ -84,7 +82,9 @@ class TestDescribe:
             "min": 50.44045729583316,
             "max": 1187.2662413659234,
         }
-        assert_result(r["mean"], expected_mean, self.df_buildings, exact=False)
+        assert_result(
+            r["mean"], expected_mean, self.df_buildings, exact=False, check_names=False
+        )
 
         expected_median = {
             "mean": 577.4640489818667,
@@ -92,7 +92,13 @@ class TestDescribe:
             "min": 50.43336175017242,
             "max": 1225.8094201694726,
         }
-        assert_result(r["median"], expected_median, self.df_buildings, exact=False)
+        assert_result(
+            r["median"],
+            expected_median,
+            self.df_buildings,
+            exact=False,
+            check_names=False,
+        )
 
         expected_std = {
             "mean": 255.59307136480083,
@@ -100,7 +106,9 @@ class TestDescribe:
             "min": 0.05050450812944085,
             "max": 1092.484902679786,
         }
-        assert_result(r["std"], expected_std, self.df_buildings, exact=False)
+        assert_result(
+            r["std"], expected_std, self.df_buildings, exact=False, check_names=False
+        )
 
         expected_min = {
             "mean": 349.53354434499295,
@@ -108,7 +116,9 @@ class TestDescribe:
             "min": 50.39387578315866,
             "max": 761.0313042971973,
         }
-        assert_result(r["min"], expected_min, self.df_buildings, exact=False)
+        assert_result(
+            r["min"], expected_min, self.df_buildings, exact=False, check_names=False
+        )
 
         expected_max = {
             "mean": 835.1307128394886,
@@ -116,7 +126,9 @@ class TestDescribe:
             "min": 50.49413435416841,
             "max": 2127.7522277389035,
         }
-        assert_result(r["max"], expected_max, self.df_buildings, exact=False)
+        assert_result(
+            r["max"], expected_max, self.df_buildings, exact=False, check_names=False
+        )
 
         expected_sum = {
             "mean": 1762.128306166348,
@@ -124,12 +136,14 @@ class TestDescribe:
             "min": 151.32137188749948,
             "max": 3561.79872409777,
         }
-        assert_result(r["sum"], expected_sum, self.df_buildings, exact=False)
+        assert_result(
+            r["sum"], expected_sum, self.df_buildings, exact=False, check_names=False
+        )
 
     def test_describe_quantile(self):
         graph = Graph.build_knn(self.df_buildings.centroid, k=15)
         area = self.df_buildings.area
-        r = mm.describe(area, graph, q=(25, 75))
+        r = graph.describe(area, q=(25, 75))
 
         expected_mean = {
             "mean": 601.6960154385389,
@@ -137,12 +151,14 @@ class TestDescribe:
             "min": 250.25984637364323,
             "max": 901.0028506943196,
         }
-        assert_result(r["mean"], expected_mean, self.df_buildings, exact=False)
+        assert_result(
+            r["mean"], expected_mean, self.df_buildings, exact=False, check_names=False
+        )
 
     @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_describe_mode(self):
         corners = mm.corners(self.df_buildings)
-        r = mm.describe(corners, self.graph, include_mode=True)
+        r = self.graph.describe(corners)
 
         expected = {
             "mean": 6.152777777777778,
@@ -150,13 +166,15 @@ class TestDescribe:
             "min": 4,
             "max": 17,
         }
-        assert_result(r["mode"], expected, self.df_buildings, exact=False)
+        assert_result(
+            r["mode"], expected, self.df_buildings, exact=False, check_names=False
+        )
 
     @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_describe_quantile_mode(self):
         graph = Graph.build_knn(self.df_buildings.centroid, k=15)
         corners = mm.corners(self.df_buildings)
-        r = mm.describe(corners, graph, q=(25, 75), include_mode=True)
+        r = graph.describe(corners, q=(25, 75))
 
         expected = {
             "mean": 6.958333333333333,
@@ -164,13 +182,16 @@ class TestDescribe:
             "min": 4.0,
             "max": 12,
         }
-        assert_result(r["mode"], expected, self.df_buildings, exact=False)
+        assert_result(
+            r["mode"], expected, self.df_buildings, exact=False, check_names=False
+        )
 
     def test_describe_array(self):
         area = self.df_buildings.area
-        r = mm.describe(area, self.graph)
-        r2 = mm.describe(area.values, self.graph)
+        r = self.graph.describe(area)
+        r2 = self.graph.describe(area.values)
 
+        assert_frame_equal(r, r2, check_names=False)
         assert_frame_equal(r, r2)
 
     def test_values_range(self):
@@ -387,32 +408,16 @@ class TestDescribe:
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
-    def test_describe_reached_input(self):
-        with pytest.raises(
-            ValueError,
-            match=("One of result_index or graph has to be specified, but not both."),
-        ):
-            mm.describe_reached(self.df_buildings[["area"]], self.df_buildings["nID"])
-
-        with pytest.raises(
-            ValueError,
-            match=("One of result_index or graph has to be specified, but not both."),
-        ):
-            mm.describe_reached(
-                self.df_buildings[["area"]],
-                self.df_buildings["nID"],
-                result_index=self.df_streets.index,
-                graph=self.graph_sw,
-            )
-
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
-    def test_describe_reached(self):
-        df = mm.describe_reached(
+    def test_describe_agg(self):
+        df = mm.describe_agg(
             self.df_buildings["area"],
             self.df_buildings["nID"],
             self.df_streets.index,
+        )
+
+        df_noindex = mm.describe_agg(
+            self.df_buildings["area"],
+            self.df_buildings["nID"],
         )
 
         # not testing std, there are different implementations:
@@ -439,7 +444,24 @@ class TestDescribe:
         assert_result(df["sum"], expected_area_sum, self.df_streets)
         assert_result(df["mean"], expected_area_mean, self.df_streets)
 
-        df = mm.describe_reached(
+        assert df_noindex.shape[0] == 22
+        assert_frame_equal(df_noindex, df[df["sum"].notna()], check_names=False)
+
+        filtered_counts = mm.describe_agg(
+            self.df_buildings["area"],
+            self.df_buildings["nID"],
+            q=(10, 90),
+            statistics=["count"],
+        )["count"]
+        expected_filtered_area_count = {
+            "min": 1,
+            "max": 14,
+            "count": 22,
+            "mean": 4.727272,
+        }
+        assert_result(filtered_counts, expected_filtered_area_count, df_noindex)
+
+        df = mm.describe_agg(
             self.df_buildings["fl_area"].values,
             self.df_buildings["nID"],
             self.df_streets.index,
@@ -470,36 +492,49 @@ class TestDescribe:
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
-    def test_describe_reached_sw(self):
-        df_sw = mm.describe_reached(
+    def test_describe_reached_agg(self):
+        df_sw = mm.describe_reached_agg(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
         )
-
-        # not using assert_result since the method
-        # is returning an aggregation, indexed based on nID
-        assert max(df_sw["count"]) == 138
         expected = {"min": 6, "max": 138, "count": 35, "mean": 67.8}
         assert_result(df_sw["count"], expected, self.df_streets, check_names=False)
+
+        df_sw_dummy_filtration = mm.describe_reached_agg(
+            self.df_buildings["fl_area"],
+            self.df_buildings["nID"],
+            graph=self.graph_sw,
+            q=(0, 100),
+        )
+        assert_frame_equal(
+            df_sw, df_sw_dummy_filtration, check_names=False, check_index_type=False
+        )
+
+        filtered_df = mm.describe_reached_agg(
+            self.df_buildings["fl_area"],
+            self.df_buildings["nID"],
+            graph=self.graph_sw,
+            q=(10, 90),
+            statistics=["count"],
+        )
+        filtered_expected = {"min": 4, "max": 110, "count": 35, "mean": 53.4571428}
+        assert_result(
+            filtered_df["count"], filtered_expected, self.df_streets, check_names=False
+        )
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_describe_reached_input_equality(self):
-        island_result_df = mm.describe_reached(
+        island_result_df = mm.describe_agg(
             self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
         )
-        island_result_series = mm.describe_reached(
-            self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
-        )
-        island_result_ndarray = mm.describe_reached(
+
+        island_result_ndarray = mm.describe_agg(
             self.df_buildings["area"].values,
             self.df_buildings["nID"].values,
             self.df_streets.index,
         )
 
-        assert np.allclose(
-            island_result_df.values, island_result_series.values, equal_nan=True
-        )
         assert np.allclose(
             island_result_df.values, island_result_ndarray.values, equal_nan=True
         )
@@ -511,13 +546,13 @@ class TestDescribe:
         nan_areas = self.df_buildings["area"]
         nan_areas.iloc[range(0, len(self.df_buildings), 3),] = np.nan
 
-        pandas_agg_vals = mm.describe_reached(
+        pandas_agg_vals = mm.describe_agg(
             nan_areas,
             self.df_buildings["nID"],
             self.df_streets.index,
         )
 
-        numba_agg_vals = mm.describe_reached(
+        numba_agg_vals = mm.describe_agg(
             nan_areas, self.df_buildings["nID"], self.df_streets.index, q=(0, 100)
         )
 
@@ -660,6 +695,68 @@ class TestDescribe:
             perc, perc_expected, self.df_tessellation, check_names=False
         )
 
+    def test_describe_nunique(self):
+        graph = (
+            Graph.build_contiguity(self.df_tessellation, rook=False)
+            .higher_order(k=5, lower_order=True)
+            .assign_self_weight()
+        )
+
+        unweighted_expected = {
+            "count": 144,
+            "min": 3,
+            "max": 8,
+            "mean": 5.222222222222222,
+        }
+
+        unweighted = graph.describe(
+            self.df_tessellation["bID"], statistics=["nunique"]
+        )["nunique"]
+
+        unweighted2 = graph.describe(
+            self.df_tessellation["bID"], q=(0, 100), statistics=["nunique"]
+        )["nunique"]
+
+        assert_result(
+            unweighted,
+            unweighted_expected,
+            self.df_tessellation,
+            exact=False,
+            check_names=False,
+        )
+        assert_result(
+            unweighted2,
+            unweighted_expected,
+            self.df_tessellation,
+            exact=False,
+            check_names=False,
+        )
+        assert_series_equal(unweighted2, unweighted, check_dtype=False)
+
+    def test_count_unique_using_describe(self):
+        graph = (
+            Graph.build_contiguity(self.df_tessellation, rook=False)
+            .higher_order(k=5, lower_order=True)
+            .assign_self_weight()
+        )
+
+        count = graph.describe(self.df_tessellation["bID"])["nunique"]
+        agg_areas = graph.describe(self.df_tessellation["area"])["sum"]
+        weighted_count = count / agg_areas
+        weighted_count_expected = {
+            "count": 144,
+            "min": 2.0989616504225266e-05,
+            "max": 4.2502425045664464e-05,
+            "mean": 3.142437439120778e-05,
+        }
+        assert_result(
+            weighted_count,
+            weighted_count_expected,
+            self.df_tessellation,
+            exact=False,
+            check_names=False,
+        )
+
 
 class TestDescribeEquality:
     def setup_method(self):
@@ -715,7 +812,7 @@ class TestDescribeEquality:
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_describe_reached_equality(self):
-        new_df = mm.describe_reached(
+        new_df = mm.describe_agg(
             self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
         )
 
@@ -741,7 +838,7 @@ class TestDescribeEquality:
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_describe_reached_equality_sw(self):
-        new_df = mm.describe_reached(
+        new_df = mm.describe_reached_agg(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
         )
 
@@ -759,6 +856,50 @@ class TestDescribeEquality:
         ).series
         assert_series_equal(
             new_fl_area, old_fl_area, check_names=False, check_dtype=False
+        )
+
+        old_mean_fl_area = mm.Reached(
+            self.df_streets,
+            self.df_buildings,
+            "nID",
+            "nID",
+            spatial_weights=sw,
+            mode="mean",
+            values="fl_area",
+        ).series
+        assert_series_equal(
+            new_df["mean"], old_mean_fl_area, check_names=False, check_dtype=False
+        )
+
+    def test_blocks_counts(self):
+        graph = (
+            Graph.build_contiguity(self.df_tessellation, rook=False)
+            .higher_order(k=5, lower_order=True)
+            .assign_self_weight()
+        )
+        sw = mm.sw_high(k=5, gdf=self.df_tessellation, ids="uID")
+
+        unweighted_new = graph.describe(self.df_tessellation["bID"])["nunique"]
+        unweighted_old = mm.BlocksCount(
+            self.df_tessellation, "bID", sw, "uID", weighted=False
+        ).series
+        assert_series_equal(
+            unweighted_new,
+            unweighted_old,
+            check_index_type=False,
+            check_names=False,
+            check_dtype=False,
+        )
+
+        agg_areas = graph.describe(self.df_tessellation["area"])["sum"]
+        count_new = unweighted_new / agg_areas
+        count_old = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").series
+        assert_series_equal(
+            count_new,
+            count_old,
+            check_names=False,
+            check_dtype=False,
+            check_index_type=False,
         )
 
     def test_values_range(self):
