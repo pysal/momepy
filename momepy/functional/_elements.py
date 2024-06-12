@@ -195,7 +195,6 @@ def enclosed_tessellation(
     single = unique[counts == 1]
     altered = unique[counts > 0]
 
-    ##simplify enclosures now that the spatial queries are
     if simplify:
         if not SHPLY_GE_205:
             raise ImportError(
@@ -203,9 +202,9 @@ def enclosed_tessellation(
             )
         from shapely import coverage_simplify
 
-        to_simplify = np.union1d(single, splits)
-        simplified = coverage_simplify(enclosures.iloc[to_simplify], 1e-1)
-        enclosures.iloc[to_simplify, 0] = simplified
+        ##simplify singles here and let the threads simplify the actual tesselations
+        simplified = coverage_simplify(enclosures.iloc[single], 1e-1)
+        enclosures.iloc[single, 0] = simplified
 
     # prepare input for parallel processing
     tuples = [
@@ -219,7 +218,7 @@ def enclosed_tessellation(
 
     # generate tessellation in parallel
     new = Parallel(n_jobs=n_jobs)(
-        delayed(_tess)(*t, threshold, shrink, segment, index_name, to_simplify)
+        delayed(_tess)(*t, threshold, shrink, segment, index_name, simplify)
         for t in tuples
     )
 
@@ -260,6 +259,8 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify):
             shapely.area(shapely.intersection(blg.geometry.array, poly))
             > (shapely.area(blg.geometry.array) * threshold)
         ]
+    if to_simplify:
+        from shapely import coverage_simplify
 
     if len(blg) >= 1:
         tess = voronoi_frames(
@@ -271,12 +272,12 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify):
             as_gdf=True,
         )
         if to_simplify:
-            from shapely import coverage_simplify
-
             tess.geometry = coverage_simplify(tess.geometry, 1e-1)
-
         tess[enclosure_id] = ix
         return tess
+
+    if to_simplify:
+        poly = coverage_simplify(poly, 1e-1)
 
     return GeoDataFrame(
         {enclosure_id: ix},
