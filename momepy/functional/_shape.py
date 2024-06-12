@@ -32,7 +32,7 @@ GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 def form_factor(
     geometry: GeoDataFrame | GeoSeries,
-    height: NDArray[np.float_] | Series,
+    height: NDArray[np.float64] | Series,
 ) -> Series:
     """Calculates the form factor of each object given its geometry and height.
 
@@ -50,7 +50,7 @@ def form_factor(
     ----------
     geometry : GeoDataFrame | GeoSeries
         A GeoDataFrame or GeoSeries containing polygons to analyse.
-    height : NDArray[np.float_] | Series
+    height : NDArray[np.float64] | Series
         array of heights
 
     Returns
@@ -178,7 +178,7 @@ def convexity(geometry: GeoDataFrame | GeoSeries) -> Series:
 
 def courtyard_index(
     geometry: GeoDataFrame | GeoSeries,
-    courtyard_area: NDArray[np.float_] | Series | None = None,
+    courtyard_area: NDArray[np.float64] | Series | None = None,
 ) -> Series:
     """Calculates the courtyard index of each object given its geometry.
 
@@ -191,7 +191,7 @@ def courtyard_index(
     ----------
     geometry : GeoDataFrame | GeoSeries
         A GeoDataFrame or GeoSeries containing polygons to analyse.
-    courtyard_area : NDArray[np.float_] | Series | None, optional
+    courtyard_area : NDArray[np.float64] | Series | None, optional
         array of courtyard areas. If None, it will be calculated, by default None
 
     Returns
@@ -227,7 +227,7 @@ def rectangularity(geometry: GeoDataFrame | GeoSeries) -> Series:
 
 def shape_index(
     geometry: GeoDataFrame | GeoSeries,
-    longest_axis_length: NDArray[np.float_] | Series | None = None,
+    longest_axis_length: NDArray[np.float64] | Series | None = None,
 ) -> Series:
     """Calculates the shape index of each object given its geometry.
 
@@ -238,7 +238,7 @@ def shape_index(
     ----------
     geometry : GeoDataFrame | GeoSeries
          A GeoDataFrame or GeoSeries containing polygons to analyse.
-    longest_axis_length : NDArray[np.float_] | Series | None, optional
+    longest_axis_length : NDArray[np.float64] | Series | None, optional
         array of longest axis lengths. If None, it will be calculated, by default None
 
     Returns
@@ -475,7 +475,7 @@ def linearity(geometry: GeoDataFrame | GeoSeries) -> Series:
 
 def compactness_weighted_axis(
     geometry: GeoDataFrame | GeoSeries,
-    longest_axis_length: NDArray[np.float_] | Series | None = None,
+    longest_axis_length: NDArray[np.float64] | Series | None = None,
 ) -> Series:
     """Calculates the compactness-weighted axis of each object in a given GeoDataFrame.
 
@@ -487,7 +487,7 @@ def compactness_weighted_axis(
     ----------
     geometry : GeoDataFrame | GeoSeries
          A GeoDataFrame or GeoSeries containing polygons to analyse.
-    longest_axis_length : NDArray[np.float_] | Series | None, optional
+    longest_axis_length : NDArray[np.float64] | Series | None, optional
         array of longest axis lengths. If None, it will be calculated, by default None
 
     Returns
@@ -506,13 +506,13 @@ def compactness_weighted_axis(
 
 
 def _true_angles_mask(
-    points: NDArray[np.float_], eps: float, return_degrees: bool = False
-) -> NDArray[np.bool_] | tuple[NDArray[np.bool_], NDArray[np.float_]]:
+    points: NDArray[np.float64], eps: float, return_degrees: bool = False
+) -> NDArray[np.bool_] | tuple[NDArray[np.bool_], NDArray[np.float64]]:
     """Calculates the mask of true angles.
 
     Parameters
     ----------
-    points : NDArray[np.float_]
+    points : NDArray[np.float64]
         array of points
     eps : float
         Deviation from 180 degrees to consider a corner
@@ -521,7 +521,7 @@ def _true_angles_mask(
 
     Returns
     -------
-    NDArray[np.bool_] | tuple[NDArray[np.bool_], NDArray[np.float_]]
+    NDArray[np.bool_] | tuple[NDArray[np.bool_], NDArray[np.float64]]
         boolean array or a tuple of boolean array and float array of degrees
     """
     a = np.roll(points, 1, axis=0)

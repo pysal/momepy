@@ -28,9 +28,9 @@ except (ModuleNotFoundError, ImportError):
 
 
 def volume(
-    area: NDArray[np.float_] | Series,
-    height: NDArray[np.float_] | Series,
-) -> NDArray[np.float_] | Series:
+    area: NDArray[np.float64] | Series,
+    height: NDArray[np.float64] | Series,
+) -> NDArray[np.float64] | Series:
     """
     Calculates volume of each object in given GeoDataFrame based on its height and area.
 
@@ -39,24 +39,24 @@ def volume(
 
     Parameters
     ----------
-    area : NDArray[np.float_] | Series
+    area : NDArray[np.float64] | Series
         array of areas
-    height : NDArray[np.float_] | Series
+    height : NDArray[np.float64] | Series
         array of heights
 
     Returns
     -------
-    NDArray[np.float_] | Series
+    NDArray[np.float64] | Series
         array of a type depending on the input
     """
     return area * height
 
 
 def floor_area(
-    area: NDArray[np.float_] | Series,
-    height: NDArray[np.float_] | Series,
-    floor_height: float | NDArray[np.float_] | Series = 3,
-) -> NDArray[np.float_] | Series:
+    area: NDArray[np.float64] | Series,
+    height: NDArray[np.float64] | Series,
+    floor_height: float | NDArray[np.float64] | Series = 3,
+) -> NDArray[np.float64] | Series:
     """Calculates floor area of each object based on height and area.
 
     The number of
@@ -69,17 +69,17 @@ def floor_area(
 
     Parameters
     ----------
-    area : NDArray[np.float_] | Series
+    area : NDArray[np.float64] | Series
         array of areas
-    height : NDArray[np.float_] | Series
+    height : NDArray[np.float64] | Series
         array of heights
-    floor_height : float | NDArray[np.float_] | Series, optional
+    floor_height : float | NDArray[np.float64] | Series, optional
         float denoting the uniform floor height or an aarray reflecting the building
         height by geometry, by default 3
 
     Returns
     -------
-    NDArray[np.float_] | Series
+    NDArray[np.float64] | Series
         array of a type depending on the input
     """
     return area * (height // floor_height)
@@ -172,7 +172,7 @@ def perimeter_wall(
 
 
 def weighted_character(
-    y: NDArray[np.float_] | Series, area: NDArray[np.float_] | Series, graph: Graph
+    y: NDArray[np.float64] | Series, area: NDArray[np.float64] | Series, graph: Graph
 ) -> Series:
     """Calculates the weighted character.
 
@@ -191,9 +191,9 @@ def weighted_character(
 
     Parameters
     ----------
-    y : NDArray[np.float_] | Series
+    y : NDArray[np.float64] | Series
         The character values to be weighted.
-    area : NDArray[np.float_] | Series
+    area : NDArray[np.float64] | Series
         The area values to be used as weightss
     graph : libpysal.graph.Graph
         A spatial weights matrix for values and areas.
@@ -392,7 +392,7 @@ def _get_point_njit(x1, y1, bearing, dist):
 
 @njit
 def generate_ticks(list_points, end_markers, tick_length):
-    ticks = np.empty((len(list_points) * 2, 4), dtype=np.float64)
+    ticks = np.empty((len(list_points) * 2, 4), dtype=float)
 
     for i in range(len(list_points)):
         tick_pos = i * 2
