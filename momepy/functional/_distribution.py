@@ -344,8 +344,8 @@ def street_alignment(
 
 
 def cell_alignment(
-    left_orientations: NDArray[np.float64] | Series,
-    right_orientations: NDArray[np.float64] | Series,
+    left_orientation: NDArray[np.float64] | Series,
+    right_orientation: NDArray[np.float64] | Series,
 ) -> Series:
     """
     Calculate the difference between cell orientation and the orientation of object.
@@ -353,8 +353,8 @@ def cell_alignment(
     .. math::
         \\left|{\\textit{building orientation} - \\textit{cell orientation}}\\right|
 
-    Note
-    ----
+    Notes
+    -----
     ``left_orientations`` and ``right_orientations`` must be aligned or have an index.
 
     Parameters
@@ -371,8 +371,8 @@ def cell_alignment(
     Series
     """
 
-    if not isinstance(left_orientations, Series):
-        left_orientations = Series(left_orientations)
-    if not isinstance(right_orientations, Series):
-        right_orientations = Series(right_orientations)
+    if not isinstance(left_orientation, Series):
+        left_orientations = Series(left_orientation)
+    if not isinstance(right_orientation, Series):
+        right_orientations = Series(right_orientation)
     return (left_orientations - right_orientations).abs()
