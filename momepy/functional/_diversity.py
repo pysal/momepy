@@ -1,9 +1,12 @@
 import numpy as np
 import pandas as pd
 from libpysal.graph import Graph
+from libpysal.graph._utils import _percentile_filtration_grouper
 from numpy.typing import NDArray
 from packaging.version import Version
 from pandas import DataFrame, Series
+
+from ..diversity import shannon_diversity, simpson_diversity
 
 try:
     from numba import njit
@@ -16,14 +19,24 @@ except (ModuleNotFoundError, ImportError):
 from libpysal.graph._utils import (
     _compute_stats,
     _limit_range,
-    _percentile_filtration_grouper,
 )
 
 __all__ = [
     "describe_agg",
     "describe_reached_agg",
+    "values_range",
+    "theil",
+    "simpson",
+    "shannon",
+    "gini",
     "percentile",
 ]
+
+
+def _get_grouper(y, graph):
+    return y.take(graph._adjacency.index.codes[1]).groupby(
+        graph._adjacency.index.codes[0]
+    )
 
 
 @njit
@@ -70,11 +83,11 @@ def describe_agg(
     aggregation_key: NDArray[np.float_] | Series,
     result_index: pd.Index = None,
     q: tuple[float, float] | list[float] | None = None,
-    to_compute: list[str] | None = None,
+    statistics: list[str] | None = None,
 ) -> DataFrame:
     """Describe the distribution of values within the groups of an aggregation.
 
-    The desired statistics to compute can be passed to ``to_compute``.
+    The desired statistics to compute can be passed to ``statistics``.
     By default the statistics calculated are count,
     sum, mean, median, std, nunique, mode.
 
@@ -82,6 +95,9 @@ def describe_agg(
 
     Notes
     -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
+
     The numba package is used extensively in this function to accelerate the computation
     of statistics. Without numba, these computations may become slow on large data.
 
@@ -101,7 +117,7 @@ def describe_agg(
         and 100 inclusive. When set, values below and above the percentiles will be
         discarded before computation of the average. The percentiles are computed for
         each neighborhood. By default None.
-    to_compute : list[str]
+    statistics : list[str]
         A list of stats functions to pass to groupby.agg.
 
     Returns
@@ -136,7 +152,7 @@ def describe_agg(
     else:
         grouper = _percentile_limited_group_grouper(y, aggregation_key, q=q)
 
-    stats = _compute_stats(grouper, to_compute=to_compute)
+    stats = _compute_stats(grouper, to_compute=statistics)
 
     if result_index is None:
         result_index = stats.index
@@ -159,7 +175,7 @@ def describe_reached_agg(
     graph_index: NDArray[np.float_] | Series,
     graph: Graph,
     q: tuple[float, float] | list[float] | None = None,
-    to_compute: list[str] | None = None,
+    statistics: list[str] | None = None,
 ) -> DataFrame:
     """Describe the distribution of values reached on a neighbourhood graph.
 
@@ -168,7 +184,7 @@ def describe_reached_agg(
     quantile range before computing the statistics.
 
     The statistics calculated are count, sum, mean, median, std, nunique, mode.
-    The desired statistics to compute can be passed to ``to_compute``
+    The desired statistics to compute can be passed to ``statistics``
 
     The neighbourhood is defined in ``graph``. If ``graph`` is ``None``,
     the function will assume topological distance ``0`` (element itself)
@@ -196,7 +212,7 @@ def describe_reached_agg(
         and 100 inclusive. When set, values below and above the percentiles will be
         discarded before computation of the average. The percentiles are computed for
         each neighborhood. By default None.
-    to_compute : list[str]
+    statistics : list[str]
         A list of stats functions to pass to groupby.agg.
     Returns
     -------
@@ -238,11 +254,318 @@ def describe_reached_agg(
     else:
         grouper = _percentile_filtration_grouper(y, combined_index, q=q)
 
-    result = _compute_stats(grouper, to_compute)
+    stats = _compute_stats(grouper, statistics)
 
+    result = pd.DataFrame(
+        np.full((graph.unique_ids.shape[0], stats.shape[1]), np.nan),
+        index=graph.unique_ids,
+    )
+    result.loc[stats.index.values] = stats.values
+    result.columns = stats.columns
     # fill only counts with zeros, other stats are NA
     result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
+    result.index.name = None
 
+    return result
+
+
+def values_range(
+    y: Series | NDArray[np.float64], graph: Graph, q: tuple | list = (0, 100)
+) -> Series:
+    """Calculates the range of values within neighbours defined in ``graph``.
+
+    Adapted from :cite:`dibble2017`.
+
+    Notes
+    -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    data : Series
+        A DataFrame or Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for the data.
+    q : tuple, list, optional (default (0,100)))
+        A two-element sequence containing floats between 0 and 100 (inclusive)
+        that are the percentiles over which to compute the range.
+        The order of the elements is not important.
+
+    Returns
+    ----------
+    Series
+        A Series containing resulting values.
+
+    Examples
+    --------
+    >>> tessellation_df['area_IQR_3steps'] = mm.range(tessellation_df['area'],
+    ...                                               graph,
+    ...                                               q=(25, 75))
+    """
+
+    stats = percentile(y, graph, q=q)
+    return stats[max(q)] - stats[min(q)]
+
+
+def theil(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
+    """Calculates the Theil measure of inequality of values within neighbours defined in
+    ``graph``.
+
+    Uses ``inequality.theil.Theil`` under the hood. Requires '`inequality`' package.
+
+    .. math::
+
+        T = \\sum_{i=1}^n \\left(
+            \\frac{y_i}{\\sum_{i=1}^n y_i} \\ln \\left[
+                N \\frac{y_i} {\\sum_{i=1}^n y_i}
+            \\right]
+        \\right)
+
+    Notes
+    -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    y : Series
+        A DataFrame or Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for the data.
+    q : tuple, list, optional (default (0,100)))
+        A two-element sequence containing floats between 0 and 100 (inclusive)
+        that are the percentiles over which to compute the range.
+        The order of the elements is not important.
+
+    Returns
+    ----------
+    Series
+        A Series containing resulting values.
+
+    Examples
+    --------
+    >>> tessellation_df['area_Theil'] = mm.theil(tessellation_df['area'],
+    ...                                          graph)
+    """
+
+    try:
+        from inequality.theil import Theil
+    except ImportError as err:
+        raise ImportError("The 'inequality' package is required.") from err
+
+    if q:
+        grouper = _percentile_filtration_grouper(y, graph._adjacency.index, q=q)
+    else:
+        grouper = _get_grouper(y, graph)
+
+    result = grouper.apply(lambda x: Theil(x.values).T)
+    result.index = graph.unique_ids
+    return result
+
+
+def simpson(
+    y: Series,
+    graph: Graph,
+    binning: str = "HeadTailBreaks",
+    gini_simpson: bool = False,
+    inverse: bool = False,
+    categorical: bool = False,
+    **classification_kwds,
+) -> Series:
+    """Calculates the Simpson's diversity index of values within neighbours defined in
+    ``graph``.
+    Uses ``mapclassify.classifiers`` under the hood for binning.
+    Requires ``mapclassify>=.2.1.0`` dependency.
+
+    .. math::
+
+        \\lambda=\\sum_{i=1}^{R} p_{i}^{2}
+
+    Adapted from :cite:`feliciotti2018`.
+
+    Notes
+    -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    y : Series
+        A DataFrame or Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for the data.
+    binning : str (default 'HeadTailBreaks')
+        One of mapclassify classification schemes. For details see
+        `mapclassify API documentation <http://pysal.org/mapclassify/api.html>`_.
+    gini_simpson : bool (default False)
+        Return Gini-Simpson index instead of Simpson index (``1 - λ``).
+    inverse : bool (default False)
+        Return Inverse Simpson index instead of Simpson index (``1 / λ``).
+    categorical : bool (default False)
+        Treat values as categories (will not use ``binning``).
+    **classification_kwds : dict
+        Keyword arguments for the classification scheme.
+        For details see `mapclassify documentation <https://pysal.org/mapclassify>`_.
+
+    Returns
+    -------
+    Series
+        A Series containing resulting values.
+
+    Examples
+    --------
+    >>> tessellation_df['area_Simpson'] = mm.simpson(tessellation_df['area'],
+    ...                                              graph)
+
+    See also
+    --------
+    momepy.simpson_diversity : Calculates the Simpson's diversity index of data.
+    """
+    if not categorical:
+        try:
+            from mapclassify import classify
+        except ImportError as err:
+            raise ImportError(
+                "The 'mapclassify >= 2.4.2` package is required."
+            ) from err
+        bins = classify(y, scheme=binning, **classification_kwds).bins
+    else:
+        bins = None
+
+    def _apply_simpson_diversity(values):
+        return simpson_diversity(
+            values,
+            bins,
+            categorical=categorical,
+        )
+
+    result = graph.apply(y, _apply_simpson_diversity)
+
+    if gini_simpson:
+        result = 1 - result
+    elif inverse:
+        result = 1 / result
+    return result
+
+
+def shannon(
+    y: Series,
+    graph: Graph,
+    binning: str = "HeadTailBreaks",
+    categorical: bool = False,
+    categories: list | None = None,
+    **classification_kwds,
+) -> Series:
+    """Calculates the Shannon index of values within neighbours defined in
+    ``graph``.
+    Uses ``mapclassify.classifiers`` under the hood
+    for binning. Requires ``mapclassify>=.2.1.0`` dependency.
+
+    .. math::
+
+        H^{\\prime}=-\\sum_{i=1}^{R} p_{i} \\ln p_{i}
+
+    Notes
+    -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    y : Series
+        A DataFrame or Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for the data.
+    binning : str (default 'HeadTailBreaks')
+        One of mapclassify classification schemes. For details see
+        `mapclassify API documentation <http://pysal.org/mapclassify/api.html>`_.
+    categorical : bool (default False)
+        Treat values as categories (will not use binning).
+    categories : list-like (default None)
+        A list of categories. If ``None``, ``values.unique()`` is used.
+    **classification_kwds : dict
+        Keyword arguments for classification scheme
+        For details see `mapclassify documentation <https://pysal.org/mapclassify>`_.
+
+    Returns
+    ----------
+    Series
+        A Series containing resulting values.
+
+    Examples
+    --------
+    >>> tessellation_df['area_Shannon'] = mm.shannon(tessellation_df['area'],
+    ...                                              graph)
+    """
+
+    if not categories:
+        categories = y.unique()
+
+    if not categorical:
+        try:
+            from mapclassify import classify
+        except ImportError as err:
+            raise ImportError(
+                "The 'mapclassify >= 2.4.2` package is required."
+            ) from err
+        bins = classify(y, scheme=binning, **classification_kwds).bins
+    else:
+        bins = categories
+
+    def _apply_shannon(values):
+        return shannon_diversity(values, bins, categorical, categories)
+
+    return graph.apply(y, _apply_shannon)
+
+
+def gini(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
+    """Calculates the Gini index of values within neighbours defined in ``graph``.
+    Uses ``inequality.gini.Gini`` under the hood. Requires '`inequality`' package.
+
+    Notes
+    -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    y :  Series
+        A DataFrame or Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for the data.
+    q : tuple, list, optional (default (0,100)))
+        A two-element sequence containing floats between 0 and 100 (inclusive)
+        that are the percentiles over which to compute the range.
+        The order of the elements is not important.
+
+    Returns
+    ----------
+    Series
+        A Series containing resulting values.
+
+    Examples
+    --------
+    >>> tessellation_df['area_Gini'] = mm.gini(tessellation_df['area'],
+    ...                                              graph)
+    """
+    try:
+        from inequality.gini import Gini
+    except ImportError as err:
+        raise ImportError("The 'inequality' package is required.") from err
+
+    if y.min() < 0:
+        raise ValueError(
+            "Values contain negative numbers. Normalise data before"
+            "using momepy.Gini."
+        )
+    if q:
+        grouper = _percentile_filtration_grouper(y, graph._adjacency.index, q=q)
+    else:
+        grouper = _get_grouper(y, graph)
+
+    result = grouper.apply(lambda x: Gini(x.values).g)
+    result.index = graph.unique_ids
     return result
 
 

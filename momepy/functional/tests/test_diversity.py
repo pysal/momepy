@@ -20,6 +20,8 @@ class TestDescribe:
     def setup_method(self):
         test_file_path = mm.datasets.get_path("bubenec")
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
+        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
+        self.df_tessellation["area"] = self.df_tessellation.geometry.area
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
         self.df_streets["nID"] = mm.unique_id(self.df_streets)
@@ -63,6 +65,12 @@ class TestDescribe:
             return distance_decay.values
 
         self.decay_graph = graph.transform(_distance_decay_weights)
+
+        self.diversity_graph = (
+            Graph.build_contiguity(self.df_tessellation)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
 
     def test_describe(self):
         area = self.df_buildings.area
@@ -184,15 +192,232 @@ class TestDescribe:
         r2 = self.graph.describe(area.values)
 
         assert_frame_equal(r, r2, check_names=False)
+        assert_frame_equal(r, r2)
+
+    def test_values_range(self):
+        full_sw = mm.values_range(self.df_tessellation["area"], self.diversity_graph)
+        full_sw_expected = {
+            "count": 144,
+            "mean": 13575.258680748986,
+            "min": 3789.0228732928035,
+            "max": 34510.77694161156,
+        }
+        assert_result(
+            full_sw, full_sw_expected, self.df_tessellation, check_names=False
+        )
+
+        limit = mm.values_range(
+            self.df_tessellation["area"], self.diversity_graph, q=(10, 90)
+        )
+        limit_expected = {
+            "mean": 3551.9379326637954,
+            "max": 6194.978308458511,
+            "min": 2113.282481158694,
+            "count": 144,
+        }
+
+        assert_result(limit, limit_expected, self.df_tessellation, check_names=False)
+
+    def test_theil(self):
+        full_sw = mm.theil(self.df_tessellation["area"], self.diversity_graph)
+        full_sw2 = mm.theil(
+            self.df_tessellation["area"], self.diversity_graph, q=(0, 100)
+        )
+        full_sw_expected = {
+            "count": 144,
+            "mean": 0.3367193709036915,
+            "min": 0.0935437083870931,
+            "max": 1.0063687846141105,
+        }
+        assert_result(
+            full_sw, full_sw_expected, self.df_tessellation, check_names=False
+        )
+        assert_result(
+            full_sw2, full_sw_expected, self.df_tessellation, check_names=False
+        )
+
+        # mismatch between percentile interpolation methods
+        limit = mm.theil(self.df_tessellation["area"], self.diversity_graph, q=(10, 90))
+        limit_expected = {
+            "count": 144,
+            "mean": 0.09689345872019642,
+            "min": 0.03089398223055910,
+            "max": 0.2726670141461655,
+        }
+
+        assert_result(limit, limit_expected, self.df_tessellation, check_names=False)
+
+        zeros = mm.theil(
+            pd.Series(np.zeros(len(self.df_tessellation)), self.df_tessellation.index),
+            self.graph,
+        )
+        zeros_expected = {"count": 144, "mean": 0, "min": 0, "max": 0.0}
+        assert_result(zeros, zeros_expected, self.df_tessellation, check_names=False)
+
+    def test_simpson(self):
+        ht_sw = mm.simpson(self.df_tessellation["area"], self.diversity_graph)
+        ht_sw_expected = {
+            "count": 144,
+            "mean": 0.5106343598245804,
+            "min": 0.3504,
+            "max": 0.7159183673469389,
+        }
+        assert_result(ht_sw, ht_sw_expected, self.df_tessellation, check_names=False)
+
+        quan_sw = mm.simpson(
+            self.df_tessellation.area, self.diversity_graph, binning="quantiles", k=3
+        )
+        quan_sw_expected = {
+            "count": 144,
+            "mean": 0.36125200075406005,
+            "min": 0.3333333333333333,
+            "max": 0.4609375,
+        }
+        assert_result(
+            quan_sw, quan_sw_expected, self.df_tessellation, check_names=False
+        )
+
+        with pytest.raises(ValueError):
+            mm.simpson(self.df_tessellation.area, self.graph, binning="nonexistent")
+
+        gs = mm.simpson(
+            self.df_tessellation.area, self.diversity_graph, gini_simpson=True
+        )
+        gs_expected = {
+            "count": 144,
+            "mean": 0.4893656401754196,
+            "min": 0.2840816326530611,
+            "max": 0.6496,
+        }
+        assert_result(gs, gs_expected, self.df_tessellation, check_names=False)
+
+        gs_inv = mm.simpson(
+            self.df_tessellation.area, self.diversity_graph, inverse=True
+        )
+        gs_inv_expected = {
+            "count": 144,
+            "mean": 1.994951794685094,
+            "min": 1.3968072976054728,
+            "max": 2.853881278538813,
+        }
+        assert_result(gs_inv, gs_inv_expected, self.df_tessellation, check_names=False)
+
+        self.df_tessellation["cat"] = list(range(8)) * 18
+        cat = mm.simpson(
+            self.df_tessellation.cat, self.diversity_graph, categorical=True
+        )
+        cat_expected = {
+            "count": 144,
+            "mean": 0.13227361237314683,
+            "min": 0.1255205234979179,
+            "max": 0.15625,
+        }
+        assert_result(cat, cat_expected, self.df_tessellation, check_names=False)
+
+    def test_gini(self):
+        with pytest.raises(ValueError):
+            mm.gini(pd.Series(-1, self.df_tessellation.index), self.diversity_graph)
+
+        full_sw = mm.gini(self.df_tessellation["area"], self.diversity_graph)
+        full_sw_expected = {
+            "count": 144,
+            "mean": 0.38686076469743697,
+            "min": 0.24235274498955336,
+            "max": 0.6400687910616315,
+        }
+        assert_result(
+            full_sw, full_sw_expected, self.df_tessellation, check_names=False
+        )
+
+        # mismatch between interpolation methods
+        limit = mm.gini(self.df_tessellation["area"], self.diversity_graph, q=(10, 90))
+        limit_expected = {
+            "count": 144,
+            "mean": 0.2417437064941186,
+            "min": 0.14098983070917345,
+            "max": 0.3978182288393458,
+        }
+        assert_result(limit, limit_expected, self.df_tessellation, check_names=False)
+
+    def test_shannon(self):
+        with pytest.raises(ValueError):
+            mm.shannon(
+                self.df_tessellation.area, self.diversity_graph, binning="nonexistent"
+            )
+
+        ht_sw = mm.shannon(self.df_tessellation["area"], self.diversity_graph)
+        ht_sw_expected = {
+            "count": 144,
+            "mean": 0.8290031127861055,
+            "min": 0.4581441790615257,
+            "max": 1.1626998334975678,
+        }
+        assert_result(ht_sw, ht_sw_expected, self.df_tessellation, check_names=False)
+
+        quan_sw = mm.shannon(
+            self.df_tessellation["area"], self.diversity_graph, binning="quantiles", k=3
+        )
+        quan_sw_expected = {
+            "count": 144,
+            "mean": 1.0543108593712356,
+            "min": 0.8647400965276372,
+            "max": 1.0986122886681096,
+        }
+        assert_result(
+            quan_sw, quan_sw_expected, self.df_tessellation, check_names=False
+        )
+
+        self.df_tessellation["cat"] = list(range(8)) * 18
+        cat = mm.shannon(
+            self.df_tessellation.cat, self.diversity_graph, categorical=True
+        )
+        cat_expected = {
+            "count": 144,
+            "mean": 2.0493812749063793,
+            "min": 1.9561874676604514,
+            "max": 2.0774529508369457,
+        }
+        assert_result(cat, cat_expected, self.df_tessellation, check_names=False)
+
+    def test_unique(self):
+        self.df_tessellation["cat"] = list(range(8)) * 18
+        un = self.diversity_graph.describe(
+            self.df_tessellation["cat"], statistics=["nunique"]
+        )["nunique"]
+        un_expected = {"count": 144, "mean": 8.0, "min": 8, "max": 8}
+        assert_result(un, un_expected, self.df_tessellation, check_names=False)
+
+        self.df_tessellation.loc[0, "cat"] = np.nan
+
+        un_nan_drop = self.diversity_graph.describe(
+            self.df_tessellation["cat"], statistics=["nunique"]
+        )["nunique"]
+        un_nan_drop_expected = {"count": 144, "mean": 8.0, "min": 8, "max": 8}
+        assert_result(
+            un_nan_drop, un_nan_drop_expected, self.df_tessellation, check_names=False
+        )
+
+        # to count nas you have to explicitly process them npw
+        self.df_tessellation.loc[self.df_tessellation["cat"].isna(), "cat"] = "np.nan"
+        un_nan = self.diversity_graph.describe(
+            self.df_tessellation["cat"], statistics=["nunique"]
+        )["nunique"]
+        un_nan_expected = {"count": 144, "mean": 8.13888888888889, "min": 8, "max": 9}
+        assert_result(un_nan, un_nan_expected, self.df_tessellation, check_names=False)
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
-    def test_describe_reached(self):
+    def test_describe_agg(self):
         df = mm.describe_agg(
             self.df_buildings["area"],
             self.df_buildings["nID"],
             self.df_streets.index,
+        )
+
+        df_noindex = mm.describe_agg(
+            self.df_buildings["area"],
+            self.df_buildings["nID"],
         )
 
         # not testing std, there are different implementations:
@@ -218,6 +443,23 @@ class TestDescribe:
         assert_result(df["count"], expected_area_count, self.df_streets)
         assert_result(df["sum"], expected_area_sum, self.df_streets)
         assert_result(df["mean"], expected_area_mean, self.df_streets)
+
+        assert df_noindex.shape[0] == 22
+        assert_frame_equal(df_noindex, df[df["sum"].notna()], check_names=False)
+
+        filtered_counts = mm.describe_agg(
+            self.df_buildings["area"],
+            self.df_buildings["nID"],
+            q=(10, 90),
+            statistics=["count"],
+        )["count"]
+        expected_filtered_area_count = {
+            "min": 1,
+            "max": 14,
+            "count": 22,
+            "mean": 4.727272,
+        }
+        assert_result(filtered_counts, expected_filtered_area_count, df_noindex)
 
         df = mm.describe_agg(
             self.df_buildings["fl_area"].values,
@@ -250,16 +492,34 @@ class TestDescribe:
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
-    def test_describe_reached_sw(self):
+    def test_describe_reached_agg(self):
         df_sw = mm.describe_reached_agg(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
         )
-
-        # not using assert_result since the method
-        # is returning an aggregation, indexed based on nID
-        assert max(df_sw["count"]) == 138
         expected = {"min": 6, "max": 138, "count": 35, "mean": 67.8}
         assert_result(df_sw["count"], expected, self.df_streets, check_names=False)
+
+        df_sw_dummy_filtration = mm.describe_reached_agg(
+            self.df_buildings["fl_area"],
+            self.df_buildings["nID"],
+            graph=self.graph_sw,
+            q=(0, 100),
+        )
+        assert_frame_equal(
+            df_sw, df_sw_dummy_filtration, check_names=False, check_index_type=False
+        )
+
+        filtered_df = mm.describe_reached_agg(
+            self.df_buildings["fl_area"],
+            self.df_buildings["nID"],
+            graph=self.graph_sw,
+            q=(10, 90),
+            statistics=["count"],
+        )
+        filtered_expected = {"min": 4, "max": 110, "count": 35, "mean": 53.4571428}
+        assert_result(
+            filtered_df["count"], filtered_expected, self.df_streets, check_names=False
+        )
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
@@ -268,18 +528,13 @@ class TestDescribe:
         island_result_df = mm.describe_agg(
             self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
         )
-        island_result_series = mm.describe_agg(
-            self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
-        )
+
         island_result_ndarray = mm.describe_agg(
             self.df_buildings["area"].values,
             self.df_buildings["nID"].values,
             self.df_streets.index,
         )
 
-        assert np.allclose(
-            island_result_df.values, island_result_series.values, equal_nan=True
-        )
         assert np.allclose(
             island_result_df.values, island_result_ndarray.values, equal_nan=True
         )
@@ -302,6 +557,60 @@ class TestDescribe:
         )
 
         assert_frame_equal(pandas_agg_vals, numba_agg_vals)
+
+    def test_covered_area(self):
+        graph = (
+            Graph.build_contiguity(self.df_tessellation)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
+        covered_sw = graph.describe(self.df_tessellation.area, statistics=["sum"])[
+            "sum"
+        ]
+
+        covered_sw2 = graph.describe(
+            self.df_tessellation.area.values, statistics=["sum"]
+        )["sum"]
+
+        expected_covered_sw = {
+            "sum": 11526021.19027327,
+            "mean": 80041.81382134215,
+            "min": 26013.0106743472,
+            "max": 131679.18084183024,
+        }
+        assert_result(
+            covered_sw,
+            expected_covered_sw,
+            self.df_tessellation,
+            check_names=False,
+            exact=False,
+        )
+        assert_series_equal(
+            covered_sw, covered_sw2, check_names=False, check_index_type=False
+        )
+
+    def test_density(self):
+        graph = (
+            Graph.build_contiguity(self.df_tessellation, rook=False)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
+        fl_area = graph.describe(self.df_buildings["fl_area"])["sum"]
+        tess_area = graph.describe(self.df_tessellation["area"])["sum"]
+        dens_new = fl_area / tess_area
+        dens_expected = {
+            "count": 144,
+            "mean": 1.6615871155383324,
+            "max": 2.450536855278486,
+            "min": 0.9746481727569978,
+        }
+        assert_result(
+            dens_new,
+            dens_expected,
+            self.df_tessellation,
+            exact=False,
+            check_names=False,
+        )
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
@@ -491,6 +800,14 @@ class TestDescribeEquality:
 
         self.decay_graph = graph.transform(_distance_decay_weights)
 
+        # for diversity tests
+        self.sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
+        self.graph_diversity = (
+            Graph.build_contiguity(self.df_tessellation)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
+
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
@@ -584,6 +901,180 @@ class TestDescribeEquality:
             check_dtype=False,
             check_index_type=False,
         )
+
+    def test_values_range(self):
+        full_sw_new = mm.values_range(
+            self.df_tessellation["area"], self.graph_diversity
+        )
+        full_sw_old = mm.Range(self.df_tessellation, "area", self.sw, "uID").series
+        assert_series_equal(
+            full_sw_new, full_sw_old, check_dtype=False, check_names=False
+        )
+
+        limit_new = mm.values_range(
+            self.df_tessellation["area"], self.graph_diversity, q=(10, 90)
+        )
+        limit_old = mm.Range(
+            self.df_tessellation,
+            "area",
+            self.sw,
+            "uID",
+            interpolation="hazen",
+            rng=(10, 90),
+        ).series
+        assert_series_equal(limit_new, limit_old, check_dtype=False, check_names=False)
+
+    def test_theil(self):
+        full_sw_new = mm.theil(self.df_tessellation["area"], self.graph_diversity)
+        full_sw_old = mm.Theil(self.df_tessellation, "area", self.sw, "uID").series
+        assert_series_equal(
+            full_sw_new, full_sw_old, check_dtype=False, check_names=False
+        )
+
+        # old and new have different percentile interpolation methods
+        # therefore the comparison needs a higher rtol
+        limit_new = mm.theil(
+            self.df_tessellation["area"], self.graph_diversity, q=(10, 90)
+        )
+        limit_old = mm.Theil(
+            self.df_tessellation,
+            self.df_tessellation.area,
+            self.sw,
+            "uID",
+            rng=(10, 90),
+        ).series
+        assert_series_equal(
+            limit_new, limit_old, rtol=0.5, check_dtype=False, check_names=False
+        )
+
+        zeros_new = mm.theil(
+            pd.Series(np.zeros(len(self.df_tessellation)), self.df_tessellation.index),
+            self.graph_diversity,
+        )
+        zeros_old = mm.Theil(
+            self.df_tessellation, np.zeros(len(self.df_tessellation)), self.sw, "uID"
+        ).series
+        assert_series_equal(zeros_new, zeros_old, check_dtype=False, check_names=False)
+
+    def test_simpson(self):
+        ht_sw_new = mm.simpson(self.df_tessellation["area"], self.graph_diversity)
+        ht_sw_old = mm.Simpson(self.df_tessellation, "area", self.sw, "uID").series
+        assert_series_equal(ht_sw_new, ht_sw_old, check_dtype=False, check_names=False)
+
+        quan_sw_new = mm.simpson(
+            self.df_tessellation.area, self.graph_diversity, binning="quantiles", k=3
+        )
+        quan_sw_old = mm.Simpson(
+            self.df_tessellation,
+            self.df_tessellation.area,
+            self.sw,
+            "uID",
+            binning="quantiles",
+            k=3,
+        ).series
+        assert_series_equal(
+            quan_sw_new, quan_sw_old, check_dtype=False, check_names=False
+        )
+
+        gs_new = mm.simpson(
+            self.df_tessellation.area, self.graph_diversity, gini_simpson=True
+        )
+        gs_old = mm.Simpson(
+            self.df_tessellation, "area", self.sw, "uID", gini_simpson=True
+        ).series
+        assert_series_equal(gs_new, gs_old, check_dtype=False, check_names=False)
+
+        gs_new = mm.simpson(
+            self.df_tessellation.area, self.graph_diversity, inverse=True
+        )
+        gs_old = mm.Simpson(
+            self.df_tessellation, "area", self.sw, "uID", inverse=True
+        ).series
+        assert_series_equal(gs_new, gs_old, check_dtype=False, check_names=False)
+
+        self.df_tessellation["cat"] = list(range(8)) * 18
+        cat_new = mm.simpson(
+            self.df_tessellation.cat, self.graph_diversity, categorical=True
+        )
+        cat_old = mm.Simpson(
+            self.df_tessellation, "cat", self.sw, "uID", categorical=True
+        ).series
+        assert_series_equal(cat_new, cat_old, check_dtype=False, check_names=False)
+
+    def test_gini(self):
+        full_sw_new = mm.gini(self.df_tessellation["area"], self.graph_diversity)
+        full_sw_old = mm.Gini(self.df_tessellation, "area", self.sw, "uID").series
+        assert_series_equal(
+            full_sw_new, full_sw_old, check_dtype=False, check_names=False
+        )
+
+        # ## old and new have different interpolation methods
+        ## there need higher rtol
+        limit_new = mm.gini(
+            self.df_tessellation["area"], self.graph_diversity, q=(10, 90)
+        )
+        limit_old = mm.Gini(
+            self.df_tessellation, "area", self.sw, "uID", rng=(10, 90)
+        ).series
+        assert_series_equal(
+            limit_new, limit_old, rtol=0.3, check_dtype=False, check_names=False
+        )
+
+    def test_shannon(self):
+        ht_sw_new = mm.shannon(self.df_tessellation["area"], self.graph_diversity)
+        ht_sw_old = mm.Shannon(self.df_tessellation, "area", self.sw, "uID").series
+        assert_series_equal(ht_sw_new, ht_sw_old, check_dtype=False, check_names=False)
+
+        quan_sw_new = mm.shannon(
+            self.df_tessellation["area"], self.graph_diversity, binning="quantiles", k=3
+        )
+        quan_sw_old = mm.Shannon(
+            self.df_tessellation,
+            self.df_tessellation.area,
+            self.sw,
+            "uID",
+            binning="quantiles",
+            k=3,
+        ).series
+        assert_series_equal(
+            quan_sw_new, quan_sw_old, check_dtype=False, check_names=False
+        )
+
+        self.df_tessellation["cat"] = list(range(8)) * 18
+        cat_new = mm.shannon(
+            self.df_tessellation.cat, self.graph_diversity, categorical=True
+        )
+        cat_old = mm.Shannon(
+            self.df_tessellation, "cat", self.sw, "uID", categorical=True
+        ).series
+        assert_series_equal(cat_new, cat_old, check_dtype=False, check_names=False)
+
+    def test_unique(self):
+        self.df_tessellation["cat"] = list(range(8)) * 18
+        un_new = self.graph_diversity.describe(
+            self.df_tessellation["cat"], statistics=["nunique"]
+        )["nunique"]
+        un_old = mm.Unique(self.df_tessellation, "cat", self.sw, "uID").series
+        assert_series_equal(un_new, un_old, check_dtype=False, check_names=False)
+
+        self.df_tessellation.loc[0, "cat"] = np.nan
+        un_new = self.graph_diversity.describe(
+            self.df_tessellation["cat"], statistics=["nunique"]
+        )["nunique"]
+        un_old = mm.Unique(
+            self.df_tessellation, "cat", self.sw, "uID", dropna=True
+        ).series
+        assert_series_equal(un_new, un_old, check_dtype=False, check_names=False)
+
+        # to keep NAs you ahve to explicitly process them now
+        self.df_tessellation.loc[self.df_tessellation["cat"].isna(), "cat"] = "np.nan"
+        un_new = self.graph_diversity.describe(
+            self.df_tessellation["cat"], statistics=["nunique"]
+        )["nunique"]
+        un_old = mm.Unique(
+            self.df_tessellation, "cat", self.sw, "uID", dropna=False
+        ).series
+        assert_series_equal(un_new, un_old, check_dtype=False, check_names=False)
 
     def test_unweighted_percentile(self):
         sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")

@@ -3,6 +3,7 @@ import numpy as np
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
+from numpy.typing import NDArray
 from packaging.version import Version
 from pandas import Series
 from scipy import sparse
@@ -16,6 +17,7 @@ __all__ = [
     "building_adjacency",
     "neighbors",
     "street_alignment",
+    "cell_alignment",
 ]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
@@ -339,3 +341,38 @@ def street_alignment(
     Series
     """
     return (building_orientation - street_orientation.loc[street_index].values).abs()
+
+
+def cell_alignment(
+    left_orientation: NDArray[np.float64] | Series,
+    right_orientation: NDArray[np.float64] | Series,
+) -> Series:
+    """
+    Calculate the difference between cell orientation and the orientation of object.
+
+    .. math::
+        \\left|{\\textit{building orientation} - \\textit{cell orientation}}\\right|
+
+    Notes
+    -----
+    ``left_orientation`` and ``right_orientation`` must be aligned or have an index.
+
+    Parameters
+    ----------
+    left_orientation : np.array, pd.Series
+        The ``np.array``, or `pd.Series`` with orientation of cells.
+        This can be calculated using :func:`orientation`.
+    right_orientation : np.array, pd.Series
+        The ``np.array`` or ``pd.Series`` with orientation of objects.
+        This can be calculated using :func:`orientation`.
+
+    Returns
+    -------
+    Series
+    """
+
+    if not isinstance(left_orientation, Series):
+        left_orientation = Series(left_orientation)
+    if not isinstance(right_orientation, Series):
+        right_orientation = Series(right_orientation)
+    return (left_orientation - right_orientation).abs()
