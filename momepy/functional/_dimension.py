@@ -260,6 +260,47 @@ def street_profile(
     >>> streets_df['deviations'] = street_prof['width_deviation']
     """
 
+    # filter relevant buildings and streets
+    inp, res = streets.sindex.query(
+        buildings.geometry, predicate="dwithin", distance=tick_length // 2
+    )
+    buildings_near_streets = np.unique(inp)
+    streets_near_buildings = np.unique(res)
+    relevant_buildings = buildings.iloc[buildings_near_streets].reset_index(drop=True)
+    relevant_streets = streets.iloc[streets_near_buildings].reset_index(drop=True)
+    if height is not None:
+        height = height.iloc[buildings_near_streets].reset_index(drop=True)
+
+    # calculate street profile on a subset of the data
+    partial_res = _street_profile(
+        relevant_streets,
+        relevant_buildings,
+        distance=distance,
+        tick_length=tick_length,
+        height=height,
+    )
+
+    # return full result with defaults
+    final_res = pd.DataFrame(np.nan, index=streets.index, columns=partial_res.columns)
+    final_res.iloc[streets_near_buildings[partial_res.index.values]] = (
+        partial_res.values
+    )
+    ## streets with no buildings get the theoretical width and max openness
+    final_res.loc[final_res["width"].isna(), "width"] = tick_length
+    final_res.loc[final_res["openness"].isna(), "openness"] = 1
+
+    return final_res
+
+
+def _street_profile(
+    streets: GeoDataFrame,
+    buildings: GeoDataFrame,
+    distance: float = 10,
+    tick_length: float = 50,
+    height: None | Series = None,
+) -> DataFrame:
+    """Helper function that actually calculates the street profile characters."""
+
     ## generate points for every street at `distance` intervals
     segments = streets.segmentize(distance)
     coords, coord_indxs = shapely.get_coordinates(segments, return_index=True)

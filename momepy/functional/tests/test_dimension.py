@@ -147,6 +147,7 @@ class TestDimensions:
         assert_result(sp["height_deviation"], expected_hd, self.df_streets)
         assert_result(sp["hw_ratio"], expected_p, self.df_streets)
 
+    @pytest.mark.skipif(not GPD_013, reason="no attribute 'segmentize'")
     def test_street_profile_infinity(self):
         # avoid infinity
         from shapely import LineString, Point
