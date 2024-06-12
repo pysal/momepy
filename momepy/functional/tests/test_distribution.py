@@ -122,6 +122,23 @@ class TestDistribution:
         r = mm.street_alignment(building_orientation, street_orientation, street_index)
         assert_result(r, expected, self.df_buildings)
 
+    def test_cell_alignment(self):
+        df_buildings = self.df_buildings.reset_index()
+        df_tessellation = self.df_tessellation.reset_index()
+        blgori = mm.orientation(df_buildings)
+        tessori = mm.orientation(df_tessellation)
+
+        align = mm.cell_alignment(blgori, tessori)
+        align2 = mm.cell_alignment(blgori.values, tessori.values)
+        align_expected = {
+            "count": 144,
+            "mean": 2.604808585700,
+            "max": 33.201625570390746,
+            "min": 1.722848278973288e-05,
+        }
+        assert_result(align, align_expected, df_buildings)
+        assert_series_equal(align, align2, check_names=False)
+
 
 class TestEquality:
     def setup_method(self):
@@ -220,3 +237,17 @@ class TestEquality:
             right_network_id="index",
         ).series
         assert_series_equal(new, old, check_names=False, check_index=False)
+
+    def test_cell_alignment(self):
+        df_buildings = self.df_buildings.reset_index()
+        df_tessellation = self.df_tessellation.reset_index()
+        df_buildings["orient"] = blgori = mm.orientation(df_buildings)
+        df_tessellation["orient"] = tessori = mm.orientation(df_tessellation)
+
+        align_new = mm.cell_alignment(blgori, tessori)
+
+        align_old = mm.CellAlignment(
+            df_buildings, df_tessellation, "orient", "orient", "uID", "uID"
+        ).series
+
+        assert_series_equal(align_new, align_old, check_names=False, check_dtype=False)
