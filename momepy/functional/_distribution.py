@@ -355,14 +355,14 @@ def cell_alignment(
 
     Notes
     -----
-    ``left_orientations`` and ``right_orientations`` must be aligned or have an index.
+    ``left_orientation`` and ``right_orientation`` must be aligned or have an index.
 
     Parameters
     ----------
-    left_orientations : np.array, pd.Series
+    left_orientation : np.array, pd.Series
         The ``np.array``, or `pd.Series`` with orientation of cells.
         This can be calculated using :func:`orientation`.
-    right_orientations : np.array, pd.Series
+    right_orientation : np.array, pd.Series
         The ``np.array`` or ``pd.Series`` with orientation of objects.
         This can be calculated using :func:`orientation`.
 
@@ -372,7 +372,7 @@ def cell_alignment(
     """
 
     if not isinstance(left_orientation, Series):
-        left_orientations = Series(left_orientation)
+        left_orientation = Series(left_orientation)
     if not isinstance(right_orientation, Series):
-        right_orientations = Series(right_orientation)
-    return (left_orientations - right_orientations).abs()
+        right_orientation = Series(right_orientation)
+    return (left_orientation - right_orientation).abs()
