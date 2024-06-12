@@ -200,7 +200,7 @@ Additionally, there are methods for data assessment.
    FaceArtifacts
 
 
-Furhter analysis can be done directly using methods available in :class:`libpysal.graph.Graph`.
+Further analysis can be done directly using methods available in :class:`libpysal.graph.Graph`.
 
 .. toctree::
    :maxdepth: 1
