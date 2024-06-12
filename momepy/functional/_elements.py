@@ -270,6 +270,7 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify):
         tess[enclosure_id] = ix
         return tess
 
+    ## in case a single building is left in blg
     assigned_ix = ix if len(blg) == 1 else -1
 
     return GeoDataFrame(
