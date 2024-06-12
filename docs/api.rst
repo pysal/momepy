@@ -134,7 +134,7 @@ A set of functions to measure spatial diversity of elements and their values:
    values_range
 
 
-Underlying components of :func:`shannon` and :func:`simpson` are also exposed for a direct use:
+Underlying components of :func:`shannon` and :func:`simpson` are also exposed for direct use:
 
 
 .. autosummary::
