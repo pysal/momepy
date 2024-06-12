@@ -261,7 +261,7 @@ def street_profile(
     """
 
     # filter relevant buildings and streets
-    inp, res = streets.sindex.query(
+    inp, res = shapely.STRtree(streets.geometry).query(
         buildings.geometry, predicate="dwithin", distance=tick_length // 2
     )
     buildings_near_streets = np.unique(inp)
