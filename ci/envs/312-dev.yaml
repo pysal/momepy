@@ -3,7 +3,6 @@ channels:
   - conda-forge
 dependencies:
   - python=3.12
-  - inequality
   - packaging
   - tqdm
   # - numba
@@ -22,5 +21,6 @@ dependencies:
       - git+https://github.com/networkx/networkx.git
       - git+https://github.com/pysal/mapclassify.git
       - git+https://github.com/pysal/esda.git
+      - git+https://github.com/pysal/inequality.git
       - osmnx
       - scikit-learn
