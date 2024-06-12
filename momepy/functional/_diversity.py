@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from packaging.version import Version
 from pandas import DataFrame, Series
 
-import momepy as mm
+from ..diversity import shannon_diversity, simpson_diversity
 
 try:
     from numba import njit
@@ -171,7 +171,7 @@ def describe(
 
     Notes
     -----
-    The index of ``values`` must match the index along which the ``graph`` is
+    The index of ``y`` must match the index along which the ``graph`` is
     built.
 
     The numba package is used extensively in this function to accelerate the computation
@@ -219,10 +219,15 @@ def describe(
 
 def values_range(
     y: Series | NDArray[np.float64], graph: Graph, q: tuple | list = (0, 100)
-):
+) -> Series:
     """Calculates the range of values within neighbours defined in ``graph``.
 
     Adapted from :cite:`dibble2017`.
+
+    Notes
+    -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
 
     Parameters
     ----------
@@ -247,13 +252,14 @@ def values_range(
     ...                                               q=(25, 75))
     """
 
-    stats = mm.percentile(y, graph, q=q)
+    stats = percentile(y, graph, q=q)
     return stats[max(q)] - stats[min(q)]
 
 
-def theil(y: Series, graph: Graph, q: tuple | list | None = None):
+def theil(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
     """Calculates the Theil measure of inequality of values within neighbours defined in
     ``graph``.
+
     Uses ``inequality.theil.Theil`` under the hood. Requires '`inequality`' package.
 
     .. math::
@@ -263,6 +269,11 @@ def theil(y: Series, graph: Graph, q: tuple | list | None = None):
                 N \\frac{y_i} {\\sum_{i=1}^n y_i}
             \\right]
         \\right)
+
+    Notes
+    -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
 
     Parameters
     ----------
@@ -309,7 +320,7 @@ def simpson(
     inverse: bool = False,
     categorical: bool = False,
     **classification_kwds,
-):
+) -> Series:
     """Calculates the Simpson's diversity index of values within neighbours defined in
     ``graph``.
     Uses ``mapclassify.classifiers`` under the hood for binning.
@@ -320,6 +331,11 @@ def simpson(
         \\lambda=\\sum_{i=1}^{R} p_{i}^{2}
 
     Adapted from :cite:`feliciotti2018`.
+
+    Notes
+    -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
 
     Parameters
     ----------
@@ -366,7 +382,7 @@ def simpson(
         bins = None
 
     def _apply_simpson_diversity(values):
-        return mm.simpson_diversity(
+        return simpson_diversity(
             values,
             bins,
             categorical=categorical,
@@ -388,7 +404,7 @@ def shannon(
     categorical: bool = False,
     categories: list | None = None,
     **classification_kwds,
-):
+) -> Series:
     """Calculates the Shannon index of values within neighbours defined in
     ``graph``.
     Uses ``mapclassify.classifiers`` under the hood
@@ -397,6 +413,11 @@ def shannon(
     .. math::
 
         H^{\\prime}=-\\sum_{i=1}^{R} p_{i} \\ln p_{i}
+
+    Notes
+    -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
 
     Parameters
     ----------
@@ -441,16 +462,19 @@ def shannon(
         bins = categories
 
     def _apply_shannon(values):
-        return mm.shannon_diversity(values, bins, categorical, categories)
+        return shannon_diversity(values, bins, categorical, categories)
 
     return graph.apply(y, _apply_shannon)
 
 
-def gini(y: Series, graph: Graph, q: tuple | list | None = None):
+def gini(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
     """Calculates the Gini index of values within neighbours defined in ``graph``.
     Uses ``inequality.gini.Gini`` under the hood. Requires '`inequality`' package.
 
-    .. math::
+    Notes
+    -----
+    The index of ``y`` must match the index along which the ``graph`` is
+    built.
 
     Parameters
     ----------
