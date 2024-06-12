@@ -125,8 +125,8 @@ class TestDistribution:
     def test_cell_alignment(self):
         df_buildings = self.df_buildings.reset_index()
         df_tessellation = self.df_tessellation.reset_index()
-        df_buildings["orient"] = blgori = mm.Orientation(df_buildings).series
-        df_tessellation["orient"] = tessori = mm.Orientation(df_tessellation).series
+        df_buildings["orient"] = blgori = mm.orientation(df_buildings)
+        df_tessellation["orient"] = tessori = mm.orientation(df_tessellation)
 
         align = mm.cell_alignment(blgori, tessori)
         align2 = mm.cell_alignment(blgori.values, tessori.values)
@@ -241,8 +241,8 @@ class TestEquality:
     def test_cell_alignment(self):
         df_buildings = self.df_buildings.reset_index()
         df_tessellation = self.df_tessellation.reset_index()
-        df_buildings["orient"] = blgori = mm.Orientation(df_buildings).series
-        df_tessellation["orient"] = tessori = mm.Orientation(df_tessellation).series
+        df_buildings["orient"] = blgori = mm.orientation(df_buildings)
+        df_tessellation["orient"] = tessori = mm.orientation(df_tessellation)
 
         align_new = mm.cell_alignment(blgori, tessori)
 
