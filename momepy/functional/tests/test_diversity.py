@@ -304,6 +304,37 @@ class TestDescribe:
 
         assert_frame_equal(pandas_agg_vals, numba_agg_vals)
 
+    def test_covered_area(self):
+        graph = (
+            Graph.build_contiguity(self.df_tessellation)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
+        covered_sw = graph.describe(self.df_tessellation.area, statistics=["sum"])[
+            "sum"
+        ]
+
+        covered_sw2 = graph.describe(
+            self.df_tessellation.area.values, statistics=["sum"]
+        )["sum"]
+
+        expected_covered_sw = {
+            "sum": 11526021.19027327,
+            "mean": 80041.81382134215,
+            "min": 26013.0106743472,
+            "max": 131679.18084183024,
+        }
+        assert_result(
+            covered_sw,
+            expected_covered_sw,
+            self.df_tessellation,
+            check_names=False,
+            exact=False,
+        )
+        assert_series_equal(
+            covered_sw, covered_sw2, check_names=False, check_index_type=False
+        )
+
     def test_density(self):
         graph = (
             Graph.build_contiguity(self.df_tessellation, rook=False)

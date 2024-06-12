@@ -11,6 +11,7 @@ __all__ = [
     "courtyard_area",
     "longest_axis_length",
     "perimeter_wall",
+    "weighted_character",
 ]
 
 
@@ -119,8 +120,7 @@ def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
 def perimeter_wall(
     geometry: GeoDataFrame | GeoSeries, graph: Graph | None = None
 ) -> Series:
-    """
-    Calculate the perimeter wall length the joined structure.
+    """Calculate the perimeter wall length the joined structure.
 
     Parameters
     ----------
@@ -157,3 +157,47 @@ def perimeter_wall(
     ].values
 
     return results
+
+
+def weighted_character(
+    y: NDArray[np.float_] | Series, area: NDArray[np.float_] | Series, graph: Graph
+) -> Series:
+    """Calculates the weighted character.
+
+    Character weighted by the area of the objects within neighbors defined in ``graph``.
+    Results are index based on ``graph``.
+
+    .. math::
+        \\frac{\\sum_{i=1}^{n} {character_{i} * area_{i}}}{\\sum_{i=1}^{n} area_{i}}
+
+    Adapted from :cite:`dibble2017`.
+
+    Notes
+    -----
+    The index of ``y`` and ``area`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    y : NDArray[np.float_] | Series
+        The character values to be weighted.
+    area : NDArray[np.float_] | Series
+        The area values to be used as weightss
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for values and areas.
+
+    Returns
+    -------
+    Series
+        A Series containing the resulting values.
+
+    Examples
+    --------
+    >>> res = mm.weighted_character(buildings_df['height'],
+    ...                     buildings_df.geometry.area, graph)
+    """
+
+    stats = graph.describe(y * area, statistics=["sum"])["sum"]
+    agg_area = graph.describe(area, statistics=["sum"])["sum"]
+
+    return stats / agg_area
