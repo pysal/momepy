@@ -1103,7 +1103,7 @@ def consolidate_intersections(
         edge attribute with the valid destination node id
 
     Returns
-    ----------
+    -------
     Networkx.MultiGraph or Networkx.MultiDiGraph
         directionality inferred from input type
 

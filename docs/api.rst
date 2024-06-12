@@ -4,101 +4,152 @@
 
 .. currentmodule:: momepy
 
-
 momepy API reference
 ======================
 
-elements
---------
+The current version of momepy includes two implementations of most of the functionality
+due to the ongoing migration period moving from the legacy class-based API to new
+function-based API. This page outlines the stable API. For the legacy functionality, see
+:doc:`Legacy API  <legacy_api>`.
+
+Managing morphological elements
+-------------------------------
+.. _elements:
+
+Momepy allows creation of a small subset of bespoke morphological geometric features.
 
 .. autosummary::
-   :toctree: generated/
+   :toctree: api/
 
-   Blocks
-   buffered_limit
-   COINS
+   morphological_tessellation
+   enclosed_tessellation
    enclosures
-   get_network_id
+   generate_blocks
+
+Additionally, it contains tools supporting these.
+
+.. autosummary::
+   :toctree: api/
+
+   buffered_limit
+   verify_tessellation
+
+And tools linking various elements together.
+
+.. autosummary::
+   :toctree: api/
+
+   get_nearest_street
    get_network_ratio
    get_node_id
-   Tessellation
 
-dimension
----------
+Measuring dimension
+-------------------
 
-.. autosummary::
-   :toctree: generated/
-
-   Area
-   AverageCharacter
-   CourtyardArea
-   CoveredArea
-   FloorArea
-   LongestAxisLength
-   Perimeter
-   PerimeterWall
-   SegmentsLength
-   StreetProfile
-   Volume
-   WeightedCharacter
-
-shape
------
+A set of functions to measure dimensions of geometric elements:
 
 .. autosummary::
-  :toctree: generated/
+   :toctree: api/
 
-  CentroidCorners
-  CircularCompactness
-  CompactnessWeightedAxis
-  Convexity
-  Corners
-  CourtyardIndex
-  Elongation
-  EquivalentRectangularIndex
-  FormFactor
-  FractalDimension
-  Linearity
-  Rectangularity
-  ShapeIndex
-  SquareCompactness
-  Squareness
-  VolumeFacadeRatio
+   courtyard_area
+   floor_area
+   longest_axis_length
+   perimeter_wall
+   street_profile
+   volume
+   weighted_character
 
-spatial distribution
---------------------
+Measuring shape
+---------------
+
+A set of functions to measure shape of geometric elements:
+
 .. autosummary::
-  :toctree: generated/
+   :toctree: api/
 
-  Alignment
-  BuildingAdjacency
-  CellAlignment
-  MeanInterbuildingDistance
-  NeighborDistance
-  NeighboringStreetOrientationDeviation
-  Neighbors
-  Orientation
-  SharedWalls
-  SharedWallsRatio
-  StreetAlignment
+   centroid_corner_distance
+   circular_compactness
+   compactness_weighted_axis
+   convexity
+   corners
+   courtyard_index
+   elongation
+   equivalent_rectangular_index
+   facade_ratio
+   form_factor
+   fractal_dimension
+   linearity
+   rectangularity
+   shape_index
+   square_compactness
+   squareness
 
-intensity
----------
+Measuring spatial distribution
+------------------------------
+
+A set of functions to measure spatial distribution of geometric elements:
+
 .. autosummary::
-   :toctree: generated/
+   :toctree: api/
 
-   AreaRatio
-   BlocksCount
-   Count
-   Courtyards
-   Density
-   NodeDensity
-   Reached
+   alignment
+   building_adjacency
+   cell_alignment
+   mean_interbuilding_distance
+   neighbor_distance
+   neighbors
+   orientation
+   shared_walls
+   street_alignment
 
-graph
-------------
+Measuring intensity
+-------------------
+
+A set of functions to measure intensity characters:
+
 .. autosummary::
-   :toctree: generated/
+   :toctree: api/
+
+   courtyards
+   node_density
+
+Note that additional intensity characters can be directly derived using :meth:`libpysal.graph.Graph.describe`
+and functions :func:`describe_agg` and :func:`describe_reached_agg` belonging to the diversity module.
+
+Measuring diversity
+-------------------
+
+A set of functions to measure spatial diversity of elements and their values:
+
+.. autosummary::
+   :toctree: api/
+
+   describe_agg
+   describe_reached_agg
+   gini
+   percentile
+   shannon
+   simpson
+   theil
+   values_range
+
+
+Underlying components of :func:`shannon` and :func:`simpson` are also exposed for a direct use:
+
+
+.. autosummary::
+   :toctree: api/
+
+   shannon_diversity
+   simpson_diversity
+
+Measuring connectivity
+----------------------
+
+A set of functions for the analysis of connectivity and configuration of street networks:
+
+.. autosummary::
+   :toctree: api/
 
    betweenness_centrality
    cds_length
@@ -115,52 +166,44 @@ graph
    proportion
    straightness_centrality
    subgraph
+   COINS
 
-diversity
----------
+With utilities allowing conversion between networkx objects and GeoPandas objects.
+
 .. autosummary::
-   :toctree: generated/
-
-   Gini
-   Percentiles
-   Range
-   Shannon
-   Simpson
-   Theil
-   Unique
-
-   shannon_diversity
-   simpson_diversity
-
-spatial weights
----------------
-.. autosummary::
-   :toctree: generated/
-
-   DistanceBand
-   sw_high
-
-preprocessing
--------------
-.. autosummary::
-   :toctree: generated/
-
-   close_gaps
-   consolidate_intersections
-   CheckTessellationInput
-   extend_lines
-   FaceArtifacts
-   remove_false_nodes
-   preprocess
-   roundabout_simplification
-
-
-utilities
----------
-.. autosummary::
-   :toctree: generated/
+   :toctree: api/
 
    gdf_to_nx
-   limit_range
    nx_to_gdf
-   unique_id
+
+Data preprocessing
+------------------
+
+Most of the algorithms have certain expectations about the quality of input data. The
+`preprocessing` module helps adapting the input data and fixing common issues.
+
+.. autosummary::
+   :toctree: api/
+
+   close_gaps
+   extend_lines
+   remove_false_nodes
+   consolidate_intersections
+   roundabout_simplification
+
+Additionally, there are methods for data assesment.
+
+.. autosummary::
+   :toctree: api/
+
+   CheckTessellationInput
+   FaceArtifacts
+
+
+Furhter analysis can be done directly using methods available in :class:`libpysal.graph.Graph`.
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   legacy_api
