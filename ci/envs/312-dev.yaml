@@ -24,6 +24,7 @@ dependencies:
   - pip:
       - --pre --index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --extra-index-url https://pypi.org/simple
       - numpy
+      - pandas
       - git+https://github.com/geopandas/geopandas.git
       - git+https://github.com/pysal/libpysal.git
       - git+https://github.com/networkx/networkx.git
