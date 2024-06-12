@@ -1518,7 +1518,7 @@ class FaceArtifacts:
         ['circlular_compactness', 'isoperimetric_quotient', 'diameter_ratio'], by
         default "circular_compactness"
     height_mins : float, optional
-        Required depth of valleys, by default np.NINF
+        Required depth of valleys, by default -np.inf
     height_maxs : float, optional
         Required height of peaks, by default 0.008
     prominence : float, optional
@@ -1560,7 +1560,7 @@ class FaceArtifacts:
         self,
         gdf,
         index="circular_compactness",
-        height_mins=np.NINF,
+        height_mins=-np.inf,
         height_maxs=0.008,
         prominence=0.00075,
     ):
