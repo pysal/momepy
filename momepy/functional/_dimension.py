@@ -160,7 +160,7 @@ def perimeter_wall(
 
 
 def weighted_character(
-    y: NDArray[np.float_] | Series, areas: NDArray[np.float_] | Series, graph: Graph
+    y: NDArray[np.float_] | Series, area: NDArray[np.float_] | Series, graph: Graph
 ) -> Series:
     """Calculates the weighted character.
 
@@ -172,11 +172,16 @@ def weighted_character(
 
     Adapted from :cite:`dibble2017`.
 
+    Notes
+    -----
+    The index of ``y`` and ``area`` must match the index along which the ``graph`` is
+    built.
+
     Parameters
     ----------
-    y : pd.Series
+    y : NDArray[np.float_] | Series
         The character values to be weighted.
-    values : pd.Series
+    area : NDArray[np.float_] | Series
         The area values to be used as weightss
     graph : libpysal.graph.Graph
         A spatial weights matrix for values and areas.
@@ -192,7 +197,7 @@ def weighted_character(
     ...                     buildings_df.geometry.area, graph)
     """
 
-    stats = graph.describe(y * areas, statistics=["sum"])["sum"]
-    agg_area = graph.describe(areas, statistics=["sum"])["sum"]
+    stats = graph.describe(y * area, statistics=["sum"])["sum"]
+    agg_area = graph.describe(area, statistics=["sum"])["sum"]
 
     return stats / agg_area
