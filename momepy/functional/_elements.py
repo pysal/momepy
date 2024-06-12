@@ -15,7 +15,7 @@ from pandas import Series
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
-SHPLY_GE_205 = Version(shapely.__version__) >= Version("2.0.5")
+SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1")
 
 __all__ = [
     "morphological_tessellation",
@@ -171,6 +171,9 @@ def enclosed_tessellation(
     momepy.verify_tessellation
     """
 
+    if simplify and not SHPLY_GE_210:
+        raise ImportError("Coverage simplification requires shapely 2.0.5 or higher.")
+
     # convert to GeoDataFrame and add position (we will need it later)
     enclosures = enclosures.geometry.to_frame()
     enclosures["position"] = range(len(enclosures))
@@ -194,17 +197,6 @@ def enclosed_tessellation(
     splits = unique[counts > 1]
     single = unique[counts == 1]
     altered = unique[counts > 0]
-
-    if simplify:
-        if not SHPLY_GE_205:
-            raise ImportError(
-                "Coverage simplification requires shapely 2.0.5 or higher."
-            )
-        from shapely import coverage_simplify
-
-        ##simplify singles here and let the threads simplify the actual tesselations
-        simplified = coverage_simplify(enclosures.iloc[single], 1e-1)
-        enclosures.iloc[single, 0] = simplified
 
     # prepare input for parallel processing
     tuples = [
@@ -259,8 +251,6 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify):
             shapely.area(shapely.intersection(blg.geometry.array, poly))
             > (shapely.area(blg.geometry.array) * threshold)
         ]
-    if to_simplify:
-        from shapely import coverage_simplify
 
     if len(blg) >= 1:
         tess = voronoi_frames(
@@ -272,12 +262,13 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify):
             as_gdf=True,
         )
         if to_simplify:
-            tess.geometry = coverage_simplify(tess.geometry, 1e-1)
+            from shapely import coverage_simplify
+
+            tess.geometry = coverage_simplify(
+                tess.geometry, tolerance=1e-1, simplify_boundary=False
+            )
         tess[enclosure_id] = ix
         return tess
-
-    if to_simplify:
-        poly = coverage_simplify(poly, 1e-1)
 
     return GeoDataFrame(
         {enclosure_id: ix},
