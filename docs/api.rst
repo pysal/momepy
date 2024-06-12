@@ -191,7 +191,7 @@ Most of the algorithms have certain expectations about the quality of input data
    consolidate_intersections
    roundabout_simplification
 
-Additionally, there are methods for data assesment.
+Additionally, there are methods for data assessment.
 
 .. autosummary::
    :toctree: api/
