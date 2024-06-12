@@ -252,7 +252,7 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify):
             > (shapely.area(blg.geometry.array) * threshold)
         ]
 
-    if len(blg) >= 1:
+    if len(blg) > 1:
         tess = voronoi_frames(
             blg,
             clip=poly,
@@ -270,10 +270,12 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify):
         tess[enclosure_id] = ix
         return tess
 
+    assigned_ix = ix if len(blg) == 1 else -1
+
     return GeoDataFrame(
         {enclosure_id: ix},
         geometry=[poly],
-        index=[-1],
+        index=[assigned_ix],
         crs=blg.crs,
     )
 
