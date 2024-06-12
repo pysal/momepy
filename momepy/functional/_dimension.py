@@ -15,6 +15,7 @@ __all__ = [
     "longest_axis_length",
     "perimeter_wall",
     "street_profile",
+    "weighted_character",
 ]
 
 try:
@@ -131,8 +132,7 @@ def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
 def perimeter_wall(
     geometry: GeoDataFrame | GeoSeries, graph: Graph | None = None
 ) -> Series:
-    """
-    Calculate the perimeter wall length the joined structure.
+    """Calculate the perimeter wall length the joined structure.
 
     Parameters
     ----------
@@ -171,12 +171,56 @@ def perimeter_wall(
     return results
 
 
+def weighted_character(
+    y: NDArray[np.float_] | Series, area: NDArray[np.float_] | Series, graph: Graph
+) -> Series:
+    """Calculates the weighted character.
+
+    Character weighted by the area of the objects within neighbors defined in ``graph``.
+    Results are index based on ``graph``.
+
+    .. math::
+        \\frac{\\sum_{i=1}^{n} {character_{i} * area_{i}}}{\\sum_{i=1}^{n} area_{i}}
+
+    Adapted from :cite:`dibble2017`.
+
+    Notes
+    -----
+    The index of ``y`` and ``area`` must match the index along which the ``graph`` is
+    built.
+
+    Parameters
+    ----------
+    y : NDArray[np.float_] | Series
+        The character values to be weighted.
+    area : NDArray[np.float_] | Series
+        The area values to be used as weightss
+    graph : libpysal.graph.Graph
+        A spatial weights matrix for values and areas.
+
+    Returns
+    -------
+    Series
+        A Series containing the resulting values.
+
+    Examples
+    --------
+    >>> res = mm.weighted_character(buildings_df['height'],
+    ...                     buildings_df.geometry.area, graph)
+    """
+
+    stats = graph.describe(y * area, statistics=["sum"])["sum"]
+    agg_area = graph.describe(area, statistics=["sum"])["sum"]
+
+    return stats / agg_area
+
+
 def street_profile(
     streets: GeoDataFrame,
     buildings: GeoDataFrame,
     distance: float = 10,
     tick_length: float = 50,
-    heights: None | Series = None,
+    height: None | Series = None,
 ) -> DataFrame:
     """Calculates the street profile characters.
 
@@ -200,7 +244,7 @@ def street_profile(
         The distance between perpendicular ticks.
     tick_length : int (default 50)
         The length of ticks.
-    heights: pd.Series (default None)
+    height: pd.Series (default None)
         The ``pd.Series`` where building height are stored. If set to ``None``,
         height and ratio height/width will not be calculated.
 
@@ -211,10 +255,9 @@ def street_profile(
     Examples
     --------
     >>> street_prof = momepy.street_profile(streets_df,
-    ...                 buildings_df, heights=buildings_df['height'])
-    100%|██████████| 33/33 [00:02<00:00, 15.66it/s]
-    >>> streets_df['width'] = street_prof.w
-    >>> streets_df['deviations'] = street_prof.wd
+    ...                 buildings_df, height=buildings_df['height'])
+    >>> streets_df['width'] = street_prof['width']
+    >>> streets_df['deviations'] = street_prof['width_deviation']
     """
 
     ## generate points for every street at `distance` intervals
@@ -230,30 +273,49 @@ def street_profile(
 
     ## find the length of intersection of the nearest building for every tick
     inp, res = buildings.geometry.sindex.query(ticks, predicate="intersects")
-    intersections = shapely.intersection(ticks[inp], buildings.boundary.array[res])
+    intersections = shapely.intersection(ticks[inp], buildings.geometry.array[res])
     distances = shapely.distance(intersections, shapely.points(coords[inp // 2]))
+
+    # streets which intersect buildings have 0 distance to them
+    distances[np.isnan(distances)] = 0
     min_distances = pd.Series(distances).groupby(inp).min()
     dists = np.full((len(ticks),), np.nan)
     dists[min_distances.index.values] = min_distances.values
 
     ## generate tick values and groupby street
     tick_coords = np.repeat(coord_indxs, 2)
-    street_res = (
-        pd.Series(dists)
-        .groupby(tick_coords)
-        .apply(generate_street_tick_values, tick_length)
+    ## multiple agg to avoid custom apply
+    left_ticks = (
+        pd.Series(dists[::2])
+        .groupby(tick_coords[::2])
+        .mean()
+        .replace(np.nan, tick_length // 2)
     )
-    njit_result = np.concatenate(street_res).reshape((-1, 3))
-    njit_result[np.isnan(njit_result[:, 0]), 0] = tick_length
+    right_ticks = (
+        pd.Series(dists[1::2])
+        .groupby(tick_coords[1::2])
+        .mean()
+        .replace(np.nan, tick_length // 2)
+    )
+    w = left_ticks + right_ticks
+
+    grouper = pd.Series(dists).groupby(tick_coords)
+    openness_agg = grouper.agg(["size", "count"])
+    # proportion of NAs
+    o = (openness_agg["size"] - openness_agg["count"]) / openness_agg["size"]
+    # needs to be seperate to pass ddof
+    wd = grouper.std(ddof=0)
 
     final_result = pd.DataFrame(
         np.nan, columns=["width", "openness", "width_deviation"], index=streets.index
     )
-    final_result.loc[street_res.index] = njit_result
+    final_result["width"] = w
+    final_result["openness"] = o
+    final_result["width_deviation"] = wd
 
     ## if heights are available add heights stats to the result
-    if heights is not None:
-        min_heights = heights[res].groupby(inp).min()
+    if height is not None:
+        min_heights = height.loc[res].groupby(inp).min()
         tick_heights = np.full((len(ticks),), np.nan)
         tick_heights[min_heights.index.values] = min_heights.values
         heights_res = pd.Series(tick_heights).groupby(tick_coords).agg(["mean", "std"])
@@ -315,20 +377,3 @@ def generate_ticks(list_points, end_markers, tick_length):
             )
 
     return ticks
-
-
-def generate_street_tick_values(group, tick_length):
-    s = group.values
-
-    lefts = s[::2]
-    rights = s[1::2]
-    left_mean = np.nanmean(lefts) if ~np.isnan(lefts).all() else tick_length / 2
-    right_mean = np.nanmean(rights) if ~np.isnan(rights).all() else tick_length / 2
-    width = np.mean([left_mean, right_mean]) * 2
-    f_sum = s.shape[0]
-    s_nan = np.isnan(s)
-
-    openness_score = np.nan if not f_sum else s_nan.sum() / f_sum  # how few buildings
-
-    deviation_score = np.nan if s_nan.all() else np.nanstd(s)  # deviation of buildings
-    return [width, openness_score, deviation_score]

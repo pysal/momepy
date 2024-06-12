@@ -21,6 +21,11 @@ class TestDimensions:
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
+        self.graph = (
+            Graph.build_contiguity(self.df_tessellation)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
 
     def test_volume(self):
         # pandas
@@ -95,7 +100,7 @@ class TestDimensions:
             self.df_buildings,
             tick_length=50,
             distance=1,
-            heights=self.df_buildings["height"],
+            height=self.df_buildings["height"],
         )
 
         expected_w = {
@@ -156,8 +161,26 @@ class TestDimensions:
         lines = gpd.GeoDataFrame(
             geometry=[LineString([(-8, -8), (8, 8)]), LineString([(15, -10), (15, 10)])]
         )
-        assert mm.StreetProfile(lines, blg, "height", 2).p.equals(
-            pd.Series([np.nan, 0.35])
+        assert mm.street_profile(lines, blg, height=blg["height"], distance=2)[
+            "hw_ratio"
+        ].equals(pd.Series([np.nan, 0.35]))
+
+    def test_weighted_char(self):
+        weighted = mm.weighted_character(
+            self.df_buildings.height, self.df_buildings.area, self.graph
+        )
+        weighted_expected = {
+            "sum": 2703.7438005082204,
+            "mean": 18.775998614640418,
+            "min": 11.005171818893885,
+            "max": 25.424162063245504,
+        }
+        assert_result(
+            weighted,
+            weighted_expected,
+            self.df_tessellation,
+            check_names=False,
+            exact=False,
         )
 
 
@@ -167,6 +190,13 @@ class TestDimensionEquivalence:
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
+        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
+        self.sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
+        self.graph = (
+            Graph.build_contiguity(self.df_tessellation)
+            .higher_order(k=3, lower_order=True)
+            .assign_self_weight()
+        )
 
     @pytest.mark.skipif(not GPD_013, reason="no attribute 'segmentize'")
     def test_street_profile(self):
@@ -175,7 +205,7 @@ class TestDimensionEquivalence:
             self.df_buildings,
             tick_length=50,
             distance=1,
-            heights=self.df_buildings["height"],
+            height=self.df_buildings["height"],
         )
         sp_old = mm.StreetProfile(
             self.df_streets,
@@ -205,4 +235,24 @@ class TestDimensionEquivalence:
         )
         assert_series_equal(
             sp_new["hw_ratio"].replace(np.nan, 0), sp_old.p, check_names=False, rtol=1
+        )
+
+    def test_covered_area(self):
+        covered_sw_new = self.graph.describe(
+            self.df_tessellation.area, statistics=["sum"]
+        )["sum"]
+        covered_sw_old = mm.CoveredArea(self.df_tessellation, self.sw, "uID").series
+        assert_series_equal(
+            covered_sw_new, covered_sw_old, check_names=False, check_index_type=False
+        )
+
+    def test_weighted_char(self):
+        weighted_new = mm.weighted_character(
+            self.df_buildings.height, self.df_buildings.area, self.graph
+        )
+        weighted_old = mm.WeightedCharacter(
+            self.df_buildings, "height", self.sw, "uID"
+        ).series
+        assert_series_equal(
+            weighted_new, weighted_old, check_names=False, check_index_type=False
         )
