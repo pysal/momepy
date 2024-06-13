@@ -15,7 +15,7 @@ from pandas import Series
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
-SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0dev")
+SHPLY_GE_250 = Version(shapely.__version__) >= Version("2.5.0dev")
 
 __all__ = [
     "morphological_tessellation",
@@ -171,8 +171,8 @@ def enclosed_tessellation(
     momepy.verify_tessellation
     """
 
-    if simplify and not SHPLY_GE_210:
-        raise ImportError("Coverage simplification requires shapely 2.0.5 or higher.")
+    if simplify and not SHPLY_GE_250:
+        raise ImportError("Coverage simplification requires shapely 2.5 or higher.")
 
     # convert to GeoDataFrame and add position (we will need it later)
     enclosures = enclosures.geometry.to_frame()

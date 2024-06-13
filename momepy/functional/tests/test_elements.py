@@ -14,7 +14,7 @@ import momepy as mm
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
-SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0dev")
+SHPLY_GE_250 = Version(shapely.__version__) >= Version("2.5.0dev")
 
 
 class TestElements:
@@ -286,7 +286,7 @@ class TestElements:
         else:
             assert len(blocks.sindex.query_bulk(blocks.geometry, "overlaps")[0]) == 0
 
-    @pytest.mark.skipif(not SHPLY_GE_210, reason="coverage_simplify required")
+    @pytest.mark.skipif(not SHPLY_GE_250, reason="coverage_simplify required")
     def test_simplified_tesselations(self):
         n_workers = -1
         tessellations = mm.enclosed_tessellation(
