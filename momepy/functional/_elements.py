@@ -159,7 +159,7 @@ def enclosed_tessellation(
     coverage. To build a contiguity graph, use fuzzy contiguity builder with a small
     buffer, e.g.::
 
-        from libpysal imoprt graph
+        from libpysal import graph
 
         graph.Graph.build_fuzzy_contiguity(tessellation, buffer=1e-8)
 
