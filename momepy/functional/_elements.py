@@ -43,15 +43,15 @@ def morphological_tessellation(
     and there are three particular patterns causing issues:
 
     1. Features will collapse into empty polygon - these
-        do not have tessellation cell in the end.
+       do not have tessellation cell in the end.
     2. Features will split into MultiPolygons - in some cases,
-        features with narrow links between parts split into two
-        during 'shrinking'. In most cases that is not an issue
-        and the resulting tessellation is correct anyway, but
-        sometimes this results in a cell being a MultiPolygon,
-        which is not correct.
+       features with narrow links between parts split into two
+       during 'shrinking'. In most cases that is not an issue
+       and the resulting tessellation is correct anyway, but
+       sometimes this results in a cell being a MultiPolygon,
+       which is not correct.
     3. Overlapping features - features which overlap even
-        after 'shrinking' cause invalid tessellation geometry.
+       after 'shrinking' cause invalid tessellation geometry.
 
     All three types can be tested using :class:`momepy.CheckTessellationInput`.
 
@@ -115,14 +115,14 @@ def enclosed_tessellation(
     particular patterns causing issues:
 
     1. Features will collapse into empty polygon - these
-        do not have tessellation cell in the end.
+       do not have tessellation cell in the end.
     2. Features will split into MultiPolygons - in some cases,
-        features with narrow links between parts split into two during 'shrinking'.
-        In most cases that is not an issue and the resulting tessellation is correct
-        anyway, but sometimes this results in a cell being a MultiPolygon, which is
-        not correct.
+       features with narrow links between parts split into two during 'shrinking'.
+       In most cases that is not an issue and the resulting tessellation is correct
+       anyway, but sometimes this results in a cell being a MultiPolygon, which is
+       not correct.
     3. Overlapping features - features which overlap even
-        after 'shrinking' cause invalid tessellation geometry.
+       after 'shrinking' cause invalid tessellation geometry.
 
     All three types can be tested using :class:`momepy.CheckTessellationInput`.
 
@@ -151,6 +151,17 @@ def enclosed_tessellation(
     n_jobs : int, optional
         The number of jobs to run in parallel. -1 means using all available cores.
         By default -1
+
+    Warnings
+    --------
+    Due to the floating point precision issues in clipping the tessellation cells to the
+    extent of their parental enclosures, the result does not form a precise polygonal
+    coverage. To build a contiguity graph, use fuzzy contiguity builder with a small
+    buffer, e.g.::
+
+        from libpysal import graph
+
+        graph.Graph.build_fuzzy_contiguity(tessellation, buffer=1e-6)
 
     Returns
     -------
