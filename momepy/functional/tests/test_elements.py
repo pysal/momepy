@@ -3,6 +3,7 @@ import libpysal
 import numpy as np
 import pandas as pd
 import pytest
+import shapely
 from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
 from pandas.testing import assert_index_equal, assert_series_equal
@@ -13,6 +14,7 @@ import momepy as mm
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
+SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0dev")
 
 
 class TestElements:
@@ -284,6 +286,7 @@ class TestElements:
         else:
             assert len(blocks.sindex.query_bulk(blocks.geometry, "overlaps")[0]) == 0
 
+    @pytest.mark.skipif(not SHPLY_GE_210, reason="coverage_simplify required")
     def test_simplified_tesselations(self):
         n_workers = -1
         tessellations = mm.enclosed_tessellation(
@@ -297,9 +300,6 @@ class TestElements:
             tessellations[tessellations.index < 0],
             simplified_tessellations[simplified_tessellations.index < 0],
         )
-
-        import shapely
-
         ## simplification should result in less total points
         orig_points = shapely.get_coordinates(
             tessellations[tessellations.index >= 0].geometry
