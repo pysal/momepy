@@ -15,7 +15,7 @@ from pandas import Series
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
-SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1")
+SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0dev")
 
 __all__ = [
     "morphological_tessellation",
@@ -262,16 +262,18 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify):
             as_gdf=True,
         )
         if to_simplify:
-            from shapely import coverage_simplify
-
-            tess.geometry = coverage_simplify(
+            simpl_collection = shapely.coverage_simplify(
                 tess.geometry, tolerance=1e-1, simplify_boundary=False
             )
+            tess.geometry = gpd.GeoSeries(simpl_collection.geoms).values
         tess[enclosure_id] = ix
         return tess
 
     ## in case a single building is left in blg
-    assigned_ix = ix if len(blg) == 1 else -1
+    if len(blg) == 1:
+        assigned_ix = blg.index[0]
+    else:
+        assigned_ix = -1
 
     return GeoDataFrame(
         {enclosure_id: ix},
