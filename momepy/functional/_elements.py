@@ -161,7 +161,7 @@ def enclosed_tessellation(
 
         from libpysal import graph
 
-        graph.Graph.build_fuzzy_contiguity(tessellation, buffer=1e-8)
+        graph.Graph.build_fuzzy_contiguity(tessellation, buffer=1e-6)
 
     Returns
     -------
