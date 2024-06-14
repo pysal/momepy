@@ -285,11 +285,15 @@ def corners(
         return corners
 
     if include_interiors:
-        coords = geometry.get_coordinates(index_parts=False)
+        coords = geometry.reset_index(drop=True).get_coordinates(index_parts=False)
     else:
-        coords = geometry.exterior.get_coordinates(index_parts=False)
+        coords = geometry.reset_index(drop=True).exterior.get_coordinates(
+            index_parts=False
+        )
 
-    return coords.groupby(level=0).apply(_count_corners, eps=eps)
+    cc = coords.groupby(level=0).apply(_count_corners, eps=eps)
+    cc.index = geometry.index
+    return cc
 
 
 def squareness(
@@ -328,11 +332,15 @@ def squareness(
         return np.nanmean(np.abs(90 - degrees[true_angles]))
 
     if include_interiors:
-        coords = geometry.get_coordinates(index_parts=False)
+        coords = geometry.reset_index(drop=True).get_coordinates(index_parts=False)
     else:
-        coords = geometry.exterior.get_coordinates(index_parts=False)
+        coords = geometry.reset_index(drop=True).exterior.get_coordinates(
+            index_parts=False
+        )
 
-    return coords.groupby(level=0).apply(_squareness, eps=eps)
+    sq = coords.groupby(level=0).apply(_squareness, eps=eps)
+    sq.index = geometry.index
+    return sq
 
 
 def equivalent_rectangular_index(geometry: GeoDataFrame | GeoSeries) -> Series:
@@ -437,7 +445,9 @@ def centroid_corner_distance(
     else:
         coords = geometry.exterior.get_coordinates(index_parts=False)
     coords[["cent_x", "cent_y"]] = geometry.centroid.get_coordinates(index_parts=False)
-    return coords.groupby(level=0).apply(_ccd, eps=eps)
+    ccd = coords.groupby(level=0).apply(_ccd, eps=eps)
+    ccd.index = geometry.index
+    return ccd
 
 
 def linearity(geometry: GeoDataFrame | GeoSeries) -> Series:
