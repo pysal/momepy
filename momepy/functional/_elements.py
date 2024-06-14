@@ -21,6 +21,7 @@ __all__ = [
     "enclosed_tessellation",
     "verify_tessellation",
     "get_nearest_street",
+    "get_nearest_node",
     "generate_blocks",
     "buffered_limit",
 ]
@@ -366,6 +367,57 @@ def get_nearest_street(
 
     ids[blg_idx] = streets.index[str_idx]
     return ids
+
+
+def get_nearest_node(
+    buildings: GeoSeries | GeoDataFrame,
+    nodes: GeoDataFrame,
+    edges: GeoDataFrame,
+    nearest_edge: Series,
+) -> Series:
+    """Identify the nearest node for each building.
+
+    Snap each building to the closest street network node on the closest network edge.
+    This assumes that the nearest street network edge has already been identified using
+    :func:`get_nearest_street`.
+
+    The ``edges`` and ``nodes`` GeoDataFrames are expected to be an outcome of
+    :func:`momepy.nx_to_gdf` or match its structure with ``["node_start", "node_end"]``
+    columns and their meaning.
+
+
+    Parameters
+    ----------
+    buildings : GeoSeries | GeoDataFrame
+        GeoSeries or GeoDataFrame of buildings.
+    nodes : GeoDataFrame
+        A GeoDataFrame containing street nodes.
+    edges : GeoDataFrame
+        A GeoDataFrame containing street edges with ``["node_start", "node_end"]``
+        columns marking start and end nodes of each edge. These are the default
+        outcome of :func:`momepy.nx_to_gdf`.
+    nearest_edge : Series
+        A Series aligned with ``buildings`` containing the information on the nearest
+        street edge. Matches the outcome of :func:`get_nearest_street`.
+
+    Returns
+    -------
+    Series
+    """
+    # treat possibly missing edge index
+    a = np.empty(len(buildings))
+    na_mask = np.isnan(nearest_edge)
+    a[na_mask] = np.nan
+
+    streets = edges.loc[nearest_edge[~na_mask]]
+    starts = nodes.loc[streets["node_start"]].distance(buildings[~na_mask], align=False)
+    ends = nodes.loc[streets["node_end"]].distance(buildings[~na_mask], align=False)
+    mask = starts.values > ends.values
+    r = starts.index.to_numpy(copy=True)
+    r[mask] = ends.index[mask]
+
+    a[~na_mask] = r
+    return pd.Series(a, index=buildings.index)
 
 
 def generate_blocks(

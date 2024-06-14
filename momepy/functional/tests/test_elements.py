@@ -223,6 +223,53 @@ class TestElements:
         nearest = mm.get_nearest_street(self.df_buildings, streets, 10)
         assert (nearest == None).sum() == 137  # noqa: E711
 
+    def test_get_nearest_node(self):
+        nodes, edges = mm.nx_to_gdf(mm.gdf_to_nx(self.df_streets))
+        edge_index = mm.get_nearest_street(self.df_buildings, edges)
+
+        node_index = mm.get_nearest_node(self.df_buildings, nodes, edges, edge_index)
+
+        assert len(node_index) == len(self.df_buildings)
+        assert_index_equal(node_index.index, self.df_buildings.index)
+        expected = np.array(
+            [
+                0.0,
+                1.0,
+                2.0,
+                3.0,
+                4.0,
+                6.0,
+                9.0,
+                11.0,
+                14.0,
+                15.0,
+                16.0,
+                20.0,
+                22.0,
+                25.0,
+            ]
+        )
+        expected_counts = np.array([9, 31, 12, 10, 11, 2, 23, 8, 2, 8, 3, 6, 12, 7])
+        unique, counts = np.unique(node_index, return_counts=True)
+        np.testing.assert_array_equal(unique, expected)
+        np.testing.assert_array_equal(counts, expected_counts)
+
+    def test_get_nearest_node_missing(self):
+        nodes, edges = mm.nx_to_gdf(mm.gdf_to_nx(self.df_streets))
+        edge_index = mm.get_nearest_street(self.df_buildings, edges, max_distance=20)
+
+        node_index = mm.get_nearest_node(self.df_buildings, nodes, edges, edge_index)
+
+        assert len(node_index) == len(self.df_buildings)
+        assert_index_equal(node_index.index, self.df_buildings.index)
+        expected = np.array(
+            [1.0, 2.0, 3.0, 4.0, 9.0, 11.0, 14.0, 15.0, 16.0, 20.0, 22.0, 25.0, np.nan]
+        )
+        expected_counts = np.array([14, 8, 10, 4, 14, 8, 2, 7, 2, 5, 9, 4, 57])
+        unique, counts = np.unique(node_index, return_counts=True)
+        np.testing.assert_array_equal(unique, expected)
+        np.testing.assert_array_equal(counts, expected_counts)
+
     def test_buffered_limit(self):
         limit = mm.buffered_limit(self.df_buildings, 50)
         assert limit.geom_type == "Polygon"
