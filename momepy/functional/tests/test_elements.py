@@ -34,6 +34,7 @@ class TestElements:
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
         assert_index_equal(tessellation.index, self.df_buildings.index)
+        assert isinstance(tessellation, gpd.GeoDataFrame)
 
         clipped = mm.morphological_tessellation(
             self.df_buildings,

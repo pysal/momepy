@@ -32,7 +32,7 @@ def morphological_tessellation(
     clip: str | shapely.Geometry | GeoSeries | GeoDataFrame | None = "bounding_box",
     shrink: float = 0.4,
     segment: float = 0.5,
-) -> GeoSeries:
+) -> GeoDataFrame:
     """Generate morphological tessellation.
 
     Morpohological tessellation is a method to divide space into cells based on
@@ -74,8 +74,8 @@ def morphological_tessellation(
 
     Returns
     -------
-    GeoSeries
-        GeoSeries with an index matching the index of input geometry
+    GeoDataFrame
+        GeoDataFrame with an index matching the index of input geometry
 
     See also
     --------
@@ -92,7 +92,7 @@ def morphological_tessellation(
         shrink=shrink,
         segment=segment,
         return_input=False,
-        as_gdf=False,
+        as_gdf=True,
     )
 
 
@@ -275,7 +275,7 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
     )
 
 
-def verify_tessellation(tesselation, geometry):
+def verify_tessellation(tessellation, geometry):
     """Check whether result matches buildings and contains only Polygons.
 
     Checks if the generated tessellation fully matches the input buildings, i.e. if
@@ -287,7 +287,7 @@ def verify_tessellation(tesselation, geometry):
 
     Parameters
     ----------
-    tesselation : GeoSeries | GeoDataFrame
+    tessellation : GeoSeries | GeoDataFrame
         tessellation geometry
     geometry : GeoSeries | GeoDataFrame
         building geometry used to generate tessellation
@@ -299,7 +299,7 @@ def verify_tessellation(tesselation, geometry):
     """
     # check against input layer
     ids_original = geometry.index
-    ids_generated = tesselation.index
+    ids_generated = tessellation.index
     collapsed = pd.Index([])
     if len(ids_original) != len(ids_generated):
         collapsed = ids_original.difference(ids_generated)
@@ -314,7 +314,9 @@ def verify_tessellation(tesselation, geometry):
         )
 
     # check MultiPolygons - usually caused by error in input geometry
-    multipolygons = tesselation[tesselation.geometry.geom_type == "MultiPolygon"].index
+    multipolygons = tessellation[
+        tessellation.geometry.geom_type == "MultiPolygon"
+    ].index
     if len(multipolygons) > 0:
         warnings.warn(
             message=(
