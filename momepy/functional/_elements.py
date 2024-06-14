@@ -389,7 +389,7 @@ def get_nearest_node(
     Parameters
     ----------
     buildings : GeoSeries | GeoDataFrame
-        GeoSeries or GeoDataFrame of buildings
+        GeoSeries or GeoDataFrame of buildings.
     nodes : GeoDataFrame
         A GeoDataFrame containing street nodes.
     edges : GeoDataFrame
