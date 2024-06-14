@@ -1,0 +1,43 @@
+name: test
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - geopandas
+  - inequality
+  - libpysal>=4.11.0
+  - mapclassify
+  - networkx
+  - osmnx
+  - packaging
+  - pandas!=1.5.0
+  - shapely>=2
+  - esda
+  - tqdm
+  - numba
+  # testing
+  - codecov
+  - pytest
+  - pytest-cov
+  # user guide
+  - inequality
+  - jupyter
+  - matplotlib
+  - osmnx
+  - clustergram
+  - bokeh
+  - geopy
+  - ipywidgets
+  - Iprogress
+  - matplotlib
+  - numpydoc
+  - pydata-sphinx-theme
+  - nbsphinx
+  - myst-parser
+  - pip
+  - pip:
+    - sphinx_copybutton
+    - sphinx-gallery
+    - sphinxext-rediraffe
+    - sphinxcontrib.bibtex
+    - git+https://github.com/geopandas/geopandas.git
