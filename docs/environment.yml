@@ -31,7 +31,7 @@ dependencies:
   - Iprogress
   - matplotlib
   - numpydoc
-  - pydata_sphinx_theme
+  - pydata-sphinx-theme
   - nbsphinx
   - myst-parser
   - pip

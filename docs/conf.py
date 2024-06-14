@@ -81,9 +81,6 @@ extensions = [
 
 # nbsphinx do not use requirejs (breaks bootstrap)
 nbsphinx_requirejs_path = ""
-nbsphinx_execute = "always"
-nbsphinx_kernel_name = "python3"
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
