@@ -299,6 +299,7 @@ def verify_tessellation(tesselation, geometry):
     # check against input layer
     ids_original = geometry.index
     ids_generated = tesselation.index
+    collapsed = pd.Index([])
     if len(ids_original) != len(ids_generated):
         collapsed = ids_original.difference(ids_generated)
         warnings.warn(
