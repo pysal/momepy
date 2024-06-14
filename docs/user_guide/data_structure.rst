@@ -26,14 +26,13 @@ outputs.
 2. Relational characters
 
    Relational characters are based on relations between two or more
-   ``GeoDataFrames``. Typical example is ``AreaRatio``, which requires
-   a) features to be covered (e.g. land unit) and b) features which are
-   covering them (e.g. buildings).
+   ``GeoDataFrames``. Typical example is ``street_alignment``, which requires
+   a) orientation of streets and b) orientation of buildings.
 
 
 3. Network analysis
 
-   Network analysis (``graph`` module) characters are based on
+   Network analysis characters are based on
    ``networkx.Graph`` and returns ``networkx.Graph`` with additional
    node or edge attributes.
 
@@ -78,38 +77,37 @@ Links between elements
 
 When using more than one morphological element, ``momepy`` needs to
 understand what is the relationship between them. For this, it relies on
-``unique_id`` attributes. It is expected, that every building lies on
+indices of GeoPandas objects. It is expected, that every building lies on
 certain plot or morphological cell, on certain street or within certain
 block. To use ``momepy``, each feature of each layer needs its own
-``unique_id``. Moreover, each feature also needs to bear ``unique_id``
+unique index. Moreover, each feature also needs to bear ``index``
 of related elements. Consider following sample rows of
 ``buildings_gdf``:
 
-=========== ======== ===============
-building_id block_id network_edge_id
-=========== ======== ===============
+====== =========== ==================
+index  block_index network_edge_index
+====== =========== ==================
 1           143      22
 2           143      25
 3           144      25
 4           144      25
 5           144      29
-=========== ======== ===============
+====== =========== ==================
 
-Each building has its own unique ``building_id``, while more building
-share ``block_id`` of block they belong to. In this sense, in
-``blocks_gdf`` each feature would have its own unique ``block_id`` used
+Each building has its own unique ``index``, while more buildings
+share ``block_index`` of block they belong to. In this sense, in
+``blocks_gdf`` each feature would have its own unique ``index`` used
 as a reference for ``buildings_gdf``. In principle, elements on the
-smaller scale contains IDs of elements on the larger - blocks will not
-have building IDs.
+smaller scale contains index information of elements on the larger - blocks will not
+have building index.
 
-Momepy can generate unique ID using ``momepy.unique_id()`` and :doc:`link
-certain types of elements together <elements/links>`
+Momepy can :doc:`link certain types of elements together <elements/links>`
 
-Spatial weights
----------------
+Spatial graphs
+--------------
 
-Unique IDs are also used as an ID within spatial weights matrices.
-Thanks to this, spatial weights generated on morphological tessellation
+Unique indices are also used as an index within spatial graphs.
+Thanks to this, spatial graphs generated on morphological tessellation
 (like Queen contiguity) can be directly used on buildings and vice
 versa. Detailed information on using spatial weights within momepy will
 be :doc:`discussed later <weights/weights>`.
