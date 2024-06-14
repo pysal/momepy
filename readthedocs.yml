@@ -1,16 +1,19 @@
 version: 2
-formats: []
-
-sphinx:
-  configuration: docs/conf.py
-
 build:
-  os: ubuntu-20.04
+  os: ubuntu-22.04
   tools:
-    python: "3.11"
+    python: mambaforge-latest
+  jobs:
+    post_checkout:
+      # we need the tags for versioneer to work
+      - git fetch origin --depth 150
+      - git fetch --tags
+    post_build:
+      - mamba list
 python:
   install:
-  - requirements: docs/requirements.txt
   - method: pip
     path: .
-
+conda:
+  environment: doc/environment.yml
+formats: []

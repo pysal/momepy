@@ -20,24 +20,24 @@ sys.path.insert(0, os.path.abspath("../"))
 
 import momepy  # noqa
 
-autodoc_mock_imports = [
-    "geopandas",
-    "networkx",
-    "numpy",
-    "pandas",
-    "rtree",
-    "scipy",
-    "scipy.spatial",
-    "shapely",
-    "shapely.geometry",
-    "shapely.wkt",
-    "shapely.ops",
-    "libpysal",
-    "tqdm",
-    "mapclassify",
-    "osmnx",
-    "inequality",
-]
+# autodoc_mock_imports = [
+#     "geopandas",
+#     "networkx",
+#     "numpy",
+#     "pandas",
+#     "rtree",
+#     "scipy",
+#     "scipy.spatial",
+#     "shapely",
+#     "shapely.geometry",
+#     "shapely.wkt",
+#     "shapely.ops",
+#     "libpysal",
+#     "tqdm",
+#     "mapclassify",
+#     "osmnx",
+#     "inequality",
+# ]
 
 # -- Project information -----------------------------------------------------
 
@@ -81,6 +81,9 @@ extensions = [
 
 # nbsphinx do not use requirejs (breaks bootstrap)
 nbsphinx_requirejs_path = ""
+nbsphinx_execute = "always"
+nbsphinx_kernel_name = "python3"
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
