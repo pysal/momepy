@@ -413,7 +413,7 @@ def get_nearest_node(
     starts = nodes.loc[streets["node_start"]].distance(buildings[~na_mask], align=False)
     ends = nodes.loc[streets["node_end"]].distance(buildings[~na_mask], align=False)
     mask = starts.values > ends.values
-    r = starts.index.to_numpy()
+    r = starts.index.to_numpy(copy=True)
     r[mask] = ends.index[mask]
 
     a[~na_mask] = r
