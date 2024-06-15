@@ -41,6 +41,16 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: Create Release Notes
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            await github.request(`POST /repos/${{ github.repository }}/releases`, {
+                tag_name: "${{ github.ref }}",
+                generate_release_notes: true
+            });
+
       - name: Get Asset name
         run: |
           export PKG=$(ls dist/ | grep tar)

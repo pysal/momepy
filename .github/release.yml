@@ -1,0 +1,28 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+  categories:
+    - title: Bug Fixes
+      labels:
+        - bug
+    - title: Enhancements
+      labels:
+        - enhancement
+    - title: Refactor
+      labels:
+        - refactor
+    - title: Preprocessing
+      labels:
+        - preprocessing
+    - title: Documentation
+      labels:
+        - documentation
+    - title: Refactor
+      labels:
+        - refactor
+    - title: Other Changes
+      labels:
+        - "*"
