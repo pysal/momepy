@@ -30,4 +30,7 @@ dependencies:
   - geopy
   - ipywidgets
   - Iprogress
+  - pip
+  - pip:
+    - git+https://github.com/geopandas/geopandas.git
 
