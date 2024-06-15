@@ -17,9 +17,6 @@ changelog:
     - title: Deprecations
       labels:
         - ...
-    - title: Refactor
-      labels:
-        - refactor
     - title: Documentation
       labels:
         - documentation
