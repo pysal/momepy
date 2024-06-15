@@ -6,24 +6,23 @@ changelog:
       - dependabot
       - pre-commit-ci
   categories:
-    - title: Bug Fixes
-      labels:
-        - bug
+    - title:  API changes
+      labels: refactor, ...
     - title: Enhancements
       labels:
         - enhancement
+    - title: Bug Fixes
+      labels:
+        - bug
+    - title: Deprecations
+      labels:
+        - ...
     - title: Refactor
       labels:
         - refactor
-    - title: Preprocessing
-      labels:
-        - preprocessing
     - title: Documentation
       labels:
         - documentation
-    - title: Refactor
-      labels:
-        - refactor
     - title: Other Changes
       labels:
         - "*"

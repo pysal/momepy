@@ -153,7 +153,7 @@ Documentation contents
    examples/index
    API reference <api>
    Contributing <contributing>
-   changelog
+   Changelog <https://github.com/pysal/momepy/releases>
    references
 
 
