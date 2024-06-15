@@ -3,6 +3,9 @@ name: Test User Guide execution
 on:
   push:
     branches: [main]
+  # pull_request:
+  #     branches:
+  #       - "*"
   schedule:
     - cron: "0 0 * * 1,4"
   workflow_dispatch:
@@ -27,7 +30,7 @@ jobs:
       - name: setup micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: ci/envs/312-dev.yaml
+          environment-file: ci/envs/312-latest.yaml
 
       - name: Install momepy
         run: pip install .
