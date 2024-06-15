@@ -4,6 +4,7 @@ changelog:
       - ignore-for-release
     authors:
       - dependabot
+      - pre-commit-ci
   categories:
     - title: Bug Fixes
       labels:
