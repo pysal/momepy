@@ -6,8 +6,8 @@ changelog:
       - dependabot
       - pre-commit-ci
   categories:
-    - title:  API changes
-      labels: refactor, ...
+    - title:  API Changes
+      labels: api
     - title: Enhancements
       labels:
         - enhancement
@@ -16,7 +16,7 @@ changelog:
         - bug
     - title: Deprecations
       labels:
-        - ...
+        - deprecation
     - title: Documentation
       labels:
         - documentation
