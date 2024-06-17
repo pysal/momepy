@@ -81,15 +81,6 @@ class TestIntensity:
         assert_series_equal(alternative_density, density)
         assert_series_equal(alternative_weighted, weighted)
 
-        # island = mm.node_density(nodes, edges, Graph.from_W(w).assign_self_weight())
-        # expected_island = {
-        #     "count": 29,
-        #     "mean": 0.01026753724860306,
-        #     "max": 0.029319191032027746,
-        #     "min": 0.004808273240207287,
-        # }
-        # assert_result(island, expected_island, nodes, check_names=False)
-
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
@@ -312,11 +303,3 @@ class TestIntensityEquality:
         assert_series_equal(
             weighted_old, weighted_new, check_names=False, check_dtype=False
         )
-
-        # islands_old = mm.NodeDensity(nodes, edges, w).series
-        # islands_new = mm.node_density(
-        #     nodes, edges, Graph.from_W(w).assign_self_weight()
-        # )
-        # assert_series_equal(
-        #     islands_old, islands_new, check_names=False, check_dtype=False
-        # )

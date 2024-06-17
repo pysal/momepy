@@ -1031,7 +1031,7 @@ def node_density(
 
     Examples
     --------
-    >>> nodes['density'] = mm.node_density(nodes, edges, graph)
+    >>> network_graph = mm.straightness_centrality(network_graph, radius=5)
     """
     netx = graph.copy()
     orig_nodes_degree = Series(nx.get_node_attributes(netx, "degree"))
