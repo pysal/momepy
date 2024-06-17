@@ -164,7 +164,8 @@ def describe_agg(
     result.loc[stats.index.values] = stats.values
     result.columns = stats.columns
     # fill only counts with zeros, other stats are NA
-    result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
+    if "count" in result.columns:
+        result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
     result.index.names = result_index.names
 
     return result
@@ -263,7 +264,8 @@ def describe_reached_agg(
     result.loc[stats.index.values] = stats.values
     result.columns = stats.columns
     # fill only counts with zeros, other stats are NA
-    result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
+    if "count" in result.columns:
+        result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
     result.index.name = None
 
     return result

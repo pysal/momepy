@@ -492,6 +492,18 @@ class TestDescribe:
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
+    def test_describe_cols(self):
+        df = mm.describe_agg(
+            self.df_buildings["area"],
+            self.df_buildings["nID"],
+            self.df_streets.index,
+            statistics=["min", "max"],
+        )
+        assert list(df.columns) == ["min", "max"]
+
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous pandas versions"
+    )
     def test_describe_reached_agg(self):
         df_sw = mm.describe_reached_agg(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
@@ -538,6 +550,19 @@ class TestDescribe:
         assert np.allclose(
             island_result_df.values, island_result_ndarray.values, equal_nan=True
         )
+
+    @pytest.mark.skipif(
+        not PD_210, reason="aggregation is different in previous pandas versions"
+    )
+    def test_describe_reached_cols(self):
+        df = mm.describe_reached_agg(
+            self.df_buildings["fl_area"],
+            self.df_buildings["nID"],
+            graph=self.graph_sw,
+            q=(10, 90),
+            statistics=["min", "max"],
+        )
+        assert list(df.columns) == ["min", "max"]
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
