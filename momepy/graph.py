@@ -7,6 +7,7 @@ import math
 
 import networkx as nx
 import numpy as np
+from pandas import Series
 from tqdm.auto import tqdm
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "straightness_centrality",
     "subgraph",
     "mean_nodes",
+    "node_density",
 ]
 
 
@@ -988,6 +990,73 @@ def straightness_centrality(
     return netx
 
 
+def node_density(
+    graph: nx.Graph,
+    radius: int,
+    length: str = "mm_len",
+    distance: str | None = None,
+    verbose: bool = True,
+) -> nx.Graph:
+    """Calculate the density of a node's neighbours (for all nodes)
+    on the street network defined in ``graph``.
+
+    Calculated as the number of neighbouring
+    nodes / cumulative length of street network within neighbours.
+    Returns two values - an unweighted and weighted density unweighted
+    is calculated based on the number of neigbhouring nodes, whereas weighted
+    density will take into account node degree as ``k-1``.
+
+    Adapted from :cite:`dibble2017`.
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        A Graph representing a street network.
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`.
+    radius: int
+        Include all neighbors of distance <= radius from ``n``.
+    length : str, default `mm_len`
+        The name of the attribute of segment length (geographical).
+    distance : str, optional
+        Use specified edge data key as distance.
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
+        measure the distance from the node ``n`` during ``ego_graph`` generation.
+    verbose : bool (default True)
+        If ``True``, shows progress bars in loops and indication of steps.
+
+    Returns
+    -------
+    netx : Graph
+        A networkx.Graph object.
+
+    Examples
+    --------
+    >>> network_graph = mm.node_density(network_graph, radius=5)
+    """
+    netx = graph.copy()
+    orig_nodes_degree = Series(nx.get_node_attributes(netx, "degree"))
+    for n in tqdm(netx, total=len(netx), disable=not verbose):
+        sub = nx.ego_graph(
+            netx, n, radius=radius, distance=distance
+        )  # define subgraph of steps=radius
+        unweighted, weighted = _node_density(
+            sub, length=length, orig_nodes_degree=orig_nodes_degree
+        )
+        netx.nodes[n]["node_density"] = unweighted
+        netx.nodes[n]["node_density_weighted"] = weighted
+    return netx
+
+
+def _node_density(sub, length, orig_nodes_degree):
+    """Calculates node density for a subgraph."""
+    length_sum = sub.size(length)
+    weighted_node_data = orig_nodes_degree[list(sub.nodes)] - 1
+    unweighted_node_data = Series(1, index=weighted_node_data)
+    unweighted = (unweighted_node_data.sum() / length_sum) if length_sum else 0
+    weighted = (weighted_node_data.sum() / length_sum) if length_sum else 0
+    return unweighted, weighted
+
+
 def subgraph(
     graph,
     radius=5,
@@ -1004,6 +1073,7 @@ def subgraph(
     gamma=True,
     local_closeness=True,
     closeness_weight=None,
+    node_density=True,
     verbose=True,
 ):
     """
@@ -1064,6 +1134,9 @@ def subgraph(
 
     netx = graph.copy()
 
+    if node_density:
+        orig_nodes_degree = Series(nx.get_node_attributes(netx, "degree"))
+
     for n in tqdm(netx, total=len(netx), disable=not verbose):
         sub = nx.ego_graph(
             netx, n, radius=radius, distance=distance
@@ -1107,6 +1180,13 @@ def subgraph(
             netx.nodes[n]["local_closeness"] = _closeness_centrality(
                 sub, n, length=closeness_weight, len_graph=lengraph
             )
+
+        if node_density:
+            unweighted, weighted = _node_density(
+                sub, length=length, orig_nodes_degree=orig_nodes_degree
+            )
+            netx.nodes[n]["node_density"] = unweighted
+            netx.nodes[n]["node_density_weighted"] = weighted
 
     return netx
 
