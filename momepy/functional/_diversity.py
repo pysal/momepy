@@ -756,7 +756,7 @@ def shannon(
     143    0.673012
     Length: 144, dtype: float64
 
-    In some occasions, you may want to overide the binning method:
+    In some occasions, you may want to override the binning method:
 
     >>> momepy.shannon(buildings.area, knn5, binning="fisher_jenks", k=8)
     focal
