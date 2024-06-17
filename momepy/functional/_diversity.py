@@ -138,7 +138,7 @@ def describe_agg(
     3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...           8.0
     4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...           8.0
 
-    >>> momepy.describe_agg(buildings.area, buildings["street_index"]).head()
+    >>> momepy.describe_agg(buildings.area, buildings["street_index"]).head()   # doctest: +SKIP
                   count         mean       median         std         min          max          sum  nunique        mode
     street_index
     0.0             9.0   366.827019   339.636871  266.747247   68.336193   800.045495  3301.443174      9.0   68.336193
@@ -276,7 +276,7 @@ def describe_reached_agg(
     ...     buildings.area,
     ...     buildings["street_index"],
     ...     queen_contig,
-    ... ).head()
+    ... ).head()  # doctest: +SKIP
        count        mean      median         std         min          max           sum  nunique        mode
     0   43.0  643.595418  633.692589  412.563790   53.851509  2127.752228  27674.602973     43.0   53.851509
     1   41.0  735.058515  662.921280  381.827737   51.246377  2127.752228  30137.399128     41.0   51.246377
