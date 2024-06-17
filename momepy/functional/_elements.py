@@ -424,7 +424,7 @@ def get_nearest_node(
 
 def generate_blocks(
     tessellation: GeoDataFrame, edges: GeoDataFrame, buildings: GeoDataFrame
-) -> tuple[Series, Series, Series]:
+) -> tuple[GeoDataFrame, Series, Series]:
     """
     Generate blocks based on buildings, tessellation, and street network.
     Dissolves tessellation cells based on street-network based polygons.
@@ -457,15 +457,37 @@ def generate_blocks(
 
     Examples
     --------
-    >>> blocks, buildings_id, tessellation_id = mm.generate_blocks(tessellation_df,
-    ... streets_df, buildings_df)
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+
+    Generate tessellation:
+
+    >>> tessellation = momepy.morphological_tessellation(buildings)
+    >>> tessellation
+                                                geometry
+    0  POLYGON ((1603577.153 6464348.291, 1603576.946...
+    1  POLYGON ((1603166.356 6464326.62, 1603166.425 ...
+    2  POLYGON ((1603006.941 6464167.63, 1603009.97 6...
+    3  POLYGON ((1602995.269 6464132.007, 1603001.768...
+    4  POLYGON ((1603084.231 6464104.386, 1603083.773...
+
+    >>> blocks, buildings_id, tessellation_id = momepy.generate_blocks(
+    ...     tessellation, streets, buildings
+    ... )
     >>> blocks.head()
-            geometry
-    0	    POLYGON ((1603560.078648818 6464202.366899694,...
-    1	    POLYGON ((1603457.225976106 6464299.454696888,...
-    2	    POLYGON ((1603056.595487018 6464093.903488506,...
-    3	    POLYGON ((1603260.943782872 6464141.327631323,...
-    4	    POLYGON ((1603183.399594798 6463966.109982309,...
+                                                geometry
+    0  POLYGON ((1603500.079 6464214.019, 1603499.565...
+    1  POLYGON ((1603431.893 6464278.302, 1603431.553...
+    2  POLYGON ((1603321.257 6464125.859, 1603320.938...
+    3  POLYGON ((1603137.411 6464124.658, 1603137.116...
+    4  POLYGON ((1603179.384 6463961.584, 1603179.357...
+
+    Both ``buildings_id`` and ``tessellation_id`` can be directly assigned to their
+    respective parental DataFrames.
+
+    >>> buildings["block_id"] = buildings_id
+    >>> tessellation["block_id"] = tessellation_id
     """
 
     id_name: str = "bID"
@@ -547,9 +569,19 @@ def buffered_limit(
 
     Examples
     --------
-    >>> limit = mm.buffered_limit(buildings_df)
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    >>> limit = momepy.buffered_limit(buildings)
     >>> type(limit)
-    shapely.geometry.polygon.Polygon
+    <class 'shapely.geometry.polygon.Polygon'>
     """
     if buffer == "adaptive":
         if not LPS_GE_411:

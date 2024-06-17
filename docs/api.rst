@@ -164,6 +164,7 @@ A set of functions for the analysis of connectivity and configuration of street 
    mean_nodes
    meshedness
    node_degree
+   node_density
    proportion
    straightness_centrality
    subgraph

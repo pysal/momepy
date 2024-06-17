@@ -1,24 +1,24 @@
-name: Test User Guide execution
+name: Test docstrings
 
 on:
   push:
     branches: [main]
-  # pull_request:
-  #     branches:
-  #       - "*"
+  pull_request:
+      branches:
+        - "*"
   schedule:
     - cron: "0 0 * * 1,4"
   workflow_dispatch:
     inputs:
       version:
-        description: Manual user guide execution test
+        description: Manual docstring test
         default: test
         required: false
 
 
 jobs:
   Test:
-    name: "Test User Guide execution"
+    name: "Test dosctrings"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -35,7 +35,7 @@ jobs:
       - name: Install momepy
         run: pip install .
 
-      - name: Test user guide
+      - name: Test docstrings
         run: |
-          ci/envs/test_user_guide.sh
+          pytest -v --color=yes --doctest-only momepy/functional
 

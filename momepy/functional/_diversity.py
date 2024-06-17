@@ -126,14 +126,47 @@ def describe_agg(
 
     Examples
     --------
-    >>> res = mm.describe_agg(
-    ...         tessellation['area'], tessellation['nID'] ,
-    ...         result_index=df_streets.index
-    ...     )
-    >>> streets["tessalations_reached"] = res['count']
-    >>> streets["tessalations_reached_area"] = res['sum']
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+    >>> buildings["street_index"] = momepy.get_nearest_street(buildings, streets)
+    >>> buildings.head()
+       uID                                           geometry  street_index
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...           0.0
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...          33.0
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...          10.0
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...           8.0
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...           8.0
 
-    """
+    >>> momepy.describe_agg(buildings.area, buildings["street_index"]).head()   # doctest: +SKIP
+                  count         mean       median         std         min          max          sum  nunique        mode
+    street_index
+    0.0             9.0   366.827019   339.636871  266.747247   68.336193   800.045495  3301.443174      9.0   68.336193
+    1.0             1.0   618.447036   618.447036         NaN  618.447036   618.447036   618.447036      1.0  618.447036
+    2.0            12.0   504.523575   535.973108  318.660691   92.280807  1057.998520  6054.282903     12.0   92.280807
+    5.0             5.0  1150.865099  1032.693716  580.660030  673.015192  2127.752228  5754.325496      5.0  673.015192
+    6.0             7.0   662.179187   662.192603  291.397747  184.798661  1188.294675  4635.254306      7.0  184.798661
+
+    The result can be directly assigned a columns of the ``streets`` GeoDataFrame.
+
+    To eliminate the effect of outliers, you can take into account only values within a
+    specified percentile range (``q``). At the same time, you can specify only a subset
+    of statistics to compute:
+
+    >>> momepy.describe_agg(
+    ...     buildings.area,
+    ...     buildings["street_index"],
+    ...     q=(10, 90),
+    ...     statistics=["mean", "std"],
+    ... ).head()
+                        mean         std
+    street_index
+    0.0           347.580212  219.797123
+    1.0           618.447036         NaN
+    2.0           476.592190  206.011102
+    5.0           984.519359  203.718644
+    6.0           652.432194   32.829824
+    """  # noqa: E501
 
     if Version(pd.__version__) <= Version("2.1.0"):
         raise ImportError("pandas 2.1.0 or newer is required to use this function.")
@@ -221,13 +254,56 @@ def describe_reached_agg(
 
     Examples
     --------
-    >>> res = mm.describe_reached_agg(
-    ...         tessellation['area'], tessellation['nID'] , graph=streets_q1
-    ...     )
-    >>> streets["tessalations_reached"] = res['count']
-    >>> streets["tessalations_reached_area"] = res['sum']
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+    >>> buildings["street_index"] = momepy.get_nearest_street(buildings, streets)
+    >>> buildings.head()
+       uID                                           geometry  street_index
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...           0.0
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...          33.0
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...          10.0
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...           8.0
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...           8.0
 
-    """
+    >>> queen_contig = graph.Graph.build_contiguity(streets, rook=False)
+    >>> queen_contig
+    <Graph of 35 nodes and 148 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    >>> momepy.describe_reached_agg(
+    ...     buildings.area,
+    ...     buildings["street_index"],
+    ...     queen_contig,
+    ... ).head()  # doctest: +SKIP
+       count        mean      median         std         min          max           sum  nunique        mode
+    0   43.0  643.595418  633.692589  412.563790   53.851509  2127.752228  27674.602973     43.0   53.851509
+    1   41.0  735.058515  662.921280  381.827737   51.246377  2127.752228  30137.399128     41.0   51.246377
+    2   50.0  636.304006  625.190488  450.182157   53.851509  2127.752228  31815.200298     50.0   53.851509
+    3    6.0  405.782514  370.352071  334.848563   57.138700   863.828420   2434.695086      6.0   57.138700
+    4    1.0  683.514930  683.514930         NaN  683.514930   683.514930    683.514930      1.0  683.514930
+
+    The result can be directly assigned a columns of the ``streets`` GeoDataFrame.
+
+    To eliminate the effect of outliers, you can take into account only values within a
+    specified percentile range (``q``). At the same time, you can specify only a subset
+    of statistics to compute:
+
+    >>> momepy.describe_reached_agg(
+    ...     buildings.area,
+    ...     buildings["street_index"],
+    ...     queen_contig,
+    ...     q=(10, 90),
+    ...     statistics=["mean", "std"],
+    ... ).head()
+            mean         std
+    0  619.104840  250.369496
+    1  721.441808  216.516469
+    2  597.379925  297.213321
+    3  378.431992  274.631290
+    4  683.514930         NaN
+    """  # noqa: E501
 
     if Version(pd.__version__) <= Version("2.1.0"):
         raise ImportError("pandas 2.1.0 or newer is required to use this function.")
@@ -285,7 +361,7 @@ def values_range(
 
     Parameters
     ----------
-    data : Series
+    y : Series
         A DataFrame or Series containing the values to be analysed.
     graph : libpysal.graph.Graph
         A spatial weights matrix for the data.
@@ -301,9 +377,58 @@ def values_range(
 
     Examples
     --------
-    >>> tessellation_df['area_IQR_3steps'] = mm.range(tessellation_df['area'],
-    ...                                               graph,
-    ...                                               q=(25, 75))
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    Define spatial graph:
+
+    >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
+    >>> knn5
+    <Graph of 144 nodes and 720 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Range of building area within 5 nearest neighbors:
+
+    >>> momepy.values_range(buildings.area, knn5)
+    focal
+    0        559.745602
+    1        444.997770
+    2      10651.932677
+    3        365.239452
+    4        339.585788
+            ...
+    139      769.179096
+    140      721.444718
+    141      996.921755
+    142      119.708607
+    143      798.344284
+    Length: 144, dtype: float64
+
+    To eliminate the effect of outliers, you can take into account only values within a
+    specified percentile range (``q``).
+
+    >>> momepy.values_range(buildings.area, knn5, q=(25, 75))
+    focal
+    0       258.656230
+    1       113.990829
+    2      2878.811586
+    3        92.005635
+    4        87.637833
+            ...
+    139     587.139513
+    140     325.726611
+    141     621.315615
+    142      34.446110
+    143     488.967863
+    Length: 144, dtype: float64
     """
 
     stats = percentile(y, graph, q=q)
@@ -347,8 +472,58 @@ def theil(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
 
     Examples
     --------
-    >>> tessellation_df['area_Theil'] = mm.theil(tessellation_df['area'],
-    ...                                          graph)
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    Define spatial graph:
+
+    >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
+    >>> knn5
+    <Graph of 144 nodes and 720 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Theil index of building area within 5 nearest neighbors:
+
+    >>> momepy.theil(buildings.area, knn5)
+    focal
+    0      0.106079
+    1      0.023256
+    2      0.800522
+    3      0.016015
+    4      0.013829
+            ...
+    139    0.547522
+    140    0.041755
+    141    0.098827
+    142    0.159690
+    143    0.068131
+    Length: 144, dtype: float64
+
+    To eliminate the effect of outliers, you can take into account only values within a
+    specified percentile range (``q``).
+
+    >>> momepy.theil(buildings.area, knn5, q=(25, 75))
+    focal
+    0      1.144550e-02
+    1      3.121656e-06
+    2      1.295882e-02
+    3      1.772730e-07
+    4      2.913017e-06
+            ...
+    139    5.402548e-01
+    140    6.658486e-03
+    141    3.330720e-02
+    142    1.433583e-03
+    143    2.096421e-02
+    Length: 144, dtype: float64
     """
 
     try:
@@ -417,8 +592,57 @@ def simpson(
 
     Examples
     --------
-    >>> tessellation_df['area_Simpson'] = mm.simpson(tessellation_df['area'],
-    ...                                              graph)
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    Define spatial graph:
+
+    >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
+    >>> knn5
+    <Graph of 144 nodes and 720 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Simpson index of building area within 5 nearest neighbors:
+
+    >>> momepy.simpson(buildings.area, knn5)
+    focal
+    0      1.00
+    1      0.68
+    2      0.36
+    3      0.68
+    4      0.68
+        ...
+    139    0.68
+    140    0.44
+    141    0.44
+    142    1.00
+    143    0.52
+    Length: 144, dtype: float64
+
+    In some occasions, you may want to override the binning method:
+
+    >>> momepy.simpson(buildings.area, knn5, binning="fisher_jenks", k=8)
+    focal
+    0      0.28
+    1      0.68
+    2      0.36
+    3      0.68
+    4      0.68
+        ...
+    139    0.44
+    140    0.28
+    141    0.28
+    142    1.00
+    143    0.20
+    Length: 144, dtype: float64
 
     See also
     --------
@@ -497,8 +721,57 @@ def shannon(
 
     Examples
     --------
-    >>> tessellation_df['area_Shannon'] = mm.shannon(tessellation_df['area'],
-    ...                                              graph)
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    Define spatial graph:
+
+    >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
+    >>> knn5
+    <Graph of 144 nodes and 720 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Shannon index of building area within 5 nearest neighbors:
+
+    >>> momepy.shannon(buildings.area, knn5)
+    focal
+    0     -0.000000
+    1      0.500402
+    2      1.054920
+    3      0.500402
+    4      0.500402
+            ...
+    139    0.500402
+    140    0.950271
+    141    0.950271
+    142   -0.000000
+    143    0.673012
+    Length: 144, dtype: float64
+
+    In some occasions, you may want to override the binning method:
+
+    >>> momepy.shannon(buildings.area, knn5, binning="fisher_jenks", k=8)
+    focal
+    0      1.332179
+    1      0.500402
+    2      1.054920
+    3      0.500402
+    4      0.500402
+            ...
+    139    0.950271
+    140    1.332179
+    141    1.332179
+    142   -0.000000
+    143    1.609438
+    Length: 144, dtype: float64
     """
 
     if not categories:
@@ -548,8 +821,58 @@ def gini(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
 
     Examples
     --------
-    >>> tessellation_df['area_Gini'] = mm.gini(tessellation_df['area'],
-    ...                                              graph)
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    Define spatial graph:
+
+    >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
+    >>> knn5
+    <Graph of 144 nodes and 720 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Gini index of building area within 5 nearest neighbors:
+
+    >>> momepy.gini(buildings.area, knn5)
+    focal
+    0      0.228493
+    1      0.102110
+    2      0.605867
+    3      0.085589
+    4      0.080435
+            ...
+    139    0.525724
+    140    0.156737
+    141    0.239009
+    142    0.259808
+    143    0.204820
+    Length: 144, dtype: float64
+
+    To eliminate the effect of outliers, you can take into account only values within a
+    specified percentile range (``q``).
+
+    >>> momepy.gini(buildings.area, knn5, q=(25, 75))
+    focal
+    0      0.073817
+    1      0.001264
+    2      0.077521
+    3      0.000321
+    4      0.001264
+            ...
+    139    0.505618
+    140    0.055096
+    141    0.130501
+    142    0.025522
+    143    0.110987
+    Length: 144, dtype: float64
     """
     try:
         from inequality.gini import Gini
@@ -575,7 +898,7 @@ def percentile(
     y: Series,
     graph: Graph,
     q: tuple | list = [25, 50, 75],
-):
+) -> DataFrame:
     """Calculates linearly weighted percentiles of ``y`` values using
     the neighbourhoods and weights defined in ``graph``.
 
@@ -597,8 +920,44 @@ def percentile(
 
     Examples
     --------
-    >>> percentiles_df = mm.percentile(tessellation_df['area'],
-    ...                                 graph)
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    Define spatial graph:
+
+    >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
+    >>> knn5
+    <Graph of 144 nodes and 720 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Percentiles of building area within 5 nearest neighbors:
+
+    >>> momepy.percentile(buildings.area, knn5).head()
+                   25          50           75
+    focal
+    0      347.252959  427.819360   605.909188
+    1      621.834862  641.629131   735.825691
+    2      622.262074  903.746689  3501.073660
+    3      621.834862  641.629131   713.840496
+    4      621.834862  641.987211   709.472695
+
+    Optionally, you can specify which percentile values shall be computed.
+    >>> momepy.percentile(buildings.area, knn5, q=[10, 90]).head()
+                   10            90
+    focal
+    0      123.769329    683.514930
+    1      564.160901   1009.158671
+    2      564.160901  11216.093578
+    3      564.160901    929.400353
+    4      564.160901    903.746689
     """
 
     weights = graph._adjacency.values
