@@ -35,6 +35,11 @@ jobs:
       - name: Install momepy
         run: pip install .
 
+      - name: Test docstrings
+        run: |
+          pytest -v --color=yes --doctest-only momepy/functional
+
       - name: Test user guide
         run: |
           ci/envs/test_user_guide.sh
+

@@ -26,7 +26,35 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
 
     Examples
     --------
-    >>> courtyards = mm.calculate_courtyards(buildings_df, graph)
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    >>> contiguity = graph.Graph.build_contiguity(buildings)
+    >>> contiguity
+    <Graph of 144 nodes and 248 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    >>> momepy.courtyards(buildings, contiguity)
+    0      0
+    1      1
+    2      1
+    3      1
+    4      1
+        ..
+    139    0
+    140    0
+    141    0
+    142    0
+    143    1
+    Length: 144, dtype: int32
     """
 
     def _calculate_courtyards(group):
