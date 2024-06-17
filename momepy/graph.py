@@ -996,7 +996,7 @@ def node_density(
     length: str = "mm_len",
     distance: str | None = None,
     verbose: bool = True,
-):
+) -> nx.Graph:
     """Calculate the density of a node's neighbours (for all nodes)
     on the street network defined in ``graph``.
 
@@ -1023,6 +1023,7 @@ def node_density(
         measure the distance from the node ``n`` during ``ego_graph`` generation.
     verbose : bool (default True)
         If ``True``, shows progress bars in loops and indication of steps.
+
     Returns
     -------
     netx : Graph
