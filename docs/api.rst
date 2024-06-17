@@ -111,10 +111,10 @@ A set of functions to measure intensity characters:
    :toctree: api/
 
    courtyards
-   node_density
+   describe_agg
+   describe_reached_agg
 
-Note that additional intensity characters can be directly derived using :meth:`libpysal.graph.Graph.describe`
-and functions :func:`describe_agg` and :func:`describe_reached_agg` belonging to the diversity module.
+Note that additional intensity characters can be directly derived using :meth:`libpysal.graph.Graph.describe`.
 
 Measuring diversity
 -------------------
@@ -133,6 +133,8 @@ A set of functions to measure spatial diversity of elements and their values:
    theil
    values_range
 
+Note that additional diversity characters can be directly derived using :meth:`libpysal.graph.Graph.describe`.
+and functions :func:`describe_agg` and :func:`describe_reached_agg`.
 
 Underlying components of :func:`shannon` and :func:`simpson` are also exposed for direct use:
 
