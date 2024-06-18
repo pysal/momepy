@@ -82,6 +82,26 @@ def morphological_tessellation(
     momepy.enclosed_tessellation
     momepy.CheckTessellationInput
     momepy.verify_tessellation
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+
+    Define a limit used to clip the extent:
+
+    >>> limit = momepy.buffered_limit(buildings, buffer="adaptive")
+
+    Generate tessellation:
+
+    >>> momepy.morphological_tessellation(buildings).head()
+                                                geometry
+    0  POLYGON ((1603577.153 6464348.291, 1603576.946...
+    1  POLYGON ((1603166.356 6464326.62, 1603166.425 ...
+    2  POLYGON ((1603006.941 6464167.63, 1603009.97 6...
+    3  POLYGON ((1602995.269 6464132.007, 1603001.768...
+    4  POLYGON ((1603084.231 6464104.386, 1603083.773...
+
     """
     if isinstance(clip, GeoSeries | GeoDataFrame):
         clip = clip.union_all() if GPD_GE_10 else clip.unary_union
@@ -176,6 +196,26 @@ def enclosed_tessellation(
     momepy.morphological_tessellation
     momepy.CheckTessellationInput
     momepy.verify_tessellation
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+
+    Generate enclosures:
+
+    >>> enclosures = momepy.enclosures(streets)
+
+    Generate tessellation:
+
+    >>> momepy.enclosed_tessellation(buildings, enclosures).head()
+                                                  geometry  enclosure_index
+    0    POLYGON ((1603572.779 6464354.58, 1603572.505 ...                0
+    113  POLYGON ((1603543.601 6464322.376, 1603543.463...                0
+    114  POLYGON ((1603525.157 6464283.592, 1603524.725...                0
+    125  POLYGON ((1603601.446 6464256.455, 1603600.982...                0
+    126  POLYGON ((1603528.593 6464221.033, 1603527.796...                0
     """
 
     # convert to GeoDataFrame and add position (we will need it later)
@@ -296,6 +336,23 @@ def verify_tessellation(tessellation, geometry):
     -------
     tuple(excluded, multipolygons)
         Tuple of indices of building IDs not present in tessellations and MultiPolygons.
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+
+    Define a limit used to clip the extent:
+
+    >>> limit = momepy.buffered_limit(buildings, buffer="adaptive")
+
+    Generate tessellation:
+
+    >>> tessellation = momepy.morphological_tessellation(buildings)
+
+    Verify the result.
+
+    >>> excluded, multipolygons = momepy.verify_tessellation(tessellation, buildings)
     """
     # check against input layer
     ids_original = geometry.index
@@ -356,6 +413,28 @@ def get_nearest_street(
     -------
     np.ndarray
         array containing the index of the nearest street for each building
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+
+    Get street index.
+
+    >>> momepy.get_nearest_street(buildings, streets)
+    array([ 0., 33., 10.,  8.,  8.,  8.,  8.,  8., 33., 11., 11., 28., 28.,
+           28., 28., 28., 16.,  8.,  8.,  8.,  8.,  8.,  8., 11., 28., 28.,
+           28.,  8.,  8.,  8.,  8., 16., 28., 28., 28., 28., 28.,  1., 21.,
+           21., 21., 21., 21., 12., 12., 12., 26., 26., 26., 19., 19., 19.,
+           19., 21., 21., 21., 32., 32., 32., 32., 32., 26., 26.,  5.,  5.,
+            5.,  5.,  2.,  2.,  2.,  2.,  2.,  2., 25., 25., 25., 19., 19.,
+           19., 19.,  5., 25.,  6., 33., 33., 33., 33., 33., 33., 33., 34.,
+           34., 34., 34., 34., 34., 34., 34.,  6.,  6.,  6.,  6.,  6., 34.,
+           33.,  6., 34., 34., 34., 34.,  0.,  0.,  0.,  0.,  0.,  0., 34.,
+           34., 34.,  0.,  0., 14.,  2.,  2., 25., 24.,  2.,  2.,  2.,  2.,
+           24., 24., 24., 24., 24., 28., 12., 28., 34., 34., 32., 21., 16.,
+           19.], dtype=float32)
     """
     blg_idx, str_idx = streets.sindex.nearest(
         buildings.geometry, return_all=False, max_distance=max_distance
@@ -405,6 +484,37 @@ def get_nearest_node(
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+
+    Pass an object via ``networkx`` to get the nodes and necessary information.
+
+    >>> G = momepy.gdf_to_nx(streets)
+    >>> nodes, edges = momepy.nx_to_gdf(G)
+
+    Get nearest edge:
+
+    >>> buildings["edge_index"] = momepy.get_nearest_street(buildings, edges)
+
+    Get nearest node:
+
+    >>> momepy.get_nearest_node(buildings, nodes, edges, buildings["edge_index"])
+    0       0.0
+    1       9.0
+    2      11.0
+    3      11.0
+    4      11.0
+        ...
+    139     1.0
+    140    20.0
+    141    15.0
+    142     2.0
+    143    22.0
+    Length: 144, dtype: float64
     """
     # treat possibly missing edge index
     a = np.empty(len(buildings))

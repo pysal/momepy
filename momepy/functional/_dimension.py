@@ -133,6 +133,30 @@ def courtyard_area(geometry: GeoDataFrame | GeoSeries) -> Series:
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> ca = momepy.courtyard_area(buildings)
+    >>> ca
+    0      0.0
+    1      0.0
+    2      0.0
+    3      0.0
+    4      0.0
+        ...
+    139    0.0
+    140    0.0
+    141    0.0
+    142    0.0
+    143    0.0
+    Name: courtyard_area, Length: 144, dtype: float64
+
+    Verify that at least some buildings have courtyards:
+
+    >>> ca.sum()
+    353.33274206543274
     """
     return Series(
         shapely.area(
@@ -162,6 +186,24 @@ def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.longest_axis_length(buildings)
+    0       40.265562
+    1      191.254382
+    2       37.247151
+    3       47.022428
+    4       37.170142
+            ...
+    139     11.587272
+    140     27.747002
+    141     52.566435
+    142     11.091309
+    143     15.472821
+    Name: geometry, Length: 144, dtype: float64
     """
     return shapely.minimum_bounding_radius(geometry.geometry) * 2
 
@@ -182,10 +224,51 @@ def perimeter_wall(
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.perimeter_wall(buildings)
+    0      137.186310
+    1      663.342296
+    2      663.342296
+    3      663.342296
+    4      663.342296
+            ...
+    139     42.839590
+    140     78.562927
+    141    147.342182
+    142    118.354123
+    143    342.909172
+    Name: perimeter_wall, Length: 144, dtype: float64
+
+    By default, ``momepy`` calculates a Queen contiguity graph to determine connected
+    components. Alternatively, you can pass that yourself. This can be useful when
+    the graph is already computed or when you need to use a different method due to
+    topological issues.
+
+    >>> from libpysal import graph
+    >>> strict_contig = graph.Graph.build_contiguity(
+    ...     buildings, rook=False, strict=True,
+    ... )
+    >>> momepy.perimeter_wall(buildings, graph=strict_contig)
+    0      137.186310
+    1      663.342296
+    2      663.342296
+    3      663.342296
+    4      663.342296
+            ...
+    139     42.839590
+    140     78.562927
+    141    147.342182
+    142    118.354123
+    143    342.909172
+    Name: perimeter_wall, Length: 144, dtype: float64
     """
 
     if graph is None:
-        graph = Graph.build_contiguity(geometry)
+        graph = Graph.build_contiguity(geometry, rook=False)
 
     isolates = graph.isolates
 
