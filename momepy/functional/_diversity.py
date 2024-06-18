@@ -81,7 +81,7 @@ def _percentile_limited_group_grouper(y, group_index, q=(25, 75)):
 def describe_agg(
     y: NDArray[np.float64] | Series,
     aggregation_key: NDArray[np.float64] | Series,
-    result_index: pd.Index = None,
+    result_index: pd.Index | None = None,
     q: tuple[float, float] | list[float] | None = None,
     statistics: list[str] | None = None,
 ) -> DataFrame:
