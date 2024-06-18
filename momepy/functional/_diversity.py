@@ -950,6 +950,7 @@ def percentile(
     4      621.834862  641.987211   709.472695
 
     Optionally, you can specify which percentile values shall be computed.
+
     >>> momepy.percentile(buildings.area, knn5, q=[10, 90]).head()
                    10            90
     focal

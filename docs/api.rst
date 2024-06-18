@@ -40,8 +40,8 @@ And tools linking various elements together.
    :toctree: api/
 
    get_nearest_street
+   get_nearest_node
    get_network_ratio
-   get_node_id
 
 Measuring dimension
 -------------------

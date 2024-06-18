@@ -24,6 +24,7 @@ elements
 
    Blocks
    get_network_id
+   get_node_id
    Tessellation
 
 dimension
