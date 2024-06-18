@@ -41,6 +41,24 @@ def orientation(geometry: GeoDataFrame | GeoSeries) -> Series:
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.orientation(buildings)
+    0      41.050525
+    1      20.829200
+    2      20.967704
+    3      20.811290
+    4      20.411651
+            ...
+    139    21.110547
+    140    13.669062
+    141    13.671225
+    142    21.463914
+    143    13.754569
+    Name: orientation, Length: 144, dtype: float64
     """
     geom_types = geometry.geom_type
     poly_mask = geom_types.str.contains("Polygon")
@@ -88,6 +106,24 @@ def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.shared_walls(buildings)
+    0       0.000000
+    1      33.805154
+    2      39.766297
+    3      40.604643
+    4      40.455735
+            ...
+    139     9.886397
+    140     0.000000
+    141     0.000000
+    142    19.332735
+    143    10.876113
+    Name: shared_walls, Length: 144, dtype: float64
     """
     if GPD_GE_013:
         inp, res = geometry.sindex.query(geometry.geometry, predicate="touches")
@@ -129,10 +165,44 @@ def alignment(orientation: Series, graph: Graph) -> Series:
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> orientation = momepy.orientation(buildings)
+
+    Define spatial graph that includes observation within its own neighborhood:
+
+    >>> delaunay = graph.Graph.build_triangulation(
+    ...     buildings.centroid
+    ... ).assign_self_weight()
+    >>> delaunay
+    <Graph of 144 nodes and 970 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Alignment of orienation within triangulated neighbors:
+
+    >>> momepy.alignment(orientation, delaunay)
+    0      14.638740
+    1       0.217086
+    2       0.204713
+    3       0.151303
+    4       0.353203
+            ...
+    139     1.970563
+    140     0.127318
+    141     0.161911
+    142     4.351755
+    143     0.084888
+    Name: alignment, Length: 144, dtype: float64
     """
     orientation_expanded = orientation.loc[graph._adjacency.index.get_level_values(1)]
     orientation_expanded.index = graph._adjacency.index.get_level_values(0)
-    return (orientation_expanded - orientation).abs().groupby(level=0).mean()
+    r = (orientation_expanded - orientation).abs().groupby(level=0).mean()
+    r.name = "alignment"
+    return r
 
 
 def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
@@ -156,6 +226,35 @@ def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Serie
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+
+    Define spatial graph:
+
+    >>> delaunay = graph.Graph.build_triangulation(buildings.centroid)
+    >>> delaunay
+    <Graph of 144 nodes and 826 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Mean distance to adjacent buildings within triangulated neighbors:
+
+    >>> momepy.neighbor_distance(buildings, delaunay)
+    0      29.185890
+    1      30.244905
+    2      47.052305
+    3      22.831824
+    4      16.183615
+            ...
+    139    39.698734
+    140    20.634252
+    141    38.208668
+    142     6.304569
+    143    14.551355
+    Length: 144, dtype: float64
     """
     geoms = geometry.geometry.loc[graph._adjacency.index.get_level_values(1)]
     geoms.index = graph._adjacency.index.get_level_values(0)
@@ -197,6 +296,42 @@ def mean_interbuilding_distance(
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+
+    Define spatial graph denoting building adjacency:
+
+    >>> delaunay = graph.Graph.build_triangulation(buildings.centroid)
+    >>> delaunay
+    <Graph of 144 nodes and 826 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Define spatial graph denoting the neighborhood:
+
+    >>> knn15 = graph.Graph.build_knn(buildings.centroid, k=15)
+    >>> knn15
+    <Graph of 144 nodes and 2160 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+     Measure mean interbuilding distance:
+
+    >>> momepy.mean_interbuilding_distance(buildings, delaunay, knn15)
+    0      29.516506
+    1      18.673132
+    2      23.277728
+    3      25.409034
+    4      18.454463
+            ...
+    139    21.642580
+    140    16.427126
+    141    17.792155
+    142    10.844367
+    143    14.896066
+    Name: mean_interbuilding_distance, Length: 144, dtype: float64
     """
     distance = Series(
         shapely.distance(
@@ -258,6 +393,42 @@ def building_adjacency(
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+
+    Define spatial graph denoting building contiguity:
+
+    >>> contig = graph.Graph.build_contiguity(buildings)
+    >>> contig
+    <Graph of 144 nodes and 248 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Define spatial graph denoting the neighborhood:
+
+    >>> knn15 = graph.Graph.build_knn(buildings.centroid, k=15)
+    >>> knn15
+    <Graph of 144 nodes and 2160 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+     Measure mean interbuilding distance:
+
+    >>> momepy.building_adjacency(contig, knn15)
+    0      0.6875
+    1      0.1875
+    2      0.1875
+    3      0.2500
+    4      0.1875
+            ...
+    139    0.4375
+    140    0.1875
+    141    0.1875
+    142    0.1875
+    143    0.2500
+    Name: building_adjacency, Length: 144, dtype: float64
     """
     components = contiguity_graph.component_labels
 
@@ -307,6 +478,54 @@ def neighbors(
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> tessellation = momepy.morphological_tessellation(buildings)
+
+    Define spatial graph denoting adjacency:
+
+    >>> contig = graph.Graph.build_contiguity(tessellation)
+    >>> contig
+    <Graph of 144 nodes and 768 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Number of neighbors of each tessellation cell:
+
+    >>> momepy.neighbors(tessellation, contig)
+    focal
+    0       4
+    1       9
+    2       3
+    3       3
+    4       7
+        ..
+    139     3
+    140     6
+    141    12
+    142     2
+    143     5
+    Name: neighbors, Length: 144, dtype: int64
+
+    Weighted by the tessellation area:
+
+    >>> momepy.neighbors(tessellation, contig, weighted=True)
+    focal
+    0      0.012732
+    1      0.010116
+    2      0.013350
+    3      0.010172
+    4      0.038916
+            ...
+    139    0.020037
+    140    0.036766
+    141    0.045287
+    142    0.044147
+    143    0.051799
+    Name: neighbors, Length: 144, dtype: float64
     """
     if weighted:
         r = graph.cardinalities / geometry.length
@@ -339,8 +558,48 @@ def street_alignment(
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+
+    Get street index.
+
+    >>> buildings["street_index"] = momepy.get_nearest_street(buildings, streets)
+    >>> buildings.head()
+       uID                                           geometry  street_index
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...           0.0
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...          33.0
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...          10.0
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...           8.0
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...           8.0
+
+    Compute orientations.
+
+    >>> blg_orient = momepy.orientation(buildings)
+    >>> str_orient = momepy.orientation(streets)
+
+    Compute street alignment.
+
+    >>> momepy.street_alignment(blg_orient, str_orient, buildings["street_index"])
+    0      0.289796
+    1      4.542071
+    2      0.107651
+    3      0.425138
+    4      0.824776
+            ...
+    139    1.783366
+    140    0.109254
+    141    0.466462
+    142    1.223387
+    143    0.455081
+    Name: street_alignment, Length: 144, dtype: float64
     """
-    return (building_orientation - street_orientation.loc[street_index].values).abs()
+    r = (building_orientation - street_orientation.loc[street_index].values).abs()
+    r.name = "street_alignment"
+    return r
 
 
 def cell_alignment(
@@ -369,6 +628,34 @@ def cell_alignment(
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> tessellation = momepy.morphological_tessellation(buildings)
+
+    Measure orientations:
+
+    >>> blg_orient = momepy.orientation(buildings)
+    >>> tess_orient = momepy.orientation(tessellation)
+
+    Compute alignment:
+
+    >>> momepy.cell_alignment(blg_orient, tess_orient)
+    0       0.853584
+    1      20.829171
+    2       5.550296
+    3       4.052898
+    4       0.160534
+            ...
+    139     0.193781
+    140    17.920319
+    141     0.393708
+    142     0.023874
+    143     0.252116
+    Name: orientation, Length: 144, dtype: float64
     """
 
     if not isinstance(left_orientation, Series):
