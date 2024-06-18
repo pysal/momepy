@@ -8,6 +8,13 @@ Legacy API reference
 
 .. warning::
     The functionality listed below is part of the legacy API and has been deprecated.
+    Each class emits ``FutureWarning`` with a deprecation note. If you'd like to
+    silence all of these warnigns, set an environment variable ``ALLOW_LEGACY_MOMEPY``
+    to ``"True"``::
+
+      import os
+
+      os.environ["ALLOW_LEGACY_MOMEPY"] = "True"
 
 elements
 --------

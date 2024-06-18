@@ -1,3 +1,6 @@
+import os
+import warnings
+
 import geopandas as gpd
 import networkx
 import numpy as np
@@ -215,3 +218,47 @@ class TestUtils:
             mm.limit_range(np.array([np.nan, np.nan, np.nan]), rng=(25, 75)),
             np.array([np.nan, np.nan, np.nan]),
         )
+
+    def test_deprecated_decorators(self):
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.LongestAxisLength` is deprecated. "
+                "Replace it with `momepy.longest_axis_length`"
+            ),
+        ):
+            mm.LongestAxisLength(self.df_buildings)
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "True"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            mm.LongestAxisLength(self.df_buildings)
+
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "False"
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.LongestAxisLength` is deprecated. "
+                "Replace it with `momepy.longest_axis_length`"
+            ),
+        ):
+            mm.LongestAxisLength(self.df_buildings)
+
+    def test_removed_decorators(self):
+        with pytest.warns(
+            FutureWarning,
+            match=("`momepy.Area` is deprecated"),
+        ):
+            mm.Area(self.df_buildings)
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "True"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            mm.Area(self.df_buildings)
+
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "False"
+        with pytest.warns(
+            FutureWarning,
+            match=("`momepy.Area` is deprecated"),
+        ):
+            mm.Area(self.df_buildings)

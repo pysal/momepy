@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-
 import math
+import os
 import warnings
 
 import geopandas as gpd
@@ -28,15 +28,21 @@ def deprecated(new_way):
 
         @functools.wraps(func1)
         def new_func1(*args, **kwargs):
-            warnings.warn(
-                f"Class based API like `momepy.{func1.__name__}` is deprecated. "
-                f"Replace it with `momepy.{new_way}` to use functional API instead "
-                "or pin momepy version <1.0. Class-based API will be removed in 1.0. "
-                # "See details at https://docs.momepy.org/en/stable/migration.html",
-                "",
-                FutureWarning,
-                stacklevel=2,
-            )
+            if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
+                "true",
+                "1",
+                "yes",
+            ):
+                warnings.warn(
+                    f"Class based API like `momepy.{func1.__name__}` is deprecated. "
+                    f"Replace it with `momepy.{new_way}` to use functional API instead "
+                    "or pin momepy version <1.0. Class-based API will be removed in "
+                    "1.0. "
+                    # "See details at https://docs.momepy.org/en/stable/migration.html",
+                    "",
+                    FutureWarning,
+                    stacklevel=2,
+                )
             return func1(*args, **kwargs)
 
         return new_func1
@@ -54,14 +60,20 @@ def removed(new_way):
 
         @functools.wraps(func1)
         def new_func1(*args, **kwargs):
-            warnings.warn(
-                f"`momepy.{func1.__name__}` is deprecated. Replace it with {new_way} "
-                "or pin momepy version <1.0. This class will be removed in 1.0. "
-                # "See details at https://docs.momepy.org/en/stable/migration.html"
-                "",
-                FutureWarning,
-                stacklevel=2,
-            )
+            if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
+                "true",
+                "1",
+                "yes",
+            ):
+                warnings.warn(
+                    f"`momepy.{func1.__name__}` is deprecated. Replace it with "
+                    f"{new_way} "
+                    "or pin momepy version <1.0. This class will be removed in 1.0. "
+                    # "See details at https://docs.momepy.org/en/stable/migration.html"
+                    "",
+                    FutureWarning,
+                    stacklevel=2,
+                )
             return func1(*args, **kwargs)
 
         return new_func1
