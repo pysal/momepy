@@ -20,7 +20,7 @@ elements
 --------
 
 .. autosummary::
-   :toctree: generated/a
+   :toctree: generated/
 
    Blocks
    get_network_id
