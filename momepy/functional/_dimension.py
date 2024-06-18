@@ -243,7 +243,7 @@ def perimeter_wall(
     143    342.909172
     Name: perimeter_wall, Length: 144, dtype: float64
 
-    By default, ``momepy`` calculates Queen contiguity graph to determine connected
+    By default, ``momepy`` calculates a Queen contiguity graph to determine connected
     components. Alternatively, you can pass that yourself. This can be useful when
     the graph is already computed or when you need to use a different method due to
     topological issues.

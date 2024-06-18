@@ -173,7 +173,7 @@ def alignment(orientation: Series, graph: Graph) -> Series:
     >>> buildings = geopandas.read_file(path, layer="buildings")
     >>> orientation = momepy.orientation(buildings)
 
-    Define spatial graph that includes observation within its own neighborhood:
+    Define a spatial graph that includes observations within its own neighborhood:
 
     >>> delaunay = graph.Graph.build_triangulation(
     ...     buildings.centroid
@@ -233,7 +233,7 @@ def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Serie
     >>> path = momepy.datasets.get_path("bubenec")
     >>> buildings = geopandas.read_file(path, layer="buildings")
 
-    Define spatial graph:
+    Define a spatial graph:
 
     >>> delaunay = graph.Graph.build_triangulation(buildings.centroid)
     >>> delaunay
@@ -303,14 +303,14 @@ def mean_interbuilding_distance(
     >>> path = momepy.datasets.get_path("bubenec")
     >>> buildings = geopandas.read_file(path, layer="buildings")
 
-    Define spatial graph denoting building adjacency:
+    Define a spatial graph denoting building adjacency:
 
     >>> delaunay = graph.Graph.build_triangulation(buildings.centroid)
     >>> delaunay
     <Graph of 144 nodes and 826 nonzero edges indexed by
      [0, 1, 2, 3, 4, ...]>
 
-    Define spatial graph denoting the neighborhood:
+    Define a spatial graph denoting the neighborhood:
 
     >>> knn15 = graph.Graph.build_knn(buildings.centroid, k=15)
     >>> knn15
@@ -400,14 +400,14 @@ def building_adjacency(
     >>> path = momepy.datasets.get_path("bubenec")
     >>> buildings = geopandas.read_file(path, layer="buildings")
 
-    Define spatial graph denoting building contiguity:
+    Define a spatial graph denoting building contiguity:
 
     >>> contig = graph.Graph.build_contiguity(buildings)
     >>> contig
     <Graph of 144 nodes and 248 nonzero edges indexed by
      [0, 1, 2, 3, 4, ...]>
 
-    Define spatial graph denoting the neighborhood:
+    Define a spatial graph denoting the neighborhood:
 
     >>> knn15 = graph.Graph.build_knn(buildings.centroid, k=15)
     >>> knn15
@@ -486,7 +486,7 @@ def neighbors(
     >>> buildings = geopandas.read_file(path, layer="buildings")
     >>> tessellation = momepy.morphological_tessellation(buildings)
 
-    Define spatial graph denoting adjacency:
+    Define a spatial graph denoting adjacency:
 
     >>> contig = graph.Graph.build_contiguity(tessellation)
     >>> contig

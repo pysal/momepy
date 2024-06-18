@@ -62,7 +62,7 @@ def form_factor(
     >>> path = momepy.datasets.get_path("bubenec")
     >>> buildings = geopandas.read_file(path, layer="buildings")
 
-    Pretend we have information about building height.
+    Synthesize some  building height information.
 
     >>> import numpy as np
     >>> rng = np.random.default_rng(seed=42)

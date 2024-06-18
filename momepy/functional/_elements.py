@@ -491,7 +491,7 @@ def get_nearest_node(
     >>> buildings = geopandas.read_file(path, layer="buildings")
     >>> streets = geopandas.read_file(path, layer="streets")
 
-    Pass via networkx object to get the nodes and necessary information.
+    Pass an object via ``networkx`` to get the nodes and necessary information.
 
     >>> G = momepy.gdf_to_nx(streets)
     >>> nodes, edges = momepy.nx_to_gdf(G)
