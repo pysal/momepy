@@ -11,6 +11,8 @@ import scipy as sp
 from numpy.lib import NumpyVersion
 from tqdm.auto import tqdm  # progress bar
 
+from .utils import deprecated, removed
+
 __all__ = [
     "Range",
     "Theil",
@@ -24,6 +26,7 @@ __all__ = [
 ]
 
 
+@deprecated("values_range")
 class Range:
     """
     Calculates the range of values within neighbours defined in ``spatial_weights``.
@@ -119,6 +122,7 @@ class Range:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("theil")
 class Theil:
     """
     Calculates the Theil measure of inequality of values within neighbours defined in
@@ -217,6 +221,7 @@ class Theil:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("simpson")
 class Simpson:
     """
     Calculates the Simpson's diversity index of values within neighbours defined in
@@ -402,6 +407,7 @@ def simpson_diversity(values, bins=None, categorical=False):
     return sum((n / sum(counts)) ** 2 for n in counts if n != 0)
 
 
+@deprecated("gini")
 class Gini:
     """
     Calculates the Gini index of values within neighbours defined in
@@ -503,6 +509,7 @@ class Gini:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("shannon")
 class Shannon:
     """
     Calculates the Shannon index of values within neighbours defined in
@@ -690,6 +697,7 @@ def shannon_diversity(data, bins=None, categorical=False, categories=None):
     return -sum(p(n, sum(counts.values())) for n in counts.values() if n != 0)
 
 
+@removed("`.describe()` method of libpysal.graph.Graph")
 class Unique:
     """
     Calculates the number of unique values within neighbours defined in
@@ -766,6 +774,7 @@ class Unique:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("percentile")
 class Percentiles:
     """
     Calculates the percentiles of values within

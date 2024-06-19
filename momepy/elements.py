@@ -2,6 +2,7 @@
 
 # elements.py
 # generating derived elements (street edge, block)
+import os
 import warnings
 
 import geopandas as gpd
@@ -14,6 +15,8 @@ from scipy.spatial import Voronoi
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
 from tqdm.auto import tqdm
+
+from .utils import deprecated
 
 __all__ = [
     "Tessellation",
@@ -170,6 +173,22 @@ class Tessellation:
         use_dask=True,
         n_chunks=None,
     ):
+        if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
+            "true",
+            "1",
+            "yes",
+        ):
+            warnings.warn(
+                "Class based API like `momepy.Tessellation` is deprecated. "
+                "Replace it with `momepy.morphological_tessellation` or "
+                "`momepy.enclosed_tessellation` to use functional API instead "
+                "or pin momepy version <1.0. Class-based API will be removed in "
+                "1.0. "
+                # "See details at https://docs.momepy.org/en/stable/migration.html",
+                "",
+                FutureWarning,
+                stacklevel=2,
+            )
         self.gdf = gdf
         self.id = gdf[unique_id]
         self.limit = limit
@@ -527,6 +546,7 @@ class Tessellation:
         )
 
 
+@deprecated("generate_blocks")
 class Blocks:
     """
     Generate blocks based on buildings, tessellation, and street network.
@@ -633,6 +653,7 @@ class Blocks:
         self.blocks = blocks
 
 
+@deprecated("get_nearest_street")
 def get_network_id(left, right, network_id, min_size=100, verbose=True):
     """
     Snap each element (preferably building) to the closest
@@ -724,6 +745,7 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
     return series
 
 
+@deprecated("get_nearest_node")
 def get_node_id(
     objects,
     nodes,
