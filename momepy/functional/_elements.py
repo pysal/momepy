@@ -105,7 +105,7 @@ def morphological_tessellation(
     """
 
     if isinstance(geometry.index, MultiIndex):
-        raise ValueError("MultiIndex is not supported for tessellation.")
+        raise ValueError("MultiIndex is not supported in momepy.morphological_tessellation.")
 
     if isinstance(clip, GeoSeries | GeoDataFrame):
         clip = clip.union_all() if GPD_GE_10 else clip.unary_union
@@ -223,7 +223,7 @@ def enclosed_tessellation(
     """
 
     if isinstance(geometry.index, MultiIndex):
-        raise ValueError("MultiIndex is not supported for tessellation.")
+        raise ValueError("MultiIndex is not supported in `momepy.enclosed_tessellation`.")
 
     # convert to GeoDataFrame and add position (we will need it later)
     enclosures = enclosures.geometry.to_frame()
@@ -371,7 +371,7 @@ def verify_tessellation(tessellation, geometry):
     if isinstance(geometry.index, MultiIndex) or isinstance(
         tessellation.index, MultiIndex
     ):
-        raise ValueError("MultiIndex is not supported for tessellation.")
+        raise ValueError("MultiIndex is not supported in `momepy.verify_tessellation`.")
 
     # check against input layer
     ids_original = geometry.index
@@ -542,7 +542,7 @@ def get_nearest_node(
         or isinstance(edges.index, MultiIndex)
     ):
         raise ValueError(
-            "MultiIndex is not supported for calculating the nearest node."
+            "MultiIndex is not supported in `momepy.get_nearest_node`."
         )
 
     # treat possibly missing edge index
@@ -634,7 +634,7 @@ def generate_blocks(
         or isinstance(tessellation.index, MultiIndex)
         or isinstance(edges.index, MultiIndex)
     ):
-        raise ValueError("MultiIndex is not supported for generating blocks.")
+        raise ValueError("MultiIndex is not supported in `momepy.generate_blocks`.")
     id_name: str = "bID"
 
     # slice the tessellations by the street network
