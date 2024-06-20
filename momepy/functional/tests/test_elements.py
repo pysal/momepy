@@ -335,28 +335,31 @@ class TestElements:
     def test_multi_index(self):
         buildings = self.df_buildings.set_index(["uID", "uID"])
         with pytest.raises(
-            ValueError, match="MultiIndex is not supported for tessellation."
+            ValueError,
+            match="MultiIndex is not supported in `momepy.morphological_tessellation`.",
         ):
             mm.morphological_tessellation(buildings)
         with pytest.raises(
-            ValueError, match="MultiIndex is not supported for tessellation."
+            ValueError,
+            match="MultiIndex is not supported in `momepy.enclosed_tessellation`.",
         ):
             mm.enclosed_tessellation(buildings, self.enclosures)
         with pytest.raises(
-            ValueError, match="MultiIndex is not supported for tessellation."
+            ValueError,
+            match="MultiIndex is not supported in `momepy.verify_tessellation`.",
         ):
             mm.verify_tessellation(buildings, self.enclosures)
 
         with pytest.raises(
             ValueError,
-            match="MultiIndex is not supported for calculating the nearest node.",
+            match="MultiIndex is not supported in `momepy.get_nearest_node`.",
         ):
             mm.get_nearest_node(
                 buildings, self.enclosures, self.enclosures, self.enclosures
             )
 
         with pytest.raises(
-            ValueError, match="MultiIndex is not supported for generating blocks."
+            ValueError, match="MultiIndex is not supported in `momepy.generate_blocks`"
         ):
             mm.generate_blocks(buildings, self.enclosures, self.enclosures)
 
