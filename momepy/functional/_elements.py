@@ -562,12 +562,12 @@ def get_nearest_node(
 
 def generate_blocks(
     tessellation: GeoDataFrame, edges: GeoDataFrame, buildings: GeoDataFrame
-) -> tuple[GeoDataFrame, Series, Series]:
+) -> tuple[GeoDataFrame, Series]:
     """
     Generate blocks based on buildings, tessellation, and street network.
     Dissolves tessellation cells based on street-network based polygons.
-    Links resulting ID to ``buildings`` and ``tessellation`` and returns
-    ``blocks``, ``buildings_ds`` and ``tessellation`` ids.
+    Links resulting ID to ``tessellation`` and returns
+    ``blocks`` and ``tessellation`` ids.
 
     Parameters
     ----------
@@ -588,8 +588,6 @@ def generate_blocks(
     -------
     blocks : GeoDataFrame
         A GeoDataFrame containing generated blocks.
-    buildings_ids : Series
-        A Series derived from buildings with block ID.
     tessellation_ids : Series
         A Series derived from morphological tessellation with block ID.
 
