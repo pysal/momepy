@@ -360,6 +360,29 @@ class TestElements:
         ):
             mm.generate_blocks(buildings, self.enclosures, self.enclosures)
 
+    def test_tess_single_building_edge_case(self):
+        tessellations = mm.enclosed_tessellation(
+            self.df_buildings, self.enclosures.geometry, n_jobs=-1
+        )
+        orig_grouper = tessellations.groupby("enclosure_index")
+        idxs = ~self.df_buildings.index.isin(orig_grouper.get_group(8).index)
+        idxs[1] = True
+        idxs[21] = False
+        idxs[23] = False
+
+        new_blg = self.df_buildings[idxs]
+        new_blg.loc[22, "geometry"] = new_blg.loc[22, "geometry"].buffer(20)
+        new_tess = mm.enclosed_tessellation(new_blg, self.enclosures.geometry, n_jobs=1)
+
+        # assert that buildings 1 and 22 intersect the same enclosure
+        inp, res = self.enclosures.sindex.query(
+            new_blg.geometry, predicate="intersects"
+        )
+        assert np.isclose(new_blg.iloc[inp[res == 8]].index.values, [1, 22]).all()
+
+        # assert that there is a tessellation for building 1
+        assert 1 in new_tess.index
+
 
 class TestElementsEquivalence:
     def setup_method(self):
