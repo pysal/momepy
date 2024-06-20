@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 
-@deprecated("describe_agg")
+@removed("a direct division of areas or momepy.describe_agg()")
 class AreaRatio:
     """
     Calculate covered area ratio or floor area ratio of objects. Either ``unique_id``
@@ -136,7 +136,7 @@ class AreaRatio:
         self.series = objects_merged["lf_area"] / objects_merged[left_areas]
 
 
-@deprecated("describe_agg")
+@removed("momepy.describe_agg()")
 class Count:
     """
     Calculate the number of elements within an aggregated structure. Aggregated
