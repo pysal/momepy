@@ -610,7 +610,7 @@ def generate_blocks(
     3  POLYGON ((1602995.269 6464132.007, 1603001.768...
     4  POLYGON ((1603084.231 6464104.386, 1603083.773...
 
-    >>> blocks, buildings_id, tessellation_id = momepy.generate_blocks(
+    >>> blocks, tessellation_id = momepy.generate_blocks(
     ...     tessellation, streets, buildings
     ... )
     >>> blocks.head()
@@ -621,10 +621,9 @@ def generate_blocks(
     3  POLYGON ((1603137.411 6464124.658, 1603137.116...
     4  POLYGON ((1603179.384 6463961.584, 1603179.357...
 
-    Both ``buildings_id`` and ``tessellation_id`` can be directly assigned to their
-    respective parental DataFrames.
+    ``tessellation_id`` can be directly assigned to its
+    respective parental DataFrame directly.
 
-    >>> buildings["block_id"] = buildings_id
     >>> tessellation["block_id"] = tessellation_id
     """
 
@@ -670,7 +669,7 @@ def generate_blocks(
     )
     tessellation_id = cells_m[id_name]
 
-    return blocks, buildings_id, tessellation_id
+    return blocks, tessellation_id
 
 
 def buffered_limit(

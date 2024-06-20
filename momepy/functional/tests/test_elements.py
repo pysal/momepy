@@ -306,11 +306,10 @@ class TestElements:
             mm.buffered_limit(self.df_buildings, "invalid")
 
     def test_blocks(self):
-        blocks, buildings_id, tessellation_id = mm.generate_blocks(
+        blocks, tessellation_id = mm.generate_blocks(
             self.df_tessellation, self.df_streets, self.df_buildings
         )
         assert not tessellation_id.isna().any()
-        assert not buildings_id.isna().any()
         assert len(blocks) == 8
 
     def test_blocks_inner(self):
@@ -321,11 +320,10 @@ class TestElements:
             .buffer(20)
             .exterior
         )
-        blocks, buildings_id, tessellation_id = mm.generate_blocks(
+        blocks, tessellation_id = mm.generate_blocks(
             self.df_tessellation, streets, self.df_buildings
         )
         assert not tessellation_id.isna().any()
-        assert not buildings_id.isna().any()
         assert len(blocks) == 9
         if GPD_GE_013:
             assert len(blocks.sindex.query(blocks.geometry, "overlaps")[0]) == 0
@@ -400,7 +398,7 @@ class TestElementsEquivalence:
         )
 
     def test_blocks(self):
-        blocks, buildings_id, tessellation_id = mm.generate_blocks(
+        blocks, tessellation_id = mm.generate_blocks(
             self.df_tessellation, self.df_streets, self.df_buildings
         )
         res = mm.Blocks(
@@ -410,5 +408,7 @@ class TestElementsEquivalence:
         assert_geodataframe_equal(
             blocks.geometry.to_frame(), res.blocks.geometry.to_frame()
         )
-        assert_series_equal(buildings_id, res.buildings_id)
+        assert_series_equal(
+            tessellation_id[tessellation_id.index >= 0], res.buildings_id
+        )
         assert_series_equal(tessellation_id, res.tessellation_id)
