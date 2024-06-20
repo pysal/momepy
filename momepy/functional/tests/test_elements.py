@@ -222,7 +222,7 @@ class TestElements:
 
         streets.index = streets.index.astype(str)
         nearest = mm.get_nearest_street(self.df_buildings, streets, 10)
-        assert (nearest == None).sum() == 137  # noqa: E711
+        assert pd.isna(nearest).sum() == 137  # noqa: E711
 
     def test_get_nearest_node(self):
         nodes, edges = mm.nx_to_gdf(mm.gdf_to_nx(self.df_streets))

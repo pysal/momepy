@@ -465,7 +465,8 @@ def get_nearest_street(
         ids = np.empty(len(buildings), dtype=np.float32)
         ids[:] = np.nan
 
-    ids[blg_idx] = streets.index[str_idx]
+    ids = pd.Series(np.nan, index=buildings.index)
+    ids.iloc[blg_idx] = streets.index[str_idx]
     return ids
 
 
