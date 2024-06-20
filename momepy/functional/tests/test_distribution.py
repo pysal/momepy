@@ -139,19 +139,6 @@ class TestDistribution:
         assert_result(align, align_expected, df_buildings)
         assert_series_equal(align, align2, check_names=False)
 
-    def test_neighboring_street_orientation_deviation(self):
-        street_graph = Graph.build_contiguity(self.df_streets, rook=False)
-        deviations = mm.neighboring_street_orientation_deviation(
-            self.df_streets, street_graph
-        )
-        expected = {
-            "count": 35,
-            "mean": 7.527840590385933,
-            "min": 0.00798704765839,
-            "max": 20.9076846002,
-        }
-        assert_result(deviations, expected, self.df_streets)
-
 
 class TestEquality:
     def setup_method(self):
@@ -264,14 +251,3 @@ class TestEquality:
         ).series
 
         assert_series_equal(align_new, align_old, check_names=False, check_dtype=False)
-
-    def test_neighboring_street_orientation_deviation(self):
-        street_graph = Graph.build_contiguity(self.df_streets, rook=False)
-        deviations_new = mm.neighboring_street_orientation_deviation(
-            self.df_streets, street_graph
-        )
-        deviations_old = mm.NeighboringStreetOrientationDeviation(
-            self.df_streets
-        ).series
-
-        assert_series_equal(deviations_new, deviations_old, check_names=False)

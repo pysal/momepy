@@ -18,7 +18,6 @@ __all__ = [
     "neighbors",
     "street_alignment",
     "cell_alignment",
-    "neighboring_street_orientation_deviation",
 ]
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
@@ -664,56 +663,3 @@ def cell_alignment(
     if not isinstance(right_orientation, Series):
         right_orientation = Series(right_orientation)
     return (left_orientation - right_orientation).abs()
-
-
-def neighboring_street_orientation_deviation(
-    streets: GeoDataFrame, graph: Graph
-) -> Series:
-    """Calculate the mean deviation of solar orientation of adjacent streets.
-
-    The orientation of a street segment is represented by the orientation of the
-    line connecting the first and last point of the segment.
-
-    .. math::
-        \\frac{1}{n}\\sum_{i=1}^n dev_i=\\frac{dev_1+dev_2+\\cdots+dev_n}{n}
-
-    Parameters
-    ----------
-    streets : GeoDataFrame
-        A GeoDataFrame containing the streets to analyse.
-    graph : libpysal.graph.Graph
-        Graph representing spatial relationships between elements.
-
-    Returns
-    -------
-    Series
-
-    Examples
-    --------
-    >>> from libpysal import graph
-    >>> path = momepy.datasets.get_path("bubenec")
-    >>> df_streets = geopandas.read_file(path, layer="streets")
-    >>> street_graph = graph.Graph.build_contiguity(df_streets, rook=False)
-    >>> df_streets['orient_dev'] = momepy.neighboring_street_orientation_deviation(
-    ...     df_streets, street_graph
-    ... )
-    >>> df_streets['orient_dev'][5]
-    6.138759532288338
-    """
-    street_orientations = orientation(streets)
-    inp = graph._adjacency.index.get_level_values(0)
-    res = graph._adjacency.index.get_level_values(1)
-
-    itself = inp == res
-    inp = inp[~itself]
-    res = res[~itself]
-
-    left = street_orientations.loc[inp].reset_index(drop=True)
-    right = street_orientations.loc[res].reset_index(drop=True)
-    deviations = (left - right).abs()
-
-    vals = deviations.groupby(inp).mean()
-
-    result = Series(np.nan, index=streets.index)
-    result.loc[vals.index] = vals.values
-    return result

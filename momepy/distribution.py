@@ -14,7 +14,7 @@ import shapely
 from packaging.version import Version
 from tqdm.auto import tqdm  # progress bar
 
-from .utils import _azimuth, deprecated
+from .utils import _azimuth, deprecated, removed
 
 __all__ = [
     "Orientation",
@@ -681,7 +681,7 @@ class MeanInterbuildingDistance:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
-@deprecated("neighboring_street_orientation_deviation")
+@removed("mean_deviation")
 class NeighboringStreetOrientationDeviation:
     """
     Calculate the mean deviation of solar orientation of adjacent streets. The

@@ -22,6 +22,7 @@ from libpysal.graph._utils import (
 )
 
 __all__ = [
+    "mean_deviation",
     "describe_agg",
     "describe_reached_agg",
     "values_range",
@@ -970,4 +971,57 @@ def percentile(
     stats = grouper.apply(lambda x: _interpolate(x.values, q))
     result = DataFrame(np.stack(stats), columns=q, index=stats.index)
     result.loc[graph.isolates] = np.nan
+    return result
+
+
+def mean_deviation(y: Series, graph: Graph) -> Series:
+    """Calculate the mean deviation of solar orientation of adjacent streets.
+
+    The orientation of a street segment is represented by the orientation of the
+    line connecting the first and last point of the segment.
+
+    .. math::
+        \\frac{1}{n}\\sum_{i=1}^n dev_i=\\frac{dev_1+dev_2+\\cdots+dev_n}{n}
+
+    Parameters
+    ----------
+    y : Series
+        A Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        Graph representing spatial relationships between elements.
+
+    Returns
+    -------
+    Series
+
+    Examples
+    --------
+    >>> from libpysal import graph
+    >>> import geopandas
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> df_streets = geopandas.read_file(path, layer="streets")
+    >>> street_orientations = momepy.orientation(df_streets)
+    >>> street_graph = graph.Graph.build_contiguity(df_streets, rook=False)
+    >>> df_streets['orient_dev'] = momepy.neighboring_street_orientation_deviation(
+    ...     street_orientations, street_graph
+    ... )
+    >>> df_streets['orient_dev'][5]
+    6.138759532288338
+    """
+
+    inp = graph._adjacency.index.get_level_values(0)
+    res = graph._adjacency.index.get_level_values(1)
+
+    itself = inp == res
+    inp = inp[~itself]
+    res = res[~itself]
+
+    left = y.loc[inp].reset_index(drop=True)
+    right = y.loc[res].reset_index(drop=True)
+    deviations = (left - right).abs()
+
+    vals = deviations.groupby(inp).mean()
+
+    result = Series(np.nan, index=y.index)
+    result.loc[vals.index] = vals.values
     return result
