@@ -333,7 +333,7 @@ def courtyard_index(
     Length: 144, dtype: float64
 
     >>> ci.max()
-    0.16605915738643523
+    np.float64(0.16605915738643523)
 
     If you know the courtyard area, you can pass it to skip the computation step.
 

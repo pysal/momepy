@@ -156,7 +156,7 @@ def courtyard_area(geometry: GeoDataFrame | GeoSeries) -> Series:
     Verify that at least some buildings have courtyards:
 
     >>> ca.sum()
-    353.33274206543274
+    np.float64(353.33274206543274)
     """
     return Series(
         shapely.area(
