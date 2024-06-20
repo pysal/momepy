@@ -410,7 +410,7 @@ def get_nearest_street(
     buildings: GeoSeries | GeoDataFrame,
     streets: GeoSeries | GeoDataFrame,
     max_distance: float | None = None,
-) -> np.ndarray:
+) -> Series:
     """Identify the nearest street for each building.
 
     Parameters
