@@ -307,10 +307,16 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
         tess[enclosure_id] = ix
         return tess
 
+    ## in case a single building is left in blg
+    if len(blg) == 1:
+        assigned_ix = blg.index[0]
+    else:
+        assigned_ix = -1
+
     return GeoDataFrame(
         {enclosure_id: ix},
         geometry=[poly],
-        index=[-1],
+        index=[assigned_ix],
         crs=blg.crs,
     )
 
