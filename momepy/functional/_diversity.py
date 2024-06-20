@@ -975,7 +975,7 @@ def percentile(
 
 
 def mean_deviation(y: Series, graph: Graph) -> Series:
-    """Calculate the mean deviation of each ```y`` value and its graph neighbours.
+    """Calculate the mean deviation of each ``y`` value and its graph neighbours.
 
     .. math::
         \\frac{1}{n}\\sum_{i=1}^n dev_i=\\frac{dev_1+dev_2+\\cdots+dev_n}{n}
