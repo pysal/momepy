@@ -3,7 +3,6 @@ import libpysal
 import numpy as np
 import pandas as pd
 import pytest
-import shapely
 from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
 from pandas.testing import assert_index_equal, assert_series_equal
@@ -14,7 +13,6 @@ import momepy as mm
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
-SHPLY_GE_250 = Version(shapely.__version__) >= Version("2.5.0dev")
 
 
 class TestElements:
@@ -348,13 +346,13 @@ class TestElements:
         new_blg.loc[22, "geometry"] = new_blg.loc[22, "geometry"].buffer(20)
         new_tess = mm.enclosed_tessellation(new_blg, self.enclosures.geometry, n_jobs=1)
 
-        ##assert that buildings 1 and 22 intersect the same enclosure
+        # assert that buildings 1 and 22 intersect the same enclosure
         inp, res = self.enclosures.sindex.query(
             new_blg.geometry, predicate="intersects"
         )
         assert np.isclose(new_blg.iloc[inp[res == 8]].index.values, [1, 22]).all()
 
-        ### assert that there is a tessellation for building 1
+        # assert that there is a tessellation for building 1
         assert 1 in new_tess.index
 
 
