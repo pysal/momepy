@@ -334,49 +334,6 @@ class TestElements:
         else:
             assert len(blocks.sindex.query_bulk(blocks.geometry, "overlaps")[0]) == 0
 
-    @pytest.mark.skipif(not SHPLY_GE_250, reason="coverage_simplify required")
-    def test_simplified_tesselations(self):
-        n_workers = -1
-        tessellations = mm.enclosed_tessellation(
-            self.df_buildings, self.enclosures.geometry, n_jobs=n_workers
-        )
-        simplified_tessellations = mm.enclosed_tessellation(
-            self.df_buildings, self.enclosures.geometry, simplify=True, n_jobs=n_workers
-        )
-        ## empty enclosures should be unmodified
-        assert_geodataframe_equal(
-            tessellations[tessellations.index < 0],
-            simplified_tessellations[simplified_tessellations.index < 0],
-        )
-        ## simplification should result in less total points
-        orig_points = shapely.get_coordinates(
-            tessellations[tessellations.index >= 0].geometry
-        ).shape
-        simpl_points = shapely.get_coordinates(
-            simplified_tessellations[simplified_tessellations.index >= 0].geometry
-        ).shape
-        assert orig_points > simpl_points
-
-        ## simplification should not modify the external borders of tesselation cells\
-        orig_grouper = tessellations.groupby("enclosure_index")
-        simpl_grouper = simplified_tessellations.groupby("enclosure_index")
-        for idx in np.union1d(
-            tessellations["enclosure_index"].unique(),
-            simplified_tessellations["enclosure_index"].unique(),
-        ):
-            orig_group = orig_grouper.get_group(idx).dissolve().boundary
-            enclosure = self.enclosures.loc[[idx]].dissolve().boundary
-
-            simpl_group = simpl_grouper.get_group(idx).dissolve().boundary
-
-            ## simplified is not different to enclosure
-            ## this needs to be redone
-            assert np.isclose(simpl_group.difference(enclosure).area, 0)
-
-            # simplified is not different to original tess
-            ## this needs to be redone
-            assert np.isclose(simpl_group.difference(orig_group).area, 0)
-
     def test_tess_single_building_edge_case(self):
         tessellations = mm.enclosed_tessellation(
             self.df_buildings, self.enclosures.geometry, n_jobs=-1
