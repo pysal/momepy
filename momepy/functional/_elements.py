@@ -562,12 +562,12 @@ def get_nearest_node(
 
 def generate_blocks(
     tessellation: GeoDataFrame, edges: GeoDataFrame, buildings: GeoDataFrame
-) -> tuple[GeoDataFrame, Series, Series]:
+) -> tuple[GeoDataFrame, Series]:
     """
     Generate blocks based on buildings, tessellation, and street network.
     Dissolves tessellation cells based on street-network based polygons.
-    Links resulting ID to ``buildings`` and ``tessellation`` and returns
-    ``blocks``, ``buildings_ds`` and ``tessellation`` ids.
+    Links resulting ID to ``tessellation`` and returns
+    ``blocks`` and ``tessellation`` ids.
 
     Parameters
     ----------
@@ -588,8 +588,6 @@ def generate_blocks(
     -------
     blocks : GeoDataFrame
         A GeoDataFrame containing generated blocks.
-    buildings_ids : Series
-        A Series derived from buildings with block ID.
     tessellation_ids : Series
         A Series derived from morphological tessellation with block ID.
 
@@ -610,7 +608,7 @@ def generate_blocks(
     3  POLYGON ((1602995.269 6464132.007, 1603001.768...
     4  POLYGON ((1603084.231 6464104.386, 1603083.773...
 
-    >>> blocks, buildings_id, tessellation_id = momepy.generate_blocks(
+    >>> blocks, tessellation_id = momepy.generate_blocks(
     ...     tessellation, streets, buildings
     ... )
     >>> blocks.head()
@@ -621,10 +619,9 @@ def generate_blocks(
     3  POLYGON ((1603137.411 6464124.658, 1603137.116...
     4  POLYGON ((1603179.384 6463961.584, 1603179.357...
 
-    Both ``buildings_id`` and ``tessellation_id`` can be directly assigned to their
-    respective parental DataFrames.
+    ``tessellation_id`` can be directly assigned to its
+    respective parental DataFrame directly.
 
-    >>> buildings["block_id"] = buildings_id
     >>> tessellation["block_id"] = tessellation_id
     """
 
@@ -670,7 +667,7 @@ def generate_blocks(
     )
     tessellation_id = cells_m[id_name]
 
-    return blocks, buildings_id, tessellation_id
+    return blocks, tessellation_id
 
 
 def buffered_limit(
