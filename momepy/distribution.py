@@ -681,6 +681,7 @@ class MeanInterbuildingDistance:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("neighboring_street_orientation_deviation")
 class NeighboringStreetOrientationDeviation:
     """
     Calculate the mean deviation of solar orientation of adjacent streets. The
