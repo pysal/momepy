@@ -10,7 +10,7 @@ from joblib import Parallel, delayed
 from libpysal.cg import voronoi_frames
 from libpysal.graph import Graph
 from packaging.version import Version
-from pandas import Series
+from pandas import MultiIndex, Series
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
@@ -103,6 +103,12 @@ def morphological_tessellation(
     4  POLYGON ((1603084.231 6464104.386, 1603083.773...
 
     """
+
+    if isinstance(geometry.index, MultiIndex):
+        raise ValueError(
+            "MultiIndex is not supported in `momepy.morphological_tessellation`."
+        )
+
     if isinstance(clip, GeoSeries | GeoDataFrame):
         clip = clip.union_all() if GPD_GE_10 else clip.unary_union
 
@@ -217,6 +223,11 @@ def enclosed_tessellation(
     125  POLYGON ((1603601.446 6464256.455, 1603600.982...                0
     126  POLYGON ((1603528.593 6464221.033, 1603527.796...                0
     """
+
+    if isinstance(geometry.index, MultiIndex):
+        raise ValueError(
+            "MultiIndex is not supported in `momepy.enclosed_tessellation`."
+        )
 
     # convert to GeoDataFrame and add position (we will need it later)
     enclosures = enclosures.geometry.to_frame()
@@ -360,6 +371,12 @@ def verify_tessellation(tessellation, geometry):
 
     >>> excluded, multipolygons = momepy.verify_tessellation(tessellation, buildings)
     """
+
+    if isinstance(geometry.index, MultiIndex) or isinstance(
+        tessellation.index, MultiIndex
+    ):
+        raise ValueError("MultiIndex is not supported in `momepy.verify_tessellation`.")
+
     # check against input layer
     ids_original = geometry.index
     ids_generated = tessellation.index
@@ -397,7 +414,7 @@ def get_nearest_street(
     buildings: GeoSeries | GeoDataFrame,
     streets: GeoSeries | GeoDataFrame,
     max_distance: float | None = None,
-) -> np.ndarray:
+) -> Series:
     """Identify the nearest street for each building.
 
     Parameters
@@ -429,30 +446,26 @@ def get_nearest_street(
     Get street index.
 
     >>> momepy.get_nearest_street(buildings, streets)
-    array([ 0., 33., 10.,  8.,  8.,  8.,  8.,  8., 33., 11., 11., 28., 28.,
-           28., 28., 28., 16.,  8.,  8.,  8.,  8.,  8.,  8., 11., 28., 28.,
-           28.,  8.,  8.,  8.,  8., 16., 28., 28., 28., 28., 28.,  1., 21.,
-           21., 21., 21., 21., 12., 12., 12., 26., 26., 26., 19., 19., 19.,
-           19., 21., 21., 21., 32., 32., 32., 32., 32., 26., 26.,  5.,  5.,
-            5.,  5.,  2.,  2.,  2.,  2.,  2.,  2., 25., 25., 25., 19., 19.,
-           19., 19.,  5., 25.,  6., 33., 33., 33., 33., 33., 33., 33., 34.,
-           34., 34., 34., 34., 34., 34., 34.,  6.,  6.,  6.,  6.,  6., 34.,
-           33.,  6., 34., 34., 34., 34.,  0.,  0.,  0.,  0.,  0.,  0., 34.,
-           34., 34.,  0.,  0., 14.,  2.,  2., 25., 24.,  2.,  2.,  2.,  2.,
-           24., 24., 24., 24., 24., 28., 12., 28., 34., 34., 32., 21., 16.,
-           19.], dtype=float32)
+    0       0.0
+    1      33.0
+    2      10.0
+    3       8.0
+    4       8.0
+        ...
+    139    34.0
+    140    32.0
+    141    21.0
+    142    16.0
+    143    19.0
+    Length: 144, dtype: float64
     """
     blg_idx, str_idx = streets.sindex.nearest(
         buildings.geometry, return_all=False, max_distance=max_distance
     )
 
-    if streets.index.dtype == "object":
-        ids = np.empty(len(buildings), dtype=object)
-    else:
-        ids = np.empty(len(buildings), dtype=np.float32)
-        ids[:] = np.nan
+    ids = pd.Series(None, index=buildings.index, dtype=streets.index.dtype)
 
-    ids[blg_idx] = streets.index[str_idx]
+    ids.iloc[blg_idx] = streets.index[str_idx]
     return ids
 
 
@@ -522,6 +535,15 @@ def get_nearest_node(
     143    22.0
     Length: 144, dtype: float64
     """
+
+    if (
+        isinstance(buildings.index, MultiIndex)
+        or isinstance(nearest_edge.index, MultiIndex)
+        or isinstance(nodes.index, MultiIndex)
+        or isinstance(edges.index, MultiIndex)
+    ):
+        raise ValueError("MultiIndex is not supported in `momepy.get_nearest_node`.")
+
     # treat possibly missing edge index
     a = np.empty(len(buildings))
     na_mask = np.isnan(nearest_edge)
@@ -606,6 +628,12 @@ def generate_blocks(
     >>> tessellation["block_id"] = tessellation_id
     """
 
+    if (
+        isinstance(buildings.index, MultiIndex)
+        or isinstance(tessellation.index, MultiIndex)
+        or isinstance(edges.index, MultiIndex)
+    ):
+        raise ValueError("MultiIndex is not supported in `momepy.generate_blocks`.")
     id_name: str = "bID"
 
     # slice the tessellations by the street network
