@@ -460,12 +460,10 @@ def get_nearest_street(
     )
 
     if streets.index.dtype == "object":
-        ids = np.empty(len(buildings), dtype=object)
+        ids = pd.Series(None, index=buildings.index)
     else:
-        ids = np.empty(len(buildings), dtype=np.float32)
-        ids[:] = np.nan
+        ids = pd.Series(np.nan, index=buildings.index)
 
-    ids = pd.Series(np.nan, index=buildings.index)
     ids.iloc[blg_idx] = streets.index[str_idx]
     return ids
 
