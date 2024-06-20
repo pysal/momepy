@@ -1002,7 +1002,7 @@ def mean_deviation(y: Series, graph: Graph) -> Series:
     >>> df_streets = geopandas.read_file(path, layer="streets")
     >>> street_orientations = momepy.orientation(df_streets)
     >>> street_graph = graph.Graph.build_contiguity(df_streets, rook=False)
-    >>> df_streets['orient_dev'] = momepy.neighboring_street_orientation_deviation(
+    >>> df_streets['orient_dev'] = momepy.mean_deviation(
     ...     street_orientations, street_graph
     ... )
     >>> df_streets['orient_dev'][5]
