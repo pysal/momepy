@@ -132,6 +132,7 @@ A set of functions to measure spatial diversity of elements and their values:
    simpson
    theil
    values_range
+   mean_deviation
 
 Note that additional diversity characters can be directly derived using :meth:`libpysal.graph.Graph.describe`.
 
