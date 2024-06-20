@@ -693,7 +693,7 @@ def neighboring_street_orientation_deviation(
     >>> from libpysal import graph
     >>> path = momepy.datasets.get_path("bubenec")
     >>> df_streets = geopandas.read_file(path, layer="streets")
-    >>> street_graph = graph.Graph.build_triangulation(df_streets, rook=False)
+    >>> street_graph = graph.Graph.build_contiguity(df_streets, rook=False)
     >>> streets_df['orient_dev'] = momepy.neighboring_street_orientation_deviation(
     ...     df_streets, street_graph
     ... )
