@@ -220,6 +220,7 @@ class TestUtils:
         )
 
     def test_deprecated_decorators(self):
+        os.environ.pop("ALLOW_LEGACY_MOMEPY", None)
         with pytest.warns(
             FutureWarning,
             match=(
@@ -243,8 +244,10 @@ class TestUtils:
             ),
         ):
             mm.LongestAxisLength(self.df_buildings)
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "True"
 
     def test_removed_decorators(self):
+        os.environ.pop("ALLOW_LEGACY_MOMEPY", None)
         with pytest.warns(
             FutureWarning,
             match=("`momepy.Area` is deprecated"),
@@ -262,3 +265,4 @@ class TestUtils:
             match=("`momepy.Area` is deprecated"),
         ):
             mm.Area(self.df_buildings)
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "True"

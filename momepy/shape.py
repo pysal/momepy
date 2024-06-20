@@ -12,6 +12,8 @@ import shapely
 from shapely.geometry import Point
 from tqdm.auto import tqdm  # progress bar
 
+from .utils import deprecated
+
 __all__ = [
     "FormFactor",
     "FractalDimension",
@@ -49,6 +51,7 @@ def _form_factor(height, geometry, area=None, perimeter=None, volume=None):
     return res
 
 
+@deprecated("form_factor")
 class FormFactor:
     """
     Calculates the form factor of each object in a given GeoDataFrame.
@@ -134,6 +137,7 @@ class FormFactor:
         )
 
 
+@deprecated("fractal_dimension")
 class FractalDimension:
     """
     Calculates fractal dimension of each object in given GeoDataFrame.
@@ -200,6 +204,7 @@ class FractalDimension:
         )
 
 
+@deprecated("facade_ratio")
 class VolumeFacadeRatio:
     """
     Calculates the volume/facade ratio of each object in a given GeoDataFrame.
@@ -453,6 +458,7 @@ def _circle_radius(points):
     return circ[2]
 
 
+@deprecated("circular_compactness")
 class CircularCompactness:
     """
     Calculates the compactness index of each object in a given GeoDataFrame.
@@ -502,6 +508,7 @@ class CircularCompactness:
         self.series = areas / (np.pi * radius**2)
 
 
+@deprecated("square_compactness")
 class SquareCompactness:
     """
     Calculates the compactness index of each object in a given GeoDataFrame.
@@ -566,6 +573,7 @@ class SquareCompactness:
         self.series = ((np.sqrt(gdf[areas]) * 4) / gdf[perimeters]) ** 2
 
 
+@deprecated("convexity")
 class Convexity:
     """
     Calculates the Convexity index of each object in a given GeoDataFrame.
@@ -614,6 +622,7 @@ class Convexity:
         self.series = gdf[areas] / gdf.geometry.convex_hull.area
 
 
+@deprecated("courtyard_index")
 class CourtyardIndex:
     """
     Calculates the courtyard index of each object in a given GeoDataFrame.
@@ -673,6 +682,7 @@ class CourtyardIndex:
         self.series = gdf[courtyard_areas] / gdf[areas]
 
 
+@deprecated("rectangularity")
 class Rectangularity:
     """
     Calculates the rectangularity of each object in a given GeoDataFrame.
@@ -722,6 +732,7 @@ class Rectangularity:
         self.series = gdf[areas] / mrr_area
 
 
+@deprecated("shape_index")
 class ShapeIndex:
     """
     Calculates the shape index of each object in a given GeoDataFrame.
@@ -781,6 +792,7 @@ class ShapeIndex:
         )
 
 
+@deprecated("corners")
 class Corners:
     """
     Calculates the number of corners of each object in a given GeoDataFrame. Uses only
@@ -899,6 +911,7 @@ class Corners:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("squareness")
 class Squareness:
     """
     Calculates the squareness of each object in a given GeoDataFrame. Uses only
@@ -986,6 +999,7 @@ class Squareness:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("equivalent_rectangular_index")
 class EquivalentRectangularIndex:
     """
     Calculates the equivalent rectangular index of each object in a given GeoDataFrame.
@@ -1054,6 +1068,7 @@ class EquivalentRectangularIndex:
         self.series = pd.Series(res, index=gdf.index)
 
 
+@deprecated("elongation")
 class Elongation:
     """
     Calculates the elongation of each object seen as
@@ -1111,6 +1126,7 @@ class Elongation:
         self.series = pd.Series(res, index=gdf.index)
 
 
+@deprecated("centroid_corner_distance")
 class CentroidCorners:
     """
     Calculates the mean distance centroid - corners and standard deviation.
@@ -1221,6 +1237,7 @@ class CentroidCorners:
         self.std = pd.Series(results_list_sd, index=gdf.index)
 
 
+@deprecated("linearity")
 class Linearity:
     """
     Calculates the linearity of each LineString object in a given GeoDataFrame.
@@ -1268,6 +1285,7 @@ class Linearity:
         return math.hypot(b[0] - a[0], b[1] - a[1])
 
 
+@deprecated("compactness_weighted_axis")
 class CompactnessWeightedAxis:
     """
     Calculates the compactness-weighted axis of each object in a given GeoDataFrame.
