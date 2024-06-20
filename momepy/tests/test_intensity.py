@@ -118,15 +118,7 @@ class TestIntensity:
     def test_BlocksCount(self):
         sw = mm.sw_high(k=5, gdf=self.df_tessellation, ids="uID")
 
-        with pytest.warns(
-            FutureWarning,
-            match=(
-                "`momepy.BlocksCount` is deprecated. Replace it with a direct call "
-                "to libpysal.Graph.describe, which provides the same functionality "
-                "or pin momepy version <1.0. This class will be removed in 1.0."
-            ),
-        ):
-            count = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").series
+        count = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").series
         count2 = mm.BlocksCount(
             self.df_tessellation, self.df_tessellation.bID, sw, "uID"
         ).series
