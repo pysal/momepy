@@ -15,6 +15,7 @@ from pandas import Series
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
+SHPLY_GE_250 = Version(shapely.__version__) >= Version("2.5.0dev")
 
 __all__ = [
     "morphological_tessellation",
@@ -122,6 +123,7 @@ def enclosed_tessellation(
     shrink: float = 0.4,
     segment: float = 0.5,
     threshold: float = 0.05,
+    simplify: bool = False,
     n_jobs: int = -1,
 ) -> GeoDataFrame:
     """Generate enclosed tessellation
@@ -169,6 +171,9 @@ def enclosed_tessellation(
         inlude it in the tessellation of that enclosure. Resolves sliver geometry
         issues. If None, the check is skipped and all intersecting buildings are
         considered. By default 0.05
+    simplify: bool, optional
+        Whether to attempt to simplify the resulting tesselation boundaries with
+        ``shapely.coverage_simplify``. By default False.
     n_jobs : int, optional
         The number of jobs to run in parallel. -1 means using all available cores.
         By default -1
@@ -218,6 +223,9 @@ def enclosed_tessellation(
     126  POLYGON ((1603528.593 6464221.033, 1603527.796...                0
     """
 
+    if simplify and not SHPLY_GE_250:
+        raise ImportError("Coverage simplification requires shapely 2.5 or higher.")
+
     # convert to GeoDataFrame and add position (we will need it later)
     enclosures = enclosures.geometry.to_frame()
     enclosures["position"] = range(len(enclosures))
@@ -254,7 +262,8 @@ def enclosed_tessellation(
 
     # generate tessellation in parallel
     new = Parallel(n_jobs=n_jobs)(
-        delayed(_tess)(*t, threshold, shrink, segment, index_name) for t in tuples
+        delayed(_tess)(*t, threshold, shrink, segment, index_name, simplify)
+        for t in tuples
     )
 
     new_df = pd.concat(new, axis=0)
@@ -286,7 +295,7 @@ def enclosed_tessellation(
     return pd.concat([new_df, singles.drop(columns="position"), clean_blocks])
 
 
-def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
+def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify):
     """Generate tessellation for a single enclosure. Helper for enclosed_tessellation"""
     # check if threshold is set and filter buildings based on the threshold
     if threshold:
@@ -304,13 +313,24 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
             return_input=False,
             as_gdf=True,
         )
+        if to_simplify:
+            simpl_collection = shapely.coverage_simplify(
+                tess.geometry, tolerance=1e-1, simplify_boundary=False
+            )
+            tess.geometry = gpd.GeoSeries(simpl_collection.geoms).values
         tess[enclosure_id] = ix
         return tess
+
+    ## in case a single building is left in blg
+    if len(blg) == 1:
+        assigned_ix = blg.index[0]
+    else:
+        assigned_ix = -1
 
     return GeoDataFrame(
         {enclosure_id: ix},
         geometry=[poly],
-        index=[-1],
+        index=[assigned_ix],
         crs=blg.crs,
     )
 
