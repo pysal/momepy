@@ -697,7 +697,7 @@ def neighboring_street_orientation_deviation(
     >>> df_streets['orient_dev'] = momepy.neighboring_street_orientation_deviation(
     ...     df_streets, street_graph
     ... )
-    >>> df_streets['orient_dev'][6]
+    >>> df_streets['orient_dev'][5]
     7.043096518688273
     """
     street_orientations = orientation(streets)
