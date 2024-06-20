@@ -15,7 +15,6 @@ from pandas import Series
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
-SHPLY_GE_250 = Version(shapely.__version__) >= Version("2.5.0dev")
 
 __all__ = [
     "morphological_tessellation",
@@ -170,9 +169,6 @@ def enclosed_tessellation(
         inlude it in the tessellation of that enclosure. Resolves sliver geometry
         issues. If None, the check is skipped and all intersecting buildings are
         considered. By default 0.05
-    simplify: bool, optional
-        Whether to attempt to simplify the resulting tesselation boundaries with
-        ``shapely.coverage_simplify``. By default False.
     n_jobs : int, optional
         The number of jobs to run in parallel. -1 means using all available cores.
         By default -1
