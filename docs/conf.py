@@ -16,28 +16,28 @@ import sys
 
 # import sphinx_bootstrap_theme
 
-sys.path.insert(0, os.path.abspath("../.."))
+sys.path.insert(0, os.path.abspath("../"))
 
 import momepy  # noqa
 
-autodoc_mock_imports = [
-    "geopandas",
-    "networkx",
-    "numpy",
-    "pandas",
-    "rtree",
-    "scipy",
-    "scipy.spatial",
-    "shapely",
-    "shapely.geometry",
-    "shapely.wkt",
-    "shapely.ops",
-    "libpysal",
-    "tqdm",
-    "mapclassify",
-    "osmnx",
-    "inequality",
-]
+# autodoc_mock_imports = [
+#     "geopandas",
+#     "networkx",
+#     "numpy",
+#     "pandas",
+#     "rtree",
+#     "scipy",
+#     "scipy.spatial",
+#     "shapely",
+#     "shapely.geometry",
+#     "shapely.wkt",
+#     "shapely.ops",
+#     "libpysal",
+#     "tqdm",
+#     "mapclassify",
+#     "osmnx",
+#     "inequality",
+# ]
 
 # -- Project information -----------------------------------------------------
 
@@ -129,7 +129,6 @@ html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "github_url": "https://github.com/pysal/momepy",
     "twitter_url": "https://twitter.com/martinfleis",
-    "google_analytics_id": "UA-6190355-13",
     "pygment_light_style": "tango",
     "logo": {
         "image_light": "horizontal_logo_light.svg",
@@ -246,13 +245,23 @@ rediraffe_redirects = {
 }
 
 # -- Extension configuration -------------------------------------------------
+intersphinx_mapping = {
+    "libpysal": (
+        "https://pysal.org/libpysal/",
+        "https://pysal.org/libpysal//objects.inv",
+    ),
+}
+
+
 # Generate the API documentation when building
 autosummary_generate = True
 autosummary_imported_members = True
 numpydoc_show_class_members = True
 class_members_toctree = True
 numpydoc_show_inherited_class_members = True
+numpydoc_class_members_toctree = False
 numpydoc_use_plots = True
+autodoc_typehints = "none"
 
 nbsphinx_prolog = r"""
 {% set docname = env.doc2path(env.docname, base=None) %}

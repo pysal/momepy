@@ -28,9 +28,9 @@ except (ModuleNotFoundError, ImportError):
 
 
 def volume(
-    area: NDArray[np.float_] | Series,
-    height: NDArray[np.float_] | Series,
-) -> NDArray[np.float_] | Series:
+    area: NDArray[np.float64] | Series,
+    height: NDArray[np.float64] | Series,
+) -> NDArray[np.float64] | Series:
     """
     Calculates volume of each object in given GeoDataFrame based on its height and area.
 
@@ -39,24 +39,37 @@ def volume(
 
     Parameters
     ----------
-    area : NDArray[np.float_] | Series
+    area : NDArray[np.float64] | Series
         array of areas
-    height : NDArray[np.float_] | Series
+    height : NDArray[np.float64] | Series
         array of heights
 
     Returns
     -------
-    NDArray[np.float_] | Series
+    NDArray[np.float64] | Series
         array of a type depending on the input
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> area = pd.Series([100, 30, 40, 75, 230])
+    >>> height = pd.Series([22, 6.5, 12, 9, 4.5])
+    >>> momepy.volume(area, height)
+    0    2200.0
+    1     195.0
+    2     480.0
+    3     675.0
+    4    1035.0
+    dtype: float64
     """
     return area * height
 
 
 def floor_area(
-    area: NDArray[np.float_] | Series,
-    height: NDArray[np.float_] | Series,
-    floor_height: float | NDArray[np.float_] | Series = 3,
-) -> NDArray[np.float_] | Series:
+    area: NDArray[np.float64] | Series,
+    height: NDArray[np.float64] | Series,
+    floor_height: float | NDArray[np.float64] | Series = 3,
+) -> NDArray[np.float64] | Series:
     """Calculates floor area of each object based on height and area.
 
     The number of
@@ -69,18 +82,42 @@ def floor_area(
 
     Parameters
     ----------
-    area : NDArray[np.float_] | Series
+    area : NDArray[np.float64] | Series
         array of areas
-    height : NDArray[np.float_] | Series
+    height : NDArray[np.float64] | Series
         array of heights
-    floor_height : float | NDArray[np.float_] | Series, optional
+    floor_height : float | NDArray[np.float64] | Series, optional
         float denoting the uniform floor height or an aarray reflecting the building
         height by geometry, by default 3
 
     Returns
     -------
-    NDArray[np.float_] | Series
+    NDArray[np.float64] | Series
         array of a type depending on the input
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> area = pd.Series([100, 30, 40, 75, 230])
+    >>> height = pd.Series([22, 6.5, 12, 9, 4.5])
+    >>> momepy.floor_area(area, height)
+    0    700.0
+    1     60.0
+    2    160.0
+    3    225.0
+    4    230.0
+    dtype: float64
+
+    If you know average height of floors per each building, you can pass it directly:
+
+    >>> floor_height = pd.Series([3.2, 3, 4, 3, 4.5])
+    >>> momepy.floor_area(area, height, floor_height=floor_height)
+    0    600.0
+    1     60.0
+    2    120.0
+    3    225.0
+    4    230.0
+    dtype: float64
     """
     return area * (height // floor_height)
 
@@ -96,6 +133,30 @@ def courtyard_area(geometry: GeoDataFrame | GeoSeries) -> Series:
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> ca = momepy.courtyard_area(buildings)
+    >>> ca
+    0      0.0
+    1      0.0
+    2      0.0
+    3      0.0
+    4      0.0
+        ...
+    139    0.0
+    140    0.0
+    141    0.0
+    142    0.0
+    143    0.0
+    Name: courtyard_area, Length: 144, dtype: float64
+
+    Verify that at least some buildings have courtyards:
+
+    >>> ca.sum()
+    353.33274206543274
     """
     return Series(
         shapely.area(
@@ -125,6 +186,24 @@ def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.longest_axis_length(buildings)
+    0       40.265562
+    1      191.254382
+    2       37.247151
+    3       47.022428
+    4       37.170142
+            ...
+    139     11.587272
+    140     27.747002
+    141     52.566435
+    142     11.091309
+    143     15.472821
+    Name: geometry, Length: 144, dtype: float64
     """
     return shapely.minimum_bounding_radius(geometry.geometry) * 2
 
@@ -145,10 +224,51 @@ def perimeter_wall(
     Returns
     -------
     Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.perimeter_wall(buildings)
+    0      137.186310
+    1      663.342296
+    2      663.342296
+    3      663.342296
+    4      663.342296
+            ...
+    139     42.839590
+    140     78.562927
+    141    147.342182
+    142    118.354123
+    143    342.909172
+    Name: perimeter_wall, Length: 144, dtype: float64
+
+    By default, ``momepy`` calculates a Queen contiguity graph to determine connected
+    components. Alternatively, you can pass that yourself. This can be useful when
+    the graph is already computed or when you need to use a different method due to
+    topological issues.
+
+    >>> from libpysal import graph
+    >>> strict_contig = graph.Graph.build_contiguity(
+    ...     buildings, rook=False, strict=True,
+    ... )
+    >>> momepy.perimeter_wall(buildings, graph=strict_contig)
+    0      137.186310
+    1      663.342296
+    2      663.342296
+    3      663.342296
+    4      663.342296
+            ...
+    139     42.839590
+    140     78.562927
+    141    147.342182
+    142    118.354123
+    143    342.909172
+    Name: perimeter_wall, Length: 144, dtype: float64
     """
 
     if graph is None:
-        graph = Graph.build_contiguity(geometry)
+        graph = Graph.build_contiguity(geometry, rook=False)
 
     isolates = graph.isolates
 
@@ -172,7 +292,7 @@ def perimeter_wall(
 
 
 def weighted_character(
-    y: NDArray[np.float_] | Series, area: NDArray[np.float_] | Series, graph: Graph
+    y: NDArray[np.float64] | Series, area: NDArray[np.float64] | Series, graph: Graph
 ) -> Series:
     """Calculates the weighted character.
 
@@ -191,9 +311,9 @@ def weighted_character(
 
     Parameters
     ----------
-    y : NDArray[np.float_] | Series
+    y : NDArray[np.float64] | Series
         The character values to be weighted.
-    area : NDArray[np.float_] | Series
+    area : NDArray[np.float64] | Series
         The area values to be used as weightss
     graph : libpysal.graph.Graph
         A spatial weights matrix for values and areas.
@@ -205,8 +325,53 @@ def weighted_character(
 
     Examples
     --------
-    >>> res = mm.weighted_character(buildings_df['height'],
-    ...                     buildings_df.geometry.area, graph)
+    Area-weighted elongation within 5 nearest neighbors:
+
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    Measure elongation (or anything else):
+
+    >>> elongation = momepy.elongation(buildings)
+    >>> elongation.head()
+    0    0.908235
+    1    0.581317
+    2    0.726515
+    3    0.838843
+    4    0.727297
+    Name: elongation, dtype: float64
+
+    Define spatial graph:
+
+    >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
+    >>> knn5
+    <Graph of 144 nodes and 720 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Measure the area-weighted character:
+
+    >>> momepy.weighted_character(elongation, buildings.area, knn5)
+    focal
+    0      0.808188
+    1      0.817300
+    2      0.627588
+    3      0.794766
+    4      0.806400
+            ...
+    139    0.780764
+    140    0.875046
+    141    0.753670
+    142    0.440009
+    143    0.901127
+    Name: sum, Length: 144, dtype: float64
     """
 
     stats = graph.describe(y * area, statistics=["sum"])["sum"]
@@ -254,10 +419,41 @@ def street_profile(
 
     Examples
     --------
-    >>> street_prof = momepy.street_profile(streets_df,
-    ...                 buildings_df, height=buildings_df['height'])
-    >>> streets_df['width'] = street_prof['width']
-    >>> streets_df['deviations'] = street_prof['width_deviation']
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+    >>> streets.head()
+                                                geometry
+    0  LINESTRING (1603585.64 6464428.774, 1603413.20...
+    1  LINESTRING (1603268.502 6464060.781, 1603296.8...
+    2  LINESTRING (1603607.303 6464181.853, 1603592.8...
+    3  LINESTRING (1603678.97 6464477.215, 1603675.68...
+    4  LINESTRING (1603537.194 6464558.112, 1603557.6...
+
+    >>> result = momepy.street_profile(streets, buildings)
+    >>> result.head()
+           width  openness  width_deviation
+    0  47.905964  0.946429         0.020420
+    1  42.418068  0.615385         2.644521
+    2  32.131831  0.608696         2.864438
+    3  50.000000  1.000000              NaN
+    4  50.000000  1.000000              NaN
+
+    If you know height of each building, you can pass that along to get back
+    more information:
+
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> rng = np.random.default_rng(seed=42)
+    >>> height = pd.Series(rng.integers(low=9, high=30, size=len(buildings)))
+    >>> result = momepy.street_profile(streets, buildings, height=height)
+    >>> result.head()
+           width  openness  width_deviation     height  height_deviation  hw_ratio
+    0  47.905964  0.946429         0.020420  12.666667          4.618802  0.264407
+    1  42.418068  0.615385         2.644521  21.500000          6.467869  0.506859
+    2  32.131831  0.608696         2.864438  17.555556          4.901647  0.546360
+    3  50.000000  1.000000              NaN        NaN               NaN       NaN
+    4  50.000000  1.000000              NaN        NaN               NaN       NaN
     """
 
     # filter relevant buildings and streets
@@ -392,7 +588,7 @@ def _get_point_njit(x1, y1, bearing, dist):
 
 @njit
 def generate_ticks(list_points, end_markers, tick_length):
-    ticks = np.empty((len(list_points) * 2, 4), dtype=np.float64)
+    ticks = np.empty((len(list_points) * 2, 4), dtype=float)
 
     for i in range(len(list_points)):
         tick_pos = i * 2

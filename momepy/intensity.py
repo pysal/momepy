@@ -11,7 +11,7 @@ import pandas as pd
 from packaging.version import Version
 from tqdm.auto import tqdm  # progress bar
 
-from .utils import removed
+from .utils import deprecated, removed
 
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 
@@ -26,6 +26,7 @@ __all__ = [
 ]
 
 
+@removed("a direct division of areas or momepy.describe_agg()")
 class AreaRatio:
     """
     Calculate covered area ratio or floor area ratio of objects. Either ``unique_id``
@@ -135,6 +136,7 @@ class AreaRatio:
         self.series = objects_merged["lf_area"] / objects_merged[left_areas]
 
 
+@removed("momepy.describe_agg()")
 class Count:
     """
     Calculate the number of elements within an aggregated structure. Aggregated
@@ -210,6 +212,7 @@ class Count:
         self.series = joined["mm_count"]
 
 
+@deprecated("courtyards")
 class Courtyards:
     """
     Calculate the number of courtyards within the joined structure.
@@ -286,9 +289,7 @@ class Courtyards:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
-@removed(
-    "a direct call to libpysal.Graph.describe, which provides the same functionality"
-)
+@removed("`.describe()` method of libpysal.graph.Graph")
 class BlocksCount:
     """
     Calculates the weighted number of blocks. The number of blocks within neighbours
@@ -380,6 +381,7 @@ class BlocksCount:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("describe_reached_agg")
 class Reached:
     """
     Calculates the number of objects reached within neighbours on a street network.
@@ -505,6 +507,7 @@ class Reached:
         self.series = pd.Series(results_list, index=left.index)
 
 
+@deprecated("node_density")
 class NodeDensity:
     """
     Calculate the density of nodes neighbours on street network defined in
@@ -606,6 +609,7 @@ class NodeDensity:
         self.series = pd.Series(results_list, index=left.index)
 
 
+@removed("`.describe()` method of libpysal.graph.Graph")
 class Density:
     """
     Calculate the gross density.

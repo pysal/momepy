@@ -3,6 +3,9 @@ name: Test User Guide execution
 on:
   push:
     branches: [main]
+  # pull_request:
+  #     branches:
+  #       - "*"
   schedule:
     - cron: "0 0 * * 1,4"
   workflow_dispatch:
@@ -35,3 +38,4 @@ jobs:
       - name: Test user guide
         run: |
           ci/envs/test_user_guide.sh
+

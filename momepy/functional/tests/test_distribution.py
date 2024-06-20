@@ -56,7 +56,7 @@ class TestDistribution:
             "max": 21.32311946014944,
         }
         r = mm.alignment(orientation, self.graph)
-        assert_result(r, expected, self.df_buildings)
+        assert_result(r, expected, self.df_buildings, check_names=False)
 
     def test_neighbor_distance(self):
         expected = {
@@ -66,7 +66,7 @@ class TestDistribution:
             "max": 42.164831456311475,
         }
         r = mm.neighbor_distance(self.df_buildings, self.graph)
-        assert_result(r, expected, self.df_buildings)
+        assert_result(r, expected, self.df_buildings, check_names=False)
 
     def test_mean_interbuilding_distance(self):
         expected = {

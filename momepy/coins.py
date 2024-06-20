@@ -98,7 +98,12 @@ class COINS:
         return self._create_gdf_premerge()
 
     def stroke_gdf(self):
-        """Return a GeoDataFrame containing merged final stroke geometry."""
+        """Return a GeoDataFrame containing merged final stroke geometry.
+
+        Returns
+        -------
+        GeoDataFrame
+        """
         if not self.already_merged:
             self._merge_lines()
         return self._create_gdf_strokes()

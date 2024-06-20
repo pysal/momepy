@@ -1,11 +1,9 @@
-import numpy as np
-import pandas as pd
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from pandas import Series
 
-__all__ = ["courtyards", "node_density"]
+__all__ = ["courtyards"]
 
 
 def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
@@ -28,7 +26,35 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
 
     Examples
     --------
-    >>> courtyards = mm.calculate_courtyards(buildings_df, graph)
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    >>> contiguity = graph.Graph.build_contiguity(buildings)
+    >>> contiguity
+    <Graph of 144 nodes and 248 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    >>> momepy.courtyards(buildings, contiguity)
+    0      0
+    1      1
+    2      1
+    3      1
+    4      1
+        ..
+    139    0
+    140    0
+    141    0
+    142    0
+    143    1
+    Length: 144, dtype: int32
     """
 
     def _calculate_courtyards(group):
@@ -50,64 +76,3 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
     )
 
     return result
-
-
-def node_density(
-    nodes: GeoDataFrame, edges: GeoDataFrame, graph: Graph, weighted: bool = False
-) -> Series:
-    """Calculate the density of a node's neighbours (for all nodes)
-    on the street network defined in ``graph``.
-
-    Calculated as the number of neighbouring
-    nodes / cumulative length of street network within neighbours.
-    ``node_start``,  ``node_end``, is standard output of
-    :py:func:`momepy.nx_to_gdf` and is compulsory for ``edges`` to have
-    these columns.
-    If ``weighted``, a ``degree`` column is also required in ``nodes``.
-
-    Adapted from :cite:`dibble2017`.
-
-    Parameters
-    ----------
-    nodes : GeoDataFrame
-        A GeoDataFrame containing nodes of a street network.
-    edges : GeoDataFrame
-        A GeoDataFrame containing edges of a street network.
-    graph :  libpysal.graph.Graph
-        A spatial weights matrix capturing relationship between nodes.
-    weighted : bool (default False)
-        If ``True``, density will take into account node degree as ``k-1``.
-
-    Returns
-    -------
-    Series
-        A Series containing resulting values.
-
-    Examples
-    --------
-    >>> nodes['density'] = mm.node_density(nodes, edges, graph)
-    """
-
-    required_cols = ["node_start", "node_end"]
-    for col in required_cols:
-        if col not in edges.columns:
-            raise ValueError(f"Column {col} is needed in the edges GeoDataframe.")
-
-    if weighted and ("degree" not in nodes.columns):
-        raise ValueError("Column degree is needed in nodes GeoDataframe.")
-
-    def _calc_nodedensity(group, edges):
-        """Helper function to calculate group values."""
-        neighbours = group.index.values
-        locs = np.in1d(edges["node_start"], neighbours) & np.in1d(
-            edges["node_end"], neighbours
-        )
-        lengths = edges.loc[locs].geometry.length.sum()
-        return group.sum() / lengths if lengths else 0
-
-    if weighted:
-        summation_values = nodes["degree"] - 1
-    else:
-        summation_values = pd.Series(np.ones(nodes.shape[0]), index=nodes.index)
-
-    return graph.apply(summation_values, _calc_nodedensity, edges=edges)

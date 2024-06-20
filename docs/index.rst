@@ -68,21 +68,8 @@ Examples
 
 .. code:: py
 
-   coverage = momepy.AreaRatio(tessellation, buildings, left_areas=tessellation.area,
-                               right_areas='area', unique_id='uID')
-   tessellation['CAR'] = coverage.series
+   tessellation['area_simpson'] = momepy.simpson(tessellation.area, contiguity_k3)
 
-.. figure:: https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/example1.png
-   :alt: Coverage Area Ratio
-
-   Coverage Area Ratio
-
-.. code:: py
-
-   area_simpson = momepy.Simpson(tessellation, values='area',
-                                 spatial_weights=sw3,
-                                 unique_id='uID')
-   tessellation['area_simpson'] = area_simpson.series
 
 .. figure:: https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/diversity_22_0.png
    :alt: Local Simpson's diversity of area
@@ -166,7 +153,7 @@ Documentation contents
    examples/index
    API reference <api>
    Contributing <contributing>
-   changelog
+   Changelog <https://github.com/pysal/momepy/releases>
    references
 
 

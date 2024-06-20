@@ -275,7 +275,6 @@ class CourtyardArea:
     """
 
     def __init__(self, gdf, areas=None):
-        # TODO: deprecate in favor of courtyard_area
         self.gdf = gdf
 
         gdf = gdf.copy()
@@ -329,7 +328,7 @@ class LongestAxisLength:
         self.series = hulls.apply(lambda g: _circle_radius(list(g.coords))) * 2
 
 
-@deprecated("describe")
+@removed("`.describe()` method of libpysal.graph.Graph")
 class AverageCharacter:
     """
     Calculates the average of a character within a set
@@ -476,6 +475,7 @@ class AverageCharacter:
             self.mode = pd.Series(modes, index=gdf.index)
 
 
+@deprecated("street_profile")
 class StreetProfile:
     """
     Calculates the street profile characters. This functions
@@ -548,8 +548,6 @@ class StreetProfile:
         distance=10,
         tick_length=50,
     ):
-        # TODO: turn into a function with a variable return like np.unique. Maybe
-        # TODO: check if we can avoid some of the loops
         self.left = left
         self.right = right
         self.distance = distance
@@ -706,6 +704,7 @@ class StreetProfile:
         return (x, y)
 
 
+@deprecated("weighted_character")
 class WeightedCharacter:
     """
     Calculates the weighted character. Character weighted by the area
@@ -765,9 +764,6 @@ class WeightedCharacter:
     def __init__(
         self, gdf, values, spatial_weights, unique_id, areas=None, verbose=True
     ):
-        # TODO: Refactoring project note: This is a lag using a graph where weight
-        # TODO: represents row-normalied area. It now includes self but that shall be
-        # TODO: optional.
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -804,6 +800,7 @@ class WeightedCharacter:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@removed("`.describe()` method of libpysal.graph.Graph")
 class CoveredArea:
     """
     Calculates the area covered by neighbours, which is total area covered
@@ -840,9 +837,6 @@ class CoveredArea:
     """
 
     def __init__(self, gdf, spatial_weights, unique_id, verbose=True):
-        # TODO: Refactoring project note: This is just a lag with binary weights over
-        # TODO: the area using the graph with self-weights. Maybe point to that?
-
         self.gdf = gdf
         self.sw = spatial_weights
         self.id = gdf[unique_id]
@@ -944,6 +938,7 @@ class PerimeterWall:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@removed("`.describe()` or `.lag()` methods of libpysal.graph.Graph")
 class SegmentsLength:
     """
     Calculate the cummulative and/or mean length of segments. Length of segments
@@ -989,10 +984,6 @@ class SegmentsLength:
     """
 
     def __init__(self, gdf, spatial_weights=None, mean=False, verbose=True):
-        # TODO: Refactoring project note: This is just a lag with binary (sum) or
-        # TODO: row-standardized graph that includes self weight over lenghts.
-        # TODO: Worth wrapping or point to lag? Probably latter?
-
         self.gdf = gdf
 
         if spatial_weights is None:

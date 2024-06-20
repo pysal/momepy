@@ -1,11 +1,16 @@
 #!/usr/bin/env python
+import os
+import warnings
 
 import libpysal
 import numpy as np
 
 __all__ = ["DistanceBand", "sw_high"]
 
+from .utils import removed
 
+
+# @removed("libpysal.graph.Graph.build_distance_band")
 class DistanceBand:
     """
     On demand distance-based spatial weights-like class.
@@ -41,6 +46,19 @@ class DistanceBand:
     """
 
     def __init__(self, gdf, threshold, centroid=True, ids=None):
+        if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
+            "true",
+            "1",
+            "yes",
+        ):
+            warnings.warn(
+                "`momepy.DistanceBand` is deprecated. Replace it with "
+                "libpysal.graph.Graph.build_distance_band "
+                "or pin momepy version <1.0. This class will be removed in 1.0. "
+                "",
+                FutureWarning,
+                stacklevel=2,
+            )
         if centroid:
             gdf = gdf.copy()
             gdf.geometry = gdf.centroid
@@ -80,6 +98,7 @@ class _Neighbors(dict, DistanceBand):
         return self.ids
 
 
+@removed(".higher_order() method of libpysal.graph.Graph")
 def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True):
     """
     Generate spatial weights based on Queen or Rook contiguity of order ``k``.
