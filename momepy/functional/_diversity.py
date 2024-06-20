@@ -994,16 +994,38 @@ def mean_deviation(y: Series, graph: Graph) -> Series:
     Examples
     --------
     >>> from libpysal import graph
-    >>> import geopandas
     >>> path = momepy.datasets.get_path("bubenec")
-    >>> df_streets = geopandas.read_file(path, layer="streets")
-    >>> street_orientations = momepy.orientation(df_streets)
-    >>> street_graph = graph.Graph.build_contiguity(df_streets, rook=False)
-    >>> df_streets['orient_dev'] = momepy.mean_deviation(
-    ...     street_orientations, street_graph
-    ... )
-    >>> df_streets['orient_dev'][5]
-    6.138759532288338
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    Define spatial graph:
+
+    >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
+    >>> knn5
+    <Graph of 144 nodes and 720 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Mean deviation of building area and area of 5 nearest neighbors:
+
+    >>> momepy.mean_deviation(buildings.area, knn5)
+    0        281.179149
+    1      10515.948995
+    2       2240.706061
+    3        230.360732
+    4         68.719810
+            ...
+    139      259.180720
+    140      517.496703
+    141      331.849751
+    142       25.297225
+    143      654.691897
+    Length: 144, dtype: float64
     """
 
     inp = graph._adjacency.index.get_level_values(0)
