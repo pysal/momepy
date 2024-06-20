@@ -698,7 +698,7 @@ def neighboring_street_orientation_deviation(
     ...     df_streets, street_graph
     ... )
     >>> df_streets['orient_dev'][5]
-    7.043096518688273
+    6.138759532288338
     """
     street_orientations = orientation(streets)
     inp = graph._adjacency.index.get_level_values(0)
