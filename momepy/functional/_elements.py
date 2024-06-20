@@ -10,7 +10,7 @@ from joblib import Parallel, delayed
 from libpysal.cg import voronoi_frames
 from libpysal.graph import Graph
 from packaging.version import Version
-from pandas import Series
+from pandas import MultiIndex, Series
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
@@ -103,6 +103,10 @@ def morphological_tessellation(
     4  POLYGON ((1603084.231 6464104.386, 1603083.773...
 
     """
+
+    if isinstance(geometry.index, MultiIndex):
+        raise ValueError("MultiIndex is not supported for tessellation.")
+
     if isinstance(clip, GeoSeries | GeoDataFrame):
         clip = clip.union_all() if GPD_GE_10 else clip.unary_union
 
@@ -217,6 +221,9 @@ def enclosed_tessellation(
     125  POLYGON ((1603601.446 6464256.455, 1603600.982...                0
     126  POLYGON ((1603528.593 6464221.033, 1603527.796...                0
     """
+
+    if isinstance(geometry.index, MultiIndex):
+        raise ValueError("MultiIndex is not supported for tessellation.")
 
     # convert to GeoDataFrame and add position (we will need it later)
     enclosures = enclosures.geometry.to_frame()
@@ -354,6 +361,12 @@ def verify_tessellation(tessellation, geometry):
 
     >>> excluded, multipolygons = momepy.verify_tessellation(tessellation, buildings)
     """
+
+    if isinstance(geometry.index, MultiIndex) or isinstance(
+        tessellation.index, MultiIndex
+    ):
+        raise ValueError("MultiIndex is not supported for tessellation.")
+
     # check against input layer
     ids_original = geometry.index
     ids_generated = tessellation.index
@@ -516,6 +529,17 @@ def get_nearest_node(
     143    22.0
     Length: 144, dtype: float64
     """
+
+    if (
+        isinstance(buildings.index, MultiIndex)
+        or isinstance(nearest_edge.index, MultiIndex)
+        or isinstance(nodes.index, MultiIndex)
+        or isinstance(edges.index, MultiIndex)
+    ):
+        raise ValueError(
+            "MultiIndex is not supported for calculating the nearest node."
+        )
+
     # treat possibly missing edge index
     a = np.empty(len(buildings))
     na_mask = np.isnan(nearest_edge)
@@ -600,6 +624,12 @@ def generate_blocks(
     >>> tessellation["block_id"] = tessellation_id
     """
 
+    if (
+        isinstance(buildings.index, MultiIndex)
+        or isinstance(tessellation.index, MultiIndex)
+        or isinstance(edges.index, MultiIndex)
+    ):
+        raise ValueError("MultiIndex is not supported for generating blocks.")
     id_name: str = "bID"
 
     # slice the tessellations by the street network

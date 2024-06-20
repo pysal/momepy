@@ -4,7 +4,7 @@ import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from numpy.typing import NDArray
 from packaging.version import Version
-from pandas import DataFrame, Series
+from pandas import DataFrame, MultiIndex, Series
 
 from momepy.functional import _dimension
 
@@ -724,6 +724,10 @@ def centroid_corner_distance(
             "momepy.centroid_corner_distance requires geopandas 0.13 or later. "
         )
 
+    result_index = geometry.index
+    if isinstance(geometry.index, MultiIndex):
+        geometry = geometry.reset_index(drop=True)
+
     def _ccd(points: DataFrame, eps: float) -> Series:
         centroid = points.values[0, 2:]
         pts = points.values[:-1, :2]
@@ -738,7 +742,7 @@ def centroid_corner_distance(
         coords = geometry.exterior.get_coordinates(index_parts=False)
     coords[["cent_x", "cent_y"]] = geometry.centroid.get_coordinates(index_parts=False)
     ccd = coords.groupby(level=0).apply(_ccd, eps=eps)
-    ccd.index = geometry.index
+    ccd.index = result_index
     return ccd
 
 

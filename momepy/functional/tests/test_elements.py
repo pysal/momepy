@@ -332,6 +332,34 @@ class TestElements:
         else:
             assert len(blocks.sindex.query_bulk(blocks.geometry, "overlaps")[0]) == 0
 
+    def test_multi_index(self):
+        buildings = self.df_buildings.set_index(["uID", "uID"])
+        with pytest.raises(
+            ValueError, match="MultiIndex is not supported for tessellation."
+        ):
+            mm.morphological_tessellation(buildings)
+        with pytest.raises(
+            ValueError, match="MultiIndex is not supported for tessellation."
+        ):
+            mm.enclosed_tessellation(buildings, self.enclosures)
+        with pytest.raises(
+            ValueError, match="MultiIndex is not supported for tessellation."
+        ):
+            mm.verify_tessellation(buildings, self.enclosures)
+
+        with pytest.raises(
+            ValueError,
+            match="MultiIndex is not supported for calculating the nearest node.",
+        ):
+            mm.get_nearest_node(
+                buildings, self.enclosures, self.enclosures, self.enclosures
+            )
+
+        with pytest.raises(
+            ValueError, match="MultiIndex is not supported for generating blocks."
+        ):
+            mm.generate_blocks(buildings, self.enclosures, self.enclosures)
+
 
 class TestElementsEquivalence:
     def setup_method(self):
