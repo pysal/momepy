@@ -412,14 +412,9 @@ class TestDescribe:
         df = mm.describe_agg(
             self.df_buildings["area"],
             self.df_buildings["nID"],
-            self.df_streets.index,
         )
 
-        df_noindex = mm.describe_agg(
-            self.df_buildings["area"],
-            self.df_buildings["nID"],
-        )
-
+        result_index = self.df_buildings["nID"].value_counts().sort_index()
         # not testing std, there are different implementations:
         # OO momepy uses ddof=0, functional momepy - ddof=1
         expected_area_sum = {
@@ -435,17 +430,14 @@ class TestDescribe:
             "mean": 746.7028417890866,
         }
         expected_area_count = {
-            "min": 0,
+            "min": 1,
             "max": 18,
-            "count": 35,
-            "mean": 4.114285714285714,
+            "count": 22,
+            "mean": 6.545454545454546,
         }
-        assert_result(df["count"], expected_area_count, self.df_streets)
-        assert_result(df["sum"], expected_area_sum, self.df_streets)
-        assert_result(df["mean"], expected_area_mean, self.df_streets)
-
-        assert df_noindex.shape[0] == 22
-        assert_frame_equal(df_noindex, df[df["sum"].notna()], check_names=False)
+        assert_result(df["count"], expected_area_count, result_index, check_names=False)
+        assert_result(df["sum"], expected_area_sum, result_index, check_names=False)
+        assert_result(df["mean"], expected_area_mean, result_index, check_names=False)
 
         filtered_counts = mm.describe_agg(
             self.df_buildings["area"],
@@ -459,12 +451,16 @@ class TestDescribe:
             "count": 22,
             "mean": 4.727272,
         }
-        assert_result(filtered_counts, expected_filtered_area_count, df_noindex)
+        assert_result(
+            filtered_counts,
+            expected_filtered_area_count,
+            result_index,
+            check_names=False,
+        )
 
         df = mm.describe_agg(
             self.df_buildings["fl_area"].values,
             self.df_buildings["nID"],
-            self.df_streets.index,
         )
 
         expected_fl_area_sum = {
@@ -479,15 +475,10 @@ class TestDescribe:
             "count": 22,
             "mean": 3995.8307750062318,
         }
-        expected_fl_area_count = {
-            "min": 0,
-            "max": 18,
-            "count": 35,
-            "mean": 4.114285714285714,
-        }
-        assert_result(df["count"], expected_fl_area_count, self.df_streets)
-        assert_result(df["sum"], expected_fl_area_sum, self.df_streets)
-        assert_result(df["mean"], expected_fl_area_mean, self.df_streets)
+
+        assert_result(df["count"], expected_area_count, result_index)
+        assert_result(df["sum"], expected_fl_area_sum, result_index)
+        assert_result(df["mean"], expected_fl_area_mean, result_index)
 
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
@@ -496,7 +487,6 @@ class TestDescribe:
         df = mm.describe_agg(
             self.df_buildings["area"],
             self.df_buildings["nID"],
-            self.df_streets.index,
             statistics=["min", "max"],
         )
         assert list(df.columns) == ["min", "max"]
@@ -538,13 +528,12 @@ class TestDescribe:
     )
     def test_describe_reached_input_equality(self):
         island_result_df = mm.describe_agg(
-            self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
+            self.df_buildings["area"], self.df_buildings["nID"]
         )
 
         island_result_ndarray = mm.describe_agg(
             self.df_buildings["area"].values,
             self.df_buildings["nID"].values,
-            self.df_streets.index,
         )
 
         assert np.allclose(
@@ -574,11 +563,10 @@ class TestDescribe:
         pandas_agg_vals = mm.describe_agg(
             nan_areas,
             self.df_buildings["nID"],
-            self.df_streets.index,
         )
 
         numba_agg_vals = mm.describe_agg(
-            nan_areas, self.df_buildings["nID"], self.df_streets.index, q=(0, 100)
+            nan_areas, self.df_buildings["nID"], q=(0, 100)
         )
 
         assert_frame_equal(pandas_agg_vals, numba_agg_vals)
@@ -849,24 +837,25 @@ class TestDescribeEquality:
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_describe_reached_equality(self):
-        new_df = mm.describe_agg(
-            self.df_buildings["area"], self.df_buildings["nID"], self.df_streets.index
-        )
+        new_df = mm.describe_agg(self.df_buildings["area"], self.df_buildings["nID"])
 
         new_count = new_df["count"]
         old_count = mm.Reached(self.df_streets, self.df_buildings, "nID", "nID").series
+        old_count = old_count[old_count > 0]
         assert_series_equal(new_count, old_count, check_names=False, check_dtype=False)
 
         new_area = new_df["sum"]
         old_area = mm.Reached(
             self.df_streets, self.df_buildings, "nID", "nID", mode="sum"
         ).series
+        old_area = old_area[old_area.notna()]
         assert_series_equal(new_area, old_area, check_names=False, check_dtype=False)
 
         new_area_mean = new_df["mean"]
         old_area_mean = mm.Reached(
             self.df_streets, self.df_buildings, "nID", "nID", mode="mean"
         ).series
+        old_area_mean = old_area_mean[old_area_mean.notna()]
         assert_series_equal(
             new_area_mean, old_area_mean, check_names=False, check_dtype=False
         )

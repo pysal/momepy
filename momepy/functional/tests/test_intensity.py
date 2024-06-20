@@ -85,10 +85,8 @@ class TestIntensity:
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
     def test_area_ratio(self):
-        ## change to describe_agg when merged
-
         def area_ratio(overlay, covering, agg_key):
-            res = mm.describe_agg(covering, agg_key, overlay.index)
+            res = mm.describe_agg(covering, agg_key)
             return res["sum"] / overlay
 
         car_block = area_ratio(
@@ -103,7 +101,9 @@ class TestIntensity:
             "count": 8,
         }
 
-        assert_result(car_block, car_block_expected, self.blocks)
+        assert_result(
+            car_block, car_block_expected, self.blocks, exact=False, check_names=False
+        )
 
         car = area_ratio(
             self.df_tessellation.geometry.area,
@@ -122,8 +122,16 @@ class TestIntensity:
             "min": 0.029097983413141276,
             "count": 144,
         }
-        assert_result(car, car_expected, self.df_tessellation)
-        assert_result(car2, car_expected, self.df_tessellation.set_index("uID"))
+        assert_result(
+            car, car_expected, self.df_tessellation, exact=False, check_names=False
+        )
+        assert_result(
+            car2,
+            car_expected,
+            self.df_tessellation.set_index("uID"),
+            exact=False,
+            check_names=False,
+        )
 
         car_sel = area_ratio(
             self.df_tessellation.iloc[10:20]["area"],
@@ -136,7 +144,13 @@ class TestIntensity:
             "min": 0.22057633949526625,
             "count": 10,
         }
-        assert_result(car_sel, car_sel_expected, self.df_tessellation.iloc[10:20])
+        assert_result(
+            car_sel,
+            car_sel_expected,
+            self.df_tessellation.iloc[10:20],
+            exact=False,
+            check_names=False,
+        )
 
         far = area_ratio(
             self.df_tessellation.geometry.area,
@@ -149,7 +163,9 @@ class TestIntensity:
             "min": 0.26188185071827147,
             "count": 144,
         }
-        assert_result(far, far_expected, self.df_tessellation)
+        assert_result(
+            far, far_expected, self.df_tessellation, exact=False, check_names=False
+        )
 
 
 class TestIntensityEquality:
@@ -189,7 +205,7 @@ class TestIntensityEquality:
     )
     def test_area_ratio(self):
         def area_ratio(overlay, covering, agg_key):
-            res = mm.describe_agg(covering, agg_key, overlay.index)
+            res = mm.describe_agg(covering, agg_key)
             return res["sum"] / overlay
 
         self.blocks["area"] = self.blocks.geometry.area
@@ -202,7 +218,11 @@ class TestIntensityEquality:
             self.blocks, self.df_buildings, "area", "area", "bID"
         ).series
         assert_series_equal(
-            car_block_new, car_block_old, check_dtype=False, check_names=False
+            car_block_new,
+            car_block_old,
+            check_dtype=False,
+            check_names=False,
+            check_index_type=False,
         )
 
         car_new = area_ratio(
@@ -218,7 +238,13 @@ class TestIntensityEquality:
         car_old = mm.AreaRatio(
             self.df_tessellation, self.df_buildings, "area", "area", "uID"
         ).series
-        assert_series_equal(car_new, car_old, check_dtype=False, check_names=False)
+        assert_series_equal(
+            car_new,
+            car_old,
+            check_dtype=False,
+            check_names=False,
+            check_index_type=False,
+        )
         assert_series_equal(
             car_old,
             car2_new.reset_index(drop=True),
@@ -236,7 +262,13 @@ class TestIntensityEquality:
             self.df_tessellation.iloc[10:20]["uID"] - 1,
         )
 
-        assert_series_equal(car_sel_new, car_sel, check_dtype=False, check_names=False)
+        assert_series_equal(
+            car_sel_new,
+            car_sel,
+            check_dtype=False,
+            check_index_type=False,
+            check_names=False,
+        )
 
         far_new = area_ratio(
             self.df_tessellation.geometry.area,
@@ -252,7 +284,13 @@ class TestIntensityEquality:
             "uID",
         ).series
 
-        assert_series_equal(far_new, far_old, check_dtype=False, check_names=False)
+        assert_series_equal(
+            far_new,
+            far_old,
+            check_index_type=False,
+            check_dtype=False,
+            check_names=False,
+        )
 
     def test_density(self):
         sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")

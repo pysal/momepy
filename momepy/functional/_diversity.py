@@ -82,7 +82,6 @@ def _percentile_limited_group_grouper(y, group_index, q=(25, 75)):
 def describe_agg(
     y: NDArray[np.float64] | Series,
     aggregation_key: NDArray[np.float64] | Series,
-    result_index: pd.Index | None = None,
     q: tuple[float, float] | list[float] | None = None,
     statistics: list[str] | None = None,
 ) -> DataFrame:
@@ -96,8 +95,6 @@ def describe_agg(
 
     Notes
     -----
-    The index of ``y`` must match the index along which the ``graph`` is
-    built.
 
     The numba package is used extensively in this function to accelerate the computation
     of statistics. Without numba, these computations may become slow on large data.
@@ -109,10 +106,6 @@ def describe_agg(
     aggregation_key : Series | numpy.array
         The unique ID that specifies the aggregation
         of ``y`` objects to groups.
-    result_index : pd.Index (default None)
-        An index that specifies how to order the results.
-        Use to align the results from the grouping to an external index.
-        If ``None`` the index from the computations is used.
     q : tuple[float, float] | None, optional
         Tuple of percentages for the percentiles to compute. Values must be between 0
         and 100 inclusive. When set, values below and above the percentiles will be
@@ -188,21 +181,11 @@ def describe_agg(
 
     stats = _compute_stats(grouper, to_compute=statistics)
 
-    if result_index is None:
-        result_index = stats.index
-
-    # post processing to have the same behaviour as describe_reached_agg
-    result = pd.DataFrame(
-        np.full((result_index.shape[0], stats.shape[1]), np.nan), index=result_index
-    )
-    result.loc[stats.index.values] = stats.values
-    result.columns = stats.columns
     # fill only counts with zeros, other stats are NA
-    if "count" in result.columns:
-        result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
-    result.index.names = result_index.names
+    if "count" in stats.columns:
+        stats.loc[:, "count"] = stats.loc[:, "count"].fillna(0)
 
-    return result
+    return stats
 
 
 def describe_reached_agg(
