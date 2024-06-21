@@ -5,13 +5,19 @@
 
 import math
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import scipy as sp
 import shapely
+from packaging.version import Version
 from tqdm.auto import tqdm
 
 from .shape import _circle_radius
+from .utils import deprecated, removed
+
+GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
+
 
 __all__ = [
     "Area",
@@ -29,6 +35,7 @@ __all__ = [
 ]
 
 
+@removed("`.area` attribute of a GeoDataFrame")
 class Area:
     """
     Calculates the area of each object in a given GeoDataFrame. It can be used for any
@@ -62,6 +69,7 @@ class Area:
         self.series = self.gdf.geometry.area
 
 
+@removed("`.length` attribute of a GeoDataFrame")
 class Perimeter:
     """
     Calculates perimeter of each object in a given GeoDataFrame. It can be used for any
@@ -94,6 +102,7 @@ class Perimeter:
         self.series = self.gdf.geometry.length
 
 
+@deprecated("volume")
 class Volume:
     """
     Calculates the volume of each object in a
@@ -162,6 +171,7 @@ class Volume:
             ) from err
 
 
+@deprecated("floor_area")
 class FloorArea:
     """
     Calculates floor area of each object based on height and area. The number of
@@ -234,6 +244,7 @@ class FloorArea:
             ) from err
 
 
+@deprecated("courtyard_area")
 class CourtyardArea:
     """
     Calculates area of holes within geometry - area of courtyards.
@@ -282,6 +293,7 @@ class CourtyardArea:
         self.series = pd.Series(exts - gdf[areas], index=gdf.index)
 
 
+@deprecated("longest_axis_length")
 class LongestAxisLength:
     """
     Calculates the length of the longest axis of object. Axis is defined as a
@@ -316,6 +328,7 @@ class LongestAxisLength:
         self.series = hulls.apply(lambda g: _circle_radius(list(g.coords))) * 2
 
 
+@removed("`.describe()` method of libpysal.graph.Graph")
 class AverageCharacter:
     """
     Calculates the average of a character within a set
@@ -438,7 +451,7 @@ class AverageCharacter:
                 values_list = data.loc[neighbours]
 
                 if rng:
-                    values_list = limit_range(values_list, rng=rng)
+                    values_list = limit_range(values_list.values, rng=rng)
                 if "mean" in mode:
                     means.append(np.mean(values_list))
                 if "median" in mode:
@@ -462,6 +475,7 @@ class AverageCharacter:
             self.mode = pd.Series(modes, index=gdf.index)
 
 
+@deprecated("street_profile")
 class StreetProfile:
     """
     Calculates the street profile characters. This functions
@@ -546,7 +560,7 @@ class StreetProfile:
         end_markers = []
 
         lengths = shapely.length(lines)
-        for ix, (line, length) in enumerate(zip(lines, lengths)):
+        for ix, (line, length) in enumerate(zip(lines, lengths, strict=True)):
             pts = shapely.line_interpolate_point(
                 line, np.linspace(0, length, num=int((length) // distance))
             )
@@ -560,7 +574,7 @@ class StreetProfile:
                 ids += [ix] * 2
 
         ticks = []
-        for num, (pt, end) in enumerate(zip(list_points, end_markers), 1):
+        for num, (pt, end) in enumerate(zip(list_points, end_markers, strict=True), 1):
             if end:
                 ticks.append([pt, pt])
                 ticks.append([pt, pt])
@@ -587,7 +601,7 @@ class StreetProfile:
 
         min_distances = []
         min_inds = []
-        for dis, ind in zip(dist_per_res, inp_per_res):
+        for dis, ind in zip(dist_per_res, inp_per_res, strict=True):
             min_distances.append(np.min(dis))
             min_inds.append(ind[np.argmin(dis)])
 
@@ -690,6 +704,7 @@ class StreetProfile:
         return (x, y)
 
 
+@deprecated("weighted_character")
 class WeightedCharacter:
     """
     Calculates the weighted character. Character weighted by the area
@@ -785,6 +800,7 @@ class WeightedCharacter:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@removed("`.describe()` method of libpysal.graph.Graph")
 class CoveredArea:
     """
     Calculates the area covered by neighbours, which is total area covered
@@ -842,6 +858,7 @@ class CoveredArea:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("perimeter_wall")
 class PerimeterWall:
     """
     Calculate the perimeter wall length of the joined structure.
@@ -887,7 +904,9 @@ class PerimeterWall:
             print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 
-            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            spatial_weights = Queen.from_dataframe(
+                gdf, silence_warnings=True, use_index=False
+            )
             print("Spatial weights ready...") if verbose else None
         self.sw = spatial_weights
 
@@ -905,7 +924,11 @@ class PerimeterWall:
                 to_join = components[components == comp].index
                 joined = geom.iloc[to_join]
                 # buffer to avoid multipolygons where buildings touch by corners only
-                dissolved = joined.buffer(0.01).unary_union
+                dissolved = (
+                    joined.buffer(0.01).union_all()
+                    if GPD_GE_10
+                    else joined.buffer(0.01).unary_union
+                )
                 for b in to_join:
                     walls[b] = dissolved.exterior.length
 
@@ -915,6 +938,7 @@ class PerimeterWall:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@removed("`.describe()` or `.lag()` methods of libpysal.graph.Graph")
 class SegmentsLength:
     """
     Calculate the cummulative and/or mean length of segments. Length of segments
@@ -966,7 +990,9 @@ class SegmentsLength:
             print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 
-            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            spatial_weights = Queen.from_dataframe(
+                gdf, silence_warnings=True, use_index=False
+            )
             print("Spatial weights ready...") if verbose else None
         self.sw = spatial_weights
 

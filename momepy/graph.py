@@ -2,10 +2,13 @@
 
 # connectivity.py
 # definitions of connectivity characters
+import collections
 import math
+from typing import Any
 
 import networkx as nx
 import numpy as np
+from pandas import Series
 from tqdm.auto import tqdm
 
 __all__ = [
@@ -24,10 +27,11 @@ __all__ = [
     "straightness_centrality",
     "subgraph",
     "mean_nodes",
+    "node_density",
 ]
 
 
-def node_degree(graph, name="degree"):
+def node_degree(graph: nx.Graph, name: str = "degree") -> nx.Graph:
     """
     Calculates node degree for each node. Wrapper around ``networkx.degree()``.
 
@@ -56,14 +60,20 @@ def node_degree(graph, name="degree"):
     return netx
 
 
-def _meshedness(graph):
+def _meshedness(graph: nx.Graph) -> float:
     """Calculates meshedness of a graph."""
     e = graph.number_of_edges()
     v = graph.number_of_nodes()
     return (e - v + 1) / (2 * v - 5)
 
 
-def meshedness(graph, radius=5, name="meshedness", distance=None, verbose=True):
+def meshedness(
+    graph: nx.Graph,
+    radius: int = 5,
+    name: str = "meshedness",
+    distance: Any | None = None,
+    verbose: bool = True,
+) -> nx.Graph:
     """
     Calculates meshedness for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``. A subgraph is generated around each node within
@@ -121,7 +131,9 @@ def meshedness(graph, radius=5, name="meshedness", distance=None, verbose=True):
     return _meshedness(netx)
 
 
-def mean_node_dist(graph, name="meanlen", length="mm_len", verbose=True):
+def mean_node_dist(
+    graph: nx.Graph, name: str = "meanlen", length: str = "mm_len", verbose: bool = True
+) -> nx.Graph:
     """
     Calculates mean distance to neighbouring nodes.
     Mean of values in ``length`` attribute.
@@ -159,7 +171,7 @@ def mean_node_dist(graph, name="meanlen", length="mm_len", verbose=True):
     return netx
 
 
-def _cds_length(graph, mode, length):
+def _cds_length(graph: nx.Graph, mode, length):
     """Calculates cul-de-sac length in a graph."""
     lens = []
     for u, v, k, cds in graph.edges.data("cdsbool", keys=True):
@@ -173,15 +185,15 @@ def _cds_length(graph, mode, length):
 
 
 def cds_length(
-    graph,
-    radius=5,
-    mode="sum",
-    name="cds_len",
-    degree="degree",
-    length="mm_len",
-    distance=None,
-    verbose=True,
-):
+    graph: nx.Graph,
+    radius: int = 5,
+    mode: str = "sum",
+    name: str = "cds_len",
+    degree: str = "degree",
+    length: str = "mm_len",
+    distance: Any | None = None,
+    verbose: bool = True,
+) -> nx.Graph:
     """
     Calculates length of cul-de-sacs for subgraph around each node if radius is set,
     or for whole graph, if ``radius=None``. A subgraph is generated around each node
@@ -245,14 +257,19 @@ def cds_length(
     return _cds_length(netx, mode=mode, length=length)
 
 
-def _mean_node_degree(graph, degree):
+def _mean_node_degree(graph: nx.Graph, degree):
     """Calculates mean node degree in a graph."""
     return np.mean(list(dict(graph.nodes(degree)).values()))
 
 
 def mean_node_degree(
-    graph, radius=5, name="mean_nd", degree="degree", distance=None, verbose=True
-):
+    graph: nx.Graph,
+    radius: int = 5,
+    name: str = "mean_nd",
+    degree: str = "degree",
+    distance: Any | None = None,
+    verbose: bool = True,
+) -> nx.Graph:
     """
     Calculates mean node degree for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``. A subgraph is generated around each node within
@@ -302,25 +319,23 @@ def mean_node_degree(
     return _mean_node_degree(netx, degree=degree)
 
 
-def _proportion(graph, degree):
+def _proportion(graph: nx.Graph, degree):
     """Calculates the proportion of intersection types in a graph."""
-    import collections
 
-    values = list(dict(graph.nodes(degree)).values())
-    counts = collections.Counter(values)
+    counts = collections.Counter(dict(graph.nodes(degree)).values())
     return counts
 
 
 def proportion(
-    graph,
-    radius=5,
-    three=None,
-    four=None,
-    dead=None,
-    degree="degree",
-    distance=None,
-    verbose=True,
-):
+    graph: nx.Graph,
+    radius: int = 5,
+    three: str | None = None,
+    four: str | None = None,
+    dead: str | None = None,
+    degree: str = "degree",
+    distance: Any | None = None,
+    verbose: bool = True,
+) -> nx.Graph:
     """
     Calculates the proportion of intersection types for subgraph around each node if
     radius is set, or for whole graph, if ``radius=None``. A subgraph is generated
@@ -396,14 +411,20 @@ def proportion(
     return result
 
 
-def _cyclomatic(graph):
+def _cyclomatic(graph: nx.Graph) -> int:
     """Calculates the cyclomatic complexity of a graph."""
     e = graph.number_of_edges()
     v = graph.number_of_nodes()
     return e - v + 1
 
 
-def cyclomatic(graph, radius=5, name="cyclomatic", distance=None, verbose=True):
+def cyclomatic(
+    graph: nx.Graph,
+    radius: int = 5,
+    name: str = "cyclomatic",
+    distance: Any | None = None,
+    verbose: bool = True,
+) -> nx.Graph:
     """
     Calculates cyclomatic complexity for subgraph around each node if radius is set, or
     for whole graph, if ``radius=None``. A subgraph is generated around each node
@@ -461,7 +482,7 @@ def cyclomatic(graph, radius=5, name="cyclomatic", distance=None, verbose=True):
     return _cyclomatic(netx)
 
 
-def _edge_node_ratio(graph):
+def _edge_node_ratio(graph: nx.Graph) -> float:
     """Calculates edge / node ratio of a graph."""
     e = graph.number_of_edges()
     v = graph.number_of_nodes()
@@ -469,8 +490,12 @@ def _edge_node_ratio(graph):
 
 
 def edge_node_ratio(
-    graph, radius=5, name="edge_node_ratio", distance=None, verbose=True
-):
+    graph: nx.Graph,
+    radius: int = 5,
+    name: str = "edge_node_ratio",
+    distance: Any | None = None,
+    verbose: bool = True,
+) -> nx.Graph:
     """
     Calculates edge / node ratio for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``. A subgraph is generated around each node within
@@ -528,7 +553,7 @@ def edge_node_ratio(
     return _edge_node_ratio(netx)
 
 
-def _gamma(graph):
+def _gamma(graph: nx.Graph):
     """Calculates gamma index of a graph."""
     e = graph.number_of_edges()
     v = graph.number_of_nodes()
@@ -537,7 +562,13 @@ def _gamma(graph):
     return e / (3 * (v - 2))  # save value calulated for subgraph to node
 
 
-def gamma(graph, radius=5, name="gamma", distance=None, verbose=True):
+def gamma(
+    graph: nx.Graph,
+    radius: int = 5,
+    name: str = "gamma",
+    distance: Any | None = None,
+    verbose: bool = True,
+) -> nx.Graph:
     """
     Calculates connectivity gamma index for subgraph around each node if radius is set,
     or for whole graph, if ``radius=None``. A subgraph is generated around each node
@@ -593,7 +624,7 @@ def gamma(graph, radius=5, name="gamma", distance=None, verbose=True):
     return _gamma(netx)
 
 
-def clustering(graph, name="cluster"):
+def clustering(graph: nx.Graph, name: str = "cluster") -> nx.Graph:
     """
     Calculates the squares clustering coefficient for nodes.
     Wrapper around ``networkx.square_clustering``.
@@ -623,7 +654,7 @@ def clustering(graph, name="cluster"):
     return netx
 
 
-def _closeness_centrality(graph, u=None, length=None, len_graph=None):
+def _closeness_centrality(graph: nx.Graph, u=None, length=None, len_graph=None):
     r"""Compute closeness centrality for nodes. Slight adaptation of networkx
     `closeness_centrality` to allow normalisation for local closeness.
     Adapted script used in networkx. The closeness centrality [1]_ of a node `u` is
@@ -691,30 +722,28 @@ def _closeness_centrality(graph, u=None, length=None, len_graph=None):
         path_length = nx.single_source_shortest_path_length
 
     nodes = [u]
-    closeness_centrality = {}
+    closeness_centrality_ = dict.fromkeys(nodes, 0.0)
     for n in nodes:
         sp = dict(path_length(graph, n))
         totsp = sum(sp.values())
-        if totsp > 0.0 and len(graph) > 1:
-            closeness_centrality[n] = (len(sp) - 1.0) / totsp
+        if totsp > 0 and len(graph) > 1:
+            closeness_centrality_[n] = (len(sp) - 1) / totsp
             # normalize to number of nodes-1 in connected part
-            s = (len(sp) - 1.0) / (len_graph - 1)
-            closeness_centrality[n] *= s
-        else:
-            closeness_centrality[n] = 0.0
+            s = (len(sp) - 1) / (len_graph - 1)
+            closeness_centrality_[n] *= s
 
-    return closeness_centrality[u]
+    return closeness_centrality_[u]
 
 
 def closeness_centrality(
-    graph,
-    name="closeness",
-    weight="mm_len",
-    radius=None,
-    distance=None,
-    verbose=True,
+    graph: nx.Graph,
+    name: str = "closeness",
+    weight: str = "mm_len",
+    radius: int | None = None,
+    distance: Any | None = None,
+    verbose: bool = True,
     **kwargs,
-):
+) -> nx.Graph:
     """
     Calculates the closeness centrality for nodes.
     Wrapper around ``networkx.closeness_centrality``.
@@ -777,17 +806,17 @@ def closeness_centrality(
 
 
 def betweenness_centrality(
-    graph,
-    name="betweenness",
-    mode="nodes",
-    weight="mm_len",
-    endpoints=True,
-    radius=None,
-    distance=None,
-    normalized=False,
-    verbose=True,
+    graph: nx.Graph,
+    name: str = "betweenness",
+    mode: str = "nodes",
+    weight: str = "mm_len",
+    endpoints: bool = True,
+    radius: int | None = None,
+    distance: Any | None = None,
+    normalized: bool = False,
+    verbose: bool = True,
     **kwargs,
-):
+) -> nx.Graph:
     """
     Calculates the shortest-path betweenness centrality for nodes.
     Wrapper around ``networkx.betweenness_centrality`` or
@@ -901,42 +930,37 @@ def _euclidean(n, m):
     return math.sqrt((n[0] - m[0]) ** 2 + (n[1] - m[1]) ** 2)
 
 
-def _straightness_centrality(graph, weight, normalized=True):
+def _straightness_centrality(graph: nx.Graph, weight, normalized=True):
     """Calculates straightness centrality."""
-    straightness_centrality = {}
+    straightness_centrality_ = dict.fromkeys(graph.nodes(), 0.0)
 
     for n in graph.nodes():
-        straightness = 0
         sp = nx.single_source_dijkstra_path_length(graph, n, weight=weight)
 
         if len(sp) > 0 and len(graph) > 1:
+            straightness = 0
             for target in sp:
                 if n != target:
                     network_dist = sp[target]
                     euclidean_dist = _euclidean(n, target)
                     straightness = straightness + (euclidean_dist / network_dist)
-            straightness_centrality[n] = straightness * (1.0 / (len(graph) - 1.0))
+            straightness_centrality_[n] = straightness * (1 / (len(graph) - 1))
             # normalize to number of nodes-1 in connected part
-            if normalized:
-                if len(sp) > 1:
-                    s = (len(graph) - 1.0) / (len(sp) - 1.0)
-                    straightness_centrality[n] *= s
-                else:
-                    straightness_centrality[n] = 0
-        else:
-            straightness_centrality[n] = 0.0
-    return straightness_centrality
+            if normalized and len(sp) > 1:
+                s = (len(graph) - 1) / (len(sp) - 1)
+                straightness_centrality_[n] *= s
+    return straightness_centrality_
 
 
 def straightness_centrality(
-    graph,
-    weight="mm_len",
-    normalized=True,
-    name="straightness",
-    radius=None,
-    distance=None,
-    verbose=True,
-):
+    graph: nx.Graph,
+    weight: str = "mm_len",
+    normalized: bool = True,
+    name: str = "straightness",
+    radius: int | None = None,
+    distance: Any | None = None,
+    verbose: bool = True,
+) -> nx.Graph:
     """
     Calculates the straightness centrality for nodes.
 
@@ -996,24 +1020,92 @@ def straightness_centrality(
     return netx
 
 
+def node_density(
+    graph: nx.Graph,
+    radius: int,
+    length: str = "mm_len",
+    distance: str | None = None,
+    verbose: bool = True,
+) -> nx.Graph:
+    """Calculate the density of a node's neighbours (for all nodes)
+    on the street network defined in ``graph``.
+
+    Calculated as the number of neighbouring
+    nodes / cumulative length of street network within neighbours.
+    Returns two values - an unweighted and weighted density unweighted
+    is calculated based on the number of neigbhouring nodes, whereas weighted
+    density will take into account node degree as ``k-1``.
+
+    Adapted from :cite:`dibble2017`.
+
+    Parameters
+    ----------
+    graph : networkx.Graph
+        A Graph representing a street network.
+        Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`.
+    radius: int
+        Include all neighbors of distance <= radius from ``n``.
+    length : str, default `mm_len`
+        The name of the attribute of segment length (geographical).
+    distance : str, optional
+        Use specified edge data key as distance.
+        For example, setting ``distance=’weight’`` will use the edge ``weight`` to
+        measure the distance from the node ``n`` during ``ego_graph`` generation.
+    verbose : bool (default True)
+        If ``True``, shows progress bars in loops and indication of steps.
+
+    Returns
+    -------
+    netx : Graph
+        A networkx.Graph object.
+
+    Examples
+    --------
+    >>> network_graph = mm.node_density(network_graph, radius: int=5)
+    """
+    netx = graph.copy()
+    orig_nodes_degree = Series(nx.get_node_attributes(netx, "degree"))
+    for n in tqdm(netx, total=len(netx), disable=not verbose):
+        sub = nx.ego_graph(
+            netx, n, radius=radius, distance=distance
+        )  # define subgraph of steps=radius
+        unweighted, weighted = _node_density(
+            sub, length=length, orig_nodes_degree=orig_nodes_degree
+        )
+        netx.nodes[n]["node_density"] = unweighted
+        netx.nodes[n]["node_density_weighted"] = weighted
+    return netx
+
+
+def _node_density(sub, length, orig_nodes_degree):
+    """Calculates node density for a subgraph."""
+    length_sum = sub.size(length)
+    weighted_node_data = orig_nodes_degree[list(sub.nodes)] - 1
+    unweighted_node_data = Series(1, index=weighted_node_data)
+    unweighted = (unweighted_node_data.sum() / length_sum) if length_sum else 0
+    weighted = (weighted_node_data.sum() / length_sum) if length_sum else 0
+    return unweighted, weighted
+
+
 def subgraph(
-    graph,
-    radius=5,
-    distance=None,
-    meshedness=True,
-    cds_length=True,
-    mode="sum",
-    degree="degree",
-    length="mm_len",
-    mean_node_degree=True,
-    proportion={3: True, 4: True, 0: True},
-    cyclomatic=True,
-    edge_node_ratio=True,
-    gamma=True,
-    local_closeness=True,
-    closeness_weight=None,
-    verbose=True,
-):
+    graph: nx.Graph,
+    radius: int = 5,
+    distance: Any | None = None,
+    meshedness: bool = True,
+    cds_length: bool = True,
+    mode: str = "sum",
+    degree: str = "degree",
+    length: str = "mm_len",
+    mean_node_degree: bool = True,
+    proportion: dict = {3: True, 4: True, 0: True},
+    cyclomatic: bool = True,
+    edge_node_ratio: bool = True,
+    gamma: bool = True,
+    local_closeness: bool = True,
+    closeness_weight: Any | None = None,
+    node_density: bool = True,
+    verbose: bool = True,
+) -> nx.Graph:
     """
     Calculates all subgraph-based characters. Generating subgraph might be a time
     consuming activity. If we want to use the same subgraph for more characters,
@@ -1072,6 +1164,9 @@ def subgraph(
 
     netx = graph.copy()
 
+    if node_density:
+        orig_nodes_degree = Series(nx.get_node_attributes(netx, "degree"))
+
     for n in tqdm(netx, total=len(netx), disable=not verbose):
         sub = nx.ego_graph(
             netx, n, radius=radius, distance=distance
@@ -1116,10 +1211,17 @@ def subgraph(
                 sub, n, length=closeness_weight, len_graph=lengraph
             )
 
+        if node_density:
+            unweighted, weighted = _node_density(
+                sub, length=length, orig_nodes_degree=orig_nodes_degree
+            )
+            netx.nodes[n]["node_density"] = unweighted
+            netx.nodes[n]["node_density_weighted"] = weighted
+
     return netx
 
 
-def mean_nodes(graph, attr):
+def mean_nodes(graph: nx.Graph, attr: Any):
     """Calculates mean value of nodes attr for each edge."""
     for u, v, k in graph.edges(keys=True):
         mean = (graph.nodes[u][attr] + graph.nodes[v][attr]) / 2

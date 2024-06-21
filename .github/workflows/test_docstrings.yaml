@@ -1,0 +1,41 @@
+name: Test docstrings
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+      branches:
+        - "*"
+  schedule:
+    - cron: "0 0 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Manual docstring test
+        default: test
+        required: false
+
+
+jobs:
+  Test:
+    name: "Test dosctrings"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: ci/envs/312-latest.yaml
+
+      - name: Install momepy
+        run: pip install .
+
+      - name: Test docstrings
+        run: |
+          pytest -v --color=yes --doctest-only momepy/functional
+

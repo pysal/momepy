@@ -4,19 +4,24 @@ import collections
 import math
 import operator
 import warnings
+from copy import deepcopy
 
 import geopandas as gpd
 import libpysal
+import networkx as nx
 import numpy as np
 import pandas as pd
 import shapely
 from packaging.version import Version
+from scipy.signal import find_peaks
+from scipy.stats import gaussian_kde
 from shapely.geometry import LineString, Point
-from shapely.ops import linemerge, polygonize
+from shapely.ops import linemerge, polygonize, split
 from tqdm.auto import tqdm
 
 from .coins import COINS
 from .shape import CircularCompactness
+from .utils import nx_to_gdf
 
 __all__ = [
     "preprocess",
@@ -25,10 +30,11 @@ __all__ = [
     "close_gaps",
     "extend_lines",
     "roundabout_simplification",
+    "consolidate_intersections",
+    "FaceArtifacts",
 ]
 
-GPD_10 = Version(gpd.__version__) >= Version("0.10")
-GPD_09 = Version(gpd.__version__) >= Version("0.9")
+GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
 
 def preprocess(
@@ -77,16 +83,14 @@ def preprocess(
         GeoDataFrame containing preprocessed geometry
     """
     blg = buildings.copy()
-    if GPD_10:
-        blg = blg.explode(ignore_index=True)
-    else:
-        blg = blg.explode()
-        blg.reset_index(drop=True, inplace=True)
+    blg = blg.explode(ignore_index=True)
     for loop in range(0, loops):
         print("Loop", loop + 1, f"out of {loops}.") if verbose else None
         blg.reset_index(inplace=True, drop=True)
         blg["mm_uid"] = range(len(blg))
-        sw = libpysal.weights.contiguity.Rook.from_dataframe(blg, silence_warnings=True)
+        sw = libpysal.weights.contiguity.Rook.from_dataframe(
+            blg, silence_warnings=True, use_index=False
+        )
         blg["neighbors"] = sw.neighbors.values()
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
         blg["circu"] = CircularCompactness(blg).series
@@ -104,13 +108,7 @@ def preprocess(
             if size and row.geometry.area < size:
                 if row.n_count == 1:
                     uid = blg.iloc[row.neighbors[0]].mm_uid
-
-                    if uid in join:
-                        existing = join[uid]
-                        existing.append(row.mm_uid)
-                        join[uid] = existing
-                    else:
-                        join[uid] = [row.mm_uid]
+                    join.setdefault(uid, []).append(row.mm_uid)
                 elif row.n_count > 1:
                     shares = {}
                     for n in row.neighbors:
@@ -119,23 +117,13 @@ def preprocess(
                         ).length
                     maximal = max(shares.items(), key=operator.itemgetter(1))[0]
                     uid = blg.loc[maximal].mm_uid
-                    if uid in join:
-                        existing = join[uid]
-                        existing.append(row.mm_uid)
-                        join[uid] = existing
-                    else:
-                        join[uid] = [row.mm_uid]
+                    join.setdefault(uid, []).append(row.mm_uid)
                 else:
                     delete.append(row.Index)
             if compactness and row.circu < compactness:
                 if row.n_count == 1:
                     uid = blg.iloc[row.neighbors[0]].mm_uid
-                    if uid in join:
-                        existing = join[uid]
-                        existing.append(row.mm_uid)
-                        join[uid] = existing
-                    else:
-                        join[uid] = [row.mm_uid]
+                    join.setdefault(uid, []).append(row.mm_uid)
                 elif row.n_count > 1:
                     shares = {}
                     for n in row.neighbors:
@@ -144,12 +132,7 @@ def preprocess(
                         ).length
                     maximal = max(shares.items(), key=operator.itemgetter(1))[0]
                     uid = blg.loc[maximal].mm_uid
-                    if uid in join:
-                        existing = join[uid]
-                        existing.append(row.mm_uid)
-                        join[uid] = existing
-                    else:
-                        join[uid] = [row.mm_uid]
+                    join.setdefault(uid, []).append(row.mm_uid)
 
             if islands and row.n_count == 1:
                 shared = row.geometry.intersection(
@@ -157,12 +140,7 @@ def preprocess(
                 ).length
                 if shared == row.geometry.exterior.length:
                     uid = blg.iloc[row.neighbors[0]].mm_uid
-                    if uid in join:
-                        existing = join[uid]
-                        existing.append(row.mm_uid)
-                        join[uid] = existing
-                    else:
-                        join[uid] = [row.mm_uid]
+                    join.setdefault(uid, []).append(row.mm_uid)
 
         for key in tqdm(
             join, total=len(join), desc="Changing geometry", disable=not verbose
@@ -176,10 +154,10 @@ def preprocess(
                     if not subset.empty:
                         geoms.append(blg[blg["mm_uid"] == j].iloc[0].geometry)
                         blg.drop(blg[blg["mm_uid"] == j].index[0], inplace=True)
-                new_geom = shapely.ops.unary_union(geoms)
-                blg.loc[
-                    blg.loc[blg["mm_uid"] == key].index[0], blg.geometry.name
-                ] = new_geom
+                new_geom = shapely.union_all(geoms)
+                blg.loc[blg.loc[blg["mm_uid"] == key].index[0], blg.geometry.name] = (
+                    new_geom
+                )
 
         blg.drop(delete, inplace=True)
     return blg[buildings.columns]
@@ -205,13 +183,10 @@ def remove_false_nodes(gdf):
     momepy.extend_lines
     momepy.close_gaps
     """
-    if isinstance(gdf, (gpd.GeoDataFrame, gpd.GeoSeries)):
+    if isinstance(gdf, gpd.GeoDataFrame | gpd.GeoSeries):
         # explode to avoid MultiLineStrings
         # reset index due to the bug in GeoPandas explode
-        if GPD_10:
-            df = gdf.reset_index(drop=True).explode(ignore_index=True)
-        else:
-            df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
+        df = gdf.reset_index(drop=True).explode(ignore_index=True)
 
         # get underlying shapely geometry
         geom = df.geometry.array
@@ -240,7 +215,7 @@ def remove_false_nodes(gdf):
     unique, counts = np.unique(inp, return_counts=True)
     merge = res[np.isin(inp, unique[counts == 2])]
 
-    if len(merge) > 0:
+    if len(merge):
         # filter duplications and create a dictionary with indication of components to
         # be merged together
         dups = [item for item, count in collections.Counter(merge).items() if count > 1]
@@ -256,26 +231,22 @@ def remove_false_nodes(gdf):
             components[a[1]] = i
 
         # iterate through components and create new geometries
+        all_keys = {}
+        for k, v in components.items():
+            all_keys.setdefault(v, []).append(k)
         new = []
-        for c in set(components.values()):
-            keys = []
-            for item in components.items():
-                if item[1] == c:
-                    keys.append(item[0])
+        for keys in all_keys.values():
             new.append(shapely.line_merge(shapely.union_all(geom[keys])))
 
         # remove incorrect geometries and append fixed versions
         df = df.drop(merge)
-        if GPD_10:
-            final = gpd.GeoSeries(new).explode(ignore_index=True)
-        else:
-            final = gpd.GeoSeries(new).explode().reset_index(drop=True)
+        final = gpd.GeoSeries(new, crs=df.crs).explode(ignore_index=True)
         if isinstance(gdf, gpd.GeoDataFrame):
             return pd.concat(
                 [
                     df,
                     gpd.GeoDataFrame(
-                        {df.geometry.name: final}, geometry=df.geometry.name
+                        {df.geometry.name: final}, geometry=df.geometry.name, crs=df.crs
                     ),
                 ],
                 ignore_index=True,
@@ -496,10 +467,7 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     """
     # explode to avoid MultiLineStrings
     # reset index due to the bug in GeoPandas explode
-    if GPD_10:
-        df = gdf.reset_index(drop=True).explode(ignore_index=True)
-    else:
-        df = gdf.reset_index(drop=True).explode().reset_index(drop=True)
+    df = gdf.reset_index(drop=True).explode(ignore_index=True)
 
     if target is None:
         target = df
@@ -637,7 +605,7 @@ def _extend_line(coords, target, tolerance, snap=True):
             else:
                 new_point_coords = shapely.get_coordinates(intersection[0])
             coo = np.append(coords, new_point_coords)
-            new = np.reshape(coo, (int(len(coo) / 2), 2))
+            new = np.reshape(coo, (len(coo) // 2, 2))
 
             return new
         return coords
@@ -782,10 +750,7 @@ def _selecting_rabs_from_poly(
         rab["rab_diameter"] = rab[["deltax", "deltay"]].max(axis=1)
 
         # selecting the adjacent areas that are of smaller than itself
-        if GPD_10:
-            rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
-        else:
-            rab_adj = gpd.sjoin(gdf, rab, op="intersects")
+        rab_adj = gpd.sjoin(gdf, rab, predicate="intersects")
 
         area_right = area_col + "_right"
         area_left = area_col + "_left"
@@ -794,7 +759,7 @@ def _selecting_rabs_from_poly(
         rab_adj.index.name = "index"
 
         # adding a hausdorff_distance threshold
-        rab_adj["hdist"] = 0
+        rab_adj["hdist"] = 0.0
         # TODO: (should be a way to vectorize)
         for i, group in rab_adj.groupby("index_right"):
             for g in group.itertuples():
@@ -894,15 +859,14 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     is used to select the line to be extended further.
     """
     # selecting the lines that are touching but not covered by
-    if GPD_10:
-        touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
-        edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
+    touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
+    if GPD_GE_013:
+        edges_idx, _ = rab_multipolygons.sindex.query(
             edges.geometry, predicate="covered_by"
         )
     else:
-        touching = gpd.sjoin(edges, rab_multipolygons, op="touches")
-        edges_idx, rabs_idx = rab_multipolygons.sindex.query_bulk(
-            edges.geometry, op="covered_by"
+        edges_idx, _ = rab_multipolygons.sindex.query_bulk(
+            edges.geometry, predicate="covered_by"
         )
     idx_drop = edges.index.take(edges_idx)
     touching_idx = touching.index
@@ -1002,69 +966,54 @@ def roundabout_simplification(
 
     If ``include_adjacent`` is True, adjacent polygons to the actual roundabout are
     also selected for simplification if two conditions are met:
-        - the area of adjacent polygons is less than the actual roundabout
-        - adjacent polygons do not extend beyond a factor of the diameter of the actual
-        roundabout.
-        This uses hausdorff_distance algorithm.
+
+    - the area of adjacent polygons is less than the actual roundabout
+    - adjacent polygons do not extend beyond a factor of the diameter of the actual
+      roundabout. This uses hausdorff_distance algorithm.
 
     Parameters
     ----------
     edges : GeoDataFrame
         GeoDataFrame containing LineString geometry of urban network
     polys : GeoDataFrame
-        GeoDataFrame containing Polygon geometry derived from polygonyzing
-        ``edges`` GeoDataFrame.
+        GeoDataFrame containing Polygon geometry derived from polygonyzing ``edges``
+        GeoDataFrame.
     area_col : string
         Column name containing area values if ``polys`` GeoDataFrame contains such
         information. Otherwise, it will
     circom_threshold : float (default 0.7)
         Circular compactness threshold to select roundabouts from ``polys``
-        GeoDataFrame.
-        Polygons with a higher or equal threshold value will be considered for
-        simplification.
+        GeoDataFrame. Polygons with a higher or equal threshold value will be considered
+        for simplification.
     area_threshold : float (default 0.85)
         Percentile threshold value from the area of ``polys`` to leave as input
-        geometry.
-        Polygons with a higher or equal threshold will be considered as urban blocks
-        not considered
-        for simplification.
+        geometry. Polygons with a higher or equal threshold will be considered as urban
+        blocks not considered for simplification.
     include_adjacent : boolean (default True)
         Adjacent polygons to be considered also as part of the simplification.
     diameter_factor : float (default 1.5)
-        The factor to be applied to the diameter of each roundabout that determines
-        how far an adjacent polygon can stretch until it is no longer considered part
-        of the overall roundabout group. Only applyies when include_adjacent = True.
+        The factor to be applied to the diameter of each roundabout that determines how
+        far an adjacent polygon can stretch until it is no longer considered part of the
+        overall roundabout group. Only applyies when include_adjacent = True.
     center_type : string (default 'centroid')
-        Method to use for converging the incoming LineStrings.
-        Current list of options available : 'centroid', 'mean'.
-        - 'centroid': selects the centroid of the actual roundabout (ignoring adjacent
-        geometries)
-        - 'mean': calculates the mean coordinates from the points of polygons (including
-         adjacent geometries)
+        Method to use for converging the incoming LineStrings. Current list of options
+        available : 'centroid', 'mean'. - 'centroid': selects the centroid of the actual
+        roundabout (ignoring adjacent geometries) - 'mean': calculates the mean
+        coordinates from the points of polygons (including adjacent geometries)
     angle_threshold : int, float (default 0)
         The angle threshold for the COINS algorithm. Only used when multiple incoming
-        LineStrings
-        arrive at the same Point to the roundabout or to the adjacent polygons if set
-        as True.
-        eg. when two 'edges' touch the roundabout at the same point, COINS algorithm
-        will evaluate which of those
-        incoming lines should be extended according to their deflection angle.
-        Segments will only be considered a part of the same street if the deflection
-        angle
-        is above the threshold.
+        LineStrings arrive at the same Point to the roundabout or to the adjacent
+        polygons if set as True. eg. when two 'edges' touch the roundabout at the same
+        point, COINS algorithm will evaluate which of those incoming lines should be
+        extended according to their deflection angle. Segments will only be considered a
+        part of the same street if the deflection angle is above the threshold.
 
     Returns
     -------
     GeoDataFrame
-        GeoDataFrame with an updated geometry and an additional
-        column labeling modified edges.
+        GeoDataFrame with an updated geometry and an additional column labeling modified
+        edges.
     """
-    if not GPD_09:
-        raise ImportError(
-            "`roundabout_simplification` requires geopandas 0.9.0 or newer. "
-            f"Your current version is {gpd.__version__}."
-        )
-
     if len(edges[edges.geom_type != "LineString"]) > 0:
         raise TypeError(
             "Only LineString geometries are allowed. "
@@ -1087,3 +1036,638 @@ def roundabout_simplification(
     output = _ext_lines_to_center(edges, incoming_all, idx_drop)
 
     return output
+
+
+def consolidate_intersections(
+    graph,
+    tolerance=30,
+    rebuild_graph=True,
+    rebuild_edges_method="spider",
+    x_att="x",
+    y_att="y",
+    edge_from_att="from",
+    edge_to_att="to",
+):
+    """
+    Consolidate close street intersections into a single node, collapsing short edges.
+
+    If rebuild_graph is True, new edges are drawn according to ``rebuild_edges_method``
+    which is one of:
+
+    1. Extension reconstruction:
+        Edges are linearly extended from original endpoints until the new nodes. This
+        method preserves most faithfully the network geometry but can result in
+        overlapping geometry.
+    2. Spider-web reconstruction:
+        Edges are cropped within a buffer of the new endpoints and linearly extended
+        from there. This method improves upon linear reconstruction by mantaining, when
+        possible, network planarity.
+    3. Euclidean reconstruction:
+        Edges are ignored and new edges are built as straight lines between new origin
+        and new destination. This method ignores geometry, but efficiently preserves
+        adjacency.
+
+    If ``rebuild_graph`` is False, graph is returned with consolidated nodes but without
+    reconstructed edges i.e. graph is intentionally disconnected.
+
+    Graph must be configured so that
+
+    1. All nodes have attributes determining their x and y coordinates;
+    2. All edges have attributes determining their origin, destination, and geometry.
+
+    Parameters
+    ----------
+    graph : Networkx.Graph, Networkx.DiGraph, Networkx.MultiGraph, or
+        Networkx.MultiDiGraph
+    tolerance : float, default 30
+        distance in network units below which nodes will be consolidated
+    rebuild_graph : bool
+    rebuild_edges_method : str
+        'extend' or 'spider' or 'euclidean', ignored if rebuild_graph is False
+    x_att : str
+        node attribute with the valid x-coordinate
+    y_att : str
+        node attribute with the valid y-coordinate
+    edge_from_att : str
+        edge attribute with the valid origin node id
+    edge_to_att : str
+        edge attribute with the valid destination node id
+
+    Returns
+    -------
+    Networkx.MultiGraph or Networkx.MultiDiGraph
+        directionality inferred from input type
+
+    """
+    # Collect nodes and their data:
+    nodes, nodes_dict = zip(*graph.nodes(data=True), strict=False)
+    nodes_df = pd.DataFrame(nodes_dict, index=nodes)
+    graph_crs = graph.graph.get("crs")
+
+    # Create a graph without the edges above a certain length and clean it
+    #  from isolated nodes (the unsimplifiable nodes):
+    components_graph = deepcopy(graph)
+    components_graph.remove_edges_from(
+        [
+            edge
+            for edge in graph.edges(keys=True, data=True)
+            if edge[-1]["length"] > tolerance
+        ]
+    )
+    isolated_nodes_list = list(nx.isolates(components_graph))
+    components_graph.remove_nodes_from(isolated_nodes_list)
+
+    # The connected components of this graph are node clusters we must individually
+    #  simplify. We collect them in a dataframe and retrieve node properties (x, y
+    #  coords mainly) from the original graph.
+    components = nx.connected_components(components_graph)
+    components_dict = dict(enumerate(components, start=max(nodes) + 1))
+    nodes_to_merge_dict = {
+        node: cpt for cpt, nodes in components_dict.items() for node in nodes
+    }
+    new_nodes_df = pd.DataFrame.from_dict(
+        nodes_to_merge_dict, orient="index", columns=["cluster"]
+    )
+    nodes_to_merge_df = pd.concat(
+        [new_nodes_df, nodes_df[[x_att, y_att]]], axis=1, join="inner"
+    )
+
+    # The two node attributes we need for the clusters are the position of the cluster
+    #  centroids. Those are obtained by averaging the x and y columns. We also add
+    # . attribtues referring to the original node ids in every cluster:
+    cluster_centroids_df = nodes_to_merge_df.groupby("cluster").mean()
+    cluster_centroids_df["simplified"] = True
+    cluster_centroids_df["original_node_ids"] = cluster_centroids_df.index.map(
+        components_dict
+    )
+    cluster_geometries = gpd.points_from_xy(
+        cluster_centroids_df[x_att], cluster_centroids_df[y_att]
+    )
+    cluster_gdf = gpd.GeoDataFrame(
+        cluster_centroids_df, crs=graph_crs, geometry=cluster_geometries
+    )
+    cluster_nodes_list = list(cluster_gdf.to_dict("index").items())
+
+    # Create a simplified graph object:
+    simplified_graph = graph.copy()
+
+    # Rebuild edges if necessary:
+    if rebuild_graph:
+        rebuild_edges_method = rebuild_edges_method.lower()
+        simplified_graph.graph["approach"] = "primal"
+        edges_gdf = nx_to_gdf(simplified_graph, points=False, lines=True)
+        simplified_edges = _get_rebuilt_edges(
+            edges_gdf,
+            nodes_to_merge_dict,
+            cluster_gdf,
+            method=rebuild_edges_method,
+            buffer=1.5 * tolerance,
+            edge_from_att=edge_from_att,
+            edge_to_att=edge_to_att,
+        )
+
+    # Replacing the collapsed nodes with centroids and adding edges:
+    simplified_graph.remove_nodes_from(nodes_to_merge_df.index)
+    simplified_graph.add_nodes_from(cluster_nodes_list)
+    if rebuild_graph:
+        simplified_graph.add_edges_from(simplified_edges)
+
+    return simplified_graph
+
+
+def _get_rebuilt_edges(
+    edges_gdf,
+    nodes_dict,
+    cluster_gdf,
+    method="spider",
+    buffer=45,
+    edge_from_att="from",
+    edge_to_att="to",
+):
+    """
+    Update origin and destination on network edges when original endpoints were replaced
+    by a
+      consolidated node cluster. New edges are drawn according to method which is one
+      of:
+
+    1. Extension reconstruction:
+        Edges are linearly extended from original endpoints until the new nodes. This
+        method preserves most faithfully the network geometry.
+    2. Spider-web reconstruction:
+        Edges are cropped within a buffer of the new endpoints and linearly extended
+        from there. This method improves upon linear reconstruction by mantaining, when
+        possible, network planarity.
+    3. Euclidean reconstruction:
+        Edges are ignored and new edges are built as straightlines between new origin
+        and new destination. This method ignores geometry, but efficiently preserves
+        adjacency.
+
+    Parameters
+    ----------
+    edges_gdf : GeoDataFrame
+        GeoDataFrame containing LineString geometry and columns determining origin
+        and destination node ids
+    nodes_dict : dict
+        Dictionary whose keys are node ids and values are the corresponding consolidated
+        node cluster ids. Only consolidated nodes are in the dictionary.
+    cluster_gdf : GeoDataFrame
+        GeoDataFrame containing consolidated node ids.
+    method: string
+        'extension' or 'spider' or 'euclidean'
+    buffer : float
+        distance to buffer consolidated nodes in the Spider-web reconstruction
+    edge_from_att : str
+        edge attribute with the valid origin node id
+    edge_to_att : str
+        edge attribute with the valid destination node id
+
+    Returns
+    ----------
+    List
+        list of edges that should be added to the network. Edges are in the format
+        (origin_id, destination_id, data), where data is inferred from edges_gdf
+
+    """
+    # Determine what endpoints were made into clusters:
+    edges_gdf["origin_cluster"] = edges_gdf[edge_from_att].apply(
+        lambda u: nodes_dict.get(u, -1)
+    )
+    edges_gdf["destination_cluster"] = edges_gdf[edge_to_att].apply(
+        lambda v: nodes_dict.get(v, -1)
+    )
+
+    # Determine what edges need to be simplified (either between diff.
+    #  clusters or self-loops in a cluster):
+    edges_tosimplify_gdf = edges_gdf.query(
+        "origin_cluster != destination_cluster or "
+        f"(('{edge_to_att}' == '{edge_from_att}') and origin_cluster >= 0)"
+    )
+
+    # Determine the new point geometries (when exists):
+    edges_tosimplify_gdf = edges_tosimplify_gdf.assign(
+        new_origin_pt=edges_tosimplify_gdf.origin_cluster.map(
+            cluster_gdf.geometry, None
+        )
+    )
+    edges_tosimplify_gdf = edges_tosimplify_gdf.assign(
+        new_destination_pt=edges_tosimplify_gdf.destination_cluster.map(
+            cluster_gdf.geometry, None
+        )
+    )
+
+    # Determine the new geometry according to the simplification method:
+    if method == "extend":
+        edges_simplified_geometries = edges_tosimplify_gdf.apply(
+            lambda edge: _extension_simplification(
+                edge.geometry, edge.new_origin_pt, edge.new_destination_pt
+            ),
+            axis=1,
+        )
+        edges_simplified_gdf = edges_tosimplify_gdf.assign(
+            new_geometry=edges_simplified_geometries
+        )
+    elif method == "euclidean":
+        edges_simplified_geometries = edges_tosimplify_gdf.apply(
+            lambda edge: _euclidean_simplification(
+                edge.geometry, edge.new_origin_pt, edge.new_destination_pt
+            ),
+            axis=1,
+        )
+        edges_simplified_gdf = edges_tosimplify_gdf.assign(
+            new_geometry=edges_simplified_geometries
+        )
+    elif method == "spider":
+        edges_simplified_geometries = edges_tosimplify_gdf.apply(
+            lambda edge: _spider_simplification(
+                edge.geometry, edge.new_origin_pt, edge.new_destination_pt, buffer
+            ),
+            axis=1,
+        )
+        edges_simplified_gdf = edges_tosimplify_gdf.assign(
+            new_geometry=edges_simplified_geometries
+        )
+    else:
+        msg = (
+            f"Simplification '{method}' not recognized. See documentation for options."
+        )
+        raise ValueError(msg)
+
+    # Rename and update the columns:
+    cols_rename = {
+        edge_from_att: "original_from",
+        edge_to_att: "original_to",
+        "origin_cluster": edge_from_att,
+        "destination_cluster": edge_to_att,
+        "geometry": "original_geometry",
+    }
+    new_edges_gdf = edges_simplified_gdf.rename(cols_rename, axis=1)
+
+    cols_drop = ["new_origin_pt", "new_destination_pt"]
+    new_edges_gdf = new_edges_gdf.drop(columns=cols_drop)
+
+    new_edges_gdf = new_edges_gdf.set_geometry("new_geometry")
+    new_edges_gdf.loc[:, "length"] = new_edges_gdf.length
+
+    # Update the indices:
+    new_edges_gdf.loc[:, edge_from_att] = new_edges_gdf[edge_from_att].where(
+        new_edges_gdf[edge_from_att] >= 0, new_edges_gdf["original_from"]
+    )
+    new_edges_gdf.loc[:, edge_to_att] = new_edges_gdf[edge_to_att].where(
+        new_edges_gdf[edge_to_att] >= 0, new_edges_gdf["original_to"]
+    )
+
+    # Get the edge list with (from, to, data):
+    new_edges_list = list(
+        zip(
+            new_edges_gdf[edge_from_att],
+            new_edges_gdf[edge_to_att],
+            new_edges_gdf.iloc[:, 2:].to_dict("index").values(),
+            strict=False,
+        )
+    )
+
+    return new_edges_list
+
+
+def _extension_simplification(geometry, new_origin, new_destination):
+    """
+    Extends edge geometry to new endpoints.
+
+    If either new_origin or new_destination is None, maintains the
+      respective current endpoint.
+
+    Parameters
+    ----------
+    geometry : shapely.LineString
+    new_origin : shapely.Point or None
+    new_destination: shapely.Point or None
+
+    Returns
+    ----------
+    shapely.LineString
+
+    """
+    # If we are dealing with a self-loop the line has no endpoints:
+    if new_origin == new_destination:
+        current_node = Point(geometry.coords[0])
+        geometry = linemerge([LineString([new_origin, current_node]), geometry])
+    # Assuming the line is not closed, we can find its endpoints:
+    else:
+        current_origin, current_destination = geometry.boundary.geoms
+        if new_origin is not None:
+            geometry = linemerge([LineString([new_origin, current_origin]), geometry])
+        if new_destination is not None:
+            geometry = linemerge(
+                [geometry, LineString([current_destination, new_destination])]
+            )
+    return geometry
+
+
+def _spider_simplification(geometry, new_origin, new_destination, buff=15):
+    """
+    Extends edge geometry to new endpoints via a "spider-web" method. Breaks
+      current geometry within a buffer of the new endpoint and then extends
+      it linearly. Useful to maintain planarity.
+
+    If either new_origin or new_destination is None, maintains the
+      respective current endpoint.
+
+    Parameters
+    ----------
+    geometry : shapely.LineString
+    new_origin : shapely.Point or None
+    new_destination: shapely.Point or None
+    buff : float
+        distance from new endpoint to break current geometry
+
+    Returns
+    ----------
+    shapely.LineString
+
+    """
+    # If we are dealing with a self-loop the line has no boundary
+    # . and we just use the first coordinate:
+    if new_origin == new_destination:
+        current_node = Point(geometry.coords[0])
+        geometry = linemerge([LineString([new_origin, current_node]), geometry])
+    # Assuming the line is not closed, we can find its endpoints
+    #  via the boundary attribute:
+    else:
+        current_origin, current_destination = geometry.boundary.geoms
+        if new_origin is not None:
+            # Create a buffer around the new origin:
+            new_origin_buffer = new_origin.buffer(buff)
+            # Use shapely.ops.split to break the edge where it
+            #  intersects the buffer:
+            geometry_split_by_buffer_list = list(
+                split(geometry, new_origin_buffer).geoms
+            )
+            # If only one geometry results, edge does not intersect
+            #  buffer and line should connect new origin to old origin
+            if len(geometry_split_by_buffer_list) == 1:
+                geometry_split_by_buffer = geometry_split_by_buffer_list[0]
+                splitting_point = current_origin
+            # If more than one geometry, merge all linestrings
+            #  but the first and get their origin
+            else:
+                geometry_split_by_buffer = linemerge(geometry_split_by_buffer_list[1:])
+                splitting_point = geometry_split_by_buffer.boundary.geoms[0]
+            # Merge this into new geometry:
+            additional_line = [LineString([new_origin, splitting_point])]
+            # Consider MultiLineStrings separately:
+            if geometry_split_by_buffer.geom_type == "MultiLineString":
+                geometry = linemerge(
+                    additional_line + list(geometry_split_by_buffer.geoms)
+                )
+            else:
+                geometry = linemerge(additional_line + [geometry_split_by_buffer])
+
+        if new_destination is not None:
+            # Create a buffer around the new destination:
+            new_destination_buffer = new_destination.buffer(buff)
+            # Use shapely.ops.split to break the edge where it
+            #  intersects the buffer:
+            geometry_split_by_buffer_list = list(
+                split(geometry, new_destination_buffer).geoms
+            )
+            # If only one geometry results, edge does not intersect
+            # . buffer and line should connect new destination to old destination
+            if len(geometry_split_by_buffer_list) == 1:
+                geometry_split_by_buffer = geometry_split_by_buffer_list[0]
+                splitting_point = current_destination
+            # If more than one geometry, merge all linestrings
+            #  but the last and get their destination
+            else:
+                geometry_split_by_buffer = linemerge(geometry_split_by_buffer_list[:-1])
+                splitting_point = geometry_split_by_buffer.boundary.geoms[1]
+            # Merge this into new geometry:
+            additional_line = [LineString([splitting_point, new_destination])]
+            # Consider MultiLineStrings separately:
+            if geometry_split_by_buffer.geom_type == "MultiLineString":
+                geometry = linemerge(
+                    list(geometry_split_by_buffer.geoms) + additional_line
+                )
+            else:
+                geometry = linemerge([geometry_split_by_buffer] + additional_line)
+
+    return geometry
+
+
+def _euclidean_simplification(geometry, new_origin, new_destination):
+    """
+    Rebuilds edge geometry to new endpoints. Ignores current geometry
+      and traces a straight line between new endpoints.
+
+    If either new_origin or new_destination is None, maintains the
+      respective current endpoint.
+
+    Parameters
+    ----------
+    geometry : shapely.LineString
+    new_origin : shapely.Point or None
+    new_destination : shapely.Point or None
+
+    Returns
+    ----------
+    shapely.LineString
+
+    """
+    # If we are dealing with a self-loop, geometry will be null!
+    if new_origin == new_destination:
+        geometry = None
+    # Assuming the line is not closed, we can find its endpoints:
+    else:
+        current_origin, current_destination = geometry.boundary.geoms
+        if new_origin is not None:
+            if new_destination is not None:
+                geometry = LineString([new_origin, new_destination])
+            else:
+                geometry = LineString([new_origin, current_destination])
+        else:
+            if new_destination is not None:
+                geometry = LineString([current_origin, new_destination])
+    return geometry
+
+
+class FaceArtifacts:
+    """Identify face artifacts in street networks
+
+    For a given street network composed of transportation-oriented geometry containing
+    features representing things like roundabouts, dual carriegaways and complex
+    intersections, identify areas enclosed by geometry that is considered a `face
+    artifact` as per :cite:`fleischmann2023`. Face artifacts highlight areas with a high
+    likelihood of being of non-morphological (e.g. transporation) origin and may require
+    simplification prior morphological analysis. See :cite:`fleischmann2023` for more
+    details.
+
+    Parameters
+    ----------
+    gdf : geopandas.GeoDataFrame
+        GeoDataFrame containing street network represented as (Multi)LineString geometry
+    index : str, optional
+        A type of the shape compacntess index to be used. Available are
+        ['circlular_compactness', 'isoperimetric_quotient', 'diameter_ratio'], by
+        default "circular_compactness"
+    height_mins : float, optional
+        Required depth of valleys, by default -np.inf
+    height_maxs : float, optional
+        Required height of peaks, by default 0.008
+    prominence : float, optional
+        Required prominence of peaks, by default 0.00075
+
+    Attributes
+    ----------
+    threshold : float
+        Identified threshold between face polygons and face artifacts
+    face_artifacts : GeoDataFrame
+        A GeoDataFrame of geometries identified as face artifacts
+    polygons : GeoDataFrame
+        All polygons resulting from polygonization of the input gdf with the
+        face_artifact_index
+    kde : scipy.stats._kde.gaussian_kde
+        Representation of a kernel-density estimate using Gaussian kernels.
+    pdf : numpy.ndarray
+        Probability density function
+    peaks : numpy.ndarray
+        locations of peaks in pdf
+    valleys : numpy.ndarray
+        locations of valleys in pdf
+
+    Examples
+    --------
+    >>> fa = momepy.FaceArtifacts(street_network_prague)
+    >>> fa.threshold
+    6.9634555986177045
+    >>> fa.face_artifacts.head()
+                                                 geometry  face_artifact_index
+    6   POLYGON ((-744164.625 -1043922.362, -744167.39...             5.112844
+    9   POLYGON ((-744154.119 -1043804.734, -744152.07...             6.295660
+    10  POLYGON ((-744101.275 -1043738.053, -744103.80...             2.862871
+    12  POLYGON ((-744095.511 -1043623.478, -744095.35...             3.712403
+    17  POLYGON ((-744488.466 -1044533.317, -744489.33...             5.158554
+    """
+
+    def __init__(
+        self,
+        gdf,
+        index="circular_compactness",
+        height_mins=-np.inf,
+        height_maxs=0.008,
+        prominence=0.00075,
+    ):
+        try:
+            from esda import shape
+        except (ImportError, ModuleNotFoundError) as err:
+            raise ImportError(
+                "The `esda` package is required. You can install it using "
+                "`pip install esda` or `conda install esda -c conda-forge`."
+            ) from err
+
+        # Polygonize street network
+        polygons = gpd.GeoSeries(
+            shapely.polygonize(  # polygonize
+                [gdf.dissolve().geometry.item()]
+            )
+        ).explode(ignore_index=True)
+
+        # Store geometries as a GeoDataFrame
+        self.polygons = gpd.GeoDataFrame(geometry=polygons)
+        if index == "circular_compactness":
+            self.polygons["face_artifact_index"] = np.log(
+                shape.minimum_bounding_circle_ratio(polygons) * polygons.area
+            )
+        elif index == "isoperimetric_quotient":
+            self.polygons["face_artifact_index"] = np.log(
+                shape.isoperimetric_quotient(polygons) * polygons.area
+            )
+        elif index == "diameter_ratio":
+            self.polygons["face_artifact_index"] = np.log(
+                shape.diameter_ratio(polygons) * polygons.area
+            )
+        else:
+            raise ValueError(
+                f"'{index}' is not supported. Use one of ['circlular_compactness', "
+                "'isoperimetric_quotient', 'diameter_ratio']"
+            )
+
+        # parameters for peak/valley finding
+        peak_parameters = {
+            "height_mins": height_mins,
+            "height_maxs": height_maxs,
+            "prominence": prominence,
+        }
+        mylinspace = np.linspace(
+            self.polygons["face_artifact_index"].min(),
+            self.polygons["face_artifact_index"].max(),
+            1000,
+        )
+
+        self.kde = gaussian_kde(
+            self.polygons["face_artifact_index"], bw_method="silverman"
+        )
+        self.pdf = self.kde.pdf(mylinspace)
+
+        # find peaks
+        self.peaks, self.d_peaks = find_peaks(
+            x=self.pdf,
+            height=peak_parameters["height_maxs"],
+            threshold=None,
+            distance=None,
+            prominence=peak_parameters["prominence"],
+            width=1,
+            plateau_size=None,
+        )
+
+        # find valleys
+        self.valleys, self.d_valleys = find_peaks(
+            x=-self.pdf + 1,
+            height=peak_parameters["height_mins"],
+            threshold=None,
+            distance=None,
+            prominence=peak_parameters["prominence"],
+            width=1,
+            plateau_size=None,
+        )
+
+        # check if we have at least 2 peaks
+        condition_2peaks = len(self.peaks) > 1
+
+        # check if we have at least 1 valley
+        condition_1valley = len(self.valleys) > 0
+
+        conditions = [condition_2peaks, condition_1valley]
+
+        # if both these conditions are true, we find the artifact index
+        if all(conditions):
+            # find list order of highest peak
+            highest_peak_listindex = np.argmax(self.d_peaks["peak_heights"])
+            # find index (in linspace) of highest peak
+            highest_peak_index = self.peaks[highest_peak_listindex]
+            # define all possible peak ranges fitting our definition
+            peak_bounds = list(zip(self.peaks[:-1], self.peaks[1:], strict=True))
+            peak_bounds_accepted = [b for b in peak_bounds if highest_peak_index in b]
+            # find all valleys that lie between two peaks
+            valleys_accepted = [
+                v_index
+                for v_index in self.valleys
+                if any(v_index in range(b[0], b[1]) for b in peak_bounds_accepted)
+            ]
+            # the value of the first of those valleys is our artifact index
+            # get the order of the valley
+            valley_index = valleys_accepted[0]
+
+            # derive threshold value for given option from index/linspace
+            self.threshold = float(mylinspace[valley_index])
+            self.face_artifacts = self.polygons[
+                self.polygons.face_artifact_index < self.threshold
+            ]
+        else:
+            warnings.warn(
+                "No threshold found. Either your dataset it too small or the "
+                "distribution of the face artifact index does not follow the "
+                "expected shape.",
+                UserWarning,
+                stacklevel=2,
+            )
+            self.threshold = None
+            self.face_artifacts = None

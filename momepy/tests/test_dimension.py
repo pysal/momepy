@@ -52,6 +52,7 @@ class TestDimensions:
 
     def test_FloorArea(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
+
         self.df_buildings["floor_area"] = mm.FloorArea(
             self.df_buildings, "height", "area"
         ).series
@@ -77,6 +78,7 @@ class TestDimensions:
 
     def test_CourtyardArea(self):
         self.df_buildings["area"] = self.df_buildings.geometry.area
+
         self.df_buildings["courtyard_area"] = mm.CourtyardArea(
             self.df_buildings, "area"
         ).series
@@ -87,6 +89,7 @@ class TestDimensions:
         assert self.df_buildings["courtyard_area"][80] == check
 
         area = self.df_buildings.geometry.area
+
         self.df_buildings["courtyard_area"] = mm.CourtyardArea(
             self.df_buildings, area
         ).series
@@ -111,6 +114,7 @@ class TestDimensions:
     def test_AverageCharacter(self):
         spatial_weights = sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         self.df_tessellation["area"] = area = self.df_tessellation.geometry.area
+
         self.df_tessellation["mesh_ar"] = mm.AverageCharacter(
             self.df_tessellation,
             values="area",
@@ -118,6 +122,7 @@ class TestDimensions:
             unique_id="uID",
             mode="mode",
         ).mode
+
         self.df_tessellation["mesh_array"] = mm.AverageCharacter(
             self.df_tessellation,
             values=area,
@@ -125,6 +130,7 @@ class TestDimensions:
             unique_id="uID",
             mode="median",
         ).median
+
         self.df_tessellation["mesh_id"] = mm.AverageCharacter(
             self.df_tessellation,
             spatial_weights=spatial_weights,
@@ -132,6 +138,7 @@ class TestDimensions:
             rng=(10, 90),
             unique_id="uID",
         ).mean
+
         self.df_tessellation["mesh_iq"] = mm.AverageCharacter(
             self.df_tessellation,
             spatial_weights=spatial_weights,
@@ -139,12 +146,14 @@ class TestDimensions:
             rng=(25, 75),
             unique_id="uID",
         ).series
+
         all_m = mm.AverageCharacter(
             self.df_tessellation,
             spatial_weights=spatial_weights,
             values="area",
             unique_id="uID",
         )
+
         two = mm.AverageCharacter(
             self.df_tessellation,
             spatial_weights=spatial_weights,
@@ -219,7 +228,7 @@ class TestDimensions:
 
         # avoid infinity
         blg = gpd.GeoDataFrame(
-            dict(height=[2, 5]),
+            {"height": [2, 5]},
             geometry=[
                 Point(0, 0).buffer(10, cap_style=3),
                 Point(30, 0).buffer(10, cap_style=3),

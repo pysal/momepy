@@ -108,8 +108,8 @@ Dependencies
 
 Required dependencies:
 
-- `geopandas`_ (>= 0.8.0)
-- `libpysal`_ (>= 4.6.0)
+- `geopandas`_ (>= 0.12.0)
+- `libpysal`_ (>= 4.11.0)
 - `networkx`_
 - `tqdm`_
 
@@ -117,17 +117,23 @@ Some functions also depend on additional packages, which are optional:
 
 - `mapclassify`_ (>= 2.4.2)
 - `inequality`_
+- `numba`_
+- `esda`_
 
 
 .. _geopandas: https://geopandas.org/
 
 .. _mapclassify: http://pysal.org/mapclassify
 
+.. _esda: http://pysal.org/esda
+
 .. _libpysal: http://pysal.org/libpysal
 
-.. _inequality: https://inequality.readthedocs.io
+.. _inequality: http://pysal.org/inequality
 
 .. _networkx: http://networkx.github.io
+
+.. _numba: https://numba.pydata.org
 
 .. _tqdm: http://networkx.github.io
 

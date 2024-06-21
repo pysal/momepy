@@ -118,7 +118,7 @@ This should install all necessary dependencies including optional.
 Once dependencies are in place, make an in-place build by navigating to the git
 clone of the *momepy* repository and running::
 
-    python setup.py develop
+    pip install -e .
 
 This will install momepy into your environment but allows any further changes
 without the need of reinstalling new version.

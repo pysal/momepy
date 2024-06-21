@@ -1,11 +1,7 @@
 import geopandas as gpd
-import networkx as nx
 import pytest
-from packaging.version import Version
 
 import momepy as mm
-
-NX_26 = Version(nx.__version__) < Version("2.6")
 
 
 class TestGraph:
@@ -36,11 +32,17 @@ class TestGraph:
         net2 = mm.cds_length(self.network, mode="mean", name="cds_mean")
         sumval = 1753.626758955522
         mean = 219.20334486944023
-        assert net.nodes[(1603650.450422848, 6464368.600601688)]["cds_len"] == sumval
-        assert net2.nodes[(1603650.450422848, 6464368.600601688)]["cds_mean"] == mean
+        assert net.nodes[(1603650.450422848, 6464368.600601688)][
+            "cds_len"
+        ] == pytest.approx(sumval)
+        assert net2.nodes[(1603650.450422848, 6464368.600601688)][
+            "cds_mean"
+        ] == pytest.approx(mean)
         with pytest.raises(ValueError, match="Mode 'nonexistent' is not supported. "):
             net2 = mm.cds_length(self.network, mode="nonexistent")
-        assert mm.cds_length(self.network, radius=None) == 2291.4520621447705
+        assert mm.cds_length(self.network, radius=None) == pytest.approx(
+            2291.4520621447705
+        )
 
     def test_mean_node_degree(self):
         net = mm.mean_node_degree(self.network)
@@ -91,14 +93,20 @@ class TestGraph:
     def test_closeness_centrality(self):
         net = mm.closeness_centrality(self.network, weight="mm_len")
         check = 0.0016066095164175716
-        assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
+        assert net.nodes[(1603650.450422848, 6464368.600601688)][
+            "closeness"
+        ] == pytest.approx(check)
 
         net = mm.closeness_centrality(self.network, radius=5, weight=None)
         check = 0.27557319223985893
-        assert net.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check
+        assert net.nodes[(1603650.450422848, 6464368.600601688)][
+            "closeness"
+        ] == pytest.approx(check)
         net2 = mm.closeness_centrality(self.network, weight="mm_len", radius=5)
         check2 = 0.0015544070362478774
-        assert net2.nodes[(1603650.450422848, 6464368.600601688)]["closeness"] == check2
+        assert net2.nodes[(1603650.450422848, 6464368.600601688)][
+            "closeness"
+        ] == pytest.approx(check2)
 
     def test_betweenness_centrality(self):
         net = mm.betweenness_centrality(self.network)
@@ -114,7 +122,7 @@ class TestGraph:
             net2.edges[
                 (1603226.9576840235, 6464160.158361825),
                 (1603039.9632033885, 6464087.491175889),
-                8,
+                0,
             ]["betweenness"]
             == edge
         )
@@ -139,9 +147,9 @@ class TestGraph:
         net2 = mm.straightness_centrality(
             self.network, normalized=False, name="nonnorm"
         )
-        G = self.network.copy()
-        G.add_node(1)
-        net3 = mm.straightness_centrality(G)
+        g = self.network.copy()
+        g.add_node(1)
+        net3 = mm.straightness_centrality(g)
         check = 0.8574045143712158
         nonnorm = 0.8574045143712158
         assert (
@@ -166,12 +174,11 @@ class TestGraph:
             net.edges[
                 (1603226.9576840235, 6464160.158361825),
                 (1603039.9632033885, 6464087.491175889),
-                8,
+                0,
             ]["straightness"]
             == edge
         )
 
-    @pytest.mark.skipif(NX_26, reason="networkx<2.6 has a bug")
     def test_clustering(self):
         net = mm.clustering(self.network)
         check = 0.05555555555555555

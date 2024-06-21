@@ -2,16 +2,19 @@
 
 # distribution.py
 # definitions of spatial distribution characters
-
 import math
+import os
+import warnings
 
+import geopandas as gpd
 import networkx as nx
 import numpy as np
 import pandas as pd
 import shapely
+from packaging.version import Version
 from tqdm.auto import tqdm  # progress bar
 
-from .utils import _azimuth
+from .utils import _azimuth, deprecated, removed
 
 __all__ = [
     "Orientation",
@@ -27,7 +30,10 @@ __all__ = [
     "Neighbors",
 ]
 
+GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
+
+@deprecated("orientation")
 class Orientation:
     """
     Calculate the orientation of object. The deviation of orientation from cardinal
@@ -70,7 +76,9 @@ class Orientation:
 
         bboxes = shapely.minimum_rotated_rectangle(gdf.geometry)
         for geom, bbox in tqdm(
-            zip(gdf.geometry, bboxes), total=gdf.shape[0], disable=not verbose
+            zip(gdf.geometry, bboxes, strict=True),
+            total=gdf.shape[0],
+            disable=not verbose,
         ):
             if geom.geom_type in ["Polygon", "MultiPolygon", "LinearRing"]:
                 bbox = list(bbox.exterior.coords)
@@ -130,9 +138,27 @@ class SharedWalls:
     """
 
     def __init__(self, gdf):
+        if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
+            "true",
+            "1",
+            "yes",
+        ):
+            warnings.warn(
+                "Class based API like `momepy.SharedWalls` or `momepy.SharedWallsRatio`"
+                " is deprecated. Replace it with `momepy.shared_walls` or explicitly "
+                "computing `momepy.shared_walls / gdf.length` respectively to use "
+                "functional API instead or pin momepy version <1.0. Class-based API "
+                "will be removed in 1.0. ",
+                # "See details at https://docs.momepy.org/en/stable/migration.html",
+                FutureWarning,
+                stacklevel=2,
+            )
         self.gdf = gdf
 
-        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
+        if GPD_GE_013:
+            inp, res = gdf.sindex.query(gdf.geometry, predicate="intersects")
+        else:
+            inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
         left = gdf.geometry.take(inp).reset_index(drop=True)
         right = gdf.geometry.take(res).reset_index(drop=True)
         intersections = left.intersection(right).length
@@ -197,6 +223,7 @@ class SharedWallsRatio(SharedWalls):
         self.series = self.series / self.perimeters
 
 
+@deprecated("street_alignment")
 class StreetAlignment:
     """
     Calculate the difference between street orientation and orientation of
@@ -312,6 +339,7 @@ class StreetAlignment:
         self.series.index = left.index
 
 
+@deprecated("cell_alignment")
 class CellAlignment:
     """
     Calculate the difference between cell orientation and the orientation of object.
@@ -408,8 +436,8 @@ class CellAlignment:
         self.series.index = left.index
 
 
+@deprecated("alignment")
 class Alignment:
-
     """
     Calculate the mean deviation of solar orientation of objects on adjacent cells
     from an object.
@@ -488,6 +516,7 @@ class Alignment:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("neighbor_distance")
 class NeighborDistance:
     """
     Calculate the mean distance to adjacent buildings (based on ``spatial_weights``).
@@ -544,7 +573,7 @@ class NeighborDistance:
             if geom is not None and index in spatial_weights.neighbors:
                 neighbours = spatial_weights.neighbors[index]
                 building_neighbours = data.loc[neighbours]
-                if len(building_neighbours) > 0:
+                if len(building_neighbours):
                     results_list.append(
                         building_neighbours.geometry.distance(geom).mean()
                     )
@@ -556,6 +585,7 @@ class NeighborDistance:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("mean_interbuilding_distance")
 class MeanInterbuildingDistance:
     """
     Calculate the mean interbuilding distance. Interbuilding distances are
@@ -651,6 +681,7 @@ class MeanInterbuildingDistance:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@removed("mean_deviation")
 class NeighboringStreetOrientationDeviation:
     """
     Calculate the mean deviation of solar orientation of adjacent streets. The
@@ -687,7 +718,10 @@ class NeighboringStreetOrientationDeviation:
         self.gdf = gdf
         self.orientation = gdf.geometry.apply(self._orient)
 
-        inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
+        if GPD_GE_013:
+            inp, res = gdf.sindex.query(gdf.geometry, predicate="intersects")
+        else:
+            inp, res = gdf.sindex.query_bulk(gdf.geometry, predicate="intersects")
         itself = inp == res
         inp = inp[~itself]
         res = res[~itself]
@@ -725,6 +759,7 @@ class NeighboringStreetOrientationDeviation:
         return az
 
 
+@deprecated("building_adjacency")
 class BuildingAdjacency:
     """
     Calculate the level of building adjacency. Building adjacency reflects how much
@@ -793,7 +828,9 @@ class BuildingAdjacency:
             print("Spatial weights ready...") if verbose else None
 
         self.sw = spatial_weights
-        patches = dict(zip(gdf[unique_id], spatial_weights.component_labels))
+        patches = dict(
+            zip(gdf[unique_id], spatial_weights.component_labels, strict=True)
+        )
 
         for uid in tqdm(
             self.id,
@@ -818,6 +855,7 @@ class BuildingAdjacency:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("neighbors")
 class Neighbors:
     """
     Calculate the number of neighbours captured by ``spatial_weights``. If

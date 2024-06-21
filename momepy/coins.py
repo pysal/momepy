@@ -20,7 +20,6 @@ from shapely.geometry import LineString, MultiLineString
 
 
 class COINS:
-
     """
     Calculates natural continuity and hierarchy of street networks in a given
     GeoDataFrame using the COINS algorithm.
@@ -62,7 +61,7 @@ class COINS:
     -----
     The LineStrings of the ``edge_gdf`` are not expected to overlap. If you are creating
     it using OSMnx, don't forget to cast the graph to undirected using
-    ``osmnx.get_undirected(G)`` prior converting it to a GeoDataFrame.
+    ``osmnx.convert.to_undirected(G)`` prior converting it to a GeoDataFrame.
     """
 
     def __init__(self, edge_gdf, angle_threshold=0):
@@ -99,7 +98,12 @@ class COINS:
         return self._create_gdf_premerge()
 
     def stroke_gdf(self):
-        """Return a GeoDataFrame containing merged final stroke geometry."""
+        """Return a GeoDataFrame containing merged final stroke geometry.
+
+        Returns
+        -------
+        GeoDataFrame
+        """
         if not self.already_merged:
             self._merge_lines()
         return self._create_gdf_strokes()
@@ -117,8 +121,7 @@ class COINS:
         self.temp_array = []
         n = 0
         # Iterate through the lines and split the edges
-        idx = 0
-        for line in self.lines:
+        for idx, line in enumerate(self.lines):
             for part in _list_to_pairs(line):
                 out_line.append(
                     [
@@ -139,7 +142,6 @@ class COINS:
                     [n, f"{part[0][0]}_{part[0][1]}", f"{part[1][0]}_{part[1][1]}"]
                 )
                 n += 1
-            idx += 1
 
         self.split = out_line
 
@@ -172,7 +174,7 @@ class COINS:
 
             p2.append(item)
 
-        self.result = list(zip(range(len(p1)), p1, p2))
+        self.result = list(zip(range(len(p1)), p1, p2, strict=True))
 
         for a in self.result:
             n = a[0]
@@ -190,16 +192,16 @@ class COINS:
             # both the keys. The key is already present in the dictionary so
             # it does not calculate a second time.
             for link1 in self.unique[edge][2]:
-                self.angle_pairs["%d_%d" % (edge, link1)] = _angle_between_two_lines(
+                self.angle_pairs[f"{edge}_{link1}"] = _angle_between_two_lines(
                     self.unique[edge][0], self.unique[link1][0]
                 )
-                p1_angle_set.append(self.angle_pairs["%d_%d" % (edge, link1)])
+                p1_angle_set.append(self.angle_pairs[f"{edge}_{link1}"])
 
             for link2 in self.unique[edge][3]:
-                self.angle_pairs["%d_%d" % (edge, link2)] = _angle_between_two_lines(
+                self.angle_pairs[f"{edge}_{link2}"] = _angle_between_two_lines(
                     self.unique[edge][0], self.unique[link2][0]
                 )
-                p2_angle_set.append(self.angle_pairs["%d_%d" % (edge, link2)])
+                p2_angle_set.append(self.angle_pairs[f"{edge}_{link2}"])
 
             # Among the adjacent segments deflection angle values, check
             # for the maximum value at both the ends. The segment with
@@ -225,7 +227,7 @@ class COINS:
             if (
                 isinstance(best_p1, int)
                 and edge in [self.unique[best_p1][4][0], self.unique[best_p1][5][0]]
-                and self.angle_pairs["%d_%d" % (edge, best_p1)] > angle_threshold
+                and self.angle_pairs[f"{edge}_{best_p1}"] > angle_threshold
             ):
                 self.unique[edge][6] = best_p1
             else:
@@ -234,7 +236,7 @@ class COINS:
             if (
                 isinstance(best_p2, int)
                 and edge in [self.unique[best_p2][4][0], self.unique[best_p2][5][0]]
-                and self.angle_pairs["%d_%d" % (edge, best_p2)] > angle_threshold
+                and self.angle_pairs[f"{edge}_{best_p2}"] > angle_threshold
             ):
                 self.unique[edge][7] = best_p2
             else:
@@ -363,25 +365,17 @@ def _tuple_to_list(line):
     The imported shapefile lines comes as tuple, whereas the export requires list,
     this function converts tuples inside lines to lists.
     """
-    for a in range(0, len(line)):
-        line[a] = list(line[a])
-    return line
+    return [list(point) for point in line]
 
 
 def _list_to_tuple(line):
-    for a in range(0, len(line)):
-        line[a] = tuple(line[a])
-    return tuple(line)
+    return tuple(tuple(point) for point in line)
 
 
 def _list_to_pairs(in_list):
     """Split a line at every point."""
-    out_list = []
-    index = 0
-    for index in range(0, len(in_list) - 1):
-        temp_list = [list(in_list[index]), list(in_list[index + 1])]
-        out_list.append(temp_list)
-    return out_list
+    tmp_list = [list(point) for point in in_list]
+    return [list(pair) for pair in zip(tmp_list[:-1], tmp_list[1:], strict=True)]
 
 
 def _compute_angle(point1, point2):

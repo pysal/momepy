@@ -1,0 +1,41 @@
+name: Test User Guide execution
+
+on:
+  push:
+    branches: [main]
+  # pull_request:
+  #     branches:
+  #       - "*"
+  schedule:
+    - cron: "0 0 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Manual user guide execution test
+        default: test
+        required: false
+
+
+jobs:
+  Test:
+    name: "Test User Guide execution"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: ci/envs/312-latest.yaml
+
+      - name: Install momepy
+        run: pip install .
+
+      - name: Test user guide
+        run: |
+          ci/envs/test_user_guide.sh
+
