@@ -1,7 +1,9 @@
 import geopandas as gpd
 import numpy as np
 import pytest
+import shapely
 from libpysal.weights import Queen
+from packaging.version import Version
 
 import momepy as mm
 
@@ -120,8 +122,11 @@ class TestDistribution:
         self.df_buildings["align_sw"] = mm.Alignment(
             self.df_buildings, sw, "uID", self.df_buildings["orient"]
         ).series
-        # GH#457 (`minimum_rotated_rectangle` calculation update)
-        test_value = 22.744936872392813
+        test_value = (
+            22.744936872392813
+            if Version(shapely.geos_version_string) < Version("3.12")
+            else 18.29842494
+        )
         assert self.df_buildings["align_sw"][0] == pytest.approx(test_value)
         sw_drop = Queen.from_dataframe(self.df_tessellation[2:], ids="uID")
         assert (
@@ -168,7 +173,9 @@ class TestDistribution:
         assert self.df_streets["dev"].mean() == pytest.approx(check)
 
     def test_BuildingAdjacency(self):
-        sw = Queen.from_dataframe(self.df_buildings, ids="uID", silence_warnings=True)
+        sw = Queen.from_dataframe(
+            self.df_buildings, ids="uID", silence_warnings=True, use_index=False
+        )
         swh = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
         self.df_buildings["adj_sw"] = mm.BuildingAdjacency(
             self.df_buildings,

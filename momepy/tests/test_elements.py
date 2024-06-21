@@ -3,6 +3,7 @@ from random import shuffle
 
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
@@ -12,9 +13,7 @@ from shapely.geometry import LineString, MultiPoint, Polygon
 
 import momepy as mm
 
-# https://github.com/geopandas/geopandas/issues/2282
-GPD_REGR = Version("0.10.2") < Version(gpd.__version__) < Version("0.11")
-GPD_10 = Version(gpd.__version__) >= Version("0.10")
+GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
 
 class TestElements:
@@ -26,7 +25,8 @@ class TestElements:
         self.df_streets["nID"] = range(len(self.df_streets))
         self.limit = mm.buffered_limit(self.df_buildings, 50)
         self.enclosures = mm.enclosures(
-            self.df_streets, gpd.GeoSeries([self.limit.exterior])
+            self.df_streets,
+            gpd.GeoSeries([self.limit.exterior], crs=self.df_streets.crs),
         )
 
     def test_Tessellation(self):
@@ -80,17 +80,29 @@ class TestElements:
         x = np.mean([b[0], b[2]])
         y = np.mean([b[1], b[3]])
 
-        df.loc[144] = [145, Polygon([(x, y), (x, y + 1), (x + 1, y)])]
-        df.loc[145] = [146, MultiPoint([(x, y), (x + 1, y)]).buffer(0.55)]
-        df.loc[146] = [147, affinity.rotate(df.geometry.iloc[0], 12)]
+        df = pd.concat(
+            [
+                df,
+                gpd.GeoDataFrame(
+                    {"uID": [145, 146, 147]},
+                    geometry=[
+                        Polygon([(x, y), (x, y + 1), (x + 1, y)]),
+                        MultiPoint([(x, y), (x + 1, y)]).buffer(0.55),
+                        affinity.rotate(df.geometry.iloc[0], 12),
+                    ],
+                    index=[144, 145, 146],
+                    crs=df.crs,
+                ),
+            ]
+        )
 
-        with pytest.warns(
-            UserWarning, match="Tessellation does not fully match buildings."
-        ):
-            mm.Tessellation(df, "uID", self.limit)
-
-        with pytest.warns(
-            UserWarning, match="Tessellation contains MultiPolygon elements."
+        with (
+            pytest.warns(
+                UserWarning, match="Tessellation does not fully match buildings."
+            ),
+            pytest.warns(
+                UserWarning, match="Tessellation contains MultiPolygon elements."
+            ),
         ):
             tess = mm.Tessellation(df, "uID", self.limit)
             assert tess.collapsed == {145}
@@ -138,10 +150,20 @@ class TestElements:
         assert not blocks.tessellation_id.isna().any()
         assert not blocks.buildings_id.isna().any()
         assert len(blocks.blocks) == 9
-        assert (
-            len(blocks.blocks.sindex.query_bulk(blocks.blocks.geometry, "overlaps")[0])
-            == 0
-        )
+        if GPD_GE_013:
+            assert (
+                len(blocks.blocks.sindex.query(blocks.blocks.geometry, "overlaps")[0])
+                == 0
+            )
+        else:
+            assert (
+                len(
+                    blocks.blocks.sindex.query_bulk(blocks.blocks.geometry, "overlaps")[
+                        0
+                    ]
+                )
+                == 0
+            )
 
     def test_get_network_id(self):
         buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, "nID")
@@ -152,24 +174,32 @@ class TestElements:
         buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, "nID")
         assert not buildings_id.isna().any()
 
-    @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
     def test_get_node_id(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges = mm.nx_to_gdf(nx)
         self.df_buildings["nID"] = mm.get_network_id(
             self.df_buildings, self.df_streets, "nID"
         )
-        ids = mm.get_node_id(self.df_buildings, nodes, edges, "nodeID", "nID")
-        assert not ids.isna().any()
+        ids1 = mm.get_node_id(self.df_buildings, nodes, edges, "nodeID", "nID")
+        assert not ids1.isna().any()
 
-    @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
-    @pytest.mark.skipif(not GPD_10, reason="requires sindex.nearest")
+        # test for NaNs within `object` nIDs column
+        edges["nID"] = edges["nID"].astype(str)
+        _df_buildings = self.df_buildings.copy()
+        _df_buildings["nID"] = _df_buildings["nID"].astype(str)
+        _df_buildings.loc[[0, 1], "nID"] = pd.NA
+        ids2 = mm.get_node_id(_df_buildings, nodes, edges, "nodeID", "nID")
+        assert ids2.isna().sum() == 2
+        np.testing.assert_array_equal(ids2[ids2.isna()].index, [0, 1])
+
     def test_get_node_id_ratio(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges = mm.nx_to_gdf(nx)
 
-        convex_hull = edges.unary_union.convex_hull
-        enclosures = mm.enclosures(edges, limit=gpd.GeoSeries([convex_hull]))
+        convex_hull = edges.dissolve().convex_hull.item()
+        enclosures = mm.enclosures(
+            edges, limit=gpd.GeoSeries([convex_hull], crs=edges.crs)
+        )
         enclosed_tess = mm.Tessellation(
             self.df_buildings, unique_id="uID", enclosures=enclosures
         ).tessellation
@@ -196,33 +226,46 @@ class TestElements:
         assert len(limited) == 20
         assert isinstance(limited, gpd.GeoDataFrame)
 
-        limited2 = mm.enclosures(self.df_streets, gpd.GeoSeries([self.limit]))
+        limited2 = mm.enclosures(
+            self.df_streets, gpd.GeoSeries([self.limit], crs=self.df_streets.crs)
+        )
         assert len(limited2) == 20
         assert isinstance(limited2, gpd.GeoDataFrame)
 
         b = self.limit.bounds
-        additional_barrier = gpd.GeoSeries([LineString([(b[0], b[1]), (b[2], b[3])])])
+        additional_barrier = gpd.GeoSeries(
+            [LineString([(b[0], b[1]), (b[2], b[3])])], crs=self.df_streets.crs
+        )
 
         additional = mm.enclosures(
-            self.df_streets, gpd.GeoSeries([self.limit]), [additional_barrier]
+            self.df_streets,
+            gpd.GeoSeries([self.limit], crs=self.df_streets.crs),
+            [additional_barrier],
         )
         assert len(additional) == 28
         assert isinstance(additional, gpd.GeoDataFrame)
 
         with pytest.raises(TypeError, match="`additional_barriers` expects a list"):
             additional = mm.enclosures(
-                self.df_streets, gpd.GeoSeries([self.limit]), additional_barrier
+                self.df_streets,
+                gpd.GeoSeries([self.limit], crs=self.df_streets.crs),
+                additional_barrier,
             )
 
         # test clip
-        limit = self.df_streets.unary_union.convex_hull.buffer(-100)
-        encl = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([limit]), clip=True)
+        limit = self.df_streets.dissolve().convex_hull.buffer(-100).item()
+        encl = mm.enclosures(
+            self.df_streets,
+            limit=gpd.GeoSeries([limit], crs=self.df_streets.crs),
+            clip=True,
+        )
         assert len(encl) == 18
 
-    @pytest.mark.skipif(not GPD_10, reason="requires sindex.nearest")
     def test_get_network_ratio(self):
-        convex_hull = self.df_streets.unary_union.convex_hull
-        enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
+        convex_hull = self.df_streets.dissolve().convex_hull.item()
+        enclosures = mm.enclosures(
+            self.df_streets, limit=gpd.GeoSeries([convex_hull], crs=self.df_streets.crs)
+        )
         enclosed_tess = mm.Tessellation(
             self.df_buildings, unique_id="uID", enclosures=enclosures
         ).tessellation
@@ -245,13 +288,3 @@ class TestElements:
 
         for i, idx in enumerate(expected_tail):
             assert sorted(links2.edgeID_keys.tail(5).iloc[i]) == sorted(idx)
-
-    @pytest.mark.skipif(GPD_10, reason="requires sindex.nearest")
-    def test_get_network_ratio_error(self):
-        convex_hull = self.df_streets.unary_union.convex_hull
-        enclosures = mm.enclosures(self.df_streets, limit=gpd.GeoSeries([convex_hull]))
-        enclosed_tess = mm.Tessellation(
-            self.df_buildings, unique_id="uID", enclosures=enclosures
-        ).tessellation
-        with pytest.raises(ImportError, match="`get_network_ratio` requires geopandas"):
-            mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)

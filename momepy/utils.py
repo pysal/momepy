@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-
 import math
+import os
 import warnings
 
 import geopandas as gpd
@@ -16,6 +16,69 @@ __all__ = [
     "nx_to_gdf",
     "limit_range",
 ]
+
+
+def deprecated(new_way):
+    """
+    Decorator to mark classes as deprecated and point towards functional API.
+    """
+
+    def decorator(func1):
+        import functools
+
+        @functools.wraps(func1)
+        def new_func1(*args, **kwargs):
+            if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
+                "true",
+                "1",
+                "yes",
+            ):
+                warnings.warn(
+                    f"Class based API like `momepy.{func1.__name__}` is deprecated. "
+                    f"Replace it with `momepy.{new_way}` to use functional API instead "
+                    "or pin momepy version <1.0. Class-based API will be removed in "
+                    "1.0. "
+                    # "See details at https://docs.momepy.org/en/stable/migration.html",
+                    "",
+                    FutureWarning,
+                    stacklevel=2,
+                )
+            return func1(*args, **kwargs)
+
+        return new_func1
+
+    return decorator
+
+
+def removed(new_way):
+    """
+    Decorator to mark classes as deprecated and removed from momepy.
+    """
+
+    def decorator(func1):
+        import functools
+
+        @functools.wraps(func1)
+        def new_func1(*args, **kwargs):
+            if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
+                "true",
+                "1",
+                "yes",
+            ):
+                warnings.warn(
+                    f"`momepy.{func1.__name__}` is deprecated. Replace it with "
+                    f"{new_way} "
+                    "or pin momepy version <1.0. This class will be removed in 1.0. "
+                    # "See details at https://docs.momepy.org/en/stable/migration.html"
+                    "",
+                    FutureWarning,
+                    stacklevel=2,
+                )
+            return func1(*args, **kwargs)
+
+        return new_func1
+
+    return decorator
 
 
 def unique_id(objects):
@@ -52,43 +115,43 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
     graph.graph["approach"] = "primal"
 
     msg = (
-        "%s. This can lead to unexpected behaviour. "
+        " This can lead to unexpected behaviour. "
         "The intended usage of the conversion function "
         "is with networks made of LineStrings only."
     )
 
     if "LineString" not in gdf_network.geom_type.unique():
         warnings.warn(
-            message=msg % "The given network does not contain any LineString.",
+            message="The given network does not contain any LineString." + msg,
             category=RuntimeWarning,
             stacklevel=3,
         )
 
     if len(gdf_network.geom_type.unique()) > 1:
         warnings.warn(
-            message=msg % "The given network consists of multiple geometry types.",
+            message="The given network consists of multiple geometry types." + msg,
             category=RuntimeWarning,
             stacklevel=3,
         )
 
-    key = 0
     for row in gdf_network.itertuples():
         first = row.geometry.coords[0]
         last = row.geometry.coords[-1]
 
         data = list(row)[1:]
-        attributes = dict(zip(fields, data))
+        attributes = dict(zip(fields, data, strict=True))
         if multigraph:
-            graph.add_edge(first, last, key=key, **attributes)
-            key += 1
+            graph.add_edge(first, last, **attributes)
 
             if oneway_column:
                 oneway = bool(getattr(row, oneway_column))
                 if not oneway:
-                    graph.add_edge(last, first, key=key, **attributes)
-                    key += 1
+                    graph.add_edge(last, first, **attributes)
         else:
             graph.add_edge(first, last, **attributes)
+
+    node_attrs = {node: {"x": node[0], "y": node[1]} for node in graph.nodes}
+    nx.set_node_attributes(graph, node_attrs)
 
 
 def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
@@ -96,7 +159,9 @@ def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
     graph.graph["approach"] = "dual"
     key = 0
 
-    sw = libpysal.weights.Queen.from_dataframe(gdf_network, silence_warnings=True)
+    sw = libpysal.weights.Queen.from_dataframe(
+        gdf_network, silence_warnings=True, use_index=False
+    )
     cent = gdf_network.geometry.centroid
     gdf_network["temp_x_coords"] = cent.x
     gdf_network["temp_y_coords"] = cent.y
@@ -104,7 +169,7 @@ def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
     for i, row in enumerate(gdf_network.itertuples()):
         centroid = (row.temp_x_coords, row.temp_y_coords)
         data = list(row)[1:-2]
-        attributes = dict(zip(fields, data))
+        attributes = dict(zip(fields, data, strict=True))
         graph.add_node(centroid, **attributes)
 
         if sw.cardinalities[i] > 0:
@@ -150,6 +215,7 @@ def gdf_to_nx(
     angles=True,
     angle="angle",
     oneway_column=None,
+    integer_labels=False,
 ):
     """
     Convert a LineString GeoDataFrame to a ``networkx.MultiGraph`` or other
@@ -188,6 +254,10 @@ def gdf_to_nx(
         path traversal by specifying the boolean column in the GeoDataFrame. Note,
         that the reverse conversion ``nx_to_gdf(gdf_to_nx(gdf, directed=True,
         oneway_column="oneway"))`` will contain additional duplicated geometries.
+    integer_labels : bool, default False
+        Convert node labels to integers. By default, node labels are tuples with (x, y)
+        coordinates. Set to True to encode them as integers. Note that the x, and y
+        coordinates are always preserved as node attributes.
 
     Returns
     -------
@@ -273,12 +343,15 @@ def gdf_to_nx(
             f"Approach '{approach}' is not supported. Use 'primal' or 'dual'."
         )
 
+    if integer_labels:
+        net = nx.convert_node_labels_to_integers(net)
+
     return net
 
 
 def _points_to_gdf(net):
     """Generate a point gdf from nodes. Helper for ``nx_to_gdf``."""
-    node_xy, node_data = zip(*net.nodes(data=True))
+    node_xy, node_data = zip(*net.nodes(data=True), strict=True)
     if isinstance(node_xy[0], int) and "x" in node_data[0]:
         geometry = [Point(data["x"], data["y"]) for data in node_data]  # osmnx graph
     else:
@@ -291,18 +364,12 @@ def _points_to_gdf(net):
 
 def _lines_to_gdf(net, points, node_id):
     """Generate a linestring gdf from edges. Helper for ``nx_to_gdf``."""
-    starts, ends, edge_data = zip(*net.edges(data=True))
+    starts, ends, edge_data = zip(*net.edges(data=True), strict=True)
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
 
     if points is True:
-        node_start = []
-        node_end = []
-        for s in starts:
-            node_start.append(net.nodes[s][node_id])
-        for e in ends:
-            node_end.append(net.nodes[e][node_id])
-        gdf_edges["node_start"] = node_start
-        gdf_edges["node_end"] = node_end
+        gdf_edges["node_start"] = [net.nodes[s][node_id] for s in starts]
+        gdf_edges["node_end"] = [net.nodes[e][node_id] for e in ends]
 
     if "crs" in net.graph:
         gdf_edges.crs = net.graph["crs"]
@@ -335,14 +402,18 @@ def _primal_to_gdf(net, points, lines, spatial_weights, node_id):
 
 def _dual_to_gdf(net):
     """Generate a linestring gdf from a dual network. Helper for ``nx_to_gdf``."""
-    starts, edge_data = zip(*net.nodes(data=True))
+    starts, edge_data = zip(*net.nodes(data=True), strict=True)
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
     gdf_edges.crs = net.graph["crs"]
     return gdf_edges
 
 
 def nx_to_gdf(
-    net, points=True, lines=True, spatial_weights=False, nodeID="nodeID"  # noqa
+    net,
+    points=True,
+    lines=True,
+    spatial_weights=False,
+    nodeID="nodeID",  # noqa: N803
 ):
     """
     Convert a ``networkx.Graph`` to a LineString GeoDataFrame and Point GeoDataFrame.
@@ -463,7 +534,6 @@ def limit_range(vals, rng):
         The limited array.
     """
 
-    vals = np.asarray(vals)
     nan_tracker = np.isnan(vals)
 
     if (len(vals) > 2) and (not nan_tracker.all()):
@@ -473,11 +543,9 @@ def limit_range(vals, rng):
             method = {"interpolation": "nearest"}
         rng = sorted(rng)
         if nan_tracker.any():
-            lower = np.nanpercentile(vals, rng[0], **method)
-            higher = np.nanpercentile(vals, rng[1], **method)
+            lower, higher = np.nanpercentile(vals, rng, **method)
         else:
-            lower = np.percentile(vals, rng[0], **method)
-            higher = np.percentile(vals, rng[1], **method)
+            lower, higher = np.percentile(vals, rng, **method)
         vals = vals[(lower <= vals) & (vals <= higher)]
 
     return vals
@@ -486,4 +554,4 @@ def limit_range(vals, rng):
 def _azimuth(point1, point2):
     """Return the azimuth between 2 shapely points (interval 0 - 180)."""
     angle = np.arctan2(point2[0] - point1[0], point2[1] - point1[1])
-    return np.degrees(angle) if angle > 0 else np.degrees(angle) + 180
+    return np.degrees(angle) % 180

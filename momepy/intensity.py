@@ -5,9 +5,15 @@
 
 import collections
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
+from packaging.version import Version
 from tqdm.auto import tqdm  # progress bar
+
+from .utils import deprecated, removed
+
+GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 
 __all__ = [
     "AreaRatio",
@@ -20,6 +26,7 @@ __all__ = [
 ]
 
 
+@removed("a direct division of areas or momepy.describe_agg()")
 class AreaRatio:
     """
     Calculate covered area ratio or floor area ratio of objects. Either ``unique_id``
@@ -129,6 +136,7 @@ class AreaRatio:
         self.series = objects_merged["lf_area"] / objects_merged[left_areas]
 
 
+@removed("momepy.describe_agg()")
 class Count:
     """
     Calculate the number of elements within an aggregated structure. Aggregated
@@ -204,6 +212,7 @@ class Count:
         self.series = joined["mm_count"]
 
 
+@deprecated("courtyards")
 class Courtyards:
     """
     Calculate the number of courtyards within the joined structure.
@@ -247,7 +256,9 @@ class Courtyards:
             print("Calculating spatial weights...") if verbose else None
             from libpysal.weights import Queen
 
-            spatial_weights = Queen.from_dataframe(gdf, silence_warnings=True)
+            spatial_weights = Queen.from_dataframe(
+                gdf, silence_warnings=True, use_index=False
+            )
 
         self.sw = spatial_weights
         # dict to store nr of courtyards for each uID
@@ -264,7 +275,11 @@ class Courtyards:
                 to_join = components[components == comp].index
                 joined = gdf.loc[to_join]
                 # buffer to avoid multipolygons where buildings touch by corners only
-                dissolved = joined.geometry.buffer(0.01).unary_union
+                dissolved = (
+                    joined.buffer(0.01).union_all()
+                    if GPD_GE_10
+                    else joined.buffer(0.01).unary_union
+                )
                 interiors = len(list(dissolved.interiors))
                 for b in to_join:
                     courtyards[b] = interiors  # fill dict with values
@@ -274,6 +289,7 @@ class Courtyards:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@removed("`.describe()` method of libpysal.graph.Graph")
 class BlocksCount:
     """
     Calculates the weighted number of blocks. The number of blocks within neighbours
@@ -365,6 +381,7 @@ class BlocksCount:
         self.series = pd.Series(results_list, index=gdf.index)
 
 
+@deprecated("describe_reached_agg")
 class Reached:
     """
     Calculates the number of objects reached within neighbours on a street network.
@@ -490,6 +507,7 @@ class Reached:
         self.series = pd.Series(results_list, index=left.index)
 
 
+@deprecated("node_density")
 class NodeDensity:
     """
     Calculate the density of nodes neighbours on street network defined in
@@ -591,6 +609,7 @@ class NodeDensity:
         self.series = pd.Series(results_list, index=left.index)
 
 
+@removed("`.describe()` method of libpysal.graph.Graph")
 class Density:
     """
     Calculate the gross density.

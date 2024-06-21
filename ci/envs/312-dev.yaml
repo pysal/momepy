@@ -2,27 +2,25 @@ name: test
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
-  - dask
-  - geopandas
-  - inequality
-  - libpysal>=4.6.0
-  - networkx
-  - osmnx
+  - python=3.12
   - packaging
-  - pandas!=1.5.0
-  - shapely>=2
   - tqdm
+  # - numba
   # testing
   - codecov
   - pytest
   - pytest-cov
-  # for mapclassify
-  - scikit-learn
   - pip
   - pip:
+      - --pre  --index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --extra-index-url https://pypi.org/simple
+      - numpy
+      - pandas
+      - shapely
       - git+https://github.com/geopandas/geopandas.git
       - git+https://github.com/pysal/libpysal.git
       - git+https://github.com/networkx/networkx.git
-      - git+https://github.com/shapely/shapely.git
       - git+https://github.com/pysal/mapclassify.git
+      - git+https://github.com/pysal/esda.git
+      - git+https://github.com/pysal/inequality.git
+      - osmnx
+      - scikit-learn

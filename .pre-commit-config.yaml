@@ -1,14 +1,11 @@
-files: 'momepy\/'
+files: "momepy\/|docs\/"
 repos:
-  - repo: https://github.com/psf/black
-    rev: 23.3.0
-    hooks:
-      - id: black
-        language_version: python3
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.0.262"
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.4.9"
     hooks:
       - id: ruff
+      - id: ruff-format
 
 ci:
   autofix_prs: false
+  autoupdate_schedule: quarterly

@@ -2,6 +2,7 @@ import geopandas as gpd
 import numpy as np
 import pytest
 from libpysal.weights import Queen
+from pandas.testing import assert_series_equal
 from shapely.geometry import Point
 
 import momepy as mm
@@ -86,9 +87,13 @@ class TestIntensity:
         weis = mm.Count(
             self.df_streets, self.df_buildings, "nID", "nID", weighted=True
         ).series
-        check_eib = [13, 14, 8, 26, 24, 17, 23, 19]
+        check_eib = (
+            gpd.sjoin(self.df_buildings.drop(columns="bID"), self.blocks)["bID"]
+            .value_counts()
+            .sort_index()
+        )
         check_weib = pytest.approx(0.00040170607189453996)
-        assert eib.tolist() == check_eib
+        assert_series_equal(check_eib, eib, check_names=False)
         assert weib.mean() == check_weib
         assert weis.mean() == pytest.approx(0.020524232642849215)
 
@@ -98,11 +103,13 @@ class TestIntensity:
         with pytest.raises(
             TypeError, match="Geometry type does not support weighting."
         ):
-            mm.Count(point_gdf, self.blocks, "nID", "bID", weighted=True).series
+            mm.Count(point_gdf, self.blocks, "nID", "bID", weighted=True).series  # noqa: B018
 
     def test_Courtyards(self):
         courtyards = mm.Courtyards(self.df_buildings).series
-        sw = Queen.from_dataframe(self.df_buildings, silence_warnings=True)
+        sw = Queen.from_dataframe(
+            self.df_buildings, silence_warnings=True, use_index=False
+        )
         courtyards_wm = mm.Courtyards(self.df_buildings, sw).series
         check = 0.6805555555555556
         assert courtyards.mean() == check
@@ -110,6 +117,7 @@ class TestIntensity:
 
     def test_BlocksCount(self):
         sw = mm.sw_high(k=5, gdf=self.df_tessellation, ids="uID")
+
         count = mm.BlocksCount(self.df_tessellation, "bID", sw, "uID").series
         count2 = mm.BlocksCount(
             self.df_tessellation, self.df_tessellation.bID, sw, "uID"
@@ -179,13 +187,13 @@ class TestIntensity:
             self.df_streets, self.df_buildings, "nID", "nID", sw
         ).series
         assert max(count) == 18
-        assert max(area) == 18085.45897711331
+        assert max(area) == pytest.approx(18085.45897711331)
         assert max(count_sw) == 138
-        assert max(mean) == 1808.5458977113315
-        assert max(std) == 3153.7019229524785
-        assert max(area_v) == 79169.31385861784
-        assert max(mean_v) == 7916.931385861784
-        assert max(std_v) == 8995.18003493457
+        assert max(mean) == pytest.approx(1808.5458977113315)
+        assert max(std) == pytest.approx(3153.7019229524785)
+        assert max(area_v) == pytest.approx(79169.31385861784)
+        assert max(mean_v) == pytest.approx(7916.931385861784)
+        assert max(std_v) == pytest.approx(8995.18003493457)
 
     def test_NodeDensity(self):
         nx = mm.gdf_to_nx(self.df_streets)

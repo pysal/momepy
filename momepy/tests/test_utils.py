@@ -1,14 +1,13 @@
+import os
+import warnings
+
 import geopandas as gpd
 import networkx
 import numpy as np
 import pytest
-from packaging.version import Version
 from shapely.geometry import LineString, Point
 
 import momepy as mm
-
-# https://github.com/geopandas/geopandas/issues/2282
-GPD_REGR = Version("0.10.2") < Version(gpd.__version__) < Version("0.11")
 
 
 class TestUtils:
@@ -30,7 +29,7 @@ class TestUtils:
         with pytest.raises(ValueError, match="The dataset 'sffgkt' is not available."):
             mm.datasets.get_path("sffgkt")
 
-    def test_gdf_to_nx(self):
+    def test_gdf_to_nx_warnings(self):
         with pytest.warns(
             RuntimeWarning, match="The given network does not contain any LineString."
         ):
@@ -42,9 +41,16 @@ class TestUtils:
         ):
             mm.gdf_to_nx(self.df_points_and_linestring)
 
+    def test_gdf_to_nx(self):
         nx = mm.gdf_to_nx(self.df_streets)
         assert nx.number_of_nodes() == 29
         assert nx.number_of_edges() == 35
+        assert nx.nodes[(1603585.6402153103, 6464428.773867372)] == {
+            "x": 1603585.6402153103,
+            "y": 6464428.773867372,
+        }
+
+    def test_gdf_to_nx_dual(self):
         dual = mm.gdf_to_nx(self.df_streets, approach="dual")
         assert dual.number_of_nodes() == 35
         assert dual.number_of_edges() == 74
@@ -63,6 +69,7 @@ class TestUtils:
         assert nx.number_of_nodes() == 29
         assert nx.number_of_edges() == 35
 
+    def test_gdf_to_nx_directed(self):
         nx = mm.gdf_to_nx(self.df_streets, multigraph=False, directed=True)
         assert isinstance(nx, networkx.DiGraph)
         assert nx.number_of_nodes() == 29
@@ -81,6 +88,7 @@ class TestUtils:
         with pytest.raises(ValueError, match="Bidirectional lines"):
             mm.gdf_to_nx(self.df_streets, directed=False, oneway_column="oneway")
 
+    def test_gdf_to_nx_angles(self):
         dual = mm.gdf_to_nx(self.df_streets, approach="dual", angles=False)
         assert (
             dual.edges[
@@ -101,7 +109,7 @@ class TestUtils:
         dual = mm.gdf_to_nx(
             self.df_streets, approach="dual", angles=False, multigraph=False
         )
-        assert isinstance(nx, networkx.Graph)
+        assert isinstance(dual, networkx.Graph)
         assert (
             dual.edges[
                 (1603499.42326969, 6464328.7520580515),
@@ -111,7 +119,7 @@ class TestUtils:
         )
 
         dual = mm.gdf_to_nx(self.df_streets, approach="dual", multigraph=False)
-        assert isinstance(nx, networkx.Graph)
+        assert isinstance(dual, networkx.Graph)
         assert dual.edges[
             (1603499.42326969, 6464328.7520580515),
             (1603510.1061735682, 6464204.555117119),
@@ -120,7 +128,15 @@ class TestUtils:
         with pytest.raises(ValueError, match="Directed graphs are not supported"):
             mm.gdf_to_nx(self.df_streets, approach="dual", directed=True)
 
-    @pytest.mark.skipif(GPD_REGR, reason="regression in geopandas")
+    def test_gdf_to_nx_labels(self):
+        nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)
+        assert nx.number_of_nodes() == 29
+        assert nx.number_of_edges() == 35
+        assert nx.nodes[0] == {
+            "x": 1603585.6402153103,
+            "y": 6464428.773867372,
+        }
+
     def test_nx_to_gdf(self):
         nx = mm.gdf_to_nx(self.df_streets)
         nodes, edges, W = mm.nx_to_gdf(nx, spatial_weights=True)
@@ -149,14 +165,14 @@ class TestUtils:
         # check graph without attributes
         G = networkx.MultiGraph()
         key = 0
-        for index, row in self.df_streets.iterrows():
+        for _index, row in self.df_streets.iterrows():
             first = row.geometry.coords[0]
             last = row.geometry.coords[-1]
 
             data = [row[f] for f in list(self.df_streets.columns)]
-            attributes = dict(zip(list(self.df_streets.columns), data))
+            attributes = dict(zip(list(self.df_streets.columns), data, strict=False))
             G.add_edge(first, last, key=key, **attributes)
-            key += 1
+            key += 1  # noqa: SIM113
 
         with pytest.warns(UserWarning, match="Approach is not set"):
             nodes, edges = mm.nx_to_gdf(G)
@@ -183,9 +199,18 @@ class TestUtils:
         assert len(lines) == 16
 
     def test_limit_range(self):
-        assert list(mm.limit_range(range(10), rng=(25, 75))) == [2, 3, 4, 5, 6, 7]
-        assert list(mm.limit_range(range(10), rng=(10, 90))) == [1, 2, 3, 4, 5, 6, 7, 8]
-        assert list(mm.limit_range([0, 1], rng=(25, 75))) == [0, 1]
+        assert list(mm.limit_range(np.arange(10), rng=(25, 75))) == [2, 3, 4, 5, 6, 7]
+        assert list(mm.limit_range(np.arange(10), rng=(10, 90))) == [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+        ]
+        assert list(mm.limit_range(np.array([0, 1]), rng=(25, 75))) == [0, 1]
         assert list(
             mm.limit_range(np.array([0, 1, 2, 3, 4, np.nan]), rng=(25, 75))
         ) == [1, 2, 3]
@@ -193,3 +218,51 @@ class TestUtils:
             mm.limit_range(np.array([np.nan, np.nan, np.nan]), rng=(25, 75)),
             np.array([np.nan, np.nan, np.nan]),
         )
+
+    def test_deprecated_decorators(self):
+        os.environ.pop("ALLOW_LEGACY_MOMEPY", None)
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.LongestAxisLength` is deprecated. "
+                "Replace it with `momepy.longest_axis_length`"
+            ),
+        ):
+            mm.LongestAxisLength(self.df_buildings)
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "True"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            mm.LongestAxisLength(self.df_buildings)
+
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "False"
+        with pytest.warns(
+            FutureWarning,
+            match=(
+                "Class based API like `momepy.LongestAxisLength` is deprecated. "
+                "Replace it with `momepy.longest_axis_length`"
+            ),
+        ):
+            mm.LongestAxisLength(self.df_buildings)
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "True"
+
+    def test_removed_decorators(self):
+        os.environ.pop("ALLOW_LEGACY_MOMEPY", None)
+        with pytest.warns(
+            FutureWarning,
+            match=("`momepy.Area` is deprecated"),
+        ):
+            mm.Area(self.df_buildings)
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "True"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            mm.Area(self.df_buildings)
+
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "False"
+        with pytest.warns(
+            FutureWarning,
+            match=("`momepy.Area` is deprecated"),
+        ):
+            mm.Area(self.df_buildings)
+        os.environ["ALLOW_LEGACY_MOMEPY"] = "True"

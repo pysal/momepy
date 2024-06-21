@@ -13,7 +13,9 @@ class TestWeights:
         self.df_tessellation["area"] = mm.Area(self.df_tessellation).series
 
     def test_sw_high(self):
-        first_order = libpysal.weights.Queen.from_dataframe(self.df_tessellation)
+        first_order = libpysal.weights.Queen.from_dataframe(
+            self.df_tessellation, use_index=False
+        )
         from_sw = mm.sw_high(2, gdf=None, weights=first_order)
         from_df = mm.sw_high(2, gdf=self.df_tessellation)
         rook = mm.sw_high(2, gdf=self.df_tessellation, contiguity="rook")
@@ -41,10 +43,10 @@ class TestWeights:
         db_ids = mm.DistanceBand(self.df_buildings, 100, ids="uID")
 
         for k in range(len(self.df_buildings)):
-            assert k in db.neighbors.keys()
+            assert k in db.neighbors.keys()  # noqa: SIM118
             assert sorted(lp.neighbors[k]) == sorted(db.neighbors[k])
         for k in self.df_buildings.uID:
-            assert k in db_ids.neighbors.keys()
+            assert k in db_ids.neighbors.keys()  # noqa: SIM118
             assert sorted(lp_ids.neighbors[k]) == sorted(db_ids.neighbors[k])
 
         db_cent_false = mm.DistanceBand(self.df_buildings, 100, centroid=False)

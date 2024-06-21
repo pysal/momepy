@@ -2,6 +2,7 @@
 
 # elements.py
 # generating derived elements (street edge, block)
+import os
 import warnings
 
 import geopandas as gpd
@@ -15,8 +16,9 @@ from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
 from tqdm.auto import tqdm
 
+from .utils import deprecated
+
 __all__ = [
-    "buffered_limit",
     "Tessellation",
     "Blocks",
     "get_network_id",
@@ -25,34 +27,8 @@ __all__ = [
     "get_network_ratio",
 ]
 
-GPD_10 = Version(gpd.__version__) >= Version("0.10")
-
-
-def buffered_limit(gdf, buffer=100):
-    """
-    Define limit for :class:`momepy.Tessellation` as a buffer around buildings.
-
-    See :cite:`fleischmann2020` for details.
-
-    Parameters
-    ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing building footprints.
-    buffer : float
-        A buffer around buildings limiting the extend of tessellation.
-
-    Returns
-    -------
-    MultiPolygon
-        A MultiPolygon or Polygon defining the study area.
-
-    Examples
-    --------
-    >>> limit = mm.buffered_limit(buildings_df)
-    >>> type(limit)
-    shapely.geometry.polygon.Polygon
-    """
-    return gdf.buffer(buffer).unary_union
+GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
+GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 
 
 class Tessellation:
@@ -197,6 +173,22 @@ class Tessellation:
         use_dask=True,
         n_chunks=None,
     ):
+        if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
+            "true",
+            "1",
+            "yes",
+        ):
+            warnings.warn(
+                "Class based API like `momepy.Tessellation` is deprecated. "
+                "Replace it with `momepy.morphological_tessellation` or "
+                "`momepy.enclosed_tessellation` to use functional API instead "
+                "or pin momepy version <1.0. Class-based API will be removed in "
+                "1.0. "
+                # "See details at https://docs.momepy.org/en/stable/migration.html",
+                "",
+                FutureWarning,
+                stacklevel=2,
+            )
         self.gdf = gdf
         self.id = gdf[unique_id]
         self.limit = limit
@@ -241,8 +233,8 @@ class Tessellation:
                 n_chunks,
             )
         else:
-            if isinstance(limit, (gpd.GeoSeries, gpd.GeoDataFrame)):
-                limit = limit.unary_union
+            if isinstance(limit, gpd.GeoSeries | gpd.GeoDataFrame):
+                limit = limit.union_all() if GPD_GE_10 else limit.unary_union
 
             bounds = shapely.bounds(limit)
             centre_x = (bounds[0] + bounds[2]) / 2
@@ -275,10 +267,7 @@ class Tessellation:
             objects.loc[mask, objects.geometry.name] = objects[mask].buffer(
                 -shrink, cap_style=2, join_style=2
             )
-        if GPD_10:
-            objects = objects.reset_index(drop=True).explode(ignore_index=True)
-        else:
-            objects = objects.reset_index(drop=True).explode().reset_index(drop=True)
+        objects = objects.reset_index(drop=True).explode(ignore_index=True)
         objects = objects.set_index(unique_id)
 
         print("Generating input point array...") if verbose else None
@@ -331,7 +320,7 @@ class Tessellation:
         else:
             lines = geoms
         lengths = shapely.length(lines)
-        for ix, line, length in zip(index, lines, lengths):
+        for ix, line, length in zip(index, lines, lengths, strict=True):
             if length > distance:  # some polygons might have collapsed
                 pts = shapely.line_interpolate_point(
                     line,
@@ -454,9 +443,14 @@ class Tessellation:
         enclosures["position"] = range(len(enclosures))
 
         # determine which polygons should be split
-        inp, res = buildings.sindex.query_bulk(
-            enclosures.geometry, predicate="intersects"
-        )
+        if GPD_GE_013:
+            inp, res = buildings.sindex.query(
+                enclosures.geometry, predicate="intersects"
+            )
+        else:
+            inp, res = buildings.sindex.query_bulk(
+                enclosures.geometry, predicate="intersects"
+            )
         unique, counts = np.unique(inp, return_counts=True)
         splits = unique[counts > 1]
         single = unique[counts == 1]
@@ -552,6 +546,7 @@ class Tessellation:
         )
 
 
+@deprecated("generate_blocks")
 class Blocks:
     """
     Generate blocks based on buildings, tessellation, and street network.
@@ -621,45 +616,30 @@ class Blocks:
             gpd.GeoDataFrame(geometry=edges.buffer(0.001)),
             how="difference",
         )
-        cut = cut.explode(ignore_index=True) if GPD_10 else cut.explode()
-
-        weights = libpysal.weights.Queen.from_dataframe(cut, silence_warnings=True)
+        cut = cut.explode(ignore_index=True)
+        weights = libpysal.weights.Queen.from_dataframe(
+            cut, silence_warnings=True, use_index=False
+        )
         cut["component"] = weights.component_labels
         buildings_c = buildings.copy()
         buildings_c.geometry = buildings_c.representative_point()  # make points
-        if GPD_10:
-            centroids_temp_id = gpd.sjoin(
-                buildings_c,
-                cut[[cut.geometry.name, "component"]],
-                how="left",
-                predicate="within",
-            )
-        else:
-            centroids_temp_id = gpd.sjoin(
-                buildings_c,
-                cut[[cut.geometry.name, "component"]],
-                how="left",
-                op="within",
-            )
+        centroids_temp_id = gpd.sjoin(
+            buildings_c,
+            cut[[cut.geometry.name, "component"]],
+            how="left",
+            predicate="within",
+        )
 
         cells_copy = tessellation[[unique_id, tessellation.geometry.name]].merge(
             centroids_temp_id[[unique_id, "component"]], on=unique_id, how="left"
         )
-        if GPD_10:
-            blocks = cells_copy.dissolve(by="component").explode(ignore_index=True)
-        else:
-            blocks = (
-                cells_copy.dissolve(by="component").explode().reset_index(drop=True)
-            )
+        blocks = cells_copy.dissolve(by="component").explode(ignore_index=True)
         blocks[id_name] = range(len(blocks))
         blocks = blocks[[id_name, blocks.geometry.name]]
 
-        if GPD_10:
-            centroids_w_bl_id2 = gpd.sjoin(
-                buildings_c, blocks, how="left", predicate="within"
-            )
-        else:
-            centroids_w_bl_id2 = gpd.sjoin(buildings_c, blocks, how="left", op="within")
+        centroids_w_bl_id2 = gpd.sjoin(
+            buildings_c, blocks, how="left", predicate="within"
+        )
 
         self.buildings_id = centroids_w_bl_id2[id_name]
 
@@ -673,6 +653,7 @@ class Blocks:
         self.blocks = blocks
 
 
+@deprecated("get_nearest_street")
 def get_network_id(left, right, network_id, min_size=100, verbose=True):
     """
     Snap each element (preferably building) to the closest
@@ -764,6 +745,7 @@ def get_network_id(left, right, network_id, min_size=100, verbose=True):
     return series
 
 
+@deprecated("get_nearest_node")
 def get_node_id(
     objects,
     nodes,
@@ -823,12 +805,12 @@ def get_node_id(
         edges = edges.set_index(edge_id)
         centroids = objects.centroid
         for eid, centroid in tqdm(
-            zip(objects[edge_id], centroids),
+            zip(objects[edge_id], centroids, strict=True),
             total=objects.shape[0],
             disable=not verbose,
         ):
-            if np.isnan(eid):
-                results_list.append(np.nan)
+            if pd.isna(eid):
+                results_list.append(pd.NA)
             else:
                 edge = edges.loc[eid]
                 start_id = edge.node_start
@@ -844,7 +826,9 @@ def get_node_id(
 
     elif edge_keys is not None and edge_values is not None:
         for edge_i, edge_r, geom in tqdm(
-            zip(objects[edge_keys], objects[edge_values], objects.geometry),
+            zip(
+                objects[edge_keys], objects[edge_values], objects.geometry, strict=True
+            ),
             total=objects.shape[0],
             disable=not verbose,
         ):
@@ -902,9 +886,6 @@ def get_network_ratio(df, edges, initial_buffer=500):
     3         [0]                                      [1.0]
     4        [26]                                        [1]
     """
-
-    if not GPD_10:
-        raise ImportError("`get_network_ratio` requires geopandas 0.10 or newer.")
 
     (df_ix, edg_ix), dist = edges.sindex.nearest(
         df.geometry, max_distance=initial_buffer, return_distance=True
@@ -1002,7 +983,7 @@ def enclosures(
     """
     if limit is not None:
         if isinstance(limit, BaseGeometry):
-            limit = gpd.GeoSeries([limit])
+            limit = gpd.GeoSeries([limit], crs=primary_barriers.crs)
         if limit.geom_type.isin(["Polygon", "MultiPolygon"]).any():
             limit_b = limit.boundary
         else:
@@ -1010,7 +991,7 @@ def enclosures(
         barriers = pd.concat([primary_barriers.geometry, limit_b.geometry])
     else:
         barriers = primary_barriers
-    unioned = barriers.unary_union
+    unioned = barriers.union_all() if GPD_GE_10 else barriers.unary_union
     polygons = polygonize(unioned)
     enclosures = gpd.GeoSeries(list(polygons), crs=primary_barriers.crs)
 
@@ -1022,9 +1003,14 @@ def enclosures(
             )
         additional = pd.concat([gdf.geometry for gdf in additional_barriers])
 
-        inp, res = enclosures.sindex.query_bulk(
-            additional.geometry, predicate="intersects"
-        )
+        if GPD_GE_013:
+            inp, res = enclosures.sindex.query(
+                additional.geometry, predicate="intersects"
+            )
+        else:
+            inp, res = enclosures.sindex.query_bulk(
+                additional.geometry, predicate="intersects"
+            )
         unique = np.unique(res)
 
         new = []
@@ -1045,11 +1031,12 @@ def enclosures(
             )  # keep only those within original polygon
             new += list(polygons[within])
 
-        final_enclosures = (
-            pd.concat(
-                [gpd.GeoSeries(enclosures).drop(unique), gpd.GeoSeries(new)]
-            ).reset_index(drop=True)
-        ).set_crs(primary_barriers.crs)
+        final_enclosures = pd.concat(
+            [
+                gpd.GeoSeries(enclosures).drop(unique),
+                gpd.GeoSeries(new, crs=primary_barriers.crs),
+            ]
+        ).reset_index(drop=True)
 
         final_enclosures = gpd.GeoDataFrame(
             {enclosure_id: range(len(final_enclosures))}, geometry=final_enclosures
@@ -1066,9 +1053,14 @@ def enclosures(
                 "`limit` requires a GeoDataFrame or GeoSeries with Polygon or "
                 "MultiPolygon geometry to be used with `clip=True`."
             )
-        _, encl_index = final_enclosures.representative_point().sindex.query_bulk(
-            limit.geometry, predicate="contains"
-        )
+        if GPD_GE_013:
+            _, encl_index = final_enclosures.representative_point().sindex.query(
+                limit.geometry, predicate="contains"
+            )
+        else:
+            _, encl_index = final_enclosures.representative_point().sindex.query_bulk(
+                limit.geometry, predicate="contains"
+            )
         keep = np.unique(encl_index)
         return final_enclosures.iloc[keep]
 

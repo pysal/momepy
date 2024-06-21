@@ -5,13 +5,15 @@ dependencies:
   - python=3.11
   - geopandas
   - inequality
-  - libpysal>=4.6.0
+  - libpysal>=4.11.0
   - mapclassify
   - networkx
   - packaging
   - pandas!=1.5.0
   - shapely>=2
+  - esda
   - tqdm
+  - numba
   # testing
   - codecov
   - pytest
