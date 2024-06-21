@@ -469,7 +469,10 @@ def _angle_between_two_lines(line1, line2):
         if ((l1p1[1] > l1p2[1]) and (l1p1[1] > l2p2[1])) or (
             (l1p1[1] < l1p2[1]) and (l1p1[1] < l2p2[1])
         ):
-            angle = 180 - (abs(l1orien) + abs(l2orien))
+            if (l1orien * l2orien) > 0.:
+                angle = abs(l1orien - l2orien)
+            else:
+                angle = 180 - (abs(l1orien) + abs(l2orien))
         else:
             angle = _points_set_angle([l1p1, l1p2], [l2p1, l2p2])
 
@@ -477,7 +480,10 @@ def _angle_between_two_lines(line1, line2):
         if ((l1p1[1] > l2p1[1]) and (l1p1[1] > l1p2[1])) or (
             (l1p1[1] < l2p1[1]) and (l1p1[1] < l1p2[1])
         ):
-            angle = 180 - (abs(l1orien) + abs(l2orien))
+            if (l1orien * l2orien) > 0.:
+                angle = abs(l1orien - l2orien)
+            else:
+                angle = 180 - (abs(l1orien) + abs(l2orien))
         else:
             angle = _points_set_angle([l1p1, l1p2], [l2p2, l2p1])
 
@@ -485,7 +491,10 @@ def _angle_between_two_lines(line1, line2):
         if ((l1p2[1] > l1p1[1]) and (l1p2[1] > l2p2[1])) or (
             (l1p2[1] < l1p1[1]) and (l1p2[1] < l2p2[1])
         ):
-            angle = 180 - (abs(l1orien) + abs(l2orien))
+            if (l1orien * l2orien) > 0.:
+                angle = abs(l1orien - l2orien)
+            else:
+                angle = 180 - (abs(l1orien) + abs(l2orien))
         else:
             angle = _points_set_angle([l1p2, l1p1], [l2p1, l2p2])
 
@@ -493,7 +502,10 @@ def _angle_between_two_lines(line1, line2):
         if ((l1p2[1] > l1p1[1]) and (l1p2[1] > l2p1[1])) or (
             (l1p2[1] < l1p1[1]) and (l1p2[1] < l2p1[1])
         ):
-            angle = 180 - (abs(l1orien) + abs(l2orien))
+            if (l1orien * l2orien) > 0.:
+                angle = abs(l1orien - l2orien)
+            else:
+                angle = 180 - (abs(l1orien) + abs(l2orien))
         else:
             angle = _points_set_angle([l1p2, l1p1], [l2p2, l2p1])
 
