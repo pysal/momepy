@@ -384,130 +384,37 @@ def _list_to_pairs(in_list):
     return out_list
 
 
-def _compute_angle(point1, point2):
-    """Calculates the angle between two points in space."""
-    height = abs(point2[1] - point1[1])
-    base = abs(point2[0] - point1[0])
-    angle = round(math.degrees(math.atan(height / base)), 3)
-    return angle
-
-
 def _compute_orientation(line):
-    """Calculates the orientation of a line segment. Point1 is
-    the lower one on the y-axes and vice versa for Point2.
-    """
-    point1 = line[1]
-    point2 = line[0]
-
-    # If the latutide of a point is less and the longitude is more, or
-    # If the latitude of a point is more and the longitude is less, then
-    # the point is oriented leftward and wil have negative orientation.
-    if ((point2[0] > point1[0]) and (point2[1] < point1[1])) or (
-        (point2[0] < point1[0]) and (point2[1] > point1[1])
-    ):
-        return -_compute_angle(point1, point2)
-
-    # if the latitudes are same, the line is horizontal
-    elif point2[1] == point1[1]:
-        return 0
-
-    # if the longitudes are same, the line is vertical
-    elif point2[0] == point1[0]:
-        return 90
-
-    return _compute_angle(point1, point2)
+    """Calculates the orientation of a line segment."""
+    point1 = line[0]
+    point2 = line[1]
+    dy = point1[1] - point2[1]
+    dx = point1[0] - point2[0]
+    return math.degrees(math.atan2(dy, dx))
 
 
-def _points_set_angle(line1, line2):
-    """Calculate the acute joining angle between two given set of points."""
-    l1orien = _compute_orientation(line1)
-    l2orien = _compute_orientation(line2)
-
-    if ((l1orien > 0) and (l2orien < 0)) or ((l1orien < 0) and (l2orien > 0)):
-        return abs(l1orien) + abs(l2orien)
-
-    elif ((l1orien > 0) and (l2orien > 0)) or ((l1orien < 0) and (l2orien < 0)):
-        theta1 = abs(l1orien) + 180 - abs(l2orien)
-        theta2 = abs(l2orien) + 180 - abs(l1orien)
-        if theta1 < theta2:
-            return theta1
-        else:
-            return theta2
-
-    elif (l1orien == 0) or (l2orien == 0):
-        if l1orien < 0:
-            return 180 - abs(l1orien)
-        elif l2orien < 0:
-            return 180 - abs(l2orien)
-        else:
-            return 180 - (
-                abs(_compute_orientation(line1)) + abs(_compute_orientation(line2))
-            )
-
-    elif l1orien == l2orien:
-        return 180
+def _compute_angle(a, b, c):
+    """Measure the angle between a-b, b-c (in degrees)."""
+    angle1 = _compute_orientation([a, b])
+    angle2 = _compute_orientation([c, b])
+    return abs((angle1 - angle2 + 180) % 360 - 180)
 
 
 def _angle_between_two_lines(line1, line2):
-    """Calculate the joining angle between two line segments."""
+    """Calculate the joining angle between two consecutive line segments."""
     l1p1, l1p2 = line1
     l2p1, l2p2 = line2
-    l1orien = _compute_orientation(line1)
-    l2orien = _compute_orientation(line2)
 
-    # If both lines have same orientation, return 180 If one of the
-    # lines is zero, exception for that If both the lines are on same side
-    # of the horizontal plane, calculate 180-(sumOfOrientation) If both the
-    # lines are on same side of the vertical plane, calculate pointSetAngle.
-    if l1orien == l2orien:
-        angle = 180
-
-    elif (l1orien == 0) or (l2orien == 0):
-        angle = _points_set_angle(line1, line2)
-
-    elif l1p1 == l2p1:
-        if ((l1p1[1] > l1p2[1]) and (l1p1[1] > l2p2[1])) or (
-            (l1p1[1] < l1p2[1]) and (l1p1[1] < l2p2[1])
-        ):
-            if (l1orien * l2orien) > 0.:
-                angle = abs(l1orien - l2orien)
-            else:
-                angle = 180 - (abs(l1orien) + abs(l2orien))
-        else:
-            angle = _points_set_angle([l1p1, l1p2], [l2p1, l2p2])
-
+    if l1p1 == l2p1:
+        angle = _compute_angle(l1p2, l1p1, l2p2)
     elif l1p1 == l2p2:
-        if ((l1p1[1] > l2p1[1]) and (l1p1[1] > l1p2[1])) or (
-            (l1p1[1] < l2p1[1]) and (l1p1[1] < l1p2[1])
-        ):
-            if (l1orien * l2orien) > 0.:
-                angle = abs(l1orien - l2orien)
-            else:
-                angle = 180 - (abs(l1orien) + abs(l2orien))
-        else:
-            angle = _points_set_angle([l1p1, l1p2], [l2p2, l2p1])
-
+        angle = _compute_angle(l1p2, l1p1, l2p1)
     elif l1p2 == l2p1:
-        if ((l1p2[1] > l1p1[1]) and (l1p2[1] > l2p2[1])) or (
-            (l1p2[1] < l1p1[1]) and (l1p2[1] < l2p2[1])
-        ):
-            if (l1orien * l2orien) > 0.:
-                angle = abs(l1orien - l2orien)
-            else:
-                angle = 180 - (abs(l1orien) + abs(l2orien))
-        else:
-            angle = _points_set_angle([l1p2, l1p1], [l2p1, l2p2])
-
+        angle = _compute_angle(l1p1, l1p2, l2p2)
     elif l1p2 == l2p2:
-        if ((l1p2[1] > l1p1[1]) and (l1p2[1] > l2p1[1])) or (
-            (l1p2[1] < l1p1[1]) and (l1p2[1] < l2p1[1])
-        ):
-            if (l1orien * l2orien) > 0.:
-                angle = abs(l1orien - l2orien)
-            else:
-                angle = 180 - (abs(l1orien) + abs(l2orien))
-        else:
-            angle = _points_set_angle([l1p2, l1p1], [l2p2, l2p1])
+        angle = _compute_angle(l1p1, l1p2, l2p1)
+    else:
+        raise ValueError("Lines do not have a common vertex.")
 
     return angle
 
