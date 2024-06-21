@@ -1,3 +1,5 @@
+import math
+
 import geopandas as gpd
 import pandas as pd
 import pytest
@@ -112,3 +114,41 @@ class TestCOINS:
         assert_index_equal(result.columns, expected_columns)
 
         assert not result.isna().any().any()
+
+
+def test__compute_angle():
+    """Test angles p1 - (0., 0.) - p2."""
+    h = math.sqrt(3) / 2
+    p1 = (h, 0.5)
+    p2s = [(0.5, h), (-0.5, h), (-h, -0.5), (0.5, -h)]
+    angles = [30., 90., 180., 90.]
+    for p2, expected in zip(p2s, angles):
+        result = mm.coins._compute_angle(p1, [0., 0.], p2)
+        assert result == pytest.approx(expected)
+
+
+def test__angle_between_two_lines_does_not_depend_on_ordering():
+    line_pairs = [
+        [[(0., 0.), (1., 1.)], [(0., 0.), (-1., -1.)]],
+        [[(1., 1.), (0., 0.)], [(0., 0.), (-1., -1.)]],
+        [[(1., 1.), (0., 0.)], [(-1., -1.), (0., 0.)]],
+        [[(0., 0.), (1., 1.)], [(-1., -1.), (0., 0.)]],
+    ]
+    for pair in line_pairs:
+        l1, l2 = pair
+        result = mm.coins._angle_between_two_lines(l1, l2)
+        assert result == pytest.approx(180.)
+
+
+def test__angle_between_two_lines_with_horizontal_or_vertical_line():
+    line_pairs = [
+        [[(0., 0.), (1., 1.)], [(0., 0.), (0, 1.)]],
+        [[(1., 1.), (0., 0.)], [(0., 0.), (-1., 0.)]],
+        [[(1., 1.), (0., 0.)], [(1., 0.), (0., 0.)]],
+        [[(0., 0.), (1., 1.)], [(0., -1.), (0., 0.)]],
+    ]
+    angles = [45., 135., 45., 135.]
+    for pair, expected in zip(line_pairs, angles):
+        l1, l2 = pair
+        result = mm.coins._angle_between_two_lines(l1, l2)
+        assert result == pytest.approx(expected)
