@@ -2,6 +2,7 @@ import geopandas as gpd
 import pandas as pd
 import pytest
 from pandas.testing import assert_index_equal, assert_series_equal
+from shapely.geometry import LineString
 
 import momepy as mm
 
@@ -112,3 +113,85 @@ class TestCOINS:
         assert_index_equal(result.columns, expected_columns)
 
         assert not result.isna().any().any()
+
+    def test_sharpangles(self):
+
+        # test case 1
+        a = (0,0)
+        b = (2,0)
+        c = (1,1)
+        d = (2,1)
+        e = (-1,1)
+
+        line1 = [a, b]
+        line2 = [a, c]
+        line3 = [a, d]
+        line4 = [a, e]
+
+        gdf = gpd.GeoDataFrame(
+            {
+                "geometry":
+                    [
+                        LineString(line1),
+                        LineString(line2),
+                        LineString(line3),
+                        LineString(line4)
+                        
+                    ]
+            }
+        )
+
+        coins = mm.COINS(gdf, angle_threshold=0)
+        stroke_attr = coins.stroke_attribute()
+
+        expected_groups = [
+            bool(stroke_attr[0] == 0),
+            bool(stroke_attr[1] == 1),
+            bool(stroke_attr[2] == 2),
+            bool(stroke_attr[3] == 0),
+            bool(stroke_attr[0] != stroke_attr[2])
+        ] 
+        
+        assert all(expected_groups)
+
+        # test case 2
+
+        a = (0,0)
+        b = (-1,1)
+        c = (-4,1)
+        d = (-2,-1)
+        e = (-1,-2)
+
+        line1 = [a, b]
+        line2 = [a, c]
+        line3 = [a, d]
+        line4 = [a, e]
+
+        gdf = gpd.GeoDataFrame(
+            {
+                "geometry":
+                    [
+                        LineString(line1),
+                        LineString(line2),
+                        LineString(line3),
+                        LineString(line4)
+                        
+                    ]
+            }
+        )
+
+        coins = mm.COINS(gdf, angle_threshold=0)
+        stroke_attr = coins.stroke_attribute()
+
+        expected_groups = [
+            bool(stroke_attr[0] == 0),
+            bool(stroke_attr[1] == 1),
+            bool(stroke_attr[2] == 2),
+            bool(stroke_attr[3] == 0),
+            bool(stroke_attr[0] != stroke_attr[2])
+        ]
+        
+        assert all(expected_groups)
+
+        # test case 3
+        ### TODO: test case with angle_threshold working properly
