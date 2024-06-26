@@ -519,7 +519,18 @@ def _angle_between_two_lines(line1,line2):
     # assertion: we expect exactly 2 of the 4 points to be identical
     # (lines touch in this point)  
     points = Counter([a,b,c,d])
-    assert Counter(points.values()) == {1:2, 2:1}, "Lines don't touch or are identical"
+
+    # make sure lines are not identical
+    if Counter(points.values()) == {2:2}:
+        raise ValueError(
+            "ValueError: lines are identical. Please revise input gdf\
+            to ensure no lines are identical or overlapping.")
+    
+    # make sure lines do touch
+    if Counter(points.values()) == {1:4}:
+        raise ValueError("ValueError: lines do not touch.")
+
+    assert Counter(points.values()) == {1:2, 2:1}
 
     # points where line touch = "origin" (for vector-based angle calculation)
     origin = [k for k, v in points.items() if v == 2][0]
