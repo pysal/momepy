@@ -194,6 +194,32 @@ class TestCOINS:
         assert all(expected_groups)
 
         # test case 3
+        a = (0,0)
+        b = (1,1)
+        c = (0,1)
 
+        line1 = [a, b]
+        line2 = [a, c]
 
-        ### TODO: test case with angle_threshold working properly
+        gdf = gpd.GeoDataFrame(
+            {
+                "geometry":
+                    [
+                        LineString(line1),
+                        LineString(line2),                
+                    ]
+            }
+        )
+
+        # interior angle is 45deg, angle_threshold is 0:
+        # expecting both lines to be part of same group
+        coins = mm.COINS(gdf, angle_threshold=0)
+        stroke_attr = coins.stroke_attribute()
+        assert bool(stroke_attr[0] == stroke_attr[1] == 0)
+
+        # interior angle is 45deg, angle_threshold is 46:
+        # expecting lines to in different groups
+        coins = mm.COINS(gdf, angle_threshold=46)
+        stroke_attr = coins.stroke_attribute()
+        # expecting both lines to be part of same group
+        assert stroke_attr[0] != stroke_attr[1]
