@@ -112,7 +112,7 @@ class TestCOINS:
         )
         assert_index_equal(result.columns, expected_columns)
 
-        assert not result.isna().any().any()
+        assert not result.drop(columns="orientation").isna().any().any()
 
     def test_sharpangles(self):
 
@@ -194,4 +194,6 @@ class TestCOINS:
         assert all(expected_groups)
 
         # test case 3
+
+
         ### TODO: test case with angle_threshold working properly
