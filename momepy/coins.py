@@ -37,10 +37,13 @@ class COINS:
     ----------
     edge_gdf : GeoDataFrame
         A GeoDataFrame containing edge geometry of a street network.
+        ``edge_gdf`` cannot contain identical or overlapping LineStrings.
         ``edge_gdf`` should ideally not contain MultiLineStrings.
-    angle_threshold : int, float (default 0)
-        The angle threshold for the COINS algorithm. Segments will only be considered
-        a part of the same street if the deflection angle is above the threshold.
+    angle_threshold : int, float (default 0), units: degrees
+        The threshold for the interior angle within the COINS algorithm.
+        Possible values: `0<=angle_threshold<=180`, in degrees.
+        Segments will only be considered part of the same stroke group
+        if the interior angle between them is above the threshold.
 
     Examples
     --------
