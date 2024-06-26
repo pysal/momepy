@@ -117,11 +117,11 @@ class TestCOINS:
     def test_sharpangles(self):
 
         # test case 1
-        a = (0,0)
-        b = (2,0)
-        c = (1,1)
-        d = (2,1)
-        e = (-1,1)
+        a = (0, 0)
+        b = (2, 0)
+        c = (1, 1)
+        d = (2, 1)
+        e = (-1, 1)
 
         line1 = [a, b]
         line2 = [a, c]
@@ -130,14 +130,12 @@ class TestCOINS:
 
         gdf = gpd.GeoDataFrame(
             {
-                "geometry":
-                    [
-                        LineString(line1),
-                        LineString(line2),
-                        LineString(line3),
-                        LineString(line4)
-                        
-                    ]
+                "geometry": [
+                    LineString(line1),
+                    LineString(line2),
+                    LineString(line3),
+                    LineString(line4),
+                ]
             }
         )
 
@@ -149,18 +147,18 @@ class TestCOINS:
             bool(stroke_attr[1] == 1),
             bool(stroke_attr[2] == 2),
             bool(stroke_attr[3] == 0),
-            bool(stroke_attr[0] != stroke_attr[2])
-        ] 
-        
+            bool(stroke_attr[0] != stroke_attr[2]),
+        ]
+
         assert all(expected_groups)
 
         # test case 2
 
-        a = (0,0)
-        b = (-1,1)
-        c = (-4,1)
-        d = (-2,-1)
-        e = (-1,-2)
+        a = (0, 0)
+        b = (-1, 1)
+        c = (-4, 1)
+        d = (-2, -1)
+        e = (-1, -2)
 
         line1 = [a, b]
         line2 = [a, c]
@@ -169,14 +167,12 @@ class TestCOINS:
 
         gdf = gpd.GeoDataFrame(
             {
-                "geometry":
-                    [
-                        LineString(line1),
-                        LineString(line2),
-                        LineString(line3),
-                        LineString(line4)
-                        
-                    ]
+                "geometry": [
+                    LineString(line1),
+                    LineString(line2),
+                    LineString(line3),
+                    LineString(line4),
+                ]
             }
         )
 
@@ -188,26 +184,25 @@ class TestCOINS:
             bool(stroke_attr[1] == 1),
             bool(stroke_attr[2] == 2),
             bool(stroke_attr[3] == 0),
-            bool(stroke_attr[0] != stroke_attr[2])
+            bool(stroke_attr[0] != stroke_attr[2]),
         ]
-        
+
         assert all(expected_groups)
 
         # test case 3
-        a = (0,0)
-        b = (1,1)
-        c = (0,1)
+        a = (0, 0)
+        b = (1, 1)
+        c = (0, 1)
 
         line1 = [a, b]
         line2 = [a, c]
 
         gdf = gpd.GeoDataFrame(
             {
-                "geometry":
-                    [
-                        LineString(line1),
-                        LineString(line2),                
-                    ]
+                "geometry": [
+                    LineString(line1),
+                    LineString(line2),
+                ]
             }
         )
 

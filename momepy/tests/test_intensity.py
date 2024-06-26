@@ -103,7 +103,9 @@ class TestIntensity:
         with pytest.raises(
             TypeError, match="Geometry type does not support weighting."
         ):
-            mm.Count(point_gdf, self.blocks, "nID", "bID", weighted=True).series  # noqa: B018
+            mm.Count(
+                point_gdf, self.blocks, "nID", "bID", weighted=True
+            ).series  # noqa: B018
 
     def test_Courtyards(self):
         courtyards = mm.Courtyards(self.df_buildings).series

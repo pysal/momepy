@@ -19,6 +19,7 @@ import shapely
 from shapely.geometry import LineString, MultiLineString
 from collections import Counter
 
+
 class COINS:
     """
     Calculates natural continuity and hierarchy of street networks in a given
@@ -396,14 +397,16 @@ def _list_to_pairs(in_list):
 #     point1 = line[1]
 #     point2 = line[0]
 
+
 def _compute_orientation(line):
-    '''
+    """
     computing orientation is obsolete, but:
     keeping it in for now not to mess up with the
     index-based logic
     (required by _split_lines() )
-    '''
+    """
     return None
+
 
 #     # If the latutide of a point is less and the longitude is more, or
 #     # If the latitude of a point is more and the longitude is less, then
@@ -505,35 +508,37 @@ def _compute_orientation(line):
 
 #     return angle
 
-def _angle_between_two_lines(line1,line2):
-    '''
+
+def _angle_between_two_lines(line1, line2):
+    """
     Computes interior angle between 2 lines.
         input:  line<x> ... list of 2 tuples (x,y);
                 line1 and line2 by definition share one unique tuple
                 (overlap in 1 point)
         returns:    interior angle in degrees 0<alpha<=180
                     (we assume that line1!=line2, so alpha=0 not possible)
-    '''
-    
+    """
+
     # extract points
     a, b = tuple(line1[0]), tuple(line1[1])
     c, d = tuple(line2[0]), tuple(line2[1])
-    
+
     # assertion: we expect exactly 2 of the 4 points to be identical
-    # (lines touch in this point)  
-    points = Counter([a,b,c,d])
+    # (lines touch in this point)
+    points = Counter([a, b, c, d])
 
     # make sure lines are not identical
-    if Counter(points.values()) == {2:2}:
+    if Counter(points.values()) == {2: 2}:
         raise ValueError(
             "ValueError: lines are identical. Please revise input gdf\
-            to ensure no lines are identical or overlapping.")
-    
+            to ensure no lines are identical or overlapping."
+        )
+
     # make sure lines do touch
-    if Counter(points.values()) == {1:4}:
+    if Counter(points.values()) == {1: 4}:
         raise ValueError("ValueError: lines do not touch.")
 
-    assert Counter(points.values()) == {1:2, 2:1}
+    assert Counter(points.values()) == {1: 2, 2: 1}
 
     # points where line touch = "origin" (for vector-based angle calculation)
     origin = [k for k, v in points.items() if v == 2][0]
@@ -546,16 +551,11 @@ def _angle_between_two_lines(line1,line2):
 
     # compute angle between 2 vectors in degrees
     angle = np.degrees(
-        math.acos(
-            np.dot(v1, v2) /
-            (
-                np.sqrt(sum(v1**2)) * 
-                np.sqrt(sum(v2**2))
-            )
-        )
+        math.acos(np.dot(v1, v2) / (np.sqrt(sum(v1**2)) * np.sqrt(sum(v2**2))))
     )
 
     return angle
+
 
 def _merge_lines_loop(n, unique_dict):
     outlist = set()

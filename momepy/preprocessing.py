@@ -1565,9 +1565,7 @@ class FaceArtifacts:
 
         # Polygonize street network
         polygons = gpd.GeoSeries(
-            shapely.polygonize(  # polygonize
-                [gdf.dissolve().geometry.item()]
-            )
+            shapely.polygonize([gdf.dissolve().geometry.item()])  # polygonize
         ).explode(ignore_index=True)
 
         # Store geometries as a GeoDataFrame
