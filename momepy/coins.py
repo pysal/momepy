@@ -11,7 +11,6 @@ Date: May 29, 2021
 
 import collections
 import math
-from collections import Counter
 
 import geopandas as gpd
 import numpy as np
@@ -398,7 +397,7 @@ def _angle_between_two_lines(line1, line2):
 
     # assertion: we expect exactly 2 of the 4 points to be identical
     # (lines touch in this point)
-    points = Counter([a, b, c, d])
+    points = collections.Counter([a, b, c, d])
 
     # make sure lines are not identical
     if len(points) == 2:
