@@ -410,7 +410,7 @@ def _angle_between_two_lines(line1, line2):
 
     # make sure lines do touch
     if Counter(points.values()) == {1: 4}:
-        raise ValueError("ValueError: lines do not touch.")
+        raise ValueError("Lines do not touch.")
 
     assert Counter(points.values()) == {1: 2, 2: 1}
 
