@@ -403,8 +403,9 @@ def _angle_between_two_lines(line1, line2):
     # make sure lines are not identical
     if Counter(points.values()) == {2: 2}:
         raise ValueError(
-            "ValueError: lines are identical. Please revise input gdf\
-            to ensure no lines are identical or overlapping."
+            "Lines are identical. Please revise input data "
+            "to ensure no lines are identical or overlapping. "
+            "You can check for duplicates using `gdf.geometry.duplicated()`."
         )
 
     # make sure lines do touch
