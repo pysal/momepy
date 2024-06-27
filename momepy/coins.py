@@ -401,7 +401,7 @@ def _angle_between_two_lines(line1, line2):
     points = Counter([a, b, c, d])
 
     # make sure lines are not identical
-    if Counter(points.values()) == {2: 2}:
+    if len(points) == 2:
         raise ValueError(
             "Lines are identical. Please revise input data "
             "to ensure no lines are identical or overlapping. "
@@ -409,7 +409,7 @@ def _angle_between_two_lines(line1, line2):
         )
 
     # make sure lines do touch
-    if Counter(points.values()) == {1: 4}:
+    if len(points) == 4:
         raise ValueError("Lines do not touch.")
 
     # points where line touch = "origin" (for vector-based angle calculation)
