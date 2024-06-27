@@ -7,13 +7,13 @@ dependencies:
   - inequality
   - libpysal=4.11.0
   - mapclassify
-  - networkx=2.7
-  - numpy=1.22
+  - networkx=2.9
+  - numpy=1.24
   - packaging
-  - pandas>=1.4.0,!=1.5.0,<2
+  - pandas>=1.5.1,<2
   - shapely=2.0
   - tqdm=4.63.0
-  - numba=0.56
+  - numba=0.57
   # testing
   - codecov
   - pytest
