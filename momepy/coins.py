@@ -42,7 +42,7 @@ class COINS:
         ``edge_gdf`` should ideally not contain MultiLineStrings.
     angle_threshold : int, float (default 0), units: degrees
         The threshold for the interior angle within the COINS algorithm.
-        Possible values: `0<=angle_threshold<180`, in degrees.
+        Possible values: ``0 <= angle_threshold < 180``, in degrees.
         Segments will only be considered part of the same stroke group
         if the interior angle between them is above the threshold.
 
@@ -412,7 +412,6 @@ def _angle_between_two_lines(line1, line2):
     if Counter(points.values()) == {1: 4}:
         raise ValueError("Lines do not touch.")
 
-    assert Counter(points.values()) == {1: 2, 2: 1}
 
     # points where line touch = "origin" (for vector-based angle calculation)
     origin = [k for k, v in points.items() if v == 2][0]
