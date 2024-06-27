@@ -1103,7 +1103,7 @@ class FaceArtifacts:
         self,
         gdf,
         index="circular_compactness",
-        height_mins=np.NINF,
+        height_mins=-np.inf,
         height_maxs=0.008,
         prominence=0.00075,
     ):
