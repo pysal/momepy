@@ -11,13 +11,13 @@ Date: May 29, 2021
 
 import collections
 import math
+from collections import Counter
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 import shapely
 from shapely.geometry import LineString, MultiLineString
-from collections import Counter
 
 
 class COINS:
@@ -130,7 +130,7 @@ class COINS:
                 out_line.append(
                     [
                         part,
-                        _compute_orientation(part),
+                        [],
                         [],
                         [],
                         [],
@@ -381,14 +381,6 @@ def _list_to_pairs(in_list):
     tmp_list = [list(point) for point in in_list]
     return [list(pair) for pair in zip(tmp_list[:-1], tmp_list[1:], strict=True)]
 
-def _compute_orientation(line):
-    """
-    computing orientation is obsolete, but:
-    keeping it in for now not to mess up with the
-    index-based logic
-    (required by _split_lines() )
-    """
-    return None
 
 def _angle_between_two_lines(line1, line2):
     """
@@ -424,7 +416,7 @@ def _angle_between_two_lines(line1, line2):
     # points where line touch = "origin" (for vector-based angle calculation)
     origin = [k for k, v in points.items() if v == 2][0]
     # other 2 unique points (one on each line)
-    point1, point2 = [k for k, v in points.items() if v == 1]
+    point1, point2 = (k for k, v in points.items() if v == 1)
 
     # translate lines into vectors (numpy arrays)
     v1 = np.array(point1) - np.array(origin)

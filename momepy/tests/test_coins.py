@@ -115,7 +115,6 @@ class TestCOINS:
         assert not result.drop(columns="orientation").isna().any().any()
 
     def test_sharpangles(self):
-
         # test case 1
         a = (0, 0)
         b = (2, 0)

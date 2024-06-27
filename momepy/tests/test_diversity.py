@@ -114,9 +114,7 @@ class TestDiversity:
             self.df_tessellation.area - self.df_tessellation.area.mean()
         )
         with pytest.raises(ValueError):
-            mm.Gini(
-                self.df_tessellation, "negative", self.sw, "uID"
-            ).series  # noqa: B018
+            mm.Gini(self.df_tessellation, "negative", self.sw, "uID").series  # noqa: B018
         assert (
             mm.Gini(self.df_tessellation, "area", self.sw_drop, "uID")
             .series.isna()
