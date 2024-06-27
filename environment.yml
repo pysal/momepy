@@ -3,16 +3,16 @@ channels:
   - conda-forge
 dependencies:
   - python=3.10
-  - geopandas
+  - geopandas>=0.12.0
   - inequality
   - jupyter
   - libpysal>=4.11.0
   - mapclassify
   - matplotlib
-  - networkx
+  - networkx>=2.8
   - osmnx
-  - pandas!=1.5.0
+  - pandas>=1.5.1
   - shapely>=2
-  - tqdm
+  - tqdm>=4.63.0
   - numba
   - esda
