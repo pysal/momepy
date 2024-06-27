@@ -412,7 +412,6 @@ def _angle_between_two_lines(line1, line2):
     if Counter(points.values()) == {1: 4}:
         raise ValueError("Lines do not touch.")
 
-
     # points where line touch = "origin" (for vector-based angle calculation)
     origin = [k for k, v in points.items() if v == 2][0]
     # other 2 unique points (one on each line)
