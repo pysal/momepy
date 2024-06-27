@@ -418,13 +418,15 @@ def _angle_between_two_lines(line1, line2):
     point1, point2 = (k for k, v in points.items() if v == 1)
 
     # translate lines into vectors (numpy arrays)
-    v1 = np.array(point1) - np.array(origin)
-    v2 = np.array(point2) - np.array(origin)
+    v1 = [point1[0] - origin[0], point1[1] - origin[1]]
+    v2 = [point2[0] - origin[0], point2[1] - origin[1]]
 
     # compute angle between 2 vectors in degrees
-    angle = np.degrees(
-        math.acos(np.dot(v1, v2) / (np.sqrt(sum(v1**2)) * np.sqrt(sum(v2**2))))
-    )
+    dot_product = v1[0] * v2[0] + v1[1] * v2[1]
+    norm_v1 = math.sqrt(v1[0] ** 2 + v1[1] ** 2)
+    norm_v2 = math.sqrt(v2[0] ** 2 + v2[1] ** 2)
+    cos_theta = dot_product / (norm_v1 * norm_v2)
+    angle = math.degrees(math.acos(cos_theta))
 
     return angle
 
