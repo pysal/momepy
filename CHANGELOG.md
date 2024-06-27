@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 0.7.1 (June 27, 2024)
+-----------------------------
+
+Minor patch release ensuring compatibility with GeoPandas 1.0.
+
 Version 0.7.0 (November 22, 2023)
 ---------------------------------
 
