@@ -398,7 +398,7 @@ class TestDescribe:
         )
 
         # to count nas you have to explicitly process them npw
-        self.df_tessellation.loc[self.df_tessellation["cat"].isna(), "cat"] = "np.nan"
+        self.df_tessellation.loc[self.df_tessellation["cat"].isna(), "cat"] = np.nan
         un_nan = self.diversity_graph.describe(
             self.df_tessellation["cat"], statistics=["nunique"]
         )["nunique"]
@@ -1093,7 +1093,7 @@ class TestDescribeEquality:
         assert_series_equal(un_new, un_old, check_dtype=False, check_names=False)
 
         # to keep NAs you ahve to explicitly process them now
-        self.df_tessellation.loc[self.df_tessellation["cat"].isna(), "cat"] = "np.nan"
+        self.df_tessellation.loc[self.df_tessellation["cat"].isna(), "cat"] = np.nan
         un_new = self.graph_diversity.describe(
             self.df_tessellation["cat"], statistics=["nunique"]
         )["nunique"]
