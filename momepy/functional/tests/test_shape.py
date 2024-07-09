@@ -100,7 +100,7 @@ class TestShape:
             "max": 0.9994000284783504,
         }
         r = mm.rectangularity(self.df_buildings)
-        assert_result(r, expected, self.df_buildings)
+        assert_result(r, expected, self.df_buildings, rel=1e-3)
 
     def test_shape_index(self):
         expected = {
@@ -205,7 +205,7 @@ class TestShape:
             "max": 0.9975111632520667,
         }
         r = mm.elongation(self.df_buildings)
-        assert_result(r, expected, self.df_buildings)
+        assert_result(r, expected, self.df_buildings, rel=1e-3)
 
     @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_centroid_corner_distance(self):

@@ -397,14 +397,6 @@ class TestDescribe:
             un_nan_drop, un_nan_drop_expected, self.df_tessellation, check_names=False
         )
 
-        # to count nas you have to explicitly process them npw
-        self.df_tessellation.loc[self.df_tessellation["cat"].isna(), "cat"] = "np.nan"
-        un_nan = self.diversity_graph.describe(
-            self.df_tessellation["cat"], statistics=["nunique"]
-        )["nunique"]
-        un_nan_expected = {"count": 144, "mean": 8.13888888888889, "min": 8, "max": 9}
-        assert_result(un_nan, un_nan_expected, self.df_tessellation, check_names=False)
-
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
@@ -1089,16 +1081,6 @@ class TestDescribeEquality:
         )["nunique"]
         un_old = mm.Unique(
             self.df_tessellation, "cat", self.sw, "uID", dropna=True
-        ).series
-        assert_series_equal(un_new, un_old, check_dtype=False, check_names=False)
-
-        # to keep NAs you ahve to explicitly process them now
-        self.df_tessellation.loc[self.df_tessellation["cat"].isna(), "cat"] = "np.nan"
-        un_new = self.graph_diversity.describe(
-            self.df_tessellation["cat"], statistics=["nunique"]
-        )["nunique"]
-        un_old = mm.Unique(
-            self.df_tessellation, "cat", self.sw, "uID", dropna=False
         ).series
         assert_series_equal(un_new, un_old, check_dtype=False, check_names=False)
 

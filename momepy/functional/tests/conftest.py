@@ -4,11 +4,11 @@ import pytest
 from pandas.testing import assert_index_equal
 
 
-def assert_result(result, expected, geometry, **kwargs):
+def assert_result(result, expected, geometry, rel=None, abs=None, **kwargs):  # noqa: A002
     """Check the expected values and types of the result.
     Note: ''count'' refers to the number of non-NAs in the result."""
     for key, value in expected.items():
-        assert getattr(result, key)() == pytest.approx(value)
+        assert getattr(result, key)() == pytest.approx(value, rel=rel, abs=abs)
     assert isinstance(result, pd.Series)
     assert_index_equal(result.index, geometry.index, **kwargs)
 
