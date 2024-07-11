@@ -67,7 +67,6 @@ lint.select = ["E", "F", "W", "I", "UP", "N", "B", "A", "C4", "SIM", "ARG"]
 lint.ignore = ["B006", "SIM108"]
 include = ["*.py", "*.ipynb"]
 
-
 [tool.ruff.lint.per-file-ignores]
 "*__init__.py" = ["F403"]
 "momepy/tests/*" = ["N802", "N806"]
@@ -86,3 +85,8 @@ exclude_lines = [
 ]
 ignore_errors = true
 omit = ["tests/*", "docs/conf.py", "benchmarks/*"]
+
+[tool.mypy]
+non_interactive = true
+install_types = true
+ignore_missing_imports = true
