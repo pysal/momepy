@@ -22,6 +22,7 @@ from libpysal.graph._utils import (
 )
 
 __all__ = [
+    "mean_deviation",
     "describe_agg",
     "describe_reached_agg",
     "values_range",
@@ -81,7 +82,6 @@ def _percentile_limited_group_grouper(y, group_index, q=(25, 75)):
 def describe_agg(
     y: NDArray[np.float64] | Series,
     aggregation_key: NDArray[np.float64] | Series,
-    result_index: pd.Index | None = None,
     q: tuple[float, float] | list[float] | None = None,
     statistics: list[str] | None = None,
 ) -> DataFrame:
@@ -95,8 +95,6 @@ def describe_agg(
 
     Notes
     -----
-    The index of ``y`` must match the index along which the ``graph`` is
-    built.
 
     The numba package is used extensively in this function to accelerate the computation
     of statistics. Without numba, these computations may become slow on large data.
@@ -108,10 +106,6 @@ def describe_agg(
     aggregation_key : Series | numpy.array
         The unique ID that specifies the aggregation
         of ``y`` objects to groups.
-    result_index : pd.Index (default None)
-        An index that specifies how to order the results.
-        Use to align the results from the grouping to an external index.
-        If ``None`` the index from the computations is used.
     q : tuple[float, float] | None, optional
         Tuple of percentages for the percentiles to compute. Values must be between 0
         and 100 inclusive. When set, values below and above the percentiles will be
@@ -187,21 +181,11 @@ def describe_agg(
 
     stats = _compute_stats(grouper, to_compute=statistics)
 
-    if result_index is None:
-        result_index = stats.index
-
-    # post processing to have the same behaviour as describe_reached_agg
-    result = pd.DataFrame(
-        np.full((result_index.shape[0], stats.shape[1]), np.nan), index=result_index
-    )
-    result.loc[stats.index.values] = stats.values
-    result.columns = stats.columns
     # fill only counts with zeros, other stats are NA
-    if "count" in result.columns:
-        result.loc[:, "count"] = result.loc[:, "count"].fillna(0)
-    result.index.names = result_index.names
+    if "count" in stats.columns:
+        stats.loc[:, "count"] = stats.loc[:, "count"].fillna(0)
 
-    return result
+    return stats
 
 
 def describe_reached_agg(
@@ -970,4 +954,76 @@ def percentile(
     stats = grouper.apply(lambda x: _interpolate(x.values, q))
     result = DataFrame(np.stack(stats), columns=q, index=stats.index)
     result.loc[graph.isolates] = np.nan
+    return result
+
+
+def mean_deviation(y: Series, graph: Graph) -> Series:
+    """Calculate the mean deviation of each ``y`` value and its graph neighbours.
+
+    .. math::
+        \\frac{1}{n}\\sum_{i=1}^n dev_i=\\frac{dev_1+dev_2+\\cdots+dev_n}{n}
+
+    Parameters
+    ----------
+    y : Series
+        A Series containing the values to be analysed.
+    graph : libpysal.graph.Graph
+        Graph representing spatial relationships between elements.
+
+    Returns
+    -------
+    Series
+
+    Examples
+    --------
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    Define spatial graph:
+
+    >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
+    >>> knn5
+    <Graph of 144 nodes and 720 nonzero edges indexed by
+     [0, 1, 2, 3, 4, ...]>
+
+    Mean deviation of building area and area of 5 nearest neighbors:
+
+    >>> momepy.mean_deviation(buildings.area, knn5)
+    0        281.179149
+    1      10515.948995
+    2       2240.706061
+    3        230.360732
+    4         68.719810
+            ...
+    139      259.180720
+    140      517.496703
+    141      331.849751
+    142       25.297225
+    143      654.691897
+    Length: 144, dtype: float64
+    """
+
+    inp = graph._adjacency.index.get_level_values(0)
+    res = graph._adjacency.index.get_level_values(1)
+
+    itself = inp == res
+    inp = inp[~itself]
+    res = res[~itself]
+
+    left = y.loc[inp].reset_index(drop=True)
+    right = y.loc[res].reset_index(drop=True)
+    deviations = (left - right).abs()
+
+    vals = deviations.groupby(inp).mean()
+
+    result = Series(np.nan, index=y.index)
+    result.loc[vals.index] = vals.values
     return result

@@ -156,7 +156,7 @@ def courtyard_area(geometry: GeoDataFrame | GeoSeries) -> Series:
     Verify that at least some buildings have courtyards:
 
     >>> ca.sum()
-    353.33274206543274
+    np.float64(353.33274206543274)
     """
     return Series(
         shapely.area(
@@ -342,11 +342,11 @@ def weighted_character(
 
     >>> elongation = momepy.elongation(buildings)
     >>> elongation.head()
-    0    0.908235
-    1    0.581317
-    2    0.726515
-    3    0.838843
-    4    0.727297
+    0    0.908244
+    1    0.581318
+    2    0.726527
+    3    0.838840
+    4    0.727294
     Name: elongation, dtype: float64
 
     Define spatial graph:
@@ -360,16 +360,16 @@ def weighted_character(
 
     >>> momepy.weighted_character(elongation, buildings.area, knn5)
     focal
-    0      0.808188
-    1      0.817300
-    2      0.627588
-    3      0.794766
-    4      0.806400
-            ...
-    139    0.780764
+    0      0.808190
+    1      0.817309
+    2      0.627589
+    3      0.794769
+    4      0.806403
+             ...
+    139    0.780744
     140    0.875046
     141    0.753670
-    142    0.440009
+    142    0.440000
     143    0.901127
     Name: sum, Length: 144, dtype: float64
     """

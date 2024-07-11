@@ -840,9 +840,7 @@ class Corners:
             # TODO: add arg to specify these values
             if np.degrees(angle) <= 170:
                 return True
-            if np.degrees(angle) >= 190:
-                return True
-            return False
+            return np.degrees(angle) >= 190
 
         # fill new column with the value of area, iterating over rows one by one
         for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
@@ -1183,9 +1181,7 @@ class CentroidCorners:
 
             if np.degrees(angle) <= 170:
                 return True
-            if np.degrees(angle) >= 190:
-                return True
-            return False
+            return np.degrees(angle) >= 190
 
         def _calc(geom):
             distances = []  # set empty list of distances

@@ -224,7 +224,7 @@ class TestElements:
 
         streets.index = streets.index.astype(str)
         nearest = mm.get_nearest_street(self.df_buildings, streets, 10)
-        assert (nearest == None).sum() == 137  # noqa: E711
+        assert pd.isna(nearest).sum() == 137  # noqa: E711
 
     def test_get_nearest_node(self):
         nodes, edges = mm.nx_to_gdf(mm.gdf_to_nx(self.df_streets))
@@ -308,11 +308,10 @@ class TestElements:
             mm.buffered_limit(self.df_buildings, "invalid")
 
     def test_blocks(self):
-        blocks, buildings_id, tessellation_id = mm.generate_blocks(
+        blocks, tessellation_id = mm.generate_blocks(
             self.df_tessellation, self.df_streets, self.df_buildings
         )
         assert not tessellation_id.isna().any()
-        assert not buildings_id.isna().any()
         assert len(blocks) == 8
 
     def test_blocks_inner(self):
@@ -323,11 +322,10 @@ class TestElements:
             .buffer(20)
             .exterior
         )
-        blocks, buildings_id, tessellation_id = mm.generate_blocks(
+        blocks, tessellation_id = mm.generate_blocks(
             self.df_tessellation, streets, self.df_buildings
         )
         assert not tessellation_id.isna().any()
-        assert not buildings_id.isna().any()
         assert len(blocks) == 9
         if GPD_GE_013:
             assert len(blocks.sindex.query(blocks.geometry, "overlaps")[0]) == 0
@@ -377,6 +375,37 @@ class TestElements:
             ## this needs to be redone
             assert np.isclose(simpl_group.difference(orig_group).area, 0)
 
+    def test_multi_index(self):
+        buildings = self.df_buildings.set_index(["uID", "uID"])
+        with pytest.raises(
+            ValueError,
+            match="MultiIndex is not supported in `momepy.morphological_tessellation`.",
+        ):
+            mm.morphological_tessellation(buildings)
+        with pytest.raises(
+            ValueError,
+            match="MultiIndex is not supported in `momepy.enclosed_tessellation`.",
+        ):
+            mm.enclosed_tessellation(buildings, self.enclosures)
+        with pytest.raises(
+            ValueError,
+            match="MultiIndex is not supported in `momepy.verify_tessellation`.",
+        ):
+            mm.verify_tessellation(buildings, self.enclosures)
+
+        with pytest.raises(
+            ValueError,
+            match="MultiIndex is not supported in `momepy.get_nearest_node`.",
+        ):
+            mm.get_nearest_node(
+                buildings, self.enclosures, self.enclosures, self.enclosures
+            )
+
+        with pytest.raises(
+            ValueError, match="MultiIndex is not supported in `momepy.generate_blocks`"
+        ):
+            mm.generate_blocks(buildings, self.enclosures, self.enclosures)
+
     def test_tess_single_building_edge_case(self):
         tessellations = mm.enclosed_tessellation(
             self.df_buildings, self.enclosures.geometry, n_jobs=-1
@@ -414,7 +443,7 @@ class TestElementsEquivalence:
         )
 
     def test_blocks(self):
-        blocks, buildings_id, tessellation_id = mm.generate_blocks(
+        blocks, tessellation_id = mm.generate_blocks(
             self.df_tessellation, self.df_streets, self.df_buildings
         )
         res = mm.Blocks(
@@ -424,5 +453,7 @@ class TestElementsEquivalence:
         assert_geodataframe_equal(
             blocks.geometry.to_frame(), res.blocks.geometry.to_frame()
         )
-        assert_series_equal(buildings_id, res.buildings_id)
+        assert_series_equal(
+            tessellation_id[tessellation_id.index >= 0], res.buildings_id
+        )
         assert_series_equal(tessellation_id, res.tessellation_id)

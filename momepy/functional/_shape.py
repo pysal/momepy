@@ -4,7 +4,7 @@ import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from numpy.typing import NDArray
 from packaging.version import Version
-from pandas import DataFrame, Series
+from pandas import DataFrame, MultiIndex, Series
 
 from momepy.functional import _dimension
 
@@ -333,7 +333,7 @@ def courtyard_index(
     Length: 144, dtype: float64
 
     >>> ci.max()
-    0.16605915738643523
+    np.float64(0.16605915738643523)
 
     If you know the courtyard area, you can pass it to skip the computation step.
 
@@ -379,16 +379,16 @@ def rectangularity(geometry: GeoDataFrame | GeoSeries) -> Series:
     >>> path = momepy.datasets.get_path("bubenec")
     >>> buildings = geopandas.read_file(path, layer="buildings")
     >>> momepy.rectangularity(buildings)
-    0      0.694257
-    1      0.702243
-    2      0.901606
-    3      0.821808
-    4      0.912861
-            ...
-    139    0.997022
+    0      0.694268
+    1      0.702242
+    2      0.901582
+    3      0.821797
+    4      0.912858
+             ...
+    139    0.996876
     140    0.820865
     141    0.659281
-    142    0.971584
+    142    0.971600
     143    0.999400
     Length: 144, dtype: float64
     """
@@ -612,14 +612,14 @@ def equivalent_rectangular_index(geometry: GeoDataFrame | GeoSeries) -> Series:
     >>> momepy.equivalent_rectangular_index(buildings)
     0      0.787923
     1      0.443137
-    2      0.954253
+    2      0.954252
     3      0.851658
     4      0.957543
-            ...
-    139    1.000055
+             ...
+    139    1.000050
     140    0.907837
     141    0.813269
-    142    0.995923
+    142    0.995926
     143    0.999999
     Length: 144, dtype: float64
     """
@@ -656,17 +656,17 @@ def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
     >>> path = momepy.datasets.get_path("bubenec")
     >>> buildings = geopandas.read_file(path, layer="buildings")
     >>> momepy.elongation(buildings)
-    0      0.908235
-    1      0.581317
-    2      0.726515
-    3      0.838843
-    4      0.727297
-            ...
-    139    0.607978
+    0      0.908244
+    1      0.581318
+    2      0.726527
+    3      0.838840
+    4      0.727294
+             ...
+    139    0.608004
     140    0.979998
     141    0.747326
-    142    0.564071
-    143    0.987954
+    142    0.564060
+    143    0.987953
     Name: elongation, Length: 144, dtype: float64
     """
     bbox = shapely.minimum_rotated_rectangle(geometry.geometry.array)
@@ -724,6 +724,10 @@ def centroid_corner_distance(
             "momepy.centroid_corner_distance requires geopandas 0.13 or later. "
         )
 
+    result_index = geometry.index
+    if isinstance(geometry.index, MultiIndex):
+        geometry = geometry.reset_index(drop=True)
+
     def _ccd(points: DataFrame, eps: float) -> Series:
         centroid = points.values[0, 2:]
         pts = points.values[:-1, :2]
@@ -738,7 +742,7 @@ def centroid_corner_distance(
         coords = geometry.exterior.get_coordinates(index_parts=False)
     coords[["cent_x", "cent_y"]] = geometry.centroid.get_coordinates(index_parts=False)
     ccd = coords.groupby(level=0).apply(_ccd, eps=eps)
-    ccd.index = geometry.index
+    ccd.index = result_index
     return ccd
 
 

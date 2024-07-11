@@ -37,10 +37,13 @@ class COINS:
     ----------
     edge_gdf : GeoDataFrame
         A GeoDataFrame containing edge geometry of a street network.
+        ``edge_gdf`` cannot contain identical or overlapping LineStrings.
         ``edge_gdf`` should ideally not contain MultiLineStrings.
-    angle_threshold : int, float (default 0)
-        The angle threshold for the COINS algorithm. Segments will only be considered
-        a part of the same street if the deflection angle is above the threshold.
+    angle_threshold : int, float (default 0), units: degrees
+        The threshold for the interior angle within the COINS algorithm.
+        Possible values: ``0 <= angle_threshold < 180``, in degrees.
+        Segments will only be considered part of the same stroke group
+        if the interior angle between them is above the threshold.
 
     Examples
     --------
@@ -126,7 +129,7 @@ class COINS:
                 out_line.append(
                     [
                         part,
-                        _compute_orientation(part),
+                        [],
                         [],
                         [],
                         [],
@@ -378,118 +381,51 @@ def _list_to_pairs(in_list):
     return [list(pair) for pair in zip(tmp_list[:-1], tmp_list[1:], strict=True)]
 
 
-def _compute_angle(point1, point2):
-    """Calculates the angle between two points in space."""
-    height = abs(point2[1] - point1[1])
-    base = abs(point2[0] - point1[0])
-    angle = round(math.degrees(math.atan(height / base)), 3)
-    return angle
-
-
-def _compute_orientation(line):
-    """Calculates the orientation of a line segment. Point1 is
-    the lower one on the y-axes and vice versa for Point2.
-    """
-    point1 = line[1]
-    point2 = line[0]
-
-    # If the latutide of a point is less and the longitude is more, or
-    # If the latitude of a point is more and the longitude is less, then
-    # the point is oriented leftward and wil have negative orientation.
-    if ((point2[0] > point1[0]) and (point2[1] < point1[1])) or (
-        (point2[0] < point1[0]) and (point2[1] > point1[1])
-    ):
-        return -_compute_angle(point1, point2)
-
-    # if the latitudes are same, the line is horizontal
-    elif point2[1] == point1[1]:
-        return 0
-
-    # if the longitudes are same, the line is vertical
-    elif point2[0] == point1[0]:
-        return 90
-
-    return _compute_angle(point1, point2)
-
-
-def _points_set_angle(line1, line2):
-    """Calculate the acute joining angle between two given set of points."""
-    l1orien = _compute_orientation(line1)
-    l2orien = _compute_orientation(line2)
-
-    if ((l1orien > 0) and (l2orien < 0)) or ((l1orien < 0) and (l2orien > 0)):
-        return abs(l1orien) + abs(l2orien)
-
-    elif ((l1orien > 0) and (l2orien > 0)) or ((l1orien < 0) and (l2orien < 0)):
-        theta1 = abs(l1orien) + 180 - abs(l2orien)
-        theta2 = abs(l2orien) + 180 - abs(l1orien)
-        if theta1 < theta2:
-            return theta1
-        else:
-            return theta2
-
-    elif (l1orien == 0) or (l2orien == 0):
-        if l1orien < 0:
-            return 180 - abs(l1orien)
-        elif l2orien < 0:
-            return 180 - abs(l2orien)
-        else:
-            return 180 - (
-                abs(_compute_orientation(line1)) + abs(_compute_orientation(line2))
-            )
-
-    elif l1orien == l2orien:
-        return 180
-
-
 def _angle_between_two_lines(line1, line2):
-    """Calculate the joining angle between two line segments."""
-    l1p1, l1p2 = line1
-    l2p1, l2p2 = line2
-    l1orien = _compute_orientation(line1)
-    l2orien = _compute_orientation(line2)
+    """
+    Computes interior angle between 2 lines.
+        input:  line<x> ... list of 2 tuples (x,y);
+                line1 and line2 by definition share one unique tuple
+                (overlap in 1 point)
+        returns:    interior angle in degrees 0<alpha<=180
+                    (we assume that line1!=line2, so alpha=0 not possible)
+    """
 
-    # If both lines have same orientation, return 180 If one of the
-    # lines is zero, exception for that If both the lines are on same side
-    # of the horizontal plane, calculate 180-(sumOfOrientation) If both the
-    # lines are on same side of the vertical plane, calculate pointSetAngle.
-    if l1orien == l2orien:
-        angle = 180
+    # extract points
+    a, b = tuple(line1[0]), tuple(line1[1])
+    c, d = tuple(line2[0]), tuple(line2[1])
 
-    elif (l1orien == 0) or (l2orien == 0):
-        angle = _points_set_angle(line1, line2)
+    # assertion: we expect exactly 2 of the 4 points to be identical
+    # (lines touch in this point)
+    points = collections.Counter([a, b, c, d])
 
-    elif l1p1 == l2p1:
-        if ((l1p1[1] > l1p2[1]) and (l1p1[1] > l2p2[1])) or (
-            (l1p1[1] < l1p2[1]) and (l1p1[1] < l2p2[1])
-        ):
-            angle = 180 - (abs(l1orien) + abs(l2orien))
-        else:
-            angle = _points_set_angle([l1p1, l1p2], [l2p1, l2p2])
+    # make sure lines are not identical
+    if len(points) == 2:
+        raise ValueError(
+            "Lines are identical. Please revise input data "
+            "to ensure no lines are identical or overlapping. "
+            "You can check for duplicates using `gdf.geometry.duplicated()`."
+        )
 
-    elif l1p1 == l2p2:
-        if ((l1p1[1] > l2p1[1]) and (l1p1[1] > l1p2[1])) or (
-            (l1p1[1] < l2p1[1]) and (l1p1[1] < l1p2[1])
-        ):
-            angle = 180 - (abs(l1orien) + abs(l2orien))
-        else:
-            angle = _points_set_angle([l1p1, l1p2], [l2p2, l2p1])
+    # make sure lines do touch
+    if len(points) == 4:
+        raise ValueError("Lines do not touch.")
 
-    elif l1p2 == l2p1:
-        if ((l1p2[1] > l1p1[1]) and (l1p2[1] > l2p2[1])) or (
-            (l1p2[1] < l1p1[1]) and (l1p2[1] < l2p2[1])
-        ):
-            angle = 180 - (abs(l1orien) + abs(l2orien))
-        else:
-            angle = _points_set_angle([l1p2, l1p1], [l2p1, l2p2])
+    # points where line touch = "origin" (for vector-based angle calculation)
+    origin = [k for k, v in points.items() if v == 2][0]
+    # other 2 unique points (one on each line)
+    point1, point2 = (k for k, v in points.items() if v == 1)
 
-    elif l1p2 == l2p2:
-        if ((l1p2[1] > l1p1[1]) and (l1p2[1] > l2p1[1])) or (
-            (l1p2[1] < l1p1[1]) and (l1p2[1] < l2p1[1])
-        ):
-            angle = 180 - (abs(l1orien) + abs(l2orien))
-        else:
-            angle = _points_set_angle([l1p2, l1p1], [l2p2, l2p1])
+    # translate lines into vectors (numpy arrays)
+    v1 = [point1[0] - origin[0], point1[1] - origin[1]]
+    v2 = [point2[0] - origin[0], point2[1] - origin[1]]
+
+    # compute angle between 2 vectors in degrees
+    dot_product = v1[0] * v2[0] + v1[1] * v2[1]
+    norm_v1 = math.sqrt(v1[0] ** 2 + v1[1] ** 2)
+    norm_v2 = math.sqrt(v2[0] ** 2 + v2[1] ** 2)
+    cos_theta = dot_product / (norm_v1 * norm_v2)
+    angle = math.degrees(math.acos(cos_theta))
 
     return angle
 

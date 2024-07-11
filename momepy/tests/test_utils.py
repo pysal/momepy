@@ -5,6 +5,7 @@ import geopandas as gpd
 import networkx
 import numpy as np
 import pytest
+from geopandas.testing import assert_geodataframe_equal
 from shapely.geometry import LineString, Point
 
 import momepy as mm
@@ -197,6 +198,31 @@ class TestUtils:
             pts, lines = mm.nx_to_gdf(G)
         assert len(pts) == 7
         assert len(lines) == 16
+
+    @pytest.mark.parametrize("approach", ["primal", "dual"])
+    def test_nx_roundtrip(self, approach):
+        nx = mm.gdf_to_nx(self.df_streets, preserve_index=True, approach=approach)
+        gdf = mm.nx_to_gdf(nx, points=False)
+        assert_geodataframe_equal(gdf.drop(columns="mm_len"), self.df_streets)
+
+    @pytest.mark.parametrize("approach", ["primal", "dual"])
+    def test_nx_roundtrip_named(self, approach):
+        df = self.df_streets
+        df.index.name = "foo"
+        nx = mm.gdf_to_nx(df, preserve_index=True, approach=approach)
+        gdf = mm.nx_to_gdf(nx, points=False)
+        assert_geodataframe_equal(gdf.drop(columns="mm_len"), df)
+        assert gdf.index.name == "foo"
+
+    @pytest.mark.parametrize("approach", ["primal", "dual"])
+    def test_nx_roundtrip_custom(self, approach):
+        df = self.df_streets
+        df.index = (df.index * 10).astype(str)
+        df.index.name = "foo"
+        nx = mm.gdf_to_nx(df, preserve_index=True, approach=approach)
+        gdf = mm.nx_to_gdf(nx, points=False)
+        assert_geodataframe_equal(gdf.drop(columns="mm_len"), df)
+        assert gdf.index.name == "foo"
 
     def test_limit_range(self):
         assert list(mm.limit_range(np.arange(10), rng=(25, 75))) == [2, 3, 4, 5, 6, 7]
