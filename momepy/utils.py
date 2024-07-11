@@ -165,9 +165,17 @@ def _generate_primal(
     nx.set_node_attributes(graph, node_attrs)
 
 
-def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
+def _generate_dual(
+    graph, gdf_network, fields, angles, multigraph, angle, preserve_index
+):
     """Generate a dual graph. Helper for ``gdf_to_nx``."""
     graph.graph["approach"] = "dual"
+
+    if gdf_network.index.name is not None:
+        graph.graph["index_name"] = gdf_network.index.name
+
+    custom_index = gdf_network.index.equals(pd.RangeIndex(len(gdf_network)))
+
     key = 0
 
     sw = libpysal.weights.Queen.from_dataframe(
@@ -181,6 +189,10 @@ def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
         centroid = (row.temp_x_coords, row.temp_y_coords)
         data = list(row)[1:-2]
         attributes = dict(zip(fields, data, strict=True))
+        if preserve_index:
+            attributes["index_position"] = i
+            if custom_index:
+                attributes["index"] = row.Index
         graph.add_node(centroid, **attributes)
 
         if sw.cardinalities[i] > 0:
@@ -360,7 +372,13 @@ def gdf_to_nx(
             raise ValueError("Directed graphs are not supported in dual approach.")
 
         _generate_dual(
-            net, gdf_network, fields, angles=angles, multigraph=multigraph, angle=angle
+            net,
+            gdf_network,
+            fields,
+            angles=angles,
+            multigraph=multigraph,
+            angle=angle,
+            preserve_index=preserve_index,
         )
 
     else:
@@ -436,6 +454,13 @@ def _dual_to_gdf(net):
     """Generate a linestring gdf from a dual network. Helper for ``nx_to_gdf``."""
     starts, edge_data = zip(*net.nodes(data=True), strict=True)
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
+    if "index_position" in gdf_edges.columns:
+        gdf_edges = gdf_edges.sort_values("index_position").drop(
+            columns="index_position"
+        )
+    if "index" in gdf_edges.columns:
+        gdf_edges = gdf_edges.set_index("index")
+    gdf_edges.index.name = net.graph.get("index_name", None)
     gdf_edges.crs = net.graph["crs"]
     return gdf_edges
 
