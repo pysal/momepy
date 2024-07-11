@@ -91,4 +91,6 @@ modules = ["momepy"]
 non_interactive = true
 install_types = true
 ignore_missing_imports = true
-exclude = docs
+exclude = [
+    "^docs",
+]
