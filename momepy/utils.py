@@ -139,7 +139,7 @@ def _generate_primal(
             category=RuntimeWarning,
             stacklevel=3,
         )
-    custom_index = gdf_network.index.equals(pd.RangeIndex(len(gdf_network)))
+    custom_index = not gdf_network.index.equals(pd.RangeIndex(len(gdf_network)))
 
     for i, row in enumerate(gdf_network.itertuples()):
         first = row.geometry.coords[0]
@@ -174,7 +174,7 @@ def _generate_dual(
     if gdf_network.index.name is not None:
         graph.graph["index_name"] = gdf_network.index.name
 
-    custom_index = gdf_network.index.equals(pd.RangeIndex(len(gdf_network)))
+    custom_index = not gdf_network.index.equals(pd.RangeIndex(len(gdf_network)))
 
     key = 0
 
@@ -422,6 +422,8 @@ def _lines_to_gdf(net, points, node_id):
         )
     if "index" in gdf_edges.columns:
         gdf_edges = gdf_edges.set_index("index")
+    else:
+        gdf_edges = gdf_edges.reset_index(drop=True)
     gdf_edges.index.name = net.graph.get("index_name", None)
 
     return gdf_edges
@@ -460,6 +462,8 @@ def _dual_to_gdf(net):
         )
     if "index" in gdf_edges.columns:
         gdf_edges = gdf_edges.set_index("index")
+    else:
+        gdf_edges = gdf_edges.reset_index(drop=True)
     gdf_edges.index.name = net.graph.get("index_name", None)
     gdf_edges.crs = net.graph["crs"]
     return gdf_edges
