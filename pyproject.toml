@@ -87,6 +87,7 @@ ignore_errors = true
 omit = ["tests/*", "docs/conf.py", "benchmarks/*"]
 
 [tool.mypy]
+modules = ["momepy"]
 non_interactive = true
 install_types = true
 ignore_missing_imports = true
