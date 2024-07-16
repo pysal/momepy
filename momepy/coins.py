@@ -45,15 +45,16 @@ class COINS:
         Segments will only be considered part of the same stroke group
         if the interior angle between them is above the threshold.
     flow_mode : bool, default False
-        Continuity can be derived based on visiblity or flow. The former creates a
-        stroke group break at any angle above the ``angle_threshold`` no matter if it
-        is on a node where two LineStrings intersect or if it is on an internal node
-        within the LineString. This mimics the "visible continuity". The latter creates
-        a stroke group break only at the end points of LineStrings, following the "flow"
-        definition of continuty where the direction of flow can change only when there
-        is an intersection present. This also ensures that each LineString can be
-        assigned only a single stroke group. Note that this option is not covered by
-        :cite:`tripathy2020open`.
+        Continuity can be derived based on either visibility (``flow_mode=False``) or
+        flow (``flow_mode=True``). In the former case, a stroke group break is created
+        at any angle above the ``angle_threshold``, even at internal nodes within the
+        LineString (so one LineString can be divided into multiple stroke groups if its
+        segments connect at an angle above ``angle_threshold``). This corresponds to
+        visibility-based continuity. In the latter case, stroke group breaks are only
+        created at the end points of LineStrings, following the "flow" definition of
+        continuity where the direction of flow can change only at intersections. This
+        also ensures that each LineString can be assigned only a single stroke group.
+        Note that this option is not covered by :cite:`tripathy2020open`.
 
     Examples
     --------
