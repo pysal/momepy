@@ -44,6 +44,17 @@ class COINS:
         Possible values: ``0 <= angle_threshold < 180``, in degrees.
         Segments will only be considered part of the same stroke group
         if the interior angle between them is above the threshold.
+    flow_mode : bool, default False
+        Continuity can be derived based on either visibility (``flow_mode=False``) or
+        flow (``flow_mode=True``). In the former case, a stroke group break is created
+        at any angle above the ``angle_threshold``, even at internal nodes within the
+        LineString (so one LineString can be divided into multiple stroke groups if its
+        segments connect at an angle above ``angle_threshold``). This corresponds to
+        visibility-based continuity. In the latter case, stroke group breaks are only
+        created at the end points of LineStrings, following the "flow" definition of
+        continuity where the direction of flow can change only at intersections. This
+        also ensures that each LineString can be assigned only a single stroke group.
+        Note that this option is not covered by :cite:`tripathy2020open`.
 
     Examples
     --------
@@ -67,7 +78,7 @@ class COINS:
     ``osmnx.convert.to_undirected(G)`` prior converting it to a GeoDataFrame.
     """
 
-    def __init__(self, edge_gdf, angle_threshold=0):
+    def __init__(self, edge_gdf, angle_threshold=0, flow_mode=False):
         self.edge_gdf = edge_gdf
         self.gdf_projection = self.edge_gdf.crs
         self.already_merged = False
@@ -91,7 +102,7 @@ class COINS:
         self._best_link()
 
         # cross check best links and enter angle threshold for connectivity
-        self._cross_check_links(angle_threshold)
+        self._cross_check_links(angle_threshold, flow_mode)
 
     def _premerge(self):
         """
@@ -222,15 +233,20 @@ class COINS:
             else:
                 self.unique[edge][5] = "dead_end"
 
-    def _cross_check_links(self, angle_threshold):
+    def _cross_check_links(self, angle_threshold, flow_mode):
         for edge in range(0, len(self.unique)):
             best_p1 = self.unique[edge][4][0]
             best_p2 = self.unique[edge][5][0]
 
             if (
-                isinstance(best_p1, int)
+                isinstance(best_p1, int)  # not dead_end
                 and edge in [self.unique[best_p1][4][0], self.unique[best_p1][5][0]]
                 and self.angle_pairs[f"{edge}_{best_p1}"] > angle_threshold
+            ) or (
+                flow_mode
+                and isinstance(best_p1, int)  # not dead_end
+                and edge in [self.unique[best_p1][4][0], self.unique[best_p1][5][0]]
+                and len(self.unique[edge][2]) == 1  # node degree 2
             ):
                 self.unique[edge][6] = best_p1
             else:
@@ -240,6 +256,11 @@ class COINS:
                 isinstance(best_p2, int)
                 and edge in [self.unique[best_p2][4][0], self.unique[best_p2][5][0]]
                 and self.angle_pairs[f"{edge}_{best_p2}"] > angle_threshold
+            ) or (
+                flow_mode
+                and isinstance(best_p2, int)  # not dead_end
+                and edge in [self.unique[best_p2][4][0], self.unique[best_p2][5][0]]
+                and len(self.unique[edge][3]) == 1  # node degree 2
             ):
                 self.unique[edge][7] = best_p2
             else:
@@ -424,7 +445,7 @@ def _angle_between_two_lines(line1, line2):
     dot_product = v1[0] * v2[0] + v1[1] * v2[1]
     norm_v1 = math.sqrt(v1[0] ** 2 + v1[1] ** 2)
     norm_v2 = math.sqrt(v2[0] ** 2 + v2[1] ** 2)
-    cos_theta = dot_product / (norm_v1 * norm_v2)
+    cos_theta = round(dot_product / (norm_v1 * norm_v2), 6)  # precision issues fix
     angle = math.degrees(math.acos(cos_theta))
 
     return angle
