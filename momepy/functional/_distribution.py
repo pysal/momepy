@@ -136,6 +136,7 @@ def shared_walls(
 
     predicate = "touches"
     if not strict:
+        orig_lengths = geometry.length
         geometry = geometry.buffer(tolerance)
         predicate = "intersects"
 
@@ -156,7 +157,7 @@ def shared_walls(
 
     if not strict:
         results = (results / 2) - (2 * tolerance)
-        results = results.clip(0, results.max())
+        results = results.clip(0, orig_lengths)
 
     return results
 
