@@ -445,7 +445,7 @@ def _angle_between_two_lines(line1, line2):
     dot_product = v1[0] * v2[0] + v1[1] * v2[1]
     norm_v1 = math.sqrt(v1[0] ** 2 + v1[1] ** 2)
     norm_v2 = math.sqrt(v2[0] ** 2 + v2[1] ** 2)
-    cos_theta = dot_product / (norm_v1 * norm_v2)
+    cos_theta = round(dot_product / (norm_v1 * norm_v2), 6)  # precision issues fix
     angle = math.degrees(math.acos(cos_theta))
 
     return angle
