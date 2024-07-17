@@ -237,7 +237,16 @@ def remove_false_nodes(gdf):
         # re-order closed loops
         fixed_loops = []
         fixed_index = []
-        nodes = nx_to_gdf(node_degree(gdf_to_nx(combined)), lines=False)
+        nodes = nx_to_gdf(
+            node_degree(
+                gdf_to_nx(
+                    combined
+                    if isinstance(combined, gpd.GeoDataFrame)
+                    else combined.to_frame("geometry")
+                )
+            ),
+            lines=False,
+        )
         degree2 = nodes[nodes.degree == 2]
         loops = combined[combined.is_ring]
         node_ix, loop_ix = loops.sindex.query(degree2.geometry, predicate="intersects")
@@ -257,6 +266,7 @@ def remove_false_nodes(gdf):
                 new_sequence = np.append(rolled_coords, rolled_coords[[0]], axis=0)
                 fixed_loops.append(shapely.LineString(new_sequence))
                 fixed_index.append(ix)
+        fixed_loops = gpd.GeoSeries(fixed_loops, crs=df.crs).explode(ignore_index=True)
 
         if isinstance(gdf, gpd.GeoDataFrame):
             return pd.concat(
