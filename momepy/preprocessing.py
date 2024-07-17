@@ -19,8 +19,9 @@ from shapely.ops import linemerge, polygonize, split
 from tqdm.auto import tqdm
 
 from .coins import COINS
+from .graph import node_degree
 from .shape import CircularCompactness
-from .utils import nx_to_gdf
+from .utils import gdf_to_nx, nx_to_gdf
 
 __all__ = [
     "preprocess",
@@ -221,7 +222,7 @@ def remove_false_nodes(gdf):
         df = df.drop(merge_res)
         final = gpd.GeoSeries(new_geoms, crs=df.crs).explode(ignore_index=True)
         if isinstance(gdf, gpd.GeoDataFrame):
-            return pd.concat(
+            combined = pd.concat(
                 [
                     df,
                     gpd.GeoDataFrame(
@@ -231,7 +232,59 @@ def remove_false_nodes(gdf):
                 ignore_index=True,
             )
         else:
-            return pd.concat([df, final], ignore_index=True)
+            combined = pd.concat([df, final], ignore_index=True)
+
+        # re-order closed loops
+        fixed_loops = []
+        fixed_index = []
+        nodes = nx_to_gdf(
+            node_degree(
+                gdf_to_nx(
+                    combined
+                    if isinstance(combined, gpd.GeoDataFrame)
+                    else combined.to_frame("geometry")
+                )
+            ),
+            lines=False,
+        )
+        degree2 = nodes[nodes.degree == 2]
+        loops = combined[combined.is_ring]
+        node_ix, loop_ix = loops.sindex.query(degree2.geometry, predicate="intersects")
+        for ix in np.unique(loop_ix):
+            loop_geom = loops.geometry.iloc[ix]
+            target_nodes = degree2.geometry.iloc[node_ix[loop_ix == ix]]
+            if len(target_nodes) == 2:
+                node_coords = shapely.get_coordinates(target_nodes)
+                coords = np.array(loop_geom.coords)
+                new_start = (
+                    node_coords[0]
+                    if (node_coords[0] != coords[0]).all()
+                    else node_coords[1]
+                )
+                new_start_idx = np.where(coords == new_start)[0][0]
+                rolled_coords = np.roll(coords[:-1], -new_start_idx, axis=0)
+                new_sequence = np.append(rolled_coords, rolled_coords[[0]], axis=0)
+                fixed_loops.append(shapely.LineString(new_sequence))
+                fixed_index.append(ix)
+        fixed_loops = gpd.GeoSeries(fixed_loops, crs=df.crs).explode(ignore_index=True)
+
+        if isinstance(gdf, gpd.GeoDataFrame):
+            return pd.concat(
+                [
+                    combined.drop(loops.iloc[fixed_index].index),
+                    gpd.GeoDataFrame(
+                        {df.geometry.name: fixed_loops},
+                        geometry=df.geometry.name,
+                        crs=df.crs,
+                    ),
+                ],
+                ignore_index=True,
+            )
+        else:
+            return pd.concat(
+                [combined.drop(loops.iloc[fixed_index].index), fixed_loops],
+                ignore_index=True,
+            )
 
     # if there's nothing to fix, return the original dataframe
     return gdf

@@ -39,6 +39,20 @@ class TestPreprocessing:
         assert isinstance(fixed, gpd.GeoDataFrame)
         assert self.false_network.crs.equals(fixed.crs)
         assert sorted(self.false_network.columns) == sorted(fixed.columns)
+
+        # check loop order
+        expected = np.array(
+            [
+                [-727238.49292668, -1052817.28071986],
+                [-727253.1752498, -1052827.47329062],
+                [-727223.93217677, -1052829.47624082],
+                [-727238.49292668, -1052817.28071986],
+            ]
+        )
+        np.testing.assert_almost_equal(
+            np.array(fixed.loc[53].geometry.coords), expected
+        )
+
         fixed_series = mm.remove_false_nodes(self.false_network.geometry)
         assert len(fixed_series) == 56
         assert isinstance(fixed_series, gpd.GeoSeries)
