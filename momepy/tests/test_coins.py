@@ -93,6 +93,50 @@ class TestCOINS:
 
         assert_series_equal(result, expected)
 
+        result, ends = coins.stroke_attribute(return_ends=True)
+
+        expected_ends = pd.Series(
+            [
+                True,
+                False,
+                True,
+                False,
+                True,
+                False,
+                True,
+                True,
+                False,
+                True,
+                True,
+                False,
+                False,
+                True,
+                False,
+                False,
+                False,
+                True,
+                True,
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                True,
+                True,
+                False,
+                False,
+                True,
+                False,
+                True,
+                True,
+            ]
+        )
+        assert_series_equal(result, expected)
+        assert_series_equal(ends, expected_ends)
+
     def test_premerge(self):
         coins = mm.COINS(self.gdf)
         result = coins._premerge()

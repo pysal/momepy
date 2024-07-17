@@ -122,13 +122,16 @@ class COINS:
             self._merge_lines()
         return self._create_gdf_strokes()
 
-    def stroke_attribute(self):
+    def stroke_attribute(self, return_ends=False):
         """
         Return a pandas Series encoding stroke groups onto the original input geometry.
+
+        Optionally, (``return_ends=True``), return a tuple of Series with the second
+        tuple encoding stroke group ends.
         """
         if not self.already_merged:
             self._merge_lines()
-        return self._add_gdf_stroke_attributes()
+        return self._add_gdf_stroke_attributes(return_ends=return_ends)
 
     def _split_lines(self):
         out_line = []
@@ -369,7 +372,7 @@ class COINS:
 
         return edge_gdf
 
-    def _add_gdf_stroke_attributes(self):
+    def _add_gdf_stroke_attributes(self, return_ends=False):
         # Invert self.edge_idx to get a dictionary where the key is
         # the original edge index and the value is the group
         inv_edges = {
@@ -381,6 +384,16 @@ class COINS:
         for edge in self.uv_index:
             stroke_group_attributes.append(inv_edges[edge])
 
+        if return_ends:
+            ends_bool = {k: False for k in self.uv_index}
+            for vals in self.unique.values():
+                if isinstance(vals[6], str) or isinstance(vals[7], str):
+                    ends_bool[vals[8]] = True
+
+            return (
+                pd.Series(stroke_group_attributes, index=self.edge_gdf.index),
+                pd.Series(ends_bool.values(), index=self.edge_gdf.index),
+            )
         return pd.Series(stroke_group_attributes, index=self.edge_gdf.index)
 
 
