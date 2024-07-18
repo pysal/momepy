@@ -106,7 +106,7 @@ def shared_walls(
         A GeoDataFrame or GeoSeries containing polygons to analyse.
     strict : bool
         Perform calculations based on strict contiguity. If set to `False`,
-        consider overlaping or nearly overlaping polygons as touching.
+        consider overlapping or nearly overlapping polygons as touching.
     tolerance: float
         Tolerance for non-strict calculations, if strict is True, tolerance
         has no effect on the results.
