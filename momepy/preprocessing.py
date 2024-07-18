@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import collections
 import math
 import operator
 import warnings
@@ -20,8 +19,9 @@ from shapely.ops import linemerge, polygonize, split
 from tqdm.auto import tqdm
 
 from .coins import COINS
+from .graph import node_degree
 from .shape import CircularCompactness
-from .utils import nx_to_gdf
+from .utils import gdf_to_nx, nx_to_gdf
 
 __all__ = [
     "preprocess",
@@ -195,54 +195,34 @@ def remove_false_nodes(gdf):
         df = gpd.GeoSeries(gdf)
 
     # extract array of coordinates and number per geometry
-    coords = shapely.get_coordinates(geom)
-    indices = shapely.get_num_coordinates(geom)
+    start_points = shapely.get_point(geom, 0)
+    end_points = shapely.get_point(geom, -1)
 
-    # generate a list of start and end coordinates and create point geometries
-    edges = [0]
-    i = 0
-    for ind in indices:
-        ix = i + ind
-        edges.append(ix - 1)
-        edges.append(ix)
-        i = ix
-    edges = edges[:-1]
-    points = shapely.points(np.unique(coords[edges], axis=0))
+    points = shapely.points(
+        np.unique(
+            shapely.get_coordinates(np.concatenate([start_points, end_points])), axis=0
+        )
+    )
 
     # query LineString geometry to identify points intersecting 2 geometries
     tree = shapely.STRtree(geom)
     inp, res = tree.query(points, predicate="intersects")
     unique, counts = np.unique(inp, return_counts=True)
-    merge = res[np.isin(inp, unique[counts == 2])]
+    mask = np.isin(inp, unique[counts == 2])
+    merge_res = res[mask]
+    merge_inp = inp[mask]
 
-    if len(merge):
-        # filter duplications and create a dictionary with indication of components to
-        # be merged together
-        dups = [item for item, count in collections.Counter(merge).items() if count > 1]
-        split = np.split(merge, len(merge) / 2)
-        components = {}
-        for i, a in enumerate(split):
-            if a[0] in dups or a[1] in dups:
-                if a[0] in components:
-                    i = components[a[0]]
-                elif a[1] in components:
-                    i = components[a[1]]
-            components[a[0]] = i
-            components[a[1]] = i
+    if len(merge_res):
+        g = nx.Graph(list(zip(merge_inp * -1, merge_res, strict=True)))
+        new_geoms = []
+        for c in nx.connected_components(g):
+            valid = [ix for ix in c if ix > -1]
+            new_geoms.append(shapely.line_merge(shapely.union_all(geom[valid])))
 
-        # iterate through components and create new geometries
-        all_keys = {}
-        for k, v in components.items():
-            all_keys.setdefault(v, []).append(k)
-        new = []
-        for keys in all_keys.values():
-            new.append(shapely.line_merge(shapely.union_all(geom[keys])))
-
-        # remove incorrect geometries and append fixed versions
-        df = df.drop(merge)
-        final = gpd.GeoSeries(new, crs=df.crs).explode(ignore_index=True)
+        df = df.drop(merge_res)
+        final = gpd.GeoSeries(new_geoms, crs=df.crs).explode(ignore_index=True)
         if isinstance(gdf, gpd.GeoDataFrame):
-            return pd.concat(
+            combined = pd.concat(
                 [
                     df,
                     gpd.GeoDataFrame(
@@ -251,7 +231,59 @@ def remove_false_nodes(gdf):
                 ],
                 ignore_index=True,
             )
-        return pd.concat([df, final], ignore_index=True)
+        else:
+            combined = pd.concat([df, final], ignore_index=True)
+
+        # re-order closed loops
+        fixed_loops = []
+        fixed_index = []
+        nodes = nx_to_gdf(
+            node_degree(
+                gdf_to_nx(
+                    combined
+                    if isinstance(combined, gpd.GeoDataFrame)
+                    else combined.to_frame("geometry")
+                )
+            ),
+            lines=False,
+        )
+        loops = combined[combined.is_ring]
+        node_ix, loop_ix = loops.sindex.query(nodes.geometry, predicate="intersects")
+        for ix in np.unique(loop_ix):
+            loop_geom = loops.geometry.iloc[ix]
+            target_nodes = nodes.geometry.iloc[node_ix[loop_ix == ix]]
+            if len(target_nodes) == 2:
+                node_coords = shapely.get_coordinates(target_nodes)
+                coords = np.array(loop_geom.coords)
+                new_start = (
+                    node_coords[0]
+                    if (node_coords[0] != coords[0]).all()
+                    else node_coords[1]
+                )
+                new_start_idx = np.where(coords == new_start)[0][0]
+                rolled_coords = np.roll(coords[:-1], -new_start_idx, axis=0)
+                new_sequence = np.append(rolled_coords, rolled_coords[[0]], axis=0)
+                fixed_loops.append(shapely.LineString(new_sequence))
+                fixed_index.append(ix)
+        fixed_loops = gpd.GeoSeries(fixed_loops, crs=df.crs).explode(ignore_index=True)
+
+        if isinstance(gdf, gpd.GeoDataFrame):
+            return pd.concat(
+                [
+                    combined.drop(loops.iloc[fixed_index].index),
+                    gpd.GeoDataFrame(
+                        {df.geometry.name: fixed_loops},
+                        geometry=df.geometry.name,
+                        crs=df.crs,
+                    ),
+                ],
+                ignore_index=True,
+            )
+        else:
+            return pd.concat(
+                [combined.drop(loops.iloc[fixed_index].index), fixed_loops],
+                ignore_index=True,
+            )
 
     # if there's nothing to fix, return the original dataframe
     return gdf

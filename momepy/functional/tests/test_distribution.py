@@ -47,6 +47,23 @@ class TestDistribution:
         r = mm.shared_walls(self.df_buildings)
         assert_result(r, expected, self.df_buildings)
 
+    def test_shared_walls_approx(self):
+        expected = {
+            "mean": 36.87618331446485,
+            "sum": 5310.17039728293,
+            "min": 0,
+            "max": 106.20917523555639,
+        }
+        tolerance = 0.1
+        geometry = self.df_buildings.buffer(-tolerance)
+        r = mm.shared_walls(geometry)
+        assert (r == 0).all()
+
+        r = mm.shared_walls(geometry, strict=False, tolerance=tolerance + 0.001)
+
+        # check that values are equal to strict version up to 10cm
+        assert_result(r, expected, self.df_buildings, rel=1e-1)
+
     def test_alignment(self):
         orientation = mm.orientation(self.df_buildings)
         expected = {
