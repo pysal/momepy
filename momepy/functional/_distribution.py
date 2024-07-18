@@ -108,7 +108,7 @@ def shared_walls(
         Perform calculations based on strict contiguity. If set to `False`,
         consider overlaping or nearly overlaping polygons as touching.
     tolerance: float
-        Tolerance for non-strict calculations, if strict is True tolerance,
+        Tolerance for non-strict calculations, if strict is True, tolerance
         has no effect on the results.
 
     Returns
