@@ -490,7 +490,7 @@ class TestDescribe:
         df_sw = mm.describe_reached_agg(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
         )
-        expected = {"min": 6, "max": 138, "count": 35, "mean": 67.8}
+        expected = {"min": 6, "max": 138, "count": 35, "mean": 67.82857}
         assert_result(df_sw["count"], expected, self.df_streets, check_names=False)
 
         df_sw_dummy_filtration = mm.describe_reached_agg(
@@ -510,7 +510,7 @@ class TestDescribe:
             q=(10, 90),
             statistics=["count"],
         )
-        filtered_expected = {"min": 4, "max": 110, "count": 35, "mean": 53.4571428}
+        filtered_expected = {"min": 4, "max": 110, "count": 35, "mean": 53.48571}
         assert_result(
             filtered_df["count"], filtered_expected, self.df_streets, check_names=False
         )
