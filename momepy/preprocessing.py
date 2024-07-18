@@ -247,12 +247,11 @@ def remove_false_nodes(gdf):
             ),
             lines=False,
         )
-        degree2 = nodes[nodes.degree == 2]
         loops = combined[combined.is_ring]
-        node_ix, loop_ix = loops.sindex.query(degree2.geometry, predicate="intersects")
+        node_ix, loop_ix = loops.sindex.query(nodes.geometry, predicate="intersects")
         for ix in np.unique(loop_ix):
             loop_geom = loops.geometry.iloc[ix]
-            target_nodes = degree2.geometry.iloc[node_ix[loop_ix == ix]]
+            target_nodes = nodes.geometry.iloc[node_ix[loop_ix == ix]]
             if len(target_nodes) == 2:
                 node_coords = shapely.get_coordinates(target_nodes)
                 coords = np.array(loop_geom.coords)
