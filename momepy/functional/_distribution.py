@@ -90,7 +90,9 @@ def orientation(geometry: GeoDataFrame | GeoSeries) -> Series:
     )
 
 
-def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
+def shared_walls(
+    geometry: GeoDataFrame | GeoSeries, strict: bool = True, tolerance: float = 0.01
+) -> Series:
     """Calculate the length of shared walls of adjacent elements (typically buildings).
 
     Note that data needs to be topologically correct. Overlapping polygons will lead to
@@ -102,6 +104,12 @@ def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
     ----------
     geometry : GeoDataFrame | GeoSeries
         A GeoDataFrame or GeoSeries containing polygons to analyse.
+    strict : bool
+        Perform calculations based on strict contiguity. If set to `False`,
+        consider overlapping or nearly overlapping polygons as touching.
+    tolerance: float
+        Tolerance for non-strict calculations, if strict is True, tolerance
+        has no effect on the results.
 
     Returns
     -------
@@ -125,10 +133,20 @@ def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
     143    10.876113
     Name: shared_walls, Length: 144, dtype: float64
     """
+
+    predicate = "touches"
+    if not strict:
+        orig_lengths = geometry.length
+        geometry = geometry.buffer(tolerance)
+        predicate = "intersects"
+
     if GPD_GE_013:
-        inp, res = geometry.sindex.query(geometry.geometry, predicate="touches")
+        inp, res = geometry.sindex.query(geometry.geometry, predicate=predicate)
     else:
-        inp, res = geometry.sindex.query_bulk(geometry.geometry, predicate="touches")
+        inp, res = geometry.sindex.query_bulk(geometry.geometry, predicate=predicate)
+
+    mask = inp != res
+    inp, res = inp[mask], res[mask]
     left = geometry.geometry.take(inp).reset_index(drop=True)
     right = geometry.geometry.take(res).reset_index(drop=True)
     intersections = left.intersection(right).length
@@ -137,6 +155,11 @@ def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
 
     results = Series(0.0, index=geometry.index, name="shared_walls")
     results.loc[walls.index] = walls
+
+    if not strict:
+        results = (results / 2) - (2 * tolerance)
+        results = results.clip(0, orig_lengths)
+
     return results
 
 
