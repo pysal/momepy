@@ -145,7 +145,8 @@ def shared_walls(
     else:
         inp, res = geometry.sindex.query_bulk(geometry.geometry, predicate=predicate)
 
-    inp, res = inp[inp != res], res[inp != res]
+    mask =  inp != res
+    inp, res = inp[mask], res[mask]
     left = geometry.geometry.take(inp).reset_index(drop=True)
     right = geometry.geometry.take(res).reset_index(drop=True)
     intersections = left.intersection(right).length
