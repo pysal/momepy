@@ -220,6 +220,9 @@ def perimeter_wall(
     graph : Graph | None, optional
         Graph encoding Queen contiguity of ``geometry``. If ``None`` Queen contiguity is
         built on the fly.
+    buffer: float
+        Buffer value for the geometry. It can be used
+        to account for topological problems.
 
     Returns
     -------

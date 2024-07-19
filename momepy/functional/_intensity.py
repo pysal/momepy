@@ -20,6 +20,9 @@ def courtyards(
     graph : libpysal.graph.Graph
         A spatial weights matrix for the geodataframe,
         it is used to denote adjacent buildings.
+    buffer: float
+        Buffer value for the geometry. It can be used
+        to account for topological problems.
 
     Returns
     -------
