@@ -211,7 +211,7 @@ def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
 def perimeter_wall(
     geometry: GeoDataFrame | GeoSeries, graph: Graph | None = None, buffer: float = 0.01
 ) -> Series:
-    """Calculate the perimeter wall length the joined structure.
+    """Calculate the perimeter wall length of the joined structure.
 
     Parameters
     ----------
