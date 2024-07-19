@@ -44,6 +44,17 @@ class TestIntensity:
         expected = {"mean": 0.6805555555555556, "sum": 98, "min": 0, "max": 1}
         assert_result(courtyards, expected, self.df_buildings)
 
+    def test_courtyards_buffer(self):
+        buildings = self.df_buildings.copy()
+        buildings["geometry"] = buildings.simplify(0.10)
+        new_courtyards = mm.courtyards(buildings, self.buildings_graph)
+        old_courtyards = mm.courtyards(self.df_buildings, self.buildings_graph)
+        assert (new_courtyards.values != old_courtyards.values).any()
+
+        courtyards = mm.courtyards(buildings, self.buildings_graph, buffer=0.25)
+        expected = {"mean": 0.6805555555555556, "sum": 98, "min": 0, "max": 1}
+        assert_result(courtyards, expected, self.df_buildings)
+
     def test_node_density(self):
         g = mm.gdf_to_nx(self.df_streets, integer_labels=True)
         g = mm.node_degree(g)

@@ -93,6 +93,17 @@ class TestDimensions:
         pd.testing.assert_series_equal(result, result_given_graph)
         assert result[0] == pytest.approx(137.210, rel=1e-3)
 
+    def test_perimeter_wall_buffer(self):
+        buildings = self.df_buildings.copy()
+        buildings["geometry"] = buildings.simplify(0.10)
+        adj = Graph.build_contiguity(self.df_buildings)
+        new_perimeter = mm.perimeter_wall(buildings, adj)
+        old_perimeter = mm.perimeter_wall(self.df_buildings, adj)
+        assert (new_perimeter.values != old_perimeter.values).any()
+
+        result = mm.perimeter_wall(buildings, adj, buffer=0.25)
+        assert result[0] == pytest.approx(137.210, rel=1e-3)
+
     @pytest.mark.skipif(not GPD_013, reason="no attribute 'segmentize'")
     def test_street_profile(self):
         sp = mm.street_profile(
