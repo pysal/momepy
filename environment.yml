@@ -6,7 +6,7 @@ dependencies:
   - geopandas>=0.12.0
   - inequality
   - jupyter
-  - libpysal>=4.11.0
+  - libpysal>=4.12.0
   - mapclassify
   - matplotlib
   - networkx>=2.8

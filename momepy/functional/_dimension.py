@@ -209,9 +209,9 @@ def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
 
 
 def perimeter_wall(
-    geometry: GeoDataFrame | GeoSeries, graph: Graph | None = None
+    geometry: GeoDataFrame | GeoSeries, graph: Graph | None = None, buffer: float = 0.01
 ) -> Series:
-    """Calculate the perimeter wall length the joined structure.
+    """Calculate the perimeter wall length of the joined structure.
 
     Parameters
     ----------
@@ -220,6 +220,9 @@ def perimeter_wall(
     graph : Graph | None, optional
         Graph encoding Queen contiguity of ``geometry``. If ``None`` Queen contiguity is
         built on the fly.
+    buffer: float
+        Buffer value for the geometry. It can be used
+        to account for topological problems.
 
     Returns
     -------
@@ -276,7 +279,7 @@ def perimeter_wall(
     blocks = geometry.drop(isolates)
     component_perimeter = (
         blocks[[blocks.geometry.name]]
-        .set_geometry(blocks.buffer(0.01))  # type: ignore
+        .set_geometry(blocks.buffer(buffer))  # type: ignore
         .dissolve(by=graph.component_labels.drop(isolates))
         .exterior.length
     )

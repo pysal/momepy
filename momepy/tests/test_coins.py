@@ -93,6 +93,50 @@ class TestCOINS:
 
         assert_series_equal(result, expected)
 
+        result, ends = coins.stroke_attribute(return_ends=True)
+
+        expected_ends = pd.Series(
+            [
+                True,
+                False,
+                True,
+                False,
+                True,
+                False,
+                True,
+                True,
+                False,
+                True,
+                True,
+                False,
+                False,
+                True,
+                False,
+                False,
+                False,
+                True,
+                True,
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                True,
+                True,
+                False,
+                False,
+                True,
+                False,
+                True,
+                True,
+            ]
+        )
+        assert_series_equal(result, expected)
+        assert_series_equal(ends, expected_ends)
+
     def test_premerge(self):
         coins = mm.COINS(self.gdf)
         result = coins._premerge()
@@ -217,3 +261,59 @@ class TestCOINS:
         stroke_attr = coins.stroke_attribute()
         # expecting both lines to be part of same group
         assert stroke_attr[0] != stroke_attr[1]
+
+    def test_flow_mode(self):
+        roads = gpd.GeoSeries.from_wkt(
+            [
+                "LINESTRING (682705.3550242907 5614078.5083698435, 682708.0849458438 5614073.895229458, 682712.4572257706 5614067.790682519)",  # noqa: E501
+                "LINESTRING (682680.7622123861 5614067.175691795, 682695.2357549993 5614044.543851833)",  # noqa: E501
+                "LINESTRING (682705.3550242907 5614078.5083698435, 682680.7622123861 5614067.175691795)",  # noqa: E501
+                "LINESTRING (682709.3980117479 5614080.294302186, 682705.3550242907 5614078.5083698435)",  # noqa: E501
+                "LINESTRING (682677.6759713582 5614091.273667651, 682677.2937893708 5614090.719229713, 682672.358253116 5614084.113239679, 682680.7622123861 5614067.175691795)",  # noqa: E501
+            ]
+        )
+        no_flow = mm.COINS(roads, 120)
+        pm = no_flow._premerge()
+        assert pm.p1_final.tolist() == [
+            "line_break",
+            0,
+            7,
+            4,
+            "line_break",
+            "line_break",
+            5,
+            "line_break",
+        ]
+        assert pm.p2_final.tolist() == [
+            1,
+            "line_break",
+            "line_break",
+            "line_break",
+            3,
+            6,
+            "line_break",
+            2,
+        ]
+
+        flow = mm.COINS(roads, 120, flow_mode=True)
+        pm = flow._premerge()
+        assert pm.p1_final.tolist() == [
+            "line_break",
+            0,
+            7,
+            4,
+            "line_break",
+            "line_break",
+            5,
+            6,
+        ]
+        assert pm.p2_final.tolist() == [
+            1,
+            "line_break",
+            "line_break",
+            "line_break",
+            3,
+            6,
+            7,
+            2,
+        ]
