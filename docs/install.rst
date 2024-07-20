@@ -109,7 +109,7 @@ Dependencies
 Required dependencies:
 
 - `geopandas`_ (>= 0.12.0)
-- `libpysal`_ (>= 4.11.0)
+- `libpysal`_ (>= 4.12.0)
 - `networkx`_
 - `tqdm`_
 
