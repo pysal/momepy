@@ -11,6 +11,7 @@ Date: May 29, 2021
 
 import collections
 import math
+import warnings
 
 import geopandas as gpd
 import numpy as np
@@ -435,11 +436,15 @@ def _angle_between_two_lines(line1, line2):
 
     # make sure lines are not identical
     if len(points) == 2:
-        raise ValueError(
-            "Lines are identical. Please revise input data "
-            "to ensure no lines are identical or overlapping. "
-            "You can check for duplicates using `gdf.geometry.duplicated()`."
+        warnings.warn(
+            f"Lines are between points {points.keys()} identical. Please revise input "
+            "data to ensure no lines are identical or overlapping. "
+            "You can check for duplicates using `gdf.geometry.duplicated()`. Assuming"
+            'an angle of 0 degrees.',
+            UserWarning,
+            stacklevel=3
         )
+        return 0
 
     # make sure lines do touch
     if len(points) == 4:
