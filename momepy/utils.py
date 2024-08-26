@@ -112,13 +112,13 @@ def _angle(a, b, c):
 
 
 def _generate_primal(
-    graph, gdf_network, fields, multigraph, oneway_column=None, preserve_index=False
+    graph, gdf_edges, gdf_nodes, fields, multigraph, oneway_column=None, preserve_index=False, add_edges_first=True
 ):
     """Generate a primal graph. Helper for ``gdf_to_nx``."""
     graph.graph["approach"] = "primal"
 
-    if gdf_network.index.name is not None:
-        graph.graph["index_name"] = gdf_network.index.name
+    if gdf_edges.index.name is not None:
+        graph.graph["index_name"] = gdf_edges.index.name
 
     msg = (
         " This can lead to unexpected behaviour. "
@@ -126,44 +126,68 @@ def _generate_primal(
         "is with networks made of LineStrings only."
     )
 
-    if "LineString" not in gdf_network.geom_type.unique():
+    if "LineString" not in gdf_edges.geom_type.unique():
         warnings.warn(
-            message="The given network does not contain any LineString." + msg,
+            message="The given edges geodataframe does not contain any LineString." + msg,
             category=RuntimeWarning,
             stacklevel=3,
         )
 
-    if len(gdf_network.geom_type.unique()) > 1:
+    if len(gdf_edges.geom_type.unique()) > 1:
         warnings.warn(
-            message="The given network consists of multiple geometry types." + msg,
+            message="The given edges geodataframe consists of multiple geometry types." + msg,
             category=RuntimeWarning,
             stacklevel=3,
         )
-    custom_index = not gdf_network.index.equals(pd.RangeIndex(len(gdf_network)))
 
-    for i, row in enumerate(gdf_network.itertuples()):
-        first = row.geometry.coords[0]
-        last = row.geometry.coords[-1]
+    def _process_edges():
+        custom_index = not gdf_edges.index.equals(pd.RangeIndex(len(gdf_edges)))
+        for i, row in enumerate(gdf_edges.itertuples()):
+            first = row.geometry.coords[0]
+            last = row.geometry.coords[-1]
 
-        data = list(row)[1:]
-        attributes = dict(zip(fields, data, strict=True))
-        if preserve_index:
-            attributes["index_position"] = i
-            if custom_index:
-                attributes["index"] = row.Index
-        if multigraph:
-            graph.add_edge(first, last, **attributes)
+            data = list(row)[1:]
+            attributes = dict(zip(fields["edges"], data, strict=True))
+            if preserve_index:
+                attributes["index_position"] = i
+                if custom_index:
+                    attributes["index"] = row.Index
+            if multigraph:
+                graph.add_edge(first, last, **attributes)
 
-            if oneway_column:
-                oneway = bool(getattr(row, oneway_column))
-                if not oneway:
-                    graph.add_edge(last, first, **attributes)
-        else:
-            graph.add_edge(first, last, **attributes)
+                if oneway_column:
+                    oneway = bool(getattr(row, oneway_column))
+                    if not oneway:
+                        graph.add_edge(last, first, **attributes)
+            else:
+                graph.add_edge(first, last, **attributes)
 
-    node_attrs = {node: {"x": node[0], "y": node[1]} for node in graph.nodes}
+    def _process_nodes():
+        custom_index = not gdf_nodes.index.equals(pd.RangeIndex(len(gdf_nodes)))
+        for i, row in enumerate(gdf_nodes.itertuples()):
+            geom = row.geometry.coords[0]
+
+            data = list(row)[1:]
+            attributes = dict(zip(fields["nodes"], data, strict=True))
+            if preserve_index:
+                attributes["index_position"] = i
+                if custom_index:
+                    attributes["index"] = row.Index
+
+            graph.add_node(geom, **attributes)
+
+    if add_edges_first:
+        _process_edges()
+        _process_nodes()
+    else:
+        _process_nodes()
+        _process_edges()
+
+    # populate some basic data for any remaining nodes
+    node_attrs = {node: {"x": node[0], "y": node[1]} for node, data in graph.nodes(data=True) if not data}
     nx.set_node_attributes(graph, node_attrs)
 
+    
 
 def _generate_dual(
     graph, gdf_network, fields, angles, multigraph, angle, preserve_index
@@ -230,7 +254,8 @@ def _generate_dual(
 
 
 def gdf_to_nx(
-    gdf_network,
+    gdf_edges,
+    gdf_nodes=None,
     approach="primal",
     length="mm_len",
     multigraph=True,
@@ -240,6 +265,7 @@ def gdf_to_nx(
     oneway_column=None,
     integer_labels=False,
     preserve_index=False,
+    add_edges_first=True,
 ):
     """
     Convert a LineString GeoDataFrame to a ``networkx.MultiGraph`` or other
@@ -250,8 +276,10 @@ def gdf_to_nx(
 
     Parameters
     ----------
-    gdf_network : GeoDataFrame
-        A GeoDataFrame containing objects to convert.
+    gdf_edges : GeoDataFrame
+        A GeoDataFrame containing LineString or MultiLineString objects to convert.
+    gdf_nodes : GeoDataFrame
+        A GeoDataFrame containing Point or MultiPoint objects to convert. Optional.
     approach : str, default 'primal'
         Allowed options are ``'primal'`` or ``'dual'``. Primal graphs represent
         endpoints as nodes and LineStrings as edges. Dual graphs represent
@@ -335,9 +363,16 @@ def gdf_to_nx(
     <networkx.classes.multigraph.MultiGraph object at 0x7f8cf9150fd0>
 
     """
-    gdf_network = gdf_network.copy()
-    if "key" in gdf_network.columns:
-        gdf_network.rename(columns={"key": "__key"}, inplace=True)
+    gdf_edges = gdf_edges.copy()
+    if "key" in gdf_edges.columns:
+        gdf_edges.rename(columns={"key": "__key"}, inplace=True)
+
+    if gdf_nodes is not None:
+        gdf_nodes = gdf_nodes.copy()
+        if "key" in gdf_nodes.columns:
+            gdf_nodes.rename(columns={"key": "__key"}, inplace=True)
+    else:
+        gdf_nodes = gpd.GeoDataFrame(columns=['geometry'], geometry='geometry', crs=gdf_edges.crs)
 
     if multigraph and directed:
         net = nx.MultiDiGraph()
@@ -348,9 +383,13 @@ def gdf_to_nx(
     else:
         net = nx.Graph()
 
-    net.graph["crs"] = gdf_network.crs
-    gdf_network[length] = gdf_network.geometry.length
-    fields = list(gdf_network.columns)
+    net.graph["crs"] = gdf_edges.crs
+    gdf_edges[length] = gdf_edges.geometry.length
+    gdf_nodes[length] = gdf_nodes.geometry.length
+    fields = {
+        "edges": list(gdf_edges.columns),
+        "nodes": list(gdf_nodes.columns),
+    }
 
     if approach == "primal":
         if oneway_column and not directed:
@@ -360,11 +399,13 @@ def gdf_to_nx(
 
         _generate_primal(
             net,
-            gdf_network,
+            gdf_edges,
+            gdf_nodes,
             fields,
             multigraph,
             oneway_column,
             preserve_index=preserve_index,
+            add_edges_first=True,
         )
 
     elif approach == "dual":
