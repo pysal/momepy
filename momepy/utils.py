@@ -7,6 +7,7 @@ import geopandas as gpd
 import libpysal
 import networkx as nx
 import numpy as np
+import pandas as pd
 from numpy.lib import NumpyVersion
 from shapely.geometry import Point
 
@@ -110,9 +111,14 @@ def _angle(a, b, c):
     return abs((a2 - a1 + 180) % 360 - 180)
 
 
-def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None):
+def _generate_primal(
+    graph, gdf_network, fields, multigraph, oneway_column=None, preserve_index=False
+):
     """Generate a primal graph. Helper for ``gdf_to_nx``."""
     graph.graph["approach"] = "primal"
+
+    if gdf_network.index.name is not None:
+        graph.graph["index_name"] = gdf_network.index.name
 
     msg = (
         " This can lead to unexpected behaviour. "
@@ -133,13 +139,18 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
             category=RuntimeWarning,
             stacklevel=3,
         )
+    custom_index = not gdf_network.index.equals(pd.RangeIndex(len(gdf_network)))
 
-    for row in gdf_network.itertuples():
+    for i, row in enumerate(gdf_network.itertuples()):
         first = row.geometry.coords[0]
         last = row.geometry.coords[-1]
 
         data = list(row)[1:]
         attributes = dict(zip(fields, data, strict=True))
+        if preserve_index:
+            attributes["index_position"] = i
+            if custom_index:
+                attributes["index"] = row.Index
         if multigraph:
             graph.add_edge(first, last, **attributes)
 
@@ -154,9 +165,17 @@ def _generate_primal(graph, gdf_network, fields, multigraph, oneway_column=None)
     nx.set_node_attributes(graph, node_attrs)
 
 
-def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
+def _generate_dual(
+    graph, gdf_network, fields, angles, multigraph, angle, preserve_index
+):
     """Generate a dual graph. Helper for ``gdf_to_nx``."""
     graph.graph["approach"] = "dual"
+
+    if gdf_network.index.name is not None:
+        graph.graph["index_name"] = gdf_network.index.name
+
+    custom_index = not gdf_network.index.equals(pd.RangeIndex(len(gdf_network)))
+
     key = 0
 
     sw = libpysal.weights.Queen.from_dataframe(
@@ -170,6 +189,10 @@ def _generate_dual(graph, gdf_network, fields, angles, multigraph, angle):
         centroid = (row.temp_x_coords, row.temp_y_coords)
         data = list(row)[1:-2]
         attributes = dict(zip(fields, data, strict=True))
+        if preserve_index:
+            attributes["index_position"] = i
+            if custom_index:
+                attributes["index"] = row.Index
         graph.add_node(centroid, **attributes)
 
         if sw.cardinalities[i] > 0:
@@ -216,6 +239,7 @@ def gdf_to_nx(
     angle="angle",
     oneway_column=None,
     integer_labels=False,
+    preserve_index=False,
 ):
     """
     Convert a LineString GeoDataFrame to a ``networkx.MultiGraph`` or other
@@ -258,6 +282,12 @@ def gdf_to_nx(
         Convert node labels to integers. By default, node labels are tuples with (x, y)
         coordinates. Set to True to encode them as integers. Note that the x, and y
         coordinates are always preserved as node attributes.
+    preserve_index : bool, default False
+        Preserve information about the index of ``gdf_network``. If
+        ``gdf_network.index`` is the default ``RangeIndex``, ``"index_position"``
+        attribute is added to each edge. If it is a custom index, ``"index_position"``
+        and ``"index"`` attributes are added. These attributes are then used by
+        :func:`nx_to_gdf` to faithfully roundtrip the data in the same order.
 
     Returns
     -------
@@ -328,14 +358,27 @@ def gdf_to_nx(
                 "Bidirectional lines are only supported for directed graphs."
             )
 
-        _generate_primal(net, gdf_network, fields, multigraph, oneway_column)
+        _generate_primal(
+            net,
+            gdf_network,
+            fields,
+            multigraph,
+            oneway_column,
+            preserve_index=preserve_index,
+        )
 
     elif approach == "dual":
         if directed:
             raise ValueError("Directed graphs are not supported in dual approach.")
 
         _generate_dual(
-            net, gdf_network, fields, angles=angles, multigraph=multigraph, angle=angle
+            net,
+            gdf_network,
+            fields,
+            angles=angles,
+            multigraph=multigraph,
+            angle=angle,
+            preserve_index=preserve_index,
         )
 
     else:
@@ -373,6 +416,15 @@ def _lines_to_gdf(net, points, node_id):
 
     if "crs" in net.graph:
         gdf_edges.crs = net.graph["crs"]
+    if "index_position" in gdf_edges.columns:
+        gdf_edges = gdf_edges.sort_values("index_position").drop(
+            columns="index_position"
+        )
+    if "index" in gdf_edges.columns:
+        gdf_edges = gdf_edges.set_index("index")
+    else:
+        gdf_edges = gdf_edges.reset_index(drop=True)
+    gdf_edges.index.name = net.graph.get("index_name", None)
 
     return gdf_edges
 
@@ -404,6 +456,15 @@ def _dual_to_gdf(net):
     """Generate a linestring gdf from a dual network. Helper for ``nx_to_gdf``."""
     starts, edge_data = zip(*net.nodes(data=True), strict=True)
     gdf_edges = gpd.GeoDataFrame(list(edge_data))
+    if "index_position" in gdf_edges.columns:
+        gdf_edges = gdf_edges.sort_values("index_position").drop(
+            columns="index_position"
+        )
+    if "index" in gdf_edges.columns:
+        gdf_edges = gdf_edges.set_index("index")
+    else:
+        gdf_edges = gdf_edges.reset_index(drop=True)
+    gdf_edges.index.name = net.graph.get("index_name", None)
     gdf_edges.crs = net.graph["crs"]
     return gdf_edges
 

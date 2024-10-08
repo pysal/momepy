@@ -47,15 +47,15 @@ def orientation(geometry: GeoDataFrame | GeoSeries) -> Series:
     >>> path = momepy.datasets.get_path("bubenec")
     >>> buildings = geopandas.read_file(path, layer="buildings")
     >>> momepy.orientation(buildings)
-    0      41.050525
+    0      41.051468
     1      20.829200
-    2      20.967704
-    3      20.811290
-    4      20.411651
-            ...
-    139    21.110547
+    2      20.969610
+    3      20.811525
+    4      20.412895
+             ...
+    139    21.107057
     140    13.669062
-    141    13.671225
+    141    13.671217
     142    21.463914
     143    13.754569
     Name: orientation, Length: 144, dtype: float64
@@ -90,7 +90,9 @@ def orientation(geometry: GeoDataFrame | GeoSeries) -> Series:
     )
 
 
-def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
+def shared_walls(
+    geometry: GeoDataFrame | GeoSeries, strict: bool = True, tolerance: float = 0.01
+) -> Series:
     """Calculate the length of shared walls of adjacent elements (typically buildings).
 
     Note that data needs to be topologically correct. Overlapping polygons will lead to
@@ -102,6 +104,12 @@ def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
     ----------
     geometry : GeoDataFrame | GeoSeries
         A GeoDataFrame or GeoSeries containing polygons to analyse.
+    strict : bool
+        Perform calculations based on strict contiguity. If set to `False`,
+        consider overlapping or nearly overlapping polygons as touching.
+    tolerance: float
+        Tolerance for non-strict calculations, if strict is True, tolerance
+        has no effect on the results.
 
     Returns
     -------
@@ -125,10 +133,20 @@ def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
     143    10.876113
     Name: shared_walls, Length: 144, dtype: float64
     """
+
+    predicate = "touches"
+    if not strict:
+        orig_lengths = geometry.length
+        geometry = geometry.buffer(tolerance)
+        predicate = "intersects"
+
     if GPD_GE_013:
-        inp, res = geometry.sindex.query(geometry.geometry, predicate="touches")
+        inp, res = geometry.sindex.query(geometry.geometry, predicate=predicate)
     else:
-        inp, res = geometry.sindex.query_bulk(geometry.geometry, predicate="touches")
+        inp, res = geometry.sindex.query_bulk(geometry.geometry, predicate=predicate)
+
+    mask = inp != res
+    inp, res = inp[mask], res[mask]
     left = geometry.geometry.take(inp).reset_index(drop=True)
     right = geometry.geometry.take(res).reset_index(drop=True)
     intersections = left.intersection(right).length
@@ -137,6 +155,11 @@ def shared_walls(geometry: GeoDataFrame | GeoSeries) -> Series:
 
     results = Series(0.0, index=geometry.index, name="shared_walls")
     results.loc[walls.index] = walls
+
+    if not strict:
+        results = (results / 2) - (2 * tolerance)
+        results = results.clip(0, orig_lengths)
+
     return results
 
 
@@ -185,17 +208,17 @@ def alignment(orientation: Series, graph: Graph) -> Series:
     Alignment of orienation within triangulated neighbors:
 
     >>> momepy.alignment(orientation, delaunay)
-    0      14.638740
-    1       0.217086
-    2       0.204713
-    3       0.151303
-    4       0.353203
-            ...
-    139     1.970563
-    140     0.127318
-    141     0.161911
-    142     4.351755
-    143     0.084888
+    0      14.639585
+    1       0.217417
+    2       0.205626
+    3       0.151730
+    4       0.352692
+             ...
+    139     1.970642
+    140     0.127322
+    141     0.161906
+    142     4.350890
+    143     0.084884
     Name: alignment, Length: 144, dtype: float64
     """
     orientation_expanded = orientation.loc[graph._adjacency.index.get_level_values(1)]
@@ -584,15 +607,15 @@ def street_alignment(
     Compute street alignment.
 
     >>> momepy.street_alignment(blg_orient, str_orient, buildings["street_index"])
-    0      0.289796
+    0      0.290739
     1      4.542071
-    2      0.107651
-    3      0.425138
-    4      0.824776
+    2      0.105745
+    3      0.424903
+    4      0.823533
             ...
-    139    1.783366
+    139    1.779876
     140    0.109254
-    141    0.466462
+    141    0.466453
     142    1.223387
     143    0.455081
     Name: street_alignment, Length: 144, dtype: float64
@@ -644,17 +667,17 @@ def cell_alignment(
     Compute alignment:
 
     >>> momepy.cell_alignment(blg_orient, tess_orient)
-    0       0.853584
-    1      20.829171
-    2       5.550296
-    3       4.052898
-    4       0.160534
-            ...
-    139     0.193781
-    140    17.920319
+    0       0.854788
+    1      20.829200
+    2       5.552120
+    3       4.052674
+    4       0.159289
+             ...
+    139     0.189750
+    140    17.920139
     141     0.393708
-    142     0.023874
-    143     0.252116
+    142     0.024618
+    143     0.252122
     Name: orientation, Length: 144, dtype: float64
     """
 

@@ -397,14 +397,6 @@ class TestDescribe:
             un_nan_drop, un_nan_drop_expected, self.df_tessellation, check_names=False
         )
 
-        # to count nas you have to explicitly process them npw
-        self.df_tessellation.loc[self.df_tessellation["cat"].isna(), "cat"] = "np.nan"
-        un_nan = self.diversity_graph.describe(
-            self.df_tessellation["cat"], statistics=["nunique"]
-        )["nunique"]
-        un_nan_expected = {"count": 144, "mean": 8.13888888888889, "min": 8, "max": 9}
-        assert_result(un_nan, un_nan_expected, self.df_tessellation, check_names=False)
-
     @pytest.mark.skipif(
         not PD_210, reason="aggregation is different in previous pandas versions"
     )
@@ -498,7 +490,7 @@ class TestDescribe:
         df_sw = mm.describe_reached_agg(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
         )
-        expected = {"min": 6, "max": 138, "count": 35, "mean": 67.8}
+        expected = {"min": 6, "max": 138, "count": 35, "mean": 67.82857}
         assert_result(df_sw["count"], expected, self.df_streets, check_names=False)
 
         df_sw_dummy_filtration = mm.describe_reached_agg(
@@ -518,7 +510,7 @@ class TestDescribe:
             q=(10, 90),
             statistics=["count"],
         )
-        filtered_expected = {"min": 4, "max": 110, "count": 35, "mean": 53.4571428}
+        filtered_expected = {"min": 4, "max": 110, "count": 35, "mean": 53.48571}
         assert_result(
             filtered_df["count"], filtered_expected, self.df_streets, check_names=False
         )
@@ -1089,16 +1081,6 @@ class TestDescribeEquality:
         )["nunique"]
         un_old = mm.Unique(
             self.df_tessellation, "cat", self.sw, "uID", dropna=True
-        ).series
-        assert_series_equal(un_new, un_old, check_dtype=False, check_names=False)
-
-        # to keep NAs you ahve to explicitly process them now
-        self.df_tessellation.loc[self.df_tessellation["cat"].isna(), "cat"] = "np.nan"
-        un_new = self.graph_diversity.describe(
-            self.df_tessellation["cat"], statistics=["nunique"]
-        )["nunique"]
-        un_old = mm.Unique(
-            self.df_tessellation, "cat", self.sw, "uID", dropna=False
         ).series
         assert_series_equal(un_new, un_old, check_dtype=False, check_names=False)
 

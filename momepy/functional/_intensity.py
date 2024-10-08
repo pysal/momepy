@@ -6,7 +6,9 @@ from pandas import Series
 __all__ = ["courtyards"]
 
 
-def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
+def courtyards(
+    geometry: GeoDataFrame | GeoSeries, graph: Graph, buffer: float = 0.01
+) -> Series:
     """Calculate the number of courtyards within the joined structure.
 
     Adapted from :cite:`schirmer2015`.
@@ -18,6 +20,9 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
     graph : libpysal.graph.Graph
         A spatial weights matrix for the geodataframe,
         it is used to denote adjacent buildings.
+    buffer: float
+        Buffer value for the geometry. It can be used
+        to account for topological problems.
 
     Returns
     -------
@@ -60,7 +65,7 @@ def courtyards(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
     def _calculate_courtyards(group):
         """helper function to carry out the per group calculations"""
         return shapely.get_num_interior_rings(
-            shapely.union_all(shapely.buffer(group.values, 0.01))
+            shapely.union_all(shapely.buffer(group.values, buffer))
         )
 
     # calculate per group courtyards

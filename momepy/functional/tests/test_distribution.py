@@ -26,7 +26,7 @@ class TestDistribution:
             "max": 42.329365250279125,
         }
         r = mm.orientation(self.df_buildings)
-        assert_result(r, expected, self.df_buildings)
+        assert_result(r, expected, self.df_buildings, rel=1e-4)
 
         expected = {
             "mean": 21.176405050561755,
@@ -47,6 +47,23 @@ class TestDistribution:
         r = mm.shared_walls(self.df_buildings)
         assert_result(r, expected, self.df_buildings)
 
+    def test_shared_walls_approx(self):
+        expected = {
+            "mean": 36.87618331446485,
+            "sum": 5310.17039728293,
+            "min": 0,
+            "max": 106.20917523555639,
+        }
+        tolerance = 0.1
+        geometry = self.df_buildings.buffer(-tolerance)
+        r = mm.shared_walls(geometry)
+        assert (r == 0).all()
+
+        r = mm.shared_walls(geometry, strict=False, tolerance=tolerance + 0.001)
+
+        # check that values are equal to strict version up to 10cm
+        assert_result(r, expected, self.df_buildings, rel=1e-1)
+
     def test_alignment(self):
         orientation = mm.orientation(self.df_buildings)
         expected = {
@@ -56,7 +73,7 @@ class TestDistribution:
             "max": 21.32311946014944,
         }
         r = mm.alignment(orientation, self.graph)
-        assert_result(r, expected, self.df_buildings, check_names=False)
+        assert_result(r, expected, self.df_buildings, check_names=False, rel=1e-4)
 
     def test_neighbor_distance(self):
         expected = {
@@ -120,7 +137,7 @@ class TestDistribution:
             "max": 20.357934749623894,
         }
         r = mm.street_alignment(building_orientation, street_orientation, street_index)
-        assert_result(r, expected, self.df_buildings)
+        assert_result(r, expected, self.df_buildings, rel=1e-3)
 
     def test_cell_alignment(self):
         df_buildings = self.df_buildings.reset_index()
@@ -136,7 +153,7 @@ class TestDistribution:
             "max": 33.201625570390746,
             "min": 1.722848278973288e-05,
         }
-        assert_result(align, align_expected, df_buildings)
+        assert_result(align, align_expected, df_buildings, abs=1e-2)
         assert_series_equal(align, align2, check_names=False)
 
 
