@@ -179,6 +179,17 @@ With utilities allowing conversion between networkx objects and GeoPandas object
    gdf_to_nx
    nx_to_gdf
 
+
+Measuring streetscape
+---------------------
+
+Specialised class for the advanced streetscape analysis.
+
+.. autosummary::
+   :toctree: api/
+
+   Streetscape
+
 Data preprocessing
 ------------------
 
