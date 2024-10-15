@@ -82,7 +82,7 @@ class Streetscape:
         ]
 
         streets = streets.copy()
-        streets.geometry = streets.force_2d()
+        streets.geometry = shapely.force_2d(streets)
 
         nodes, edges = momepy.nx_to_gdf(
             momepy.node_degree(momepy.gdf_to_nx(streets, preserve_index=True))
