@@ -9,7 +9,6 @@ certain performance issues compared to the rest of momepy.
 
 import math
 import warnings
-from typing import TYPE_CHECKING
 
 import geopandas as gpd
 import numpy as np
@@ -18,9 +17,6 @@ import shapely
 from shapely import LineString, MultiLineString, MultiPoint, Point
 
 import momepy
-
-if TYPE_CHECKING:
-    import xarray
 
 
 class Streetscape:
@@ -1171,7 +1167,7 @@ class Streetscape:
 
         return slope_degree, slope_percent, sum_nb_points, True
 
-    def compute_slope(self, raster: xarray.DataArray) -> None:
+    def compute_slope(self, raster) -> None:
         """Compute slope-based characters
 
         Requires Xarray and Xvec packages.
