@@ -1,5 +1,15 @@
+"""
+Original implementation by Alessandro Araldi and the team of University of Cote d'Azur.
+
+Adapted for use in momepy by Marek Novotny and Martin Fleischmann.
+
+Note that the implementation in most cases follows the original code, resulting in
+certain performance issues compared to the rest of momepy.
+"""
+
 import math
 import warnings
+from typing import TYPE_CHECKING
 
 import geopandas as gpd
 import numpy as np
@@ -9,8 +19,13 @@ from shapely import LineString, MultiLineString, MultiPoint, Point
 
 import momepy
 
+if TYPE_CHECKING:
+    import xarray
+
 
 class Streetscape:
+    """Streetscape analysis based on sightlines"""
+
     def __init__(
         self,
         streets: gpd.GeoDataFrame,
@@ -25,8 +40,8 @@ class Streetscape:
     ) -> None:
         """Streetscape analysis based on sightlines
 
-        This is a direct implementation of the algorithm proposed in Araldi and Fusco
-        2024.
+        This is a direct implementation of the algorithm proposed in
+        :cite:`araldi2024multi`.
 
         Parameters
         ----------
@@ -57,6 +72,29 @@ class Streetscape:
         category_col : str, optional
             name of a column of the buildings DataFrame containing the information
             about the building category encoded as integer labels.
+
+        Examples
+        --------
+        Given only streets and buildings, you can already measure the majority of
+        characters:
+
+        >>> sc = momepy.Streetscape(streets, buildings)
+
+        The resulting data can be extracted either on a street level:
+
+        >>> street_df = sc.street_level()
+
+        Or for all individual sightline points:
+
+        >>> point_df = sc.point_level()
+
+        If you have access to plots, you can additionally measure plot-based data:
+
+        >>> sc.compute_plots(plots)
+
+        If you have a digital terrain model, you can measure slope-based data:
+
+        >>> sc.compute_slope(dtm)
         """
         self.sightline_length = sightline_length
         self.tangent_length = tangent_length
@@ -817,7 +855,21 @@ class Streetscape:
 
     def compute_plots(
         self, plots: gpd.GeoDataFrame, sightline_plot_depth_extension: float = 300
-    ):
+    ) -> None:
+        """Compute plot-based characters
+
+        Parameters
+        ----------
+        plots : gpd.GeoDataFrame
+            plots represented as polygons
+        sightline_plot_depth_extension : float, optional
+            depth of the sightline extension, by default 300
+
+        Examples
+        --------
+        >>> sc = momepy.Streetscape(streets, buildings)
+        >>> sc.compute_plots(plots)
+        """
         self.sightline_plot_depth_extension = sightline_plot_depth_extension
 
         self.rtree_parcels = plots.sindex
@@ -1119,9 +1171,29 @@ class Streetscape:
 
         return slope_degree, slope_percent, sum_nb_points, True
 
-    def compute_slope(self, raster):
-        import rioxarray  # noqa: F401
-        import xvec  # noqa: F401
+    def compute_slope(self, raster: xarray.DataArray) -> None:
+        """Compute slope-based characters
+
+        Requires Xarray and Xvec packages.
+
+        Parameters
+        ----------
+        raster : xarray.DataArray
+            xarray.DataArray object (optimally read via rioxarray), supported by Xvec's
+            ``extract_points`` method, representing digital terrain model.
+
+        Examples
+        --------
+        >>> sc = momepy.Streetscape(streets, buildings)
+        >>> sc.compute_slope(dtm)
+        """
+        try:
+            import rioxarray  # noqa: F401
+            import xvec  # noqa: F401
+        except ImportError as err:
+            raise ImportError(
+                "compute_slope requires rioxarray and xvec packages."
+            ) from err
 
         self.NODATA_RASTER = raster.rio.nodata
 
@@ -1295,7 +1367,19 @@ class Streetscape:
             ind_par_rel,
         )
 
-    def street_level(self):
+    def street_level(self) -> gpd.GeoDataFrame:
+        """Extract data on a street level.
+
+        Returns
+        -------
+        geopandas.GeoDataFrame
+            GeoDataFrame with streetscape data linked to street geometry.
+
+        Examples
+        --------
+        >>> sc = momepy.Streetscape(streets, buildings)
+        >>> sc.steet_level()
+        """
         values = []
 
         for street_uid, row in self._sightline_indicators.iterrows():
@@ -1886,7 +1970,20 @@ class Streetscape:
             "street_index"
         )
 
-    def point_level(self):
+    def point_level(self) -> gpd.GeoDataFrame:
+        """Extract data on a sightline point level.
+
+        Returns
+        -------
+        geopandas.GeoDataFrame
+            GeoDataFrame with streetscape data linked to points representing
+            origins of sightlines.
+
+        Examples
+        --------
+        >>> sc = momepy.Streetscape(streets, buildings)
+        >>> sc.point_level()
+        """
         point_data = self._sightline_indicators[
             [
                 "sightline_points",
