@@ -1444,10 +1444,10 @@ class Streetscape:
             )
             ind_os_mad = (sum_abs_error_left_os + sum_abs_error_right_os) / (2 * n)
 
-            ind_left_os_std = 0  # default
-            ind_right_os_std = 0  # default
-            ind_left_os_mad = 0  # default
-            ind_right_os_mad = 0  # default
+            ind_left_os_std = 0.0  # default
+            ind_right_os_std = 0.0  # default
+            ind_left_os_mad = 0.0  # default
+            ind_right_os_mad = 0.0  # default
 
             ind_left_os_mad = sum_abs_error_left_os / n
             ind_right_os_mad = sum_abs_error_right_os / n
@@ -1651,15 +1651,15 @@ class Streetscape:
 
             # Tan
             ind_tan = np.sum(all_tan) / n
-            ind_tan_std = 0
+            ind_tan_std = 0.0
             if n > 1:
                 ind_tan_std = math.sqrt(
                     np.sum([(x - ind_tan) ** 2 for x in all_tan]) / (n - 1)
                 )
 
             # Tan ratio
-            ind_tan_ratio = 0
-            ind_tan_ratio_std = 0
+            ind_tan_ratio = 0.0
+            ind_tan_ratio_std = 0.0
             n_tan_ratio = len(all_tan_ratio)
             if n_tan_ratio > 0:
                 ind_tan_ratio = np.sum(all_tan_ratio) / n_tan_ratio
