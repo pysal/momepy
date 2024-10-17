@@ -1,6 +1,8 @@
 .. _api_ref:
 
 .. automodule:: momepy
+   :members:
+   :undoc-members:
 
 .. currentmodule:: momepy
 
@@ -189,6 +191,10 @@ Specialised class for the advanced streetscape analysis.
    :toctree: api/
 
    Streetscape
+   Streetscape.compute_plots
+   Streetscape.compute_slope
+   Streetscape.street_level
+   Streetscape.point_level
 
 Data preprocessing
 ------------------

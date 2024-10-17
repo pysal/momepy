@@ -20,7 +20,72 @@ import momepy
 
 
 class Streetscape:
-    """Streetscape analysis based on sightlines"""
+    """Streetscape analysis based on sightlines
+
+    TODO: explain what it does.
+
+    This is a direct implementation of the algorithm proposed in
+    :cite:`araldi2024multi`.
+
+    Parameters
+    ----------
+    streets : gpd.GeoDataFrame
+        GeoDataFrame containing LineString geometry representing streets
+    buildings : gpd.GeoDataFrame
+        GeoDataFrame containing Polygon geometry representing buildings
+    sightline_length : float, optional
+        length of the sightline generated at each sightline point perpendiculary to
+        the street geometry, by default 50
+    tangent_length : float, optional
+        length of the sightline generated at each sightline point tangentially to
+        the street geometry, by default 300
+    sightline_spacing : float, optional
+        approximate distance between sightline points generated along streets,
+        by default 3
+    intersection_offset : float, optional
+        Offset to use at the beginning and the end of each LineString. The first
+        sightline point is generated at this distance from the start and the last
+        one is generated at this distance from the end of each geometry,
+        by default 0.5
+    angle_tolerance : float, optional
+        Maximum angle between sightlines that does not require infill lines to be
+        generated, by default 5
+    height_col : str, optional
+        name of a column of the buildings DataFrame containing the information
+        about the building height in meters.
+    category_col : str, optional
+        name of a column of the buildings DataFrame containing the information
+        about the building category encoded as integer labels.
+
+    Examples
+    --------
+    Given only streets and buildings, you can already measure the majority of
+    characters:
+
+    >>> sc = momepy.Streetscape(streets, buildings)
+
+    The resulting data can be extracted either on a street level:
+
+    >>> street_df = sc.street_level()
+
+    Or for all individual sightline points:
+
+    >>> point_df = sc.point_level()
+
+    If you have access to plots, you can additionally measure plot-based data:
+
+    >>> sc.compute_plots(plots)
+
+    If you have a digital terrain model, you can measure slope-based data:
+
+    >>> sc.compute_slope(dtm)
+
+    Notes
+    -----
+    momepy offers also a simplified way of anlysing streetscape using the
+    :func:`momepy.street_profile` function. That is able to compute significantly less
+    characters but is several orders of magnitude faster.
+    """
 
     def __init__(
         self,
@@ -34,64 +99,7 @@ class Streetscape:
         height_col: str | None = None,
         category_col: str | None = None,
     ) -> None:
-        """Streetscape analysis based on sightlines
-
-        This is a direct implementation of the algorithm proposed in
-        :cite:`araldi2024multi`.
-
-        Parameters
-        ----------
-        streets : gpd.GeoDataFrame
-            GeoDataFrame containing LineString geometry representing streets
-        buildings : gpd.GeoDataFrame
-            GeoDataFrame containing Polygon geometry representing buildings
-        sightline_length : float, optional
-            length of the sightline generated at each sightline point perpendiculary to
-            the street geometry, by default 50
-        tangent_length : float, optional
-            length of the sightline generated at each sightline point tangentially to
-            the street geometry, by default 300
-        sightline_spacing : float, optional
-            approximate distance between sightline points generated along streets,
-            by default 3
-        intersection_offset : float, optional
-            Offset to use at the beginning and the end of each LineString. The first
-            sightline point is generated at this distance from the start and the last
-            one is generated at this distance from the end of each geometry,
-            by default 0.5
-        angle_tolerance : float, optional
-            Maximum angle between sightlines that does not require infill lines to be
-            generated, by default 5
-        height_col : str, optional
-            name of a column of the buildings DataFrame containing the information
-            about the building height in meters.
-        category_col : str, optional
-            name of a column of the buildings DataFrame containing the information
-            about the building category encoded as integer labels.
-
-        Examples
-        --------
-        Given only streets and buildings, you can already measure the majority of
-        characters:
-
-        >>> sc = momepy.Streetscape(streets, buildings)
-
-        The resulting data can be extracted either on a street level:
-
-        >>> street_df = sc.street_level()
-
-        Or for all individual sightline points:
-
-        >>> point_df = sc.point_level()
-
-        If you have access to plots, you can additionally measure plot-based data:
-
-        >>> sc.compute_plots(plots)
-
-        If you have a digital terrain model, you can measure slope-based data:
-
-        >>> sc.compute_slope(dtm)
-        """
+        """Streetscape analysis based on sightlines"""
         self.sightline_length = sightline_length
         self.tangent_length = tangent_length
         self.sightline_spacing = sightline_spacing
