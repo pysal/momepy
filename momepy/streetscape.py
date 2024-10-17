@@ -22,7 +22,59 @@ import momepy
 class Streetscape:
     """Streetscape analysis based on sightlines
 
-    TODO: explain what it does.
+    The class is designed for morphological streetscape analysis, focusing on generating
+    and analyzing streetscape measures based on sight points and sightlines. It places
+    sight points at regular intervals along streets (``sightline_spacing``) and
+    generates four rays from each point: two perpendicular and two tangent to the
+    street. These rays intersect with building features, allowing the function to
+    capture various point-based and street-based metrics.
+
+    The function returns the following measures:
+
+    Point-level measures (for cross-sectional streetscape analysis):
+
+    * ``os``: Open Space [m]
+    * ``sb``: Setback distance from the street edge [m],
+    * ``h``: Building Height [m] (if height data is provided ``height_col``),
+    * ``hw``: Height-to-Width Ratio [-] (if height data is provided ``height_col``),
+    * ``tan``: Visual depth along the street[m],
+    * ``tan_ratio``: Tangent-Width Ratio[-],
+    * ``csosva``: Cross-sectional Sky View Factor[°],
+    * ``cr``: Building Coverage Ratio [%]
+
+    Street-level measures (summarizing the entire street element):
+
+    * ``par_tot``: Total Parallel Façades [-],
+    * ``par_rel``: RelativecParallel Façades [-],
+    * ``par_tot_15``: Total Parallel Façades within 15 meters[%],
+    * ``par_rel_15``: Relative Parallel Façades within 15 meters[%],
+    * ``built_freq``: Building Frequency,
+    * ``building_prevalence_Ti``: Prevalence of specific building types [%] (if
+    building classification is provided ``category_col``).
+
+    The method also provides the distribution of measures along the street, providing:
+
+    * ``_*_std``: Standard Deviation,
+    * ``_*_mad``: Mean Absolute Deviation,
+    * ``_*_med``: Median,
+    * ``_*_mad_med``: Median Absolute Deviation
+
+    for the following indicators: ``os``, ``sb``, ``h``, ``hw``, ``cr``, ``tan``.
+
+    If no building or feature is found within the specified tick length, the function a
+    ssigns a theoretical maximum value for ``os`` and ``sb`` or ``0/NaN`` depending on
+    the variable.
+
+    The function also provides the distribution of measures separately for the two sides
+    of the street (right and left, assigned arbitrarily). Indicators for the left side
+    are preceded by ``left_*`` and for the right side by ``right_*``.
+
+    Additional street-level measures are: ``street_length`` (Street Length),
+    ``windingness`` (Windingness or Curvature of Streets, equal to 1 -
+    :py:func:`~momepy.linearity`), ``nodes_degree_1`` (Degree 1 Nodes, representing dead
+    ends), ``nodes_degree_4`` (Degree 4 Nodes, representing intersections with 4
+    connections), and ``nodes_degree_3_5_plus`` (Degree 3-5 or More Nodes, representing
+    intersections with 3, 5, or more connections).
 
     This is a direct implementation of the algorithm proposed in
     :cite:`araldi2024multi`.
