@@ -1,8 +1,10 @@
+import re
+
 import geopandas as gpd
 import numpy as np
 import pytest
 from geopandas.testing import assert_geodataframe_equal
-from shapely import affinity
+from shapely import affinity, force_3d
 from shapely.geometry import LineString, MultiPoint, Point, Polygon
 from shapely.ops import polygonize
 
@@ -66,6 +68,22 @@ class TestPreprocessing:
         # no node of a degree 2
         df = self.df_streets.drop([4, 7, 17, 22])
         assert_geodataframe_equal(df, mm.remove_false_nodes(df))
+
+        # check 3d coords in loop
+        line_1 = LineString((Point(1, 1), Point(2, 2)))
+        line_2 = LineString((Point(2, 2), Point(3, 3)))
+        line_3 = force_3d(LineString((Point(2, 2), Point(1, 2))))
+        line_4 = LineString((Point(1, 2), Point(1, 3)))
+        line_5 = LineString((Point(1, 3), Point(2, 2)))
+
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "One or more input nodes is 3D. "
+                "Force 2D with ``geopandas.GeoSeries.force_2d()``."
+            ),
+        ):
+            mm.remove_false_nodes(np.array([line_1, line_2, line_3, line_4, line_5]))
 
     def test_CheckTessellationInput(self):
         df = self.df_buildings
