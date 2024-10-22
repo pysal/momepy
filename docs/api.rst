@@ -1,6 +1,8 @@
 .. _api_ref:
 
 .. automodule:: momepy
+   :members:
+   :undoc-members:
 
 .. currentmodule:: momepy
 
@@ -178,6 +180,21 @@ With utilities allowing conversion between networkx objects and GeoPandas object
 
    gdf_to_nx
    nx_to_gdf
+
+
+Measuring streetscape
+---------------------
+
+Specialised class for the advanced streetscape analysis.
+
+.. autosummary::
+   :toctree: api/
+
+   Streetscape
+   Streetscape.compute_plots
+   Streetscape.compute_slope
+   Streetscape.street_level
+   Streetscape.point_level
 
 Data preprocessing
 ------------------
