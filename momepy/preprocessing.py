@@ -14,6 +14,7 @@ import shapely
 from packaging.version import Version
 from scipy.signal import find_peaks
 from scipy.stats import gaussian_kde
+from shapely import force_2d
 from shapely.geometry import LineString, Point
 from shapely.ops import linemerge, polygonize, split
 from tqdm.auto import tqdm
@@ -166,8 +167,8 @@ def preprocess(
 def remove_false_nodes(gdf):
     """
     Clean topology of existing LineString geometry by removal of nodes of degree 2.
-
-    Returns the original gdf if there's no node of degree 2.
+    Returns the original gdf if there's no node of degree 2. Some geometries may
+    be forced to 2D where a Z coordinate is present.
 
     Parameters
     ----------
@@ -178,7 +179,7 @@ def remove_false_nodes(gdf):
     -------
     gdf : GeoDataFrame, GeoSeries
 
-    See also
+    See Also
     --------
     momepy.extend_lines
     momepy.close_gaps
@@ -247,20 +248,16 @@ def remove_false_nodes(gdf):
             ),
             lines=False,
         )
+
         loops = combined[combined.is_ring]
 
         node_ix, loop_ix = loops.sindex.query(nodes.geometry, predicate="intersects")
         for ix in np.unique(loop_ix):
             loop_geom = loops.geometry.iloc[ix]
             target_nodes = nodes.geometry.iloc[node_ix[loop_ix == ix]]
-            if target_nodes.has_z.any():
-                raise ValueError(
-                    "One or more input nodes is 3D. "
-                    "Force 2D with ``geopandas.GeoSeries.force_2d()``."
-                )
             if len(target_nodes) == 2:
                 node_coords = shapely.get_coordinates(target_nodes)
-                coords = np.array(loop_geom.coords)
+                coords = np.array(force_2d(loop_geom).coords)
                 new_start = (
                     node_coords[0]
                     if (node_coords[0] != coords[0]).all()
