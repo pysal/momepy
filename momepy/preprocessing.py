@@ -14,7 +14,6 @@ import shapely
 from packaging.version import Version
 from scipy.signal import find_peaks
 from scipy.stats import gaussian_kde
-from shapely import force_2d
 from shapely.geometry import LineString, Point
 from shapely.ops import linemerge, polygonize, split
 from tqdm.auto import tqdm
