@@ -166,8 +166,8 @@ def preprocess(
 def remove_false_nodes(gdf):
     """
     Clean topology of existing LineString geometry by removal of nodes of degree 2.
-
-    Returns the original gdf if there's no node of degree 2.
+    Returns the original gdf if there's no node of degree 2. Some geometries may
+    be forced to 2D where a Z coordinate is present.
 
     Parameters
     ----------
@@ -178,7 +178,7 @@ def remove_false_nodes(gdf):
     -------
     gdf : GeoDataFrame, GeoSeries
 
-    See also
+    See Also
     --------
     momepy.extend_lines
     momepy.close_gaps
@@ -247,14 +247,16 @@ def remove_false_nodes(gdf):
             ),
             lines=False,
         )
+
         loops = combined[combined.is_ring]
+
         node_ix, loop_ix = loops.sindex.query(nodes.geometry, predicate="intersects")
         for ix in np.unique(loop_ix):
             loop_geom = loops.geometry.iloc[ix]
             target_nodes = nodes.geometry.iloc[node_ix[loop_ix == ix]]
             if len(target_nodes) == 2:
                 node_coords = shapely.get_coordinates(target_nodes)
-                coords = np.array(loop_geom.coords)
+                coords = shapely.get_coordinates(loop_geom)
                 new_start = (
                     node_coords[0]
                     if (node_coords[0] != coords[0]).all()
