@@ -266,3 +266,15 @@ def test_FaceArtifacts():
 
     with pytest.raises(ValueError, match="'banana' is not supported"):
         mm.FaceArtifacts(gdf, index="banana")
+
+    p1, p2, p3, p4 = Point(1, 0), Point(2, 0), Point(3, 0), Point(2, 1)
+    inverted_t = [LineString((p1, p2)), LineString((p2, p3)), LineString((p2, p4))]
+
+    with pytest.warns(
+        UserWarning,
+        match=(
+            "Input roads could not not be polygonized. "
+            "Identification of face artifacts not possible."
+        ),
+    ):
+        mm.FaceArtifacts(gpd.GeoDataFrame(geometry=inverted_t))
