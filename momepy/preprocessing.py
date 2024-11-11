@@ -1524,7 +1524,7 @@ def _euclidean_simplification(geometry, new_origin, new_destination):
 
 
 class FaceArtifacts:
-    """Identify face artifacts in street networks
+    """Identify face artifacts in street networks.
 
     For a given street network composed of transportation-oriented geometry containing
     features representing things like roundabouts, dual carriegaways and complex
@@ -1579,6 +1579,12 @@ class FaceArtifacts:
     10  POLYGON ((-744101.275 -1043738.053, -744103.80...             2.862871
     12  POLYGON ((-744095.511 -1043623.478, -744095.35...             3.712403
     17  POLYGON ((-744488.466 -1044533.317, -744489.33...             5.158554
+
+    Notes
+    -----
+    In purely synthetic scenarios where all calculated face artifact index values are
+    equal (e.g. a regular grid/lattice) a ``LinAlgError`` error will be raised. This
+    is virtually guaranteed to not happen in practice.
     """
 
     def __init__(
@@ -1606,6 +1612,24 @@ class FaceArtifacts:
 
         # Store geometries as a GeoDataFrame
         self.polygons = gpd.GeoDataFrame(geometry=polygons)
+
+        if self.polygons.empty:
+            warnings.warn(
+                "Input roads could not not be polygonized. "
+                "Identification of face artifacts not possible.",
+                UserWarning,
+                stacklevel=2,
+            )
+            self.kde = None
+            self.pdf = None
+            self.peaks = None
+            self.d_peaks = None
+            self.valleys = None
+            self.d_valleys = None
+            self.threshold = None
+            self.face_artifacts = None
+            return
+
         if index == "circular_compactness":
             self.polygons["face_artifact_index"] = np.log(
                 shape.minimum_bounding_circle_ratio(polygons) * polygons.area
