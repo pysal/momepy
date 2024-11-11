@@ -1620,6 +1620,14 @@ class FaceArtifacts:
                 UserWarning,
                 stacklevel=2,
             )
+            self.kde = None
+            self.pdf = None
+            self.peaks = None
+            self.d_peaks = None
+            self.valleys = None
+            self.d_valleys = None
+            self.threshold = None
+            self.face_artifacts = None
             return
 
         if index == "circular_compactness":
