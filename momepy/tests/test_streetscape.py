@@ -28,8 +28,8 @@ class TestStreetscape:
         street_df = sc.street_level()
         point_df = sc.point_level()
 
-        assert street_df.shape == (35, 75)
-        assert point_df.shape == (1277, 24)
+        assert street_df.shape == (35, 77)
+        assert point_df.shape == (1277, 26)
 
     def test_no_dtm(self):
         sc = momepy.Streetscape(self.streets, self.buildings)
@@ -38,8 +38,8 @@ class TestStreetscape:
         street_df = sc.street_level()
         point_df = sc.point_level()
 
-        assert street_df.shape == (35, 92)
-        assert point_df.shape == (1277, 30)
+        assert street_df.shape == (35, 96)
+        assert point_df.shape == (1277, 34)
 
     def test_no_plots(self):
         rioxarray = pytest.importorskip("rioxarray")
@@ -51,8 +51,8 @@ class TestStreetscape:
         street_df = sc.street_level()
         point_df = sc.point_level()
 
-        assert street_df.shape == (35, 79)
-        assert point_df.shape == (1277, 24)
+        assert street_df.shape == (35, 81)
+        assert point_df.shape == (1277, 26)
 
     def test_all_values(self):
         rioxarray = pytest.importorskip("rioxarray")
@@ -67,11 +67,21 @@ class TestStreetscape:
         street_df = sc.street_level()
         point_df = sc.point_level()
 
-        assert street_df.shape == (35, 102)
-        assert point_df.shape == (1277, 30)
+        assert street_df.shape == (35, 106)
+        assert point_df.shape == (1277, 34)
 
         np.testing.assert_allclose(
-            street_df.drop(columns="geometry").median().to_numpy(),
+            street_df.drop(
+                columns=[
+                    "geometry",
+                    "left_seq_sb_index",
+                    "right_seq_sb_index",
+                    "left_plot_seq_sb_index",
+                    "right_plot_seq_sb_index",
+                ]
+            )
+            .median()
+            .to_numpy(),
             [
                 40.0,
                 1.0,
@@ -178,7 +188,17 @@ class TestStreetscape:
         )
 
         np.testing.assert_allclose(
-            point_df.drop(columns="geometry").median().to_numpy(),
+            point_df.drop(
+                columns=[
+                    "geometry",
+                    "left_seq_sb_index",
+                    "right_seq_sb_index",
+                    "left_plot_seq_sb_index",
+                    "right_plot_seq_sb_index",
+                ]
+            )
+            .median()
+            .to_numpy(),
             [
                 1.0,
                 50.0,
@@ -284,6 +304,8 @@ class TestStreetscape:
                 "left_built_coverage",
                 "right_built_coverage",
                 "built_coverage",
+                "left_seq_sb_index",
+                "right_seq_sb_index",
                 "nodes_degree_1",
                 "nodes_degree_4",
                 "nodes_degree_3_5_plus",
@@ -312,6 +334,8 @@ class TestStreetscape:
                 "plot_WP_ratio",
                 "left_plot_WP_ratio",
                 "right_plot_WP_ratio",
+                "left_plot_seq_sb_index",
+                "right_plot_seq_sb_index",
                 "slope_degree",
                 "slope_percent",
                 "n_slopes",
@@ -340,10 +364,14 @@ class TestStreetscape:
                 "right_bc",
                 "front_sb",
                 "back_sb",
+                "left_seq_sb_index",
+                "right_seq_sb_index",
                 "left_plot_seq_sb",
                 "left_plot_seq_sb_depth",
                 "right_plot_seq_sb",
                 "right_plot_seq_sb_depth",
+                "left_plot_seq_sb_index",
+                "right_plot_seq_sb_index",
                 "os_count",
                 "os",
                 "sb_count",
