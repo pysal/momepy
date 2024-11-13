@@ -38,7 +38,7 @@ class TestStreetscape:
         street_df = sc.street_level()
         point_df = sc.point_level()
 
-        assert street_df.shape == (35, 94)
+        assert street_df.shape == (35, 96)
         assert point_df.shape == (1277, 30)
 
     def test_no_plots(self):
@@ -67,11 +67,19 @@ class TestStreetscape:
         street_df = sc.street_level()
         point_df = sc.point_level()
 
-        assert street_df.shape == (35, 104)
+        assert street_df.shape == (35, 106)
         assert point_df.shape == (1277, 30)
 
         np.testing.assert_allclose(
-            street_df.drop(columns=["geometry", "left_seq_sb_ids", "right_seq_sb_ids"])
+            street_df.drop(
+                columns=[
+                    "geometry",
+                    "left_seq_sb_index",
+                    "right_seq_sb_index",
+                    "left_plot_seq_sb_index",
+                    "right_plot_seq_sb_index",
+                ]
+            )
             .median()
             .to_numpy(),
             [
@@ -286,8 +294,8 @@ class TestStreetscape:
                 "left_built_coverage",
                 "right_built_coverage",
                 "built_coverage",
-                "left_seq_sb_ids",
-                "right_seq_sb_ids",
+                "left_seq_sb_index",
+                "right_seq_sb_index",
                 "nodes_degree_1",
                 "nodes_degree_4",
                 "nodes_degree_3_5_plus",
@@ -316,6 +324,8 @@ class TestStreetscape:
                 "plot_WP_ratio",
                 "left_plot_WP_ratio",
                 "right_plot_WP_ratio",
+                "left_plot_seq_sb_index",
+                "right_plot_seq_sb_index",
                 "slope_degree",
                 "slope_percent",
                 "n_slopes",

@@ -1007,6 +1007,8 @@ class Streetscape:
                         np.nan,
                         np.nan,
                         np.nan,
+                        {},
+                        {},
                     ]
                 )
                 continue
@@ -1141,6 +1143,7 @@ class Streetscape:
                 ]
                 + wd_ratio_list
                 + wp_ratio_list
+                + [set(left_parcel_seq_sb_ids), set(right_parcel_seq_sb_ids)]
             )
 
         columns = [
@@ -1162,6 +1165,8 @@ class Streetscape:
             "plot_WP_ratio",
             "left_plot_WP_ratio",
             "right_plot_WP_ratio",
+            "left_plot_seq_sb_index",
+            "right_plot_seq_sb_index",
         ]
 
         self._aggregate_plot_data = pd.DataFrame(values, columns=columns).set_index(
@@ -1928,8 +1933,8 @@ class Streetscape:
                     "left_built_coverage",
                     "right_built_coverage",
                     "built_coverage",
-                    "left_seq_sb_ids",
-                    "right_seq_sb_ids",
+                    "left_seq_sb_index",
+                    "right_seq_sb_index",
                 ],
             )
             .set_index("street_index")
