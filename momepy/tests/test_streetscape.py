@@ -28,7 +28,7 @@ class TestStreetscape:
         street_df = sc.street_level()
         point_df = sc.point_level()
 
-        assert street_df.shape == (35, 75)
+        assert street_df.shape == (35, 77)
         assert point_df.shape == (1277, 24)
 
     def test_no_dtm(self):
@@ -38,7 +38,7 @@ class TestStreetscape:
         street_df = sc.street_level()
         point_df = sc.point_level()
 
-        assert street_df.shape == (35, 92)
+        assert street_df.shape == (35, 94)
         assert point_df.shape == (1277, 30)
 
     def test_no_plots(self):
@@ -51,7 +51,7 @@ class TestStreetscape:
         street_df = sc.street_level()
         point_df = sc.point_level()
 
-        assert street_df.shape == (35, 79)
+        assert street_df.shape == (35, 81)
         assert point_df.shape == (1277, 24)
 
     def test_all_values(self):
@@ -67,11 +67,13 @@ class TestStreetscape:
         street_df = sc.street_level()
         point_df = sc.point_level()
 
-        assert street_df.shape == (35, 102)
+        assert street_df.shape == (35, 104)
         assert point_df.shape == (1277, 30)
 
         np.testing.assert_allclose(
-            street_df.drop(columns="geometry").median().to_numpy(),
+            street_df.drop(columns=["geometry", "left_seq_sb_ids", "right_seq_sb_ids"])
+            .median()
+            .to_numpy(),
             [
                 40.0,
                 1.0,
@@ -284,6 +286,8 @@ class TestStreetscape:
                 "left_built_coverage",
                 "right_built_coverage",
                 "built_coverage",
+                "left_seq_sb_ids",
+                "right_seq_sb_ids",
                 "nodes_degree_1",
                 "nodes_degree_4",
                 "nodes_degree_3_5_plus",

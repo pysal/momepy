@@ -67,7 +67,9 @@ class Streetscape:
 
     The function also provides the distribution of measures separately for the two sides
     of the street (right and left, assigned arbitrarily). Indicators for the left side
-    are preceded by ``left_*`` and for the right side by ``right_*``.
+    are preceded by ``left_*`` and for the right side by ``right_*`` At the same time,
+    you can retrieve the index of buildings that affected each street via
+    ``*_seq_sb_ids``.
 
     Additional street-level measures are: ``street_length`` (Street Length),
     ``windingness`` (Windingness or Curvature of Streets, equal to 1 -
@@ -1847,6 +1849,8 @@ class Streetscape:
                     ind_left_built_coverage,
                     ind_right_built_coverage,
                     ind_built_coverage,
+                    set(left_seq_sb_ids),
+                    set(right_seq_sb_ids),
                 ]
             )
 
@@ -1924,6 +1928,8 @@ class Streetscape:
                     "left_built_coverage",
                     "right_built_coverage",
                     "built_coverage",
+                    "left_seq_sb_ids",
+                    "right_seq_sb_ids",
                 ],
             )
             .set_index("street_index")
