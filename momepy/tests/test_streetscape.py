@@ -39,7 +39,7 @@ class TestStreetscape:
         point_df = sc.point_level()
 
         assert street_df.shape == (35, 96)
-        assert point_df.shape == (1277, 32)
+        assert point_df.shape == (1277, 34)
 
     def test_no_plots(self):
         rioxarray = pytest.importorskip("rioxarray")
@@ -68,7 +68,7 @@ class TestStreetscape:
         point_df = sc.point_level()
 
         assert street_df.shape == (35, 106)
-        assert point_df.shape == (1277, 32)
+        assert point_df.shape == (1277, 34)
 
         np.testing.assert_allclose(
             street_df.drop(
@@ -193,6 +193,8 @@ class TestStreetscape:
                     "geometry",
                     "left_seq_sb_index",
                     "right_seq_sb_index",
+                    "left_plot_seq_sb_index",
+                    "right_plot_seq_sb_index",
                 ]
             )
             .median()
@@ -368,6 +370,8 @@ class TestStreetscape:
                 "left_plot_seq_sb_depth",
                 "right_plot_seq_sb",
                 "right_plot_seq_sb_depth",
+                "left_plot_seq_sb_index",
+                "right_plot_seq_sb_index",
                 "os_count",
                 "os",
                 "sb_count",

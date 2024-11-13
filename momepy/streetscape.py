@@ -68,8 +68,8 @@ class Streetscape:
     The function also provides the distribution of measures separately for the two sides
     of the street (right and left, assigned arbitrarily). Indicators for the left side
     are preceded by ``left_*`` and for the right side by ``right_*`` At the same time,
-    you can retrieve the index of buildings that affected each street via
-    ``*_seq_sb_ids``.
+    you can retrieve the index of buildings that intersected each sightline via
+    ``*_seq_sb_index``.
 
     Additional street-level measures are: ``street_length`` (Street Length),
     ``windingness`` (Windingness or Curvature of Streets, equal to 1 -
@@ -866,6 +866,7 @@ class Streetscape:
         parcel_seq_sb_ids = []
         parcel_seq_sb = []
         parcel_seq_sb_depth = []
+        parcel_ids_all = []
 
         n = len(sightline_points)
         if n == 0:
@@ -875,6 +876,7 @@ class Streetscape:
                 parcel_seq_sb_ids,
                 parcel_seq_sb,
                 parcel_seq_sb_depth,
+                parcel_ids_all,
             ]
 
         idx_end_point = 0
@@ -905,6 +907,7 @@ class Streetscape:
                     match_distance = _distances.min()
                     match_geom = gdf_items.geometry[match_id]
 
+                parcel_ids = []
                 # ---------------
                 # result in intersightline
                 if match_id is not None:
@@ -924,13 +927,23 @@ class Streetscape:
                     ):
                         raise Exception("Not allowed: intersection is not of type Line")
                     parcel_seq_sb_depth.append(isec.length)
+                    parcel_ids.append(match_id)
+                else:
+                    parcel_ids.append(np.nan)
 
                 # ------- iterate
                 idx_end_point += 1
+            parcel_ids_all.append(parcel_ids)
 
             parcel_sb_count.append(n_sightlines_touching)
 
-        return [parcel_sb_count, parcel_seq_sb_ids, parcel_seq_sb, parcel_seq_sb_depth]
+        return [
+            parcel_sb_count,
+            parcel_seq_sb_ids,
+            parcel_seq_sb,
+            parcel_seq_sb_depth,
+            parcel_ids_all,
+        ]
 
     def compute_plots(
         self, plots: gpd.GeoDataFrame, sightline_plot_depth_extension: float = 300
@@ -982,10 +995,12 @@ class Streetscape:
                 "left_parcel_seq_sb_ids",
                 "left_parcel_seq_sb",
                 "left_parcel_seq_sb_depth",
+                "left_parcel_ids",
                 "right_parcel_sb_count",
                 "right_parcel_seq_sb_ids",
                 "right_parcel_seq_sb",
                 "right_parcel_seq_sb_depth",
+                "right_parcel_ids",
             ],
         )
         df = df.set_index("street_index").join(self._sightline_indicators.street_length)
@@ -995,7 +1010,9 @@ class Streetscape:
     def _aggregate_plots(self):
         values = []
 
-        for street_uid, row in self._plot_indicators.iterrows():
+        for street_uid, row in self._plot_indicators.drop(
+            columns=["left_parcel_ids", "right_parcel_ids"]
+        ).iterrows():
             left_parcel_sb_count = row.left_parcel_sb_count
             left_parcel_seq_sb_ids = row.left_parcel_seq_sb_ids
             left_parcel_seq_sb = row.left_parcel_seq_sb
@@ -2125,6 +2142,8 @@ class Streetscape:
             left_parcel_seq_sb_depth = []
             right_parcel_seq_sb = []
             right_parcel_seq_sb_depth = []
+            left_ids = []
+            right_ids = []
 
             # we occasionally have more sightlines per point, so we need to average
             # values
@@ -2160,6 +2179,8 @@ class Streetscape:
                             for x in np.split(row.right_parcel_seq_sb_depth, right_inds)
                         ]
                     )
+                    left_ids.append(row.left_parcel_ids)
+                    right_ids.append(row.right_parcel_ids)
 
             point_parcel_data = pd.DataFrame(
                 {
@@ -2167,18 +2188,34 @@ class Streetscape:
                     "left_plot_seq_sb_depth": left_parcel_seq_sb_depth,
                     "right_plot_seq_sb": right_parcel_seq_sb,
                     "right_plot_seq_sb_depth": right_parcel_seq_sb_depth,
+                    "left_plot_seq_sb_index": left_ids,
+                    "right_plot_seq_sb_index": right_ids,
                 },
                 index=self._plot_indicators.index,
             )
+            point_parcel_data = point_parcel_data.explode(
+                point_parcel_data.columns.tolist()
+            )
+            point_parcel_data[
+                point_parcel_data.columns.drop(
+                    ["left_plot_seq_sb_index", "right_plot_seq_sb_index"]
+                )
+            ] = point_parcel_data[
+                point_parcel_data.columns.drop(
+                    ["left_plot_seq_sb_index", "right_plot_seq_sb_index"]
+                )
+            ].astype(float)
             point_data = pd.concat(
-                [
-                    point_data,
-                    point_parcel_data.explode(
-                        point_parcel_data.columns.tolist()
-                    ).astype(float),
-                ],
+                [point_data, point_parcel_data],
                 axis=1,
             )
+
+            point_data["left_plot_seq_sb_index"] = point_data[
+                "left_plot_seq_sb_index"
+            ].apply(lambda x: {c for c in x if not pd.isna(c)})
+            point_data["right_plot_seq_sb_index"] = point_data[
+                "right_plot_seq_sb_index"
+            ].apply(lambda x: {c for c in x if not pd.isna(c)})
             inds.extend(
                 [
                     "plot_seq_sb",
