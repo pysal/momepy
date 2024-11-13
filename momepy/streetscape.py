@@ -534,6 +534,9 @@ class Streetscape:
         current_street_front_sb = []
         current_street_back_sb = []
 
+        left_ids_all = []
+        right_ids_all = []
+
         # [Expanded] each time a sight line or intersight line occured
         left_seq_sightlines_end_points = []
         right_seq_sightlines_end_points = []
@@ -565,6 +568,8 @@ class Streetscape:
                 current_street_back_sb,
                 left_seq_sightlines_end_points,
                 right_seq_sightlines_end_points,
+                left_ids_all,
+                right_ids_all,
             ], None
 
         # ------- SIGHT LINES
@@ -588,6 +593,9 @@ class Streetscape:
 
             left_sl_cr_total = 0
             right_sl_cr_total = 0
+
+            left_ids = []
+            right_ids = []
 
             # iterate throught each sightline links to the sigh point:
             # LEFT(1-*),RIGHT(1-*),FRONT(1), BACK(1)
@@ -674,6 +682,9 @@ class Streetscape:
                         current_street_left_seq_sb_categories.append(
                             match_sl_building_category
                         )
+                        left_ids.append(match_sl_building_id)
+                    else:
+                        left_ids.append(np.nan)
 
                 elif sightline_side == self.SIGHTLINE_RIGHT:
                     right_sl_count += 1
@@ -690,11 +701,17 @@ class Streetscape:
                         current_street_right_seq_sb_categories.append(
                             match_sl_building_category
                         )
+                        right_ids.append(match_sl_building_id)
+                    else:
+                        right_ids.append(np.nan)
 
                 elif sightline_side == self.SIGHTLINE_BACK:
                     back_sl_tan_sb = match_sl_distance
                 elif sightline_side == self.SIGHTLINE_FRONT:
                     front_sl_tan_sb = match_sl_distance
+
+            left_ids_all.append(left_ids)
+            right_ids_all.append(right_ids)
 
             # LEFT
             left_os_count = left_sl_count
@@ -767,6 +784,8 @@ class Streetscape:
             current_street_back_sb,
             left_seq_sightlines_end_points,
             right_seq_sightlines_end_points,
+            left_ids_all,
+            right_ids_all,
         ], gdf_sightlines
 
     def _compute_sightline_indicators_full(self):
@@ -805,6 +824,8 @@ class Streetscape:
                 "back_sb",
                 "left_seq_os_endpoints",
                 "right_seq_os_endpoints",
+                "left_ids",
+                "right_ids",
             ],
         )
         df = df.set_index("street_index")
@@ -2070,10 +2091,22 @@ class Streetscape:
                 "right_bc",
                 "front_sb",
                 "back_sb",
+                "left_ids",
+                "right_ids",
             ]
         ]
+
         point_data = point_data.explode(point_data.columns.tolist())
-        for col in point_data.columns[1:]:
+        point_data["left_ids"] = point_data["left_ids"].apply(
+            lambda x: {c for c in x if not pd.isna(c)}
+        )
+        point_data["right_ids"] = point_data["right_ids"].apply(
+            lambda x: {c for c in x if not pd.isna(c)}
+        )
+        point_data = point_data.rename(
+            columns={"left_ids": "left_seq_sb_index", "right_ids": "right_seq_sb_index"}
+        )
+        for col in point_data.columns[1:-2]:
             point_data[col] = pd.to_numeric(point_data[col])
 
         inds = [
