@@ -64,4 +64,4 @@ jobs:
         run: |
           pytest -v --color yes --cov momepy --cov-append --cov-report term-missing --cov-report xml .
 
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
