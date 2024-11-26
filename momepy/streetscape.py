@@ -2115,10 +2115,10 @@ class Streetscape:
 
         point_data = point_data.explode(point_data.columns.tolist())
         point_data["left_ids"] = point_data["left_ids"].apply(
-            lambda x: {c for c in x if not pd.isna(c)}
+            lambda x: {c for c in x if not pd.isna(c)} if isinstance(x, list) else {x}
         )
         point_data["right_ids"] = point_data["right_ids"].apply(
-            lambda x: {c for c in x if not pd.isna(c)}
+            lambda x: {c for c in x if not pd.isna(c)} if isinstance(x, list) else {x}
         )
         point_data = point_data.rename(
             columns={"left_ids": "left_seq_sb_index", "right_ids": "right_seq_sb_index"}
@@ -2212,10 +2212,18 @@ class Streetscape:
 
             point_data["left_plot_seq_sb_index"] = point_data[
                 "left_plot_seq_sb_index"
-            ].apply(lambda x: {c for c in x if not pd.isna(c)})
+            ].apply(
+                lambda x: {c for c in x if not pd.isna(c)}
+                if isinstance(x, list)
+                else {x}
+            )
             point_data["right_plot_seq_sb_index"] = point_data[
                 "right_plot_seq_sb_index"
-            ].apply(lambda x: {c for c in x if not pd.isna(c)})
+            ].apply(
+                lambda x: {c for c in x if not pd.isna(c)}
+                if isinstance(x, list)
+                else {x}
+            )
             inds.extend(
                 [
                     "plot_seq_sb",
