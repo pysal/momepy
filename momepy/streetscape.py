@@ -900,12 +900,12 @@ class Streetscape:
                 match_geom = None
 
                 if not gdf_items.empty:
-                    _distances = gdf_items.exterior.intersection(
-                        sightline_geom
-                    ).distance(s_pt1)
-                    match_id = _distances.idxmin()
-                    match_distance = _distances.min()
-                    match_geom = gdf_items.geometry[match_id]
+                    intersection = gdf_items.exterior.intersection(sightline_geom)
+                    if not intersection.is_empty.all():
+                        _distances = intersection.distance(s_pt1)
+                        match_id = _distances.idxmin()
+                        match_distance = _distances.min()
+                        match_geom = gdf_items.geometry[match_id]
 
                 parcel_ids = []
                 # ---------------
