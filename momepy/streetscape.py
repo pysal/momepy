@@ -583,13 +583,13 @@ class Streetscape:
             left_sl_count = 0
             left_sl_distance_total = 0
             left_sl_building_count = 0
-            left_sl_building_sb_total = 0
-            left_sl_building_sb_height_total = 0
+            left_sl_building_sb = []
+            left_sl_building_sb_heights = []
             right_sl_count = 0
             right_sl_distance_total = 0
             right_sl_building_count = 0
-            right_sl_building_sb_total = 0
-            right_sl_building_sb_height_total = 0
+            right_sl_building_sb = []
+            right_sl_building_sb_heights = []
 
             left_sl_cr_total = 0
             right_sl_cr_total = 0
@@ -674,8 +674,8 @@ class Streetscape:
                     left_sl_cr_total += sl_cr_total
                     if match_sl_building_id:
                         left_sl_building_count += 1
-                        left_sl_building_sb_total += match_sl_distance
-                        left_sl_building_sb_height_total += match_sl_building_height
+                        left_sl_building_sb.append(match_sl_distance)
+                        left_sl_building_sb_heights.append(match_sl_building_height)
                         # PREVALENCE: Emit each time a new setback or INTER-setback is
                         # found (campact storage structure)
                         current_street_left_seq_sb_ids.append(match_sl_building_id)
@@ -693,8 +693,8 @@ class Streetscape:
                     right_sl_cr_total += sl_cr_total
                     if match_sl_building_id:
                         right_sl_building_count += 1
-                        right_sl_building_sb_total += match_sl_distance
-                        right_sl_building_sb_height_total += match_sl_building_height
+                        right_sl_building_sb.append(match_sl_distance)
+                        right_sl_building_sb_heights.append(match_sl_building_height)
                         # PREVALENCE: Emit each time a new setback or INTER-setback is
                         # found (campact storage structure)
                         current_street_right_seq_sb_ids.append(match_sl_building_id)
@@ -721,8 +721,8 @@ class Streetscape:
             left_h = np.nan
             left_hw = np.nan
             if left_sb_count != 0:
-                left_sb = left_sl_building_sb_total / left_sb_count
-                left_h = left_sl_building_sb_height_total / left_sb_count
+                left_sb = np.nanmean(left_sl_building_sb)
+                left_h = np.nanmean(left_sl_building_sb_heights)
                 # HACk if sb = 0 --> 10cm
                 left_hw = left_h / max(left_sb, 0.1)
             left_cr = left_sl_cr_total / left_os_count
@@ -734,8 +734,8 @@ class Streetscape:
             right_h = np.nan
             right_hw = np.nan
             if right_sb_count != 0:
-                right_sb = right_sl_building_sb_total / right_sb_count
-                right_h = right_sl_building_sb_height_total / right_sb_count
+                right_sb = np.nanmean(right_sl_building_sb)
+                right_h = np.nanmean(right_sl_building_sb_heights)
                 # HACk if sb = 0 --> 10cm
                 right_hw = right_h / max(right_sb, 0.1)
             right_cr = right_sl_cr_total / right_os_count
