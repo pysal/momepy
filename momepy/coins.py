@@ -439,7 +439,7 @@ def _angle_between_two_lines(line1, line2):
         warnings.warn(
             f"Lines are between points {points.keys()} identical. Please revise input "
             "data to ensure no lines are identical or overlapping. "
-            "You can check for duplicates using `gdf.geometry.duplicated()`. Assuming"
+            "You can check for duplicates using `gdf.geometry.duplicated()`. Assuming "
             "an angle of 0 degrees.",
             UserWarning,
             stacklevel=3,
