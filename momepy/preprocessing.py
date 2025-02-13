@@ -173,6 +173,10 @@ def remove_false_nodes(gdf):
     ----------
     gdf : GeoDataFrame, GeoSeries, array of shapely geometries
         (Multi)LineString data of street network
+    retain_attributes : bool, optional (default: False)
+        If True, retain line attributes when merging nodes.
+    aggfunc : function, optional (default: None)
+        Aggregation function to apply to attributes. If None, default is sum.
 
     Returns
     -------
@@ -215,20 +219,31 @@ def remove_false_nodes(gdf):
     if len(merge_res):
         g = nx.Graph(list(zip(merge_inp * -1, merge_res, strict=True)))
         new_geoms = []
+        new_attrs = []
         for c in nx.connected_components(g):
             valid = [ix for ix in c if ix > -1]
             new_geoms.append(shapely.line_merge(shapely.union_all(geom[valid])))
 
+            if retain_attributes:
+                merged_attributes = {}
+                for attr in df.columns:
+                    if attr!= df.geometry.names:
+                        values = df.loc[valid, attr].tolist()
+                        if aggfunc in None:
+                            aggfunc = sum # Default aggregation function
+                        merged_attributes[attr] = aggfunc(values)
+                new_attrs.append(merged_attributes)
+                
         df = df.drop(merge_res)
         final = gpd.GeoSeries(new_geoms, crs=df.crs).explode(ignore_index=True)
+        final_df = gpd.GeoDataFrame({df.geometry.name: final}, geometry=df.geometry.name, crs=df.crs)
+
+        if retain_attributes:
+            final_df=pd.concat([final_df, pd.DataFrame(new_attrs)], axis=1)
+
         if isinstance(gdf, gpd.GeoDataFrame):
             combined = pd.concat(
-                [
-                    df,
-                    gpd.GeoDataFrame(
-                        {df.geometry.name: final}, geometry=df.geometry.name, crs=df.crs
-                    ),
-                ],
+                [df, final_df],
                 ignore_index=True,
             )
         else:
