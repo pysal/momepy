@@ -219,3 +219,41 @@ You can find a pull request (or PR) tutorial in the `GitHub's Help Docs <https:/
 .. _sphinx: https://www.sphinx-doc.org/
 
 .. _Black: https://black.readthedocs.io/en/stable/
+
+
+Setting Up Your Environment
+---------------------------
+
+To ensure a consistent code style and catch potential issues, we use `ruff` and `pre-commit` in this project.
+
+1. Install `ruff` and `pre-commit`:
+
+   .. code-block:: bash
+
+      pip install ruff pre-commit
+
+2. Set up `pre-commit` hooks:
+
+   .. code-block:: bash
+
+      pre-commit install
+
+   This will install the `pre-commit` hooks defined in the `.pre-commit-config.yaml` file.
+
+3. Running `ruff` manually:
+
+   You can run `ruff` manually to check your code for style issues:
+
+   .. code-block:: bash
+
+      ruff .
+
+4. Running `pre-commit` hooks manually:
+
+   You can also run all `pre-commit` hooks manually:
+
+   .. code-block:: bash
+
+      pre-commit run --all-files
+
+By following these steps, you'll ensure that your code adheres to the project's style guidelines and passes all pre-commit checks before committing changes.
