@@ -2,15 +2,19 @@ import warnings
 
 import geopandas as gpd
 import libpysal
+import math
 import numpy as np
 import pandas as pd
 import shapely
+from collections import deque, Counter
+from enum import Enum
 from geopandas import GeoDataFrame, GeoSeries
 from joblib import Parallel, delayed
 from libpysal.cg import voronoi_frames
 from libpysal.graph import Graph
 from packaging.version import Version
 from pandas import MultiIndex, Series
+from typing import Tuple, List
 
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
@@ -129,6 +133,11 @@ def enclosed_tessellation(
     segment: float = 0.5,
     threshold: float = 0.05,
     n_jobs: int = -1,
+    use_ca: bool = False,
+    cell_size: float = 1.0,
+    neighbor_mode: str = "moore",
+    fulfill: bool = False,
+    barriers_for_inner: GeoSeries | GeoDataFrame = None,
 ) -> GeoDataFrame:
     """Generate enclosed tessellation
 
@@ -265,7 +274,19 @@ def enclosed_tessellation(
 
     # generate tessellation in parallel
     new = Parallel(n_jobs=n_jobs)(
-        delayed(_tess)(*t, threshold, shrink, segment, index_name) for t in tuples
+        delayed(_tess)(
+            *t,
+            threshold,
+            shrink,
+            segment,
+            index_name,
+            use_ca,
+            cell_size,
+            neighbor_mode,
+            fulfill,
+            barriers_for_inner,
+        )
+        for t in tuples
     )
 
     new_df = pd.concat(new, axis=0)
@@ -297,24 +318,57 @@ def enclosed_tessellation(
     return pd.concat([new_df, singles.drop(columns="position"), clean_blocks])
 
 
-def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
+def _tess(
+    ix,
+    poly,
+    blg,
+    threshold,
+    shrink,
+    segment,
+    enclosure_id,
+    use_ca,
+    cell_size,
+    neighbor_mode,
+    fulfill,
+    barriers_for_inner,
+):
     """Generate tessellation for a single enclosure. Helper for enclosed_tessellation"""
     # check if threshold is set and filter buildings based on the threshold
     if threshold:
-        blg = blg[
-            shapely.area(shapely.intersection(blg.geometry.array, poly))
-            > (shapely.area(blg.geometry.array) * threshold)
-        ]
+        if isinstance(poly, shapely.geometry.Polygon):
+            blg = blg[
+                shapely.area(shapely.intersection(blg.geometry.array, poly))
+                > (shapely.area(blg.geometry.array) * threshold)
+            ]
+        else:
+            blg = blg[
+                shapely.area(
+                    shapely.intersection(
+                        blg.geometry.array, shapely.geometry.Polygon(poly.boundary)
+                    )
+                )
+                > (shapely.area(blg.geometry.array) * threshold)
+            ]
 
     if len(blg) > 1:
-        tess = voronoi_frames(
-            blg,
-            clip=poly,
-            shrink=shrink,
-            segment=segment,
-            return_input=False,
-            as_gdf=True,
-        )
+        if not use_ca:
+            tess = voronoi_frames(
+                blg,
+                clip=poly,
+                shrink=shrink,
+                segment=segment,
+                return_input=False,
+                as_gdf=True,
+            )
+        else:
+            tess = _voronoi_by_ca(
+                seed_geoms=blg,
+                barrier_geoms=poly,
+                cell_size=cell_size,
+                neighbor_mode=neighbor_mode,
+                fulfill=fulfill,
+                barriers_for_inner=barriers_for_inner,
+            )
         tess[enclosure_id] = ix
         return tess
 
@@ -330,6 +384,369 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
         index=[assigned_ix],
         crs=blg.crs,
     )
+
+
+def _voronoi_by_ca(
+    seed_geoms: GeoSeries | GeoDataFrame,
+    barrier_geoms: GeoSeries | GeoDataFrame,
+    cell_size: float = 1.0,
+    neighbor_mode: str = "moore",
+    fulfill: bool = True,
+    barriers_for_inner: GeoSeries | GeoDataFrame = None,
+) -> GeoDataFrame:
+    """
+    Generate an aggregated Voronoi tessellation as a GeoDataFrame via a cellular automata.
+
+    This unified function performs the following:
+      - Ensures that the CRS of seed and barrier geometries are aligned.
+      - Combines inner barriers with the enclosure, .
+      - Computes grid bounds covering both seed and barrier geometries.
+      - Marks barrier cells using a prepared geometry for fast intersection.
+      - Seeds the grid with seed geometries.
+      - Propagates seed values via a BFS expansion that respects barriers.
+      - Uses a voting mechanism to finalize boundary cell assignments.
+      - Converts grid cells into a GeoDataFrame and dissolves adjacent cells
+        with the same seed id.
+      - Clips the output cells by the barrier boundaries.
+
+    Parameters:
+        seed_geoms: GeoDataFrame containing seed features.
+        barrier_geoms: GeoDataFrame containing barrier features or a shapely Polygon.
+        cell_size: Grid cell size. By default it is 1.0.
+        neighbor_mode: Choice of neighbor connectivity ('moore' or 'neumann'). By default it is 'moore'.
+        fulfill: Whether to assign adjacent seed cells to the same seed id. By default it is True.
+        barriers_for_inner: GeoDataFrame containing inner barriers to be included. By default it is None.
+
+    Returns:
+        A GeoDataFrame representing the aggregated Voronoi tessellation, clipped by barriers.
+    """
+
+    # If there is barriers_for_inner, add the intersected or contained barriers to the barrier_geoms
+    if barriers_for_inner is not None:
+        # get inner barriers
+        inner_barriers = _get_inner_barriers(
+            barrier_geoms, barriers_for_inner.to_crs(seed_geoms.crs)
+        )
+
+        if barrier_geoms.geom_type == "Polygon":
+            # Wrap a single barrier geometry (Polygon, LineString, or GeometryCollection)
+            barrier_geoms = GeoSeries([barrier_geoms.boundary], crs=seed_geoms.crs)
+
+        if len(inner_barriers) > 0:
+            # add inner barriers as a list of geometry to the barrier_geoms
+            barrier_geoms = pd.concat(
+                [barrier_geoms, inner_barriers], ignore_index=True
+            )
+    else:
+        if barrier_geoms.geom_type == "Polygon":
+            # Wrap a single barrier geometry (Polygon, LineString, or GeometryCollection)
+            barrier_geoms = GeoSeries([barrier_geoms.boundary], crs=seed_geoms.crs)
+
+    # Compute grid bounds
+    origin, grid_width, grid_height = _get_grid_bounds(
+        seed_geoms, barrier_geoms, cell_size
+    )
+
+    # Prepare barrier geometries if provided.
+    barrier_union = None
+    prep_barrier = None
+    if not barrier_geoms.empty:
+        barrier_union = shapely.ops.unary_union(barrier_geoms.geometry)
+        prep_barrier = shapely.prepared.prep(barrier_union)
+
+    # Initialize grid states with UNKNOWN values.
+    states = np.full((grid_height, grid_width), CellState.UNKNOWN.value, dtype=int)
+
+    # Identify barrier cells in the grid
+    if prep_barrier is not None:
+        xs, ys = np.meshgrid(np.arange(grid_width), np.arange(grid_height))
+        cell_polys = GeoSeries(
+            [
+                _get_cell_polygon(x, y, cell_size, origin)
+                for x, y in zip(xs.flatten(), ys.flatten())
+            ]
+        )
+        barrier_mask = cell_polys.intersects(barrier_union).values.reshape(
+            (grid_height, grid_width)
+        )
+        states[barrier_mask] = CellState.BARRIER.value
+
+    # Seed the grid with seed geometries.
+    for site_id, geom in enumerate(seed_geoms.geometry):
+        if not geom.is_empty:
+            cells = _geom_to_cells(geom, origin, cell_size, grid_width, grid_height)
+            valid_cells = [
+                (x, y) for x, y in cells if states[y, x] == CellState.UNKNOWN.value
+            ]
+            if valid_cells:
+                indices = np.array(valid_cells)
+                states[indices[:, 1], indices[:, 0]] = site_id
+
+    # Initialize the BFS queue with all seeded cells’ neighbors.
+    queue = deque()
+    seed_indices = np.argwhere(states >= 0)
+    for y, x in seed_indices:
+        _enqueue_neighbors(x, y, states, grid_width, grid_height, neighbor_mode, queue)
+
+    # Process BFS to propagate seed values.
+    while queue:
+        # Dequeue the current cell and skip if it is not a frontier cell.
+        x_current, y_current = queue.popleft()
+        if states[y_current, x_current] != CellState.FRONTIER.value:
+            continue
+
+        # Get neighbor cells that were already assigned a seed id or still unknown (state >= 0).
+        # Note that boundary or barrier cells are skipped (state < 0).
+        neighbor_seeds = [
+            states[ny, nx]
+            for nx, ny in _get_neighbors(
+                x_current, y_current, grid_width, grid_height, mode=neighbor_mode
+            )
+            if states[ny, nx] >= 0
+        ]
+        if not neighbor_seeds:
+            continue
+
+        # Assign as a boundary if multiple seed ids are found.
+        if len(set(neighbor_seeds)) > 1:
+            states[y_current, x_current] = CellState.BOUNDARY.value
+        # EIf not, equeue neighbor cells for further propagation.
+        else:
+            assigned_seed = set(neighbor_seeds).pop()
+            states[y_current, x_current] = assigned_seed
+            _enqueue_neighbors(
+                x_current,
+                y_current,
+                states,
+                grid_width,
+                grid_height,
+                neighbor_mode,
+                queue,
+            )
+
+    # Post-process barrier and boundary cells using a voting mechanism.
+    if fulfill:
+        states = _assign_adjacent_seed_cells(states, neighbor_mode)
+
+    # Create grid cell polygons and build a GeoDataFrame.
+    xs, ys = np.meshgrid(np.arange(grid_width), np.arange(grid_height))
+    grid_polys = [
+        _get_cell_polygon(x, y, cell_size, origin)
+        for x, y in zip(xs.flatten(), ys.flatten())
+    ]
+    grid_gdf = GeoDataFrame(
+        {"site_id": states.flatten()}, geometry=grid_polys, crs=seed_geoms.crs
+    )
+
+    # Include only cells with valid seed assignments and dissolve contiguous regions.
+    grid_gdf = (
+        grid_gdf[grid_gdf["site_id"] >= 0]
+        .dissolve(by="site_id")
+        .reset_index()
+        .drop("site_id", axis=1)
+    )
+
+    # Clip by barriers
+    if barrier_geoms is not None and (not barrier_geoms.empty):
+        # Create a union of the barrier geometries.
+        barrier_union = shapely.ops.unary_union(barrier_geoms.geometry)
+        # If the barrier union is not a polygon (e.g., it's a MultiLineString), polygonize it.
+        if not isinstance(
+            barrier_union, (shapely.geometry.Polygon, shapely.geometry.MultiPolygon)
+        ):
+            barrier_polys = list(shapely.ops.polygonize(barrier_union))
+            if barrier_polys:
+                barrier_union = shapely.ops.unary_union(barrier_polys)
+        # Clip each polygon in the grid using the barrier boundary.
+        grid_gdf["geometry"] = grid_gdf["geometry"].intersection(barrier_union)
+
+    return grid_gdf
+
+
+def _get_inner_barriers(enclosure, barriers):
+    """
+    Get inner barriers that intersect or are contained within an enclosure.
+
+    Args:
+        enclosure (GeoSeries or GeoDataFrame): The enclosure geometry.
+        barriers (GeoDataFrame): The barriers GeoDataFrame.
+
+    Returns:
+        shapely.geometry.Polygon: A single Polygon combining the enclosure
+                                  and any intersecting barriers.
+    """
+    # Find barriers intersecting or contained in the enclosure
+    inner_barriers = barriers[
+        barriers.intersects(enclosure) | barriers.contains(enclosure)
+    ]
+
+    # Clip those segments to stay within the enclosure
+    inner_barriers = gpd.clip(inner_barriers, enclosure)
+
+    return GeoSeries(inner_barriers.geometry, crs=barriers.crs)
+
+
+class CellState(Enum):
+    """
+    Enumeration of cell states for grid processing for improving the readability, instead of integers.
+
+    Attributes:
+        UNKNOWN: Cell has not been processed.
+        BOUNDARY: Cell is at a junction between different seed regions.
+        BARRIER: Cell originally designated as a barrier.
+        FRONTIER: Cell queued for BFS expansion.
+    """
+
+    UNKNOWN = -1
+    BOUNDARY = -2
+    BARRIER = -3
+    FRONTIER = -4
+
+
+def _get_cell_polygon(
+    x_idx: int, y_idx: int, cell_size: float = 1.0, origin: Tuple[float, float] = (0, 0)
+) -> shapely.geometry.Polygon:
+    """
+    Generate a grid cell polygon based on the given indices, cell size, and origin.
+    """
+    ox, oy = origin
+    return shapely.geometry.Polygon(
+        [
+            (ox + x_idx * cell_size, oy + y_idx * cell_size),
+            (ox + (x_idx + 1) * cell_size, oy + y_idx * cell_size),
+            (ox + (x_idx + 1) * cell_size, oy + (y_idx + 1) * cell_size),
+            (ox + x_idx * cell_size, oy + (y_idx + 1) * cell_size),
+        ]
+    )
+
+
+def _get_neighbors(
+    x: int, y: int, max_x: int, max_y: int, mode: str = "moore"
+) -> List[Tuple[int, int]]:
+    """
+    Retrieve valid neighboring cell indices based on connectivity.
+
+    Parameters:
+        x, y: The current cell indices.
+        max_x, max_y: Dimensions of the grid.
+        mode: "moore" for 8-connected or "neumann" for 4-connected neighbors.
+
+    Returns:
+        A list of (x, y) tuples for valid neighbor indices.
+    """
+    neighbor_dirs = {
+        "moore": [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)],
+        "neumann": [(0, -1), (-1, 0), (1, 0), (0, 1)],
+    }
+    directions = neighbor_dirs.get(mode)
+    if directions is None:
+        raise ValueError("Invalid neighbor_mode: choose 'moore' or 'neumann'")
+    return [
+        (x + dx, y + dy)
+        for dx, dy in directions
+        if 0 <= x + dx < max_x and 0 <= y + dy < max_y
+    ]
+
+
+def _get_grid_bounds(
+    seed_geoms: GeoSeries | GeoDataFrame,
+    barrier_geoms: GeoSeries | GeoDataFrame,
+    cell_size: float,
+) -> Tuple[Tuple[float, float], int, int]:
+    """
+    Compute the grid bounds required to cover both seed and barrier geometries.
+    """
+    seed_bounds = seed_geoms.total_bounds  # [xmin, ymin, xmax, ymax]
+    barrier_bounds = barrier_geoms.total_bounds
+
+    xmin = min(seed_bounds[0], barrier_bounds[0])
+    ymin = min(seed_bounds[1], barrier_bounds[1])
+    xmax = max(seed_bounds[2], barrier_bounds[2])
+    ymax = max(seed_bounds[3], barrier_bounds[3])
+    grid_width = math.ceil((xmax - xmin) / cell_size)
+    grid_height = math.ceil((ymax - ymin) / cell_size)
+    return (xmin, ymin), grid_width, grid_height
+
+
+def _geom_to_cells(
+    geom: shapely.geometry,
+    origin: Tuple[float, float],
+    cell_size: float,
+    grid_width: int,
+    grid_height: int,
+) -> List[Tuple[int, int]]:
+    """
+    Determine grid cell indices that intersect the given geometry.
+    """
+    if isinstance(geom, shapely.geometry.Point):
+        sx = int((geom.x - origin[0]) // cell_size)
+        sy = int((geom.y - origin[1]) // cell_size)
+        return [(sx, sy)] if 0 <= sx < grid_width and 0 <= sy < grid_height else []
+
+    else:
+        minx, miny, maxx, maxy = geom.bounds
+        start_x = max(0, int((minx - origin[0]) // cell_size))
+        start_y = max(0, int((miny - origin[1]) // cell_size))
+        end_x = min(grid_width, int(math.ceil((maxx - origin[0]) / cell_size)))
+        end_y = min(grid_height, int(math.ceil((maxy - origin[1]) / cell_size)))
+
+        x_range = np.arange(start_x, end_x)
+        y_range = np.arange(start_y, end_y)
+        xx, yy = np.meshgrid(x_range, y_range)
+        candidate_polys = GeoSeries(
+            [
+                _get_cell_polygon(x, y, cell_size, origin)
+                for x, y in zip(xx.flatten(), yy.flatten())
+            ]
+        )
+        mask = candidate_polys.intersects(geom)
+        return list(zip(xx.flatten()[mask], yy.flatten()[mask]))
+
+
+def _enqueue_neighbors(
+    x: int,
+    y: int,
+    states: np.ndarray,
+    grid_width: int,
+    grid_height: int,
+    neighbor_mode: str,
+    queue: deque,
+) -> None:
+    """
+    Enqueue valid neighboring cells for BFS expansion.
+    """
+    for nx, ny in _get_neighbors(x, y, grid_width, grid_height, mode=neighbor_mode):
+        if states[ny, nx] == CellState.UNKNOWN.value:
+            states[ny, nx] = CellState.FRONTIER.value
+            queue.append((nx, ny))
+
+
+def _assign_adjacent_seed_cells(
+    states: np.ndarray, neighbor_mode: str = "moore"
+) -> np.ndarray:
+    """
+    Reassign border and barrier cells to the proximate seed areas using a voting mechanism.
+    """
+    new_states = states.copy()
+    indices = np.argwhere(
+        np.isin(states, [CellState.BARRIER.value, CellState.BOUNDARY.value])
+    )
+    grid_height, grid_width = states.shape
+
+    for y, x in indices:
+        neighbor_seeds = [
+            states[ny, nx]
+            for nx, ny in _get_neighbors(
+                x, y, grid_width, grid_height, mode=neighbor_mode
+            )
+            if states[ny, nx] >= 0
+        ]
+        if neighbor_seeds:
+            cnt = Counter(neighbor_seeds)
+            # In case of ties, choose the smaller seed id.
+            chosen_seed = min(cnt.items(), key=lambda item: (-item[1], item[0]))[0]
+            new_states[y, x] = chosen_seed
+    return new_states
 
 
 def verify_tessellation(tessellation, geometry):
