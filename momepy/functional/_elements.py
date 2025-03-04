@@ -136,7 +136,6 @@ def enclosed_tessellation(
     use_ca: bool = False,
     cell_size: float = 1.0,
     neighbor_mode: str = "moore",
-    fulfill: bool = False,
     barriers_for_inner: GeoSeries | GeoDataFrame = None,
 ) -> GeoDataFrame:
     """Generate enclosed tessellation
@@ -283,7 +282,6 @@ def enclosed_tessellation(
             use_ca,
             cell_size,
             neighbor_mode,
-            fulfill,
             barriers_for_inner,
         )
         for t in tuples
@@ -329,7 +327,6 @@ def _tess(
     use_ca,
     cell_size,
     neighbor_mode,
-    fulfill,
     barriers_for_inner,
 ):
     """Generate tessellation for a single enclosure. Helper for enclosed_tessellation"""
@@ -366,7 +363,6 @@ def _tess(
                 barrier_geoms=poly,
                 cell_size=cell_size,
                 neighbor_mode=neighbor_mode,
-                fulfill=fulfill,
                 barriers_for_inner=barriers_for_inner,
             )
         tess[enclosure_id] = ix
@@ -391,7 +387,6 @@ def _voronoi_by_ca(
     barrier_geoms: GeoSeries | GeoDataFrame,
     cell_size: float = 1.0,
     neighbor_mode: str = "moore",
-    fulfill: bool = True,
     barriers_for_inner: GeoSeries | GeoDataFrame = None,
 ) -> GeoDataFrame:
     """
@@ -414,7 +409,6 @@ def _voronoi_by_ca(
         barrier_geoms: GeoDataFrame containing barrier features or a shapely Polygon.
         cell_size: Grid cell size. By default it is 1.0.
         neighbor_mode: Choice of neighbor connectivity ('moore' or 'neumann'). By default it is 'moore'.
-        fulfill: Whether to assign adjacent seed cells to the same seed id. By default it is True.
         barriers_for_inner: GeoDataFrame containing inner barriers to be included. By default it is None.
 
     Returns:
@@ -525,8 +519,7 @@ def _voronoi_by_ca(
             )
 
     # Post-process barrier and boundary cells using a voting mechanism.
-    if fulfill:
-        states = _assign_adjacent_seed_cells(states, neighbor_mode)
+    states = _assign_adjacent_seed_cells(states, neighbor_mode)
 
     # Create grid cell polygons and build a GeoDataFrame.
     xs, ys = np.meshgrid(np.arange(grid_width), np.arange(grid_height))
