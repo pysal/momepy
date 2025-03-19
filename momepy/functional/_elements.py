@@ -138,7 +138,6 @@ def enclosed_tessellation(
     cell_size: float = 1.0,
     neighbor_mode: str = "moore",
     barriers_for_inner: GeoSeries | GeoDataFrame = None,
-    cell_tolerance: float = 2.0
 ) -> GeoDataFrame:
     """Generate enclosed tessellation
 
@@ -285,7 +284,6 @@ def enclosed_tessellation(
             cell_size,
             neighbor_mode,
             barriers_for_inner,
-            cell_tolerance
         )
         for t in tuples
     )
@@ -331,7 +329,6 @@ def _tess(
     cell_size,
     neighbor_mode,
     barriers_for_inner,
-    cell_tolerance
 ):
     """Generate tessellation for a single enclosure. Helper for enclosed_tessellation"""
     # check if threshold is set and filter buildings based on the threshold
@@ -368,7 +365,6 @@ def _tess(
                 cell_size=cell_size,
                 neighbor_mode=neighbor_mode,
                 barriers_for_inner=barriers_for_inner,
-                cell_tolerance=cell_tolerance * cell_size,
             )
         tess[enclosure_id] = ix
         return tess
@@ -393,7 +389,6 @@ def _voronoi_by_ca(
     cell_size: float = 1.0,
     neighbor_mode: str = "moore",
     barriers_for_inner: GeoSeries | GeoDataFrame = None,
-    cell_tolerance: float = 2.0,
 ) -> GeoDataFrame:
     """
     Generate an aggregated Voronoi tessellation as a GeoDataFrame via a cellular automata.
@@ -416,7 +411,6 @@ def _voronoi_by_ca(
         cell_size: Grid cell size. By default it is 1.0.
         neighbor_mode: Choice of neighbor connectivity ('moore' or 'neumann'). By default it is 'moore'.
         barriers_for_inner: GeoDataFrame containing inner barriers to be included. By default it is None
-        cell_tolerance: Tolerance for simplifying the grid cells. By default it is 2.0.
 
 
     Returns:
@@ -584,16 +578,17 @@ def _voronoi_by_ca(
         # Clip each polygon in the grid using the barrier boundary.
         grid_gdf["geometry"] = grid_gdf["geometry"].intersection(barrier_union)
 
-    if cell_tolerance is not None:
-        if SPL_GE_210:
-            # Simplify coverages with the parameter cell_tolerance as the area threshold of Visvalingam-Whyatt algorithm.
-            grid_gdf["geometry"] = shapely.coverage_simplify(
-                grid_gdf["geometry"].array, tolerance=cell_tolerance
-            )
-        else:
-            warnings.warn(
-                "Shapely 2.1.0 or higher is required for coverage_simplify. Skipping."
-            )
+    if SPL_GE_210:
+        # Simplify coverages with coverage_simplify.
+        # torelance set as the square root of the isosceles right triangle with 2 cells_size edges.
+        # For the behavior of coverage_simplify see https://shapely.readthedocs.io/en/latest/reference/shapely.coverage_simplify.html
+        grid_gdf["geometry"] = shapely.coverage_simplify(
+            grid_gdf["geometry"].array, tolerance= ((2 * cell_size) ** 2 / 2) ** 0.5
+        )
+    else:
+        raise ImportError(
+            "Shapely 2.1.0 or higher is required for coverage_simplify."
+        )
 
     return grid_gdf
 
