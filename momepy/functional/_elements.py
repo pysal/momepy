@@ -19,6 +19,7 @@ from typing import Tuple, List
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
+SPL_GE_210 = Version(shapely.__version__) >= Version("2.1.0rc1")
 
 __all__ = [
     "morphological_tessellation",
@@ -137,6 +138,7 @@ def enclosed_tessellation(
     cell_size: float = 1.0,
     neighbor_mode: str = "moore",
     barriers_for_inner: GeoSeries | GeoDataFrame = None,
+    cell_tolerance: float = 2.0
 ) -> GeoDataFrame:
     """Generate enclosed tessellation
 
@@ -283,6 +285,7 @@ def enclosed_tessellation(
             cell_size,
             neighbor_mode,
             barriers_for_inner,
+            cell_tolerance
         )
         for t in tuples
     )
@@ -328,6 +331,7 @@ def _tess(
     cell_size,
     neighbor_mode,
     barriers_for_inner,
+    cell_tolerance
 ):
     """Generate tessellation for a single enclosure. Helper for enclosed_tessellation"""
     # check if threshold is set and filter buildings based on the threshold
@@ -364,6 +368,7 @@ def _tess(
                 cell_size=cell_size,
                 neighbor_mode=neighbor_mode,
                 barriers_for_inner=barriers_for_inner,
+                cell_tolerance=cell_tolerance * cell_size,
             )
         tess[enclosure_id] = ix
         return tess
@@ -388,6 +393,7 @@ def _voronoi_by_ca(
     cell_size: float = 1.0,
     neighbor_mode: str = "moore",
     barriers_for_inner: GeoSeries | GeoDataFrame = None,
+    cell_tolerance: float = 2.0,
 ) -> GeoDataFrame:
     """
     Generate an aggregated Voronoi tessellation as a GeoDataFrame via a cellular automata.
@@ -409,7 +415,9 @@ def _voronoi_by_ca(
         barrier_geoms: GeoDataFrame containing barrier features or a shapely Polygon.
         cell_size: Grid cell size. By default it is 1.0.
         neighbor_mode: Choice of neighbor connectivity ('moore' or 'neumann'). By default it is 'moore'.
-        barriers_for_inner: GeoDataFrame containing inner barriers to be included. By default it is None.
+        barriers_for_inner: GeoDataFrame containing inner barriers to be included. By default it is None
+        cell_tolerance: Tolerance for simplifying the grid cells. By default it is 2.0.
+
 
     Returns:
         A GeoDataFrame representing the aggregated Voronoi tessellation, clipped by barriers.
@@ -422,48 +430,71 @@ def _voronoi_by_ca(
             barrier_geoms, barriers_for_inner.to_crs(seed_geoms.crs)
         )
 
-        if barrier_geoms.geom_type == "Polygon":
-            # Wrap a single barrier geometry (Polygon, LineString, or GeometryCollection)
-            barrier_geoms = GeoSeries([barrier_geoms.boundary], crs=seed_geoms.crs)
+    # Handle barrier_geoms if it is a Polygon or MultiPolygon
+    if barrier_geoms.geom_type == "Polygon":
+        # Take buffer of polygon and extract its exterior boundary
+        barrier_geoms_buffered = GeoSeries(
+            [barrier_geoms.buffer(10).exterior], crs=seed_geoms.crs
+        )
+        barrier_geoms = GeoSeries([barrier_geoms], crs=seed_geoms.crs)
 
-        if len(inner_barriers) > 0:
-            # add inner barriers as a list of geometry to the barrier_geoms
-            barrier_geoms = pd.concat(
-                [barrier_geoms, inner_barriers], ignore_index=True
-            )
+    elif barrier_geoms.geom_type == "MultiPolygon":
+        # Process each polygon: take buffer then exterior boundary (to ensure there's no gap between enclosures)
+        barrier_geoms_buffered = GeoSeries(
+            [poly.buffer(10).exterior for poly in barrier_geoms.geoms],
+            crs=seed_geoms.crs,
+        )
+        barrier_geoms = GeoSeries(barrier_geoms, crs=seed_geoms.crs)
+
     else:
-        if barrier_geoms.geom_type == "Polygon":
-            # Wrap a single barrier geometry (Polygon, LineString, or GeometryCollection)
-            barrier_geoms = GeoSeries([barrier_geoms.boundary], crs=seed_geoms.crs)
+        raise ValueError("barrier_geoms must be a Polygon or MultiPolygon")
+
+    outer_union = shapely.ops.unary_union(barrier_geoms_buffered)
+
+    # Compute inner barriers union if available
+    if (
+        "inner_barriers" in locals()
+        and inner_barriers is not None
+        and not inner_barriers.empty
+    ):
+        inner_union = shapely.ops.unary_union(inner_barriers.geometry)
+    else:
+        inner_union = None
+
+    # Combine outer barrier with inner barriers
+    if outer_union and inner_union:
+        prep_barrier = shapely.ops.unary_union([outer_union, inner_union])
+    elif outer_union:
+        prep_barrier = outer_union
+    elif inner_union:
+        prep_barrier = inner_union
+    else:
+        prep_barrier = None
 
     # Compute grid bounds
     origin, grid_width, grid_height = _get_grid_bounds(
-        seed_geoms, barrier_geoms, cell_size
+        seed_geoms, barrier_geoms_buffered, cell_size
     )
-
-    # Prepare barrier geometries if provided.
-    barrier_union = None
-    prep_barrier = None
-    if not barrier_geoms.empty:
-        barrier_union = shapely.ops.unary_union(barrier_geoms.geometry)
-        prep_barrier = shapely.prepared.prep(barrier_union)
 
     # Initialize grid states with UNKNOWN values.
     states = np.full((grid_height, grid_width), CellState.UNKNOWN.value, dtype=int)
 
+    xs, ys = np.meshgrid(np.arange(grid_width), np.arange(grid_height))
+    cell_polys = GeoSeries(
+        [
+            _get_cell_polygon(x, y, cell_size, origin)
+            for x, y in zip(xs.flatten(), ys.flatten())
+        ]
+    )
+
     # Identify barrier cells in the grid
     if prep_barrier is not None:
-        xs, ys = np.meshgrid(np.arange(grid_width), np.arange(grid_height))
-        cell_polys = GeoSeries(
-            [
-                _get_cell_polygon(x, y, cell_size, origin)
-                for x, y in zip(xs.flatten(), ys.flatten())
-            ]
+        barrier_mask = cell_polys.intersects(prep_barrier).values.reshape(
+            grid_height, grid_width
         )
-        barrier_mask = cell_polys.intersects(barrier_union).values.reshape(
-            (grid_height, grid_width)
-        )
-        states[barrier_mask] = CellState.BARRIER.value
+    else:
+        barrier_mask = np.zeros((grid_height, grid_width), dtype=bool)
+    states[barrier_mask] = CellState.BARRIER.value
 
     # Seed the grid with seed geometries.
     for site_id, geom in enumerate(seed_geoms.geometry):
@@ -553,6 +584,17 @@ def _voronoi_by_ca(
         # Clip each polygon in the grid using the barrier boundary.
         grid_gdf["geometry"] = grid_gdf["geometry"].intersection(barrier_union)
 
+    if cell_tolerance is not None:
+        if SPL_GE_210:
+            # Simplify coverages with the parameter cell_tolerance as the area threshold of Visvalingam-Whyatt algorithm.
+            grid_gdf["geometry"] = shapely.coverage_simplify(
+                grid_gdf["geometry"].array, tolerance=cell_tolerance
+            )
+        else:
+            warnings.warn(
+                "Shapely 2.1.0 or higher is required for coverage_simplify. Skipping."
+            )
+
     return grid_gdf
 
 
@@ -575,6 +617,9 @@ def _get_inner_barriers(enclosure, barriers):
 
     # Clip those segments to stay within the enclosure
     inner_barriers = gpd.clip(inner_barriers, enclosure)
+
+    # Only keep the geometry which is within the enclosure
+    inner_barriers = inner_barriers[inner_barriers.within(enclosure)]
 
     return GeoSeries(inner_barriers.geometry, crs=barriers.crs)
 
@@ -646,9 +691,6 @@ def _get_grid_bounds(
     barrier_geoms: GeoSeries | GeoDataFrame,
     cell_size: float,
 ) -> Tuple[Tuple[float, float], int, int]:
-    """
-    Compute the grid bounds required to cover both seed and barrier geometries.
-    """
     seed_bounds = seed_geoms.total_bounds  # [xmin, ymin, xmax, ymax]
     barrier_bounds = barrier_geoms.total_bounds
 
@@ -656,9 +698,14 @@ def _get_grid_bounds(
     ymin = min(seed_bounds[1], barrier_bounds[1])
     xmax = max(seed_bounds[2], barrier_bounds[2])
     ymax = max(seed_bounds[3], barrier_bounds[3])
-    grid_width = math.ceil((xmax - xmin) / cell_size)
-    grid_height = math.ceil((ymax - ymin) / cell_size)
-    return (xmin, ymin), grid_width, grid_height
+    # expand bounds by 1 cell in each direction
+    new_xmin = xmin - cell_size
+    new_ymin = ymin - cell_size
+    new_xmax = xmax + cell_size
+    new_ymax = ymax + cell_size
+    grid_width = math.ceil((new_xmax - new_xmin) / cell_size)
+    grid_height = math.ceil((new_ymax - new_ymin) / cell_size)
+    return (new_xmin, new_ymin), grid_width, grid_height
 
 
 def _geom_to_cells(
