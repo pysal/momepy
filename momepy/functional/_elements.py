@@ -32,6 +32,7 @@ def morphological_tessellation(
     clip: str | shapely.Geometry | GeoSeries | GeoDataFrame | None = "bounding_box",
     shrink: float = 0.4,
     segment: float = 0.5,
+    **kwargs,
 ) -> GeoDataFrame:
     """Generate morphological tessellation.
 
@@ -71,6 +72,9 @@ def morphological_tessellation(
         By default 0.4
     segment : float, optional
         The maximum distance between points after discretization. By default 0.5
+    **kwargs
+        Additional keyword arguments pased to libpysal.cg.voronoi_frames, such as
+        ``grid_size``.
 
     Returns
     -------
@@ -119,6 +123,7 @@ def morphological_tessellation(
         segment=segment,
         return_input=False,
         as_gdf=True,
+        **kwargs,
     )
 
 
@@ -129,6 +134,7 @@ def enclosed_tessellation(
     segment: float = 0.5,
     threshold: float = 0.05,
     n_jobs: int = -1,
+    **kwargs,
 ) -> GeoDataFrame:
     """Generate enclosed tessellation
 
@@ -178,6 +184,9 @@ def enclosed_tessellation(
     n_jobs : int, optional
         The number of jobs to run in parallel. -1 means using all available cores.
         By default -1
+    **kwargs
+        Additional keyword arguments pased to libpysal.cg.voronoi_frames, such as
+        ``grid_size``.
 
     Warnings
     --------
@@ -265,7 +274,8 @@ def enclosed_tessellation(
 
     # generate tessellation in parallel
     new = Parallel(n_jobs=n_jobs)(
-        delayed(_tess)(*t, threshold, shrink, segment, index_name) for t in tuples
+        delayed(_tess)(*t, threshold, shrink, segment, index_name, kwargs)
+        for t in tuples
     )
 
     new_df = pd.concat(new, axis=0)
@@ -297,7 +307,7 @@ def enclosed_tessellation(
     return pd.concat([new_df, singles.drop(columns="position"), clean_blocks])
 
 
-def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
+def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, kwargs):
     """Generate tessellation for a single enclosure. Helper for enclosed_tessellation"""
     # check if threshold is set and filter buildings based on the threshold
     if threshold:
@@ -314,6 +324,7 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id):
             segment=segment,
             return_input=False,
             as_gdf=True,
+            **kwargs,
         )
         tess[enclosure_id] = ix
         return tess
