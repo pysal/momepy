@@ -135,7 +135,7 @@ def enclosed_tessellation(
     threshold: float = 0.05,
     n_jobs: int = -1,
     inner_barriers: GeoSeries | GeoDataFrame = None,
-    **kwargs
+    **kwargs,
 ) -> GeoDataFrame:
     """Generate enclosed tessellation
 
@@ -185,6 +185,10 @@ def enclosed_tessellation(
     n_jobs : int, optional
         The number of jobs to run in parallel. -1 means using all available cores.
         By default -1
+    inner_barriers: GeoSeries | GeoDataFrame, optional
+        Barriers that should be included in the tessellation process. By default None.
+    **kwargs
+        Additional keyword arguments passed to the Cellular Automata-based Voronoi Diagram.
 
     Warnings
     --------
@@ -273,15 +277,7 @@ def enclosed_tessellation(
     # generate tessellation in parallel
     new = Parallel(n_jobs=n_jobs)(
         delayed(_tess)(
-            *t,
-            threshold,
-            shrink,
-            segment,
-            index_name,
-            use_ca,
-            cell_size,
-            neighbor_mode,
-            barriers_for_inner,
+            *t, threshold, shrink, segment, index_name, inner_barriers, **kwargs
         )
         for t in tuples
     )
@@ -316,38 +312,24 @@ def enclosed_tessellation(
 
 
 def _tess(
-    ix,
-    poly,
-    blg,
-    threshold,
-    shrink,
-    segment,
-    enclosure_id,
-    use_ca,
-    cell_size,
-    neighbor_mode,
-    barriers_for_inner,
+    ix, poly, blg, threshold, shrink, segment, enclosure_id, inner_barriers, **kwargs
 ):
     """Generate tessellation for a single enclosure. Helper for enclosed_tessellation"""
+
+    # Extract CA parameters from kwargs
+    cell_size = kwargs.pop("cell_size", 1.0)
+    neighbor_mode = kwargs.pop("neighbor_mode", "moore")
+    simplify = kwargs.pop("simplify", True)
+
     # check if threshold is set and filter buildings based on the threshold
     if threshold:
-        if isinstance(poly, shapely.geometry.Polygon):
-            blg = blg[
-                shapely.area(shapely.intersection(blg.geometry.array, poly))
-                > (shapely.area(blg.geometry.array) * threshold)
-            ]
-        else:
-            blg = blg[
-                shapely.area(
-                    shapely.intersection(
-                        blg.geometry.array, shapely.geometry.Polygon(poly.boundary)
-                    )
-                )
-                > (shapely.area(blg.geometry.array) * threshold)
-            ]
+        blg = blg[
+            shapely.area(shapely.intersection(blg.geometry.array, poly))
+            > (shapely.area(blg.geometry.array) * threshold)
+        ]
 
     if len(blg) > 1:
-        if not use_ca:
+        if inner_barriers is None or inner_barriers.empty:
             tess = voronoi_frames(
                 blg,
                 clip=poly,
@@ -362,7 +344,8 @@ def _tess(
                 barrier_geoms=poly,
                 cell_size=cell_size,
                 neighbor_mode=neighbor_mode,
-                barriers_for_inner=barriers_for_inner,
+                barriers_for_inner=inner_barriers,
+                simplify=simplify,
             )
         tess[enclosure_id] = ix
         return tess
@@ -387,6 +370,7 @@ def _voronoi_by_ca(
     cell_size: float = 1.0,
     neighbor_mode: str = "moore",
     barriers_for_inner: GeoSeries | GeoDataFrame = None,
+    simplify: bool = True,
 ) -> GeoDataFrame:
     """
     Generate an aggregated Voronoi tessellation as a GeoDataFrame via a cellular automata.
@@ -409,31 +393,38 @@ def _voronoi_by_ca(
         cell_size: Grid cell size. By default it is 1.0.
         neighbor_mode: Choice of neighbor connectivity ('moore' or 'neumann'). By default it is 'moore'.
         barriers_for_inner: GeoDataFrame containing inner barriers to be included. By default it is None
+        simplify: Whether to simplify the coverage using shapely's coverage_simplify. By default it is True.
 
 
     Returns:
         A GeoDataFrame representing the aggregated Voronoi tessellation, clipped by barriers.
     """
 
-    # If there is barriers_for_inner, add the intersected or contained barriers to the barrier_geoms
-    if barriers_for_inner is not None:
-        # get inner barriers
-        inner_barriers = _get_inner_barriers(
-            barrier_geoms, barriers_for_inner.to_crs(seed_geoms.crs)
+    # Check if shapely version is 2.1.0 or higher for coverage_simplify
+    if not SPL_GE_210:
+        raise ImportError(
+            "Shapely 2.1.0 or higher is required for tessellation with inner barriers provided."
         )
+
+    # Get inner barriers as intersection or containment of the barrier_geoms
+    inner_barriers = _get_inner_barriers(
+        barrier_geoms, barriers_for_inner.to_crs(seed_geoms.crs)
+    )
 
     # Handle barrier_geoms if it is a Polygon or MultiPolygon
     if barrier_geoms.geom_type == "Polygon":
-        # Take buffer of polygon and extract its exterior boundary
+        # Take buffer of polygon and extract its exterior boundary (10 cells)
         barrier_geoms_buffered = GeoSeries(
-            [barrier_geoms.buffer(10).exterior], crs=seed_geoms.crs
+            [barrier_geoms.buffer(10 * cell_size).exterior], crs=seed_geoms.crs
         )
         barrier_geoms = GeoSeries([barrier_geoms], crs=seed_geoms.crs)
 
     elif barrier_geoms.geom_type == "MultiPolygon":
         # Process each polygon: take buffer then exterior boundary (to ensure there's no gap between enclosures)
         barrier_geoms_buffered = GeoSeries(
-            shapely.buffer(shapely.get_exterior(shapely.get_parts(barrier_geoms)), 10)
+            shapely.buffer(
+                shapely.get_exterior(shapely.get_parts(barrier_geoms)), 10 * cell_size
+            ),
             crs=seed_geoms.crs,
         )
         barrier_geoms = GeoSeries(barrier_geoms, crs=seed_geoms.crs)
@@ -576,16 +567,12 @@ def _voronoi_by_ca(
         # Clip each polygon in the grid using the barrier boundary.
         grid_gdf["geometry"] = grid_gdf["geometry"].intersection(barrier_union)
 
-    if SPL_GE_210:
+    if simplify:
         # Simplify coverages with coverage_simplify.
         # torelance set as the square root of the isosceles right triangle with 2 cells_size edges.
         # For the behavior of coverage_simplify see https://shapely.readthedocs.io/en/latest/reference/shapely.coverage_simplify.html
         grid_gdf["geometry"] = shapely.coverage_simplify(
-            grid_gdf["geometry"].array, tolerance= ((2 * cell_size) ** 2 / 2) ** 0.5
-        )
-    else:
-        raise ImportError(
-            "Shapely 2.1.0 or higher is required for coverage_simplify."
+            grid_gdf["geometry"].array, tolerance=((2 * cell_size) ** 2 / 2) ** 0.5
         )
 
     return grid_gdf
@@ -614,7 +601,7 @@ def _get_inner_barriers(enclosure, barriers):
     # Only keep the geometry which is within the enclosure
     inner_barriers = inner_barriers[inner_barriers.within(enclosure)]
 
-    return GeoSeries(inner_barriers.geometry, crs=barriers.crs)
+    return inner_barriers
 
 
 class CellState(Enum):
