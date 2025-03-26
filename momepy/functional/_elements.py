@@ -134,10 +134,8 @@ def enclosed_tessellation(
     segment: float = 0.5,
     threshold: float = 0.05,
     n_jobs: int = -1,
-    use_ca: bool = False,
-    cell_size: float = 1.0,
-    neighbor_mode: str = "moore",
-    barriers_for_inner: GeoSeries | GeoDataFrame = None,
+    inner_barriers: GeoSeries | GeoDataFrame = None,
+    **kwargs
 ) -> GeoDataFrame:
     """Generate enclosed tessellation
 
@@ -435,7 +433,7 @@ def _voronoi_by_ca(
     elif barrier_geoms.geom_type == "MultiPolygon":
         # Process each polygon: take buffer then exterior boundary (to ensure there's no gap between enclosures)
         barrier_geoms_buffered = GeoSeries(
-            [poly.buffer(10).exterior for poly in barrier_geoms.geoms],
+            shapely.buffer(shapely.get_exterior(shapely.get_parts(barrier_geoms)), 10)
             crs=seed_geoms.crs,
         )
         barrier_geoms = GeoSeries(barrier_geoms, crs=seed_geoms.crs)
@@ -443,7 +441,7 @@ def _voronoi_by_ca(
     else:
         raise ValueError("barrier_geoms must be a Polygon or MultiPolygon")
 
-    outer_union = shapely.ops.unary_union(barrier_geoms_buffered)
+    outer_union = barrier_geoms_buffered.union_all()
 
     # Compute inner barriers union if available
     if (
@@ -451,13 +449,13 @@ def _voronoi_by_ca(
         and inner_barriers is not None
         and not inner_barriers.empty
     ):
-        inner_union = shapely.ops.unary_union(inner_barriers.geometry)
+        inner_union = inner_barriers.union_all()
     else:
         inner_union = None
 
     # Combine outer barrier with inner barriers
     if outer_union and inner_union:
-        prep_barrier = shapely.ops.unary_union([outer_union, inner_union])
+        prep_barrier = shapely.union(outer_union, inner_union)
     elif outer_union:
         prep_barrier = outer_union
     elif inner_union:
@@ -567,14 +565,14 @@ def _voronoi_by_ca(
     # Clip by barriers
     if barrier_geoms is not None and (not barrier_geoms.empty):
         # Create a union of the barrier geometries.
-        barrier_union = shapely.ops.unary_union(barrier_geoms.geometry)
+        barrier_union = barrier_geoms.union_all()
         # If the barrier union is not a polygon (e.g., it's a MultiLineString), polygonize it.
         if not isinstance(
             barrier_union, (shapely.geometry.Polygon, shapely.geometry.MultiPolygon)
         ):
-            barrier_polys = list(shapely.ops.polygonize(barrier_union))
-            if barrier_polys:
-                barrier_union = shapely.ops.unary_union(barrier_polys)
+            barrier_polys = shapely.get_parts(shapely.polygonize(barrier_union))
+            if not barrier_polys.empty:
+                barrier_union = shapely.union_all(barrier_polys)
         # Clip each polygon in the grid using the barrier boundary.
         grid_gdf["geometry"] = grid_gdf["geometry"].intersection(barrier_union)
 
@@ -643,7 +641,7 @@ def _get_cell_polygon(
     Generate a grid cell polygon based on the given indices, cell size, and origin.
     """
     ox, oy = origin
-    return shapely.geometry.Polygon(
+    return shapely.Polygon(
         [
             (ox + x_idx * cell_size, oy + y_idx * cell_size),
             (ox + (x_idx + 1) * cell_size, oy + y_idx * cell_size),
