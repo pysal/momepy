@@ -865,8 +865,7 @@ def gini(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
 
     if y.min() < 0:
         raise ValueError(
-            "Values contain negative numbers. Normalise data before"
-            "using momepy.Gini."
+            "Values contain negative numbers. Normalise data beforeusing momepy.Gini."
         )
     if q:
         grouper = _percentile_filtration_grouper(y, graph._adjacency.index, q=q)
