@@ -5,7 +5,6 @@ from geopandas import GeoDataFrame, GeoSeries
 from numpy.typing import NDArray
 from packaging.version import Version
 from pandas import DataFrame, MultiIndex, Series
-from shapely import unary_union
 
 from momepy.functional import _dimension
 
@@ -902,10 +901,9 @@ def sunlight_optimised(
 ):
     """A bool indicating whether geometry shapes are optimised for sunlight exposure.
 
-    A building and its adjacent parts - `BStruct` - are considered likely to be
-    optimised for sunlight if its `facade_ratio` and `elongation` are lower than
-    the respective parameters, or if its `courtyard_area` is higher.
-    where `facade_ratio`, `elongation` and `courtyard_area` are `momepy` functions.
+    A building and its adjacent parts (i.e. connected component) are considered likely to be
+    optimised for sunlight if its :func:`facade_ratio` and  :func:`elongation` are lower than
+    the respective parameters, or if its :func:`courtyard_area` is higher.
 
     Parameters
     ----------
@@ -951,7 +949,7 @@ def sunlight_optimised(
     """
     ccs = graph.component_labels
     connected_buildings = geometry.geometry.groupby(ccs).apply(
-        lambda x: unary_union(x.values)
+        lambda x: shapely.union_all(x.values)
     )
     struct_elongation = elongation(connected_buildings)
     fr = facade_ratio(connected_buildings)
