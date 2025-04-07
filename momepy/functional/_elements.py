@@ -316,7 +316,6 @@ def enclosed_tessellation(
 
 
 def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify, kwargs):
-
     """Generate tessellation for a single enclosure. Helper for enclosed_tessellation"""
     # check if threshold is set and filter buildings based on the threshold
     if threshold:
