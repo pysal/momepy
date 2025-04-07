@@ -901,9 +901,9 @@ def sunlight_optimised(
 ):
     """A bool indicating whether geometry shapes are optimised for sunlight exposure.
 
-    A building and its adjacent parts (i.e. connected component) are considered likely to be
-    optimised for sunlight if its :func:`facade_ratio` and  :func:`elongation` are lower than
-    the respective parameters, or if its :func:`courtyard_area` is higher.
+    A building and its adjacent parts (i.e. connected component) are considered likely
+    to be optimised for sunlight if its :func:`facade_ratio` and  :func:`elongation` are
+    lower than the respective parameters, or if its :func:`courtyard_area` is higher.
 
     Parameters
     ----------
