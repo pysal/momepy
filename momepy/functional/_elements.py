@@ -15,7 +15,7 @@ from pandas import MultiIndex, Series
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
-SHPLY_GE_250 = Version(shapely.__version__) >= Version("2.5.0dev")
+SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 
 __all__ = [
     "morphological_tessellation",
@@ -238,8 +238,8 @@ def enclosed_tessellation(
     126  POLYGON ((1603528.593 6464221.033, 1603527.796...                0
     """
 
-    if simplify and not SHPLY_GE_250:
-        raise ImportError("Coverage simplification requires shapely 2.5 or higher.")
+    if simplify and not SHPLY_GE_210:
+        raise ImportError("Coverage simplification requires shapely 2.1 or higher.")
 
     if isinstance(geometry.index, MultiIndex):
         raise ValueError(
@@ -339,7 +339,7 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify, 
             simpl_collection = shapely.coverage_simplify(
                 tess.geometry, tolerance=1e-1, simplify_boundary=False
             )
-            tess.geometry = gpd.GeoSeries(simpl_collection.geoms).values
+            tess.geometry = gpd.GeoSeries(simpl_collection).values
         tess[enclosure_id] = ix
         return tess
 
