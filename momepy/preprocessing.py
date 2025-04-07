@@ -166,8 +166,8 @@ def preprocess(
 def remove_false_nodes(gdf):
     """
     Clean topology of existing LineString geometry by removal of nodes of degree 2.
-
-    Returns the original gdf if there's no node of degree 2.
+    Returns the original gdf if there's no node of degree 2. Some geometries may
+    be forced to 2D where a Z coordinate is present.
 
     Parameters
     ----------
@@ -178,7 +178,7 @@ def remove_false_nodes(gdf):
     -------
     gdf : GeoDataFrame, GeoSeries
 
-    See also
+    See Also
     --------
     momepy.extend_lines
     momepy.close_gaps
@@ -247,14 +247,16 @@ def remove_false_nodes(gdf):
             ),
             lines=False,
         )
+
         loops = combined[combined.is_ring]
+
         node_ix, loop_ix = loops.sindex.query(nodes.geometry, predicate="intersects")
         for ix in np.unique(loop_ix):
             loop_geom = loops.geometry.iloc[ix]
             target_nodes = nodes.geometry.iloc[node_ix[loop_ix == ix]]
             if len(target_nodes) == 2:
                 node_coords = shapely.get_coordinates(target_nodes)
-                coords = np.array(loop_geom.coords)
+                coords = shapely.get_coordinates(loop_geom)
                 new_start = (
                     node_coords[0]
                     if (node_coords[0] != coords[0]).all()
@@ -1522,7 +1524,7 @@ def _euclidean_simplification(geometry, new_origin, new_destination):
 
 
 class FaceArtifacts:
-    """Identify face artifacts in street networks
+    """Identify face artifacts in street networks.
 
     For a given street network composed of transportation-oriented geometry containing
     features representing things like roundabouts, dual carriegaways and complex
@@ -1577,6 +1579,12 @@ class FaceArtifacts:
     10  POLYGON ((-744101.275 -1043738.053, -744103.80...             2.862871
     12  POLYGON ((-744095.511 -1043623.478, -744095.35...             3.712403
     17  POLYGON ((-744488.466 -1044533.317, -744489.33...             5.158554
+
+    Notes
+    -----
+    In purely synthetic scenarios where all calculated face artifact index values are
+    equal (e.g. a regular grid/lattice) a ``LinAlgError`` error will be raised. This
+    is virtually guaranteed to not happen in practice.
     """
 
     def __init__(
@@ -1604,6 +1612,24 @@ class FaceArtifacts:
 
         # Store geometries as a GeoDataFrame
         self.polygons = gpd.GeoDataFrame(geometry=polygons)
+
+        if self.polygons.empty:
+            warnings.warn(
+                "Input roads could not not be polygonized. "
+                "Identification of face artifacts not possible.",
+                UserWarning,
+                stacklevel=2,
+            )
+            self.kde = None
+            self.pdf = None
+            self.peaks = None
+            self.d_peaks = None
+            self.valleys = None
+            self.d_valleys = None
+            self.threshold = None
+            self.face_artifacts = None
+            return
+
         if index == "circular_compactness":
             self.polygons["face_artifact_index"] = np.log(
                 shape.minimum_bounding_circle_ratio(polygons) * polygons.area
