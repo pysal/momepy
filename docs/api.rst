@@ -85,6 +85,7 @@ A set of functions to measure shape of geometric elements:
    shape_index
    square_compactness
    squareness
+   sunlight_optimised
 
 Measuring spatial distribution
 ------------------------------
