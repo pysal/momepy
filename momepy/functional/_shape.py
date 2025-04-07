@@ -935,7 +935,7 @@ def sunlight_optimised(
     >>> path = momepy.datasets.get_path("bubenec")
     >>> buildings = geopandas.read_file(path, layer="buildings")
     >>> building_graph = graph.Graph.build_fuzzy_contiguity(buildings, buffer=.1)
-    >>> mm.sunlight_optimised(buildings, building_graph)
+    >>> momepy.sunlight_optimised(buildings, building_graph)
     0      False
     1       True
     2       True
@@ -947,7 +947,7 @@ def sunlight_optimised(
     141     True
     142     True
     143     True
-    Name: , Length: 144, dtype: bool
+    Length: 144, dtype: bool
     """
     ccs = graph.component_labels
     connected_buildings = geometry.geometry.groupby(ccs).apply(
