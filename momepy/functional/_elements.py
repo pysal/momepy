@@ -15,6 +15,7 @@ from pandas import MultiIndex, Series
 GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
+SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 
 __all__ = [
     "morphological_tessellation",
@@ -133,6 +134,7 @@ def enclosed_tessellation(
     shrink: float = 0.4,
     segment: float = 0.5,
     threshold: float = 0.05,
+    simplify: bool = True,
     n_jobs: int = -1,
     **kwargs,
 ) -> GeoDataFrame:
@@ -181,6 +183,9 @@ def enclosed_tessellation(
         inlude it in the tessellation of that enclosure. Resolves sliver geometry
         issues. If None, the check is skipped and all intersecting buildings are
         considered. By default 0.05
+    simplify: bool, optional
+        Whether to attempt to simplify the resulting tesselation boundaries with
+        ``shapely.coverage_simplify``. By default True.
     n_jobs : int, optional
         The number of jobs to run in parallel. -1 means using all available cores.
         By default -1
@@ -226,12 +231,18 @@ def enclosed_tessellation(
 
     >>> momepy.enclosed_tessellation(buildings, enclosures).head()
                                                   geometry  enclosure_index
-    0    POLYGON ((1603572.779 6464354.58, 1603572.505 ...                0
-    113  POLYGON ((1603543.601 6464322.376, 1603543.463...                0
-    114  POLYGON ((1603525.157 6464283.592, 1603524.725...                0
-    125  POLYGON ((1603601.446 6464256.455, 1603600.982...                0
-    126  POLYGON ((1603528.593 6464221.033, 1603527.796...                0
+    0    POLYGON ((1603546.697 6464383.596, 1603585.64 ...                0
+    113  POLYGON ((1603517.131 6464349.296, 1603546.697...                0
+    114  POLYGON ((1603517.87 6464285.864, 1603515.152 ...                0
+    125  POLYGON ((1603586.269 6464256.691, 1603581.813...                0
+    126  POLYGON ((1603499.92 6464243.917, 1603493.299 ...                0
     """
+
+    if simplify and not SHPLY_GE_210:
+        raise ImportError(
+            "`simplify=True` requires shapely 2.1 or higher. "
+            "Update shapely or set `simplify` to False."
+        )
 
     if isinstance(geometry.index, MultiIndex):
         raise ValueError(
@@ -274,7 +285,7 @@ def enclosed_tessellation(
 
     # generate tessellation in parallel
     new = Parallel(n_jobs=n_jobs)(
-        delayed(_tess)(*t, threshold, shrink, segment, index_name, kwargs)
+        delayed(_tess)(*t, threshold, shrink, segment, index_name, simplify, kwargs)
         for t in tuples
     )
 
@@ -307,7 +318,7 @@ def enclosed_tessellation(
     return pd.concat([new_df, singles.drop(columns="position"), clean_blocks])
 
 
-def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, kwargs):
+def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify, kwargs):
     """Generate tessellation for a single enclosure. Helper for enclosed_tessellation"""
     # check if threshold is set and filter buildings based on the threshold
     if threshold:
@@ -326,6 +337,11 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, kwargs):
             as_gdf=True,
             **kwargs,
         )
+        if to_simplify:
+            simpl_collection = shapely.coverage_simplify(
+                tess.geometry, tolerance=segment / 2, simplify_boundary=False
+            )
+            tess.geometry = gpd.GeoSeries(simpl_collection).values
         tess[enclosure_id] = ix
         return tess
 
