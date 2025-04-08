@@ -35,15 +35,16 @@ jobs:
           - ci/envs/310-latest.yaml
           - ci/envs/311-latest.yaml
           - ci/envs/312-latest.yaml
-          - ci/envs/312-dev.yaml
+          - ci/envs/313-latest.yaml
+          - ci/envs/313-dev.yaml
         include:
-          - environment-file: ci/envs/312-latest.yaml
+          - environment-file: ci/envs/313-latest.yaml
             os: macos-13 # Intel
-          - environment-file: ci/envs/312-latest.yaml
+          - environment-file: ci/envs/313-latest.yaml
             os: macos-14 # Apple Silicon
-          - environment-file: ci/envs/312-latest.yaml
+          - environment-file: ci/envs/313-latest.yaml
             os: windows-latest
-          - environment-file: ci/envs/312-min.yaml
+          - environment-file: ci/envs/313-min.yaml
             os: ubuntu-latest
     defaults:
       run:

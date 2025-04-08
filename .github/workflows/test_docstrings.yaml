@@ -30,7 +30,7 @@ jobs:
       - name: setup micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
-          environment-file: ci/envs/312-latest.yaml
+          environment-file: ci/envs/313-latest.yaml
 
       - name: Install momepy
         run: pip install .
