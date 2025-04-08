@@ -106,6 +106,7 @@ class TestElements:
         sparser = mm.enclosed_tessellation(
             self.df_buildings,
             self.enclosures.geometry,
+            simplify=False,
             segment=2,
         )
         if GPD_GE_013:
@@ -115,7 +116,11 @@ class TestElements:
             )
 
         no_threshold_check = mm.enclosed_tessellation(
-            self.df_buildings, self.enclosures.geometry, threshold=None, n_jobs=1
+            self.df_buildings,
+            self.enclosures.geometry,
+            simplify=False,
+            threshold=None,
+            n_jobs=1,
         )
 
         assert_geodataframe_equal(tessellation, no_threshold_check)
@@ -136,7 +141,11 @@ class TestElements:
         )
 
         threshold_elimination = mm.enclosed_tessellation(
-            buildings, self.enclosures.geometry, threshold=0.99, n_jobs=1
+            buildings,
+            self.enclosures.geometry,
+            simplify=False,
+            threshold=0.99,
+            n_jobs=1,
         )
         assert not threshold_elimination.index.duplicated().any()
         assert_index_equal(threshold_elimination.index, tessellation.index)
@@ -149,6 +158,7 @@ class TestElements:
         tessellation_df = mm.enclosed_tessellation(
             self.df_buildings,
             self.enclosures,
+            simplify=False,
         )
         assert_geodataframe_equal(tessellation, tessellation_df)
 
@@ -157,6 +167,7 @@ class TestElements:
         tessellation_custom_index = mm.enclosed_tessellation(
             self.df_buildings,
             custom_index,
+            simplify=False,
         )
         assert (tessellation_custom_index.geom_type == "Polygon").all()
         assert tessellation_custom_index.crs == self.df_buildings.crs
@@ -418,7 +429,9 @@ class TestElements:
 
         new_blg = self.df_buildings[idxs]
         new_blg.loc[22, "geometry"] = new_blg.loc[22, "geometry"].buffer(20)
-        new_tess = mm.enclosed_tessellation(new_blg, self.enclosures.geometry, n_jobs=1)
+        new_tess = mm.enclosed_tessellation(
+            new_blg, self.enclosures.geometry, simplify=False, n_jobs=1
+        )
 
         ##assert that buildings 1 and 22 intersect the same enclosure
         inp, res = self.enclosures.sindex.query(
