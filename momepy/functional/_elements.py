@@ -239,7 +239,9 @@ def enclosed_tessellation(
     """
 
     if simplify and not SHPLY_GE_210:
-        raise ImportError("Coverage simplification requires shapely 2.1 or higher.")
+        raise ImportError(
+            "`simplify=True` requires shapely 2.1 or higher. Update shapely or set `simplify` to False."
+        )
 
     if isinstance(geometry.index, MultiIndex):
         raise ValueError(

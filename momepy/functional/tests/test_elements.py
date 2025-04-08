@@ -433,13 +433,13 @@ class TestElements:
             new_blg, self.enclosures.geometry, simplify=False, n_jobs=1
         )
 
-        ##assert that buildings 1 and 22 intersect the same enclosure
+        # assert that buildings 1 and 22 intersect the same enclosure
         inp, res = self.enclosures.sindex.query(
             new_blg.geometry, predicate="intersects"
         )
         assert np.isclose(new_blg.iloc[inp[res == 8]].index.values, [1, 22]).all()
 
-        ### assert that there is a tessellation for building 1
+        # assert that there is a tessellation for building 1
         assert 1 in new_tess.index
 
 
