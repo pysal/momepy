@@ -25,6 +25,7 @@ __all__ = [
     "centroid_corner_distance",
     "linearity",
     "compactness_weighted_axis",
+    "sunlight_optimised",
 ]
 
 GPD_013 = Version(gpd.__version__) >= Version("0.13")
@@ -893,3 +894,72 @@ def _true_angles_mask(
     if return_degrees:
         return np.logical_or(degrees <= 180 - eps, degrees >= 180 + eps), degrees
     return np.logical_or(degrees <= 180 - eps, degrees >= 180 + eps)
+
+
+def sunlight_optimised(
+    geometry, graph, fr_ratio=8, elongation_ratio=0.9, min_courtyard_area=1
+):
+    """A bool indicating whether geometry shapes are optimised for sunlight exposure.
+
+    A building and its adjacent parts (i.e. connected component) are considered likely
+    to be optimised for sunlight if its :func:`facade_ratio` and  :func:`elongation` are
+    lower than the respective parameters, or if its :func:`courtyard_area` is higher.
+
+    Parameters
+    ----------
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing building polygons to analyse.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix that contains adjacency information
+        for `geometry` polygons.
+    fr_ratio : float, optional
+        Maximum area to perimeter ratio, for a building structure to be considered
+        optimised for sunlight.
+    elongation_ratio : float, optional
+        Maximum elongation ratio, for a building structure to be considered
+        optimised for sunlight.
+    min_courtyard_area : float, optional
+        Minimum courtyard area for a building structure to be considered
+        optimised for sunlight.
+
+    Returns
+    -------
+    Series
+
+
+    Examples
+    --------
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> building_graph = graph.Graph.build_fuzzy_contiguity(buildings, buffer=.1)
+    >>> momepy.sunlight_optimised(buildings, building_graph)
+    0      False
+    1       True
+    2       True
+    3       True
+    4       True
+        ...
+    139     True
+    140    False
+    141     True
+    142     True
+    143     True
+    Length: 144, dtype: bool
+    """
+    ccs = graph.component_labels
+    connected_buildings = geometry.geometry.groupby(ccs).apply(
+        lambda x: shapely.union_all(x.values)
+    )
+    struct_elongation = elongation(connected_buildings)
+    fr = facade_ratio(connected_buildings)
+    lib_ncos = _dimension.courtyard_area(connected_buildings) > min_courtyard_area
+    likely_sunlight_optimised_ccs = (
+        (fr < fr_ratio) & (struct_elongation < elongation_ratio)
+    ) | lib_ncos
+    likely_sunlight_optimised_buildings = ccs.map(
+        likely_sunlight_optimised_ccs.to_dict()
+    )
+    likely_sunlight_optimised_buildings.name = None
+
+    return likely_sunlight_optimised_buildings.loc[geometry.index]
