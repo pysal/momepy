@@ -336,7 +336,10 @@ class TestElements:
     def test_simplified_tesselations(self):
         n_workers = -1
         tessellations = mm.enclosed_tessellation(
-            self.df_buildings, self.enclosures.geometry, n_jobs=n_workers
+            self.df_buildings,
+            self.enclosures.geometry,
+            simplify=False,
+            n_jobs=n_workers,
         )
         simplified_tessellations = mm.enclosed_tessellation(
             self.df_buildings, self.enclosures.geometry, simplify=True, n_jobs=n_workers

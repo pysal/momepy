@@ -134,7 +134,7 @@ def enclosed_tessellation(
     shrink: float = 0.4,
     segment: float = 0.5,
     threshold: float = 0.05,
-    simplify: bool = False,
+    simplify: bool = True,
     n_jobs: int = -1,
     **kwargs,
 ) -> GeoDataFrame:
@@ -185,7 +185,7 @@ def enclosed_tessellation(
         considered. By default 0.05
     simplify: bool, optional
         Whether to attempt to simplify the resulting tesselation boundaries with
-        ``shapely.coverage_simplify``. By default False.
+        ``shapely.coverage_simplify``. By default True.
     n_jobs : int, optional
         The number of jobs to run in parallel. -1 means using all available cores.
         By default -1
@@ -336,7 +336,7 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify, 
         )
         if to_simplify:
             simpl_collection = shapely.coverage_simplify(
-                tess.geometry, tolerance=1e-1, simplify_boundary=False
+                tess.geometry, tolerance=segment / 2, simplify_boundary=False
             )
             tess.geometry = gpd.GeoSeries(simpl_collection).values
         tess[enclosure_id] = ix
