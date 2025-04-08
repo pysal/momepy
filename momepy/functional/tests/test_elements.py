@@ -96,8 +96,7 @@ class TestElements:
 
     def test_enclosed_tessellation(self):
         tessellation = mm.enclosed_tessellation(
-            self.df_buildings,
-            self.enclosures.geometry,
+            self.df_buildings, self.enclosures.geometry, simplify=False
         )
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
@@ -387,7 +386,7 @@ class TestElements:
             ValueError,
             match="MultiIndex is not supported in `momepy.enclosed_tessellation`.",
         ):
-            mm.enclosed_tessellation(buildings, self.enclosures)
+            mm.enclosed_tessellation(buildings, self.enclosures, simplify=False)
         with pytest.raises(
             ValueError,
             match="MultiIndex is not supported in `momepy.verify_tessellation`.",
@@ -409,7 +408,7 @@ class TestElements:
 
     def test_tess_single_building_edge_case(self):
         tessellations = mm.enclosed_tessellation(
-            self.df_buildings, self.enclosures.geometry, n_jobs=-1
+            self.df_buildings, self.enclosures.geometry, simplify=False, n_jobs=-1
         )
         orig_grouper = tessellations.groupby("enclosure_index")
         idxs = ~self.df_buildings.index.isin(orig_grouper.get_group(8).index)
