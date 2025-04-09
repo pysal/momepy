@@ -2,7 +2,7 @@ name: momepy_env
 channels:
   - conda-forge
 dependencies:
-  - python=3.13
+  - python
   - geopandas>=0.12.0
   - inequality
   - jupyter
