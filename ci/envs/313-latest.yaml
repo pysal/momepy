@@ -33,7 +33,3 @@ dependencies:
   - ipywidgets
   - Iprogress
   - pytest-doctestplus
-  - pip
-  - pip:
-    - git+https://github.com/geopandas/geopandas.git
-
