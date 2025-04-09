@@ -2,7 +2,7 @@ name: test
 channels:
   - conda-forge
 dependencies:
-  - python=3.12
+  - python=3.13
   - geopandas
   - inequality
   - libpysal>=4.12.0
