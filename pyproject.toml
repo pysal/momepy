@@ -34,13 +34,13 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "geopandas>=0.12.0",
+    "geopandas>=0.14.0",
     "libpysal>=4.12.0",
-    "networkx>=2.8",
+    "networkx>=3.2",
     "packaging",
-    "pandas>=1.5.1",
+    "pandas>=2.0",
     "shapely>=2",
-    "tqdm>=4.63.0",
+    "tqdm>=4.65",
 ]
 
 [project.urls]
