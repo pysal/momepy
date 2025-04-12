@@ -8,7 +8,6 @@ import libpysal
 import networkx as nx
 import numpy as np
 import pandas as pd
-from numpy.lib import NumpyVersion
 from shapely.geometry import Point
 
 __all__ = [
@@ -598,10 +597,7 @@ def limit_range(vals, rng):
     nan_tracker = np.isnan(vals)
 
     if (len(vals) > 2) and (not nan_tracker.all()):
-        if NumpyVersion(np.__version__) >= "1.22.0":
-            method = {"method": "nearest"}
-        else:
-            method = {"interpolation": "nearest"}
+        method = {"method": "nearest"}
         rng = sorted(rng)
         if nan_tracker.any():
             lower, higher = np.nanpercentile(vals, rng, **method)

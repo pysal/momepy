@@ -8,7 +8,6 @@ import warnings
 import numpy as np
 import pandas as pd
 import scipy as sp
-from numpy.lib import NumpyVersion
 from tqdm.auto import tqdm  # progress bar
 
 from .utils import deprecated, removed
@@ -902,10 +901,7 @@ class Percentiles:
         elif weighted is None:
             data = data.set_index(unique_id)[values]
 
-            if NumpyVersion(np.__version__) >= "1.22.0":
-                method = {"method": interpolation}
-            else:
-                method = {"interpolation": interpolation}
+            method = {"method": interpolation}
 
             for index in tqdm(data.index, total=data.shape[0], disable=not verbose):
                 if index in spatial_weights.neighbors:

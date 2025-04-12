@@ -3,15 +3,12 @@ import numpy as np
 import pandas as pd
 import pytest
 from libpysal.graph import Graph
-from packaging.version import Version
 from pandas.testing import assert_series_equal
 from shapely import Polygon
 
 import momepy as mm
 
 from .conftest import assert_result
-
-GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 
 class TestDimensions:
@@ -78,7 +75,6 @@ class TestDimensions:
             mm.courtyard_area(self.df_buildings), expected, check_names=False
         )
 
-    @pytest.mark.skipif(not GPD_013, reason="minimum_bounding_radius() not available")
     def test_longest_axis_length(self):
         expected = self.df_buildings.minimum_bounding_radius() * 2
         pd.testing.assert_series_equal(
@@ -104,7 +100,6 @@ class TestDimensions:
         result = mm.perimeter_wall(buildings, adj, buffer=0.25)
         assert result[0] == pytest.approx(137.210, rel=1e-3)
 
-    @pytest.mark.skipif(not GPD_013, reason="no attribute 'segmentize'")
     def test_street_profile(self):
         sp = mm.street_profile(
             self.df_streets,
@@ -158,7 +153,6 @@ class TestDimensions:
         assert_result(sp["height_deviation"], expected_hd, self.df_streets)
         assert_result(sp["hw_ratio"], expected_p, self.df_streets)
 
-    @pytest.mark.skipif(not GPD_013, reason="no attribute 'segmentize'")
     def test_street_profile_infinity(self):
         # avoid infinity
         from shapely import LineString, Point
@@ -210,7 +204,6 @@ class TestDimensionEquivalence:
             .assign_self_weight()
         )
 
-    @pytest.mark.skipif(not GPD_013, reason="no attribute 'segmentize'")
     def test_street_profile(self):
         sp_new = mm.street_profile(
             self.df_streets,

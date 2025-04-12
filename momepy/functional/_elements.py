@@ -1,7 +1,6 @@
 import warnings
 
 import geopandas as gpd
-import libpysal
 import numpy as np
 import pandas as pd
 import shapely
@@ -12,9 +11,7 @@ from libpysal.graph import Graph
 from packaging.version import Version
 from pandas import MultiIndex, Series
 
-GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
-LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
 SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 
 __all__ = [
@@ -260,12 +257,7 @@ def enclosed_tessellation(
     enclosures[index_name] = enclosures.index
 
     # figure out which enlosures contain which buildings
-    if GPD_GE_013:
-        inp, res = geometry.sindex.query(enclosures.geometry, predicate="intersects")
-    else:
-        inp, res = geometry.sindex.query_bulk(
-            enclosures.geometry, predicate="intersects"
-        )
+    inp, res = geometry.sindex.query(enclosures.geometry, predicate="intersects")
 
     # find out which enclosures contain one and multiple buildings
     unique, counts = np.unique(inp, return_counts=True)
@@ -752,10 +744,6 @@ def buffered_limit(
     <class 'shapely.geometry.polygon.Polygon'>
     """
     if buffer == "adaptive":
-        if not LPS_GE_411:
-            raise ImportError(
-                "Adaptive buffer requires libpysal 4.11 or higher."
-            )  # because https://github.com/pysal/libpysal/pull/709
         gabriel = Graph.build_triangulation(gdf.centroid, "gabriel", kernel="identity")
         max_dist = gabriel.aggregate("max")
         buffer = np.clip(max_dist / 2 + max_dist * 0.1, min_buffer, max_buffer).values

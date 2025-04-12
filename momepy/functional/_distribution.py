@@ -1,10 +1,8 @@
-import geopandas as gpd
 import numpy as np
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from numpy.typing import NDArray
-from packaging.version import Version
 from pandas import Series
 from scipy import sparse
 
@@ -19,8 +17,6 @@ __all__ = [
     "street_alignment",
     "cell_alignment",
 ]
-
-GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
 
 def orientation(geometry: GeoDataFrame | GeoSeries) -> Series:
@@ -140,10 +136,7 @@ def shared_walls(
         geometry = geometry.buffer(tolerance)
         predicate = "intersects"
 
-    if GPD_GE_013:
-        inp, res = geometry.sindex.query(geometry.geometry, predicate=predicate)
-    else:
-        inp, res = geometry.sindex.query_bulk(geometry.geometry, predicate=predicate)
+    inp, res = geometry.sindex.query(geometry.geometry, predicate=predicate)
 
     mask = inp != res
     inp, res = inp[mask], res[mask]

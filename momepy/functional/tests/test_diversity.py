@@ -2,7 +2,6 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import pytest
-import scipy
 from libpysal.graph import Graph
 from packaging.version import Version
 from pandas.testing import assert_frame_equal, assert_series_equal
@@ -11,9 +10,7 @@ import momepy as mm
 
 from .conftest import assert_frame_result, assert_result
 
-GPD_013 = Version(gpd.__version__) >= Version("0.13")
 PD_210 = Version(pd.__version__) >= Version("2.1.0")
-SP_112 = Version(scipy.__version__) >= Version("1.12.0")
 
 
 class TestDescribe:
@@ -155,7 +152,6 @@ class TestDescribe:
             r["mean"], expected_mean, self.df_buildings, exact=False, check_names=False
         )
 
-    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_describe_mode(self):
         corners = mm.corners(self.df_buildings)
         r = self.graph.describe(corners)
@@ -170,7 +166,6 @@ class TestDescribe:
             r["mode"], expected, self.df_buildings, exact=False, check_names=False
         )
 
-    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_describe_quantile_mode(self):
         graph = Graph.build_knn(self.df_buildings.centroid, k=15)
         corners = mm.corners(self.df_buildings)

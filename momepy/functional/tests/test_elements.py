@@ -1,5 +1,4 @@
 import geopandas as gpd
-import libpysal
 import numpy as np
 import pandas as pd
 import pytest
@@ -12,8 +11,6 @@ from shapely.geometry import MultiPoint, Polygon, box
 
 import momepy as mm
 
-GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
-LPS_GE_411 = Version(libpysal.__version__) >= Version("4.11.dev")
 SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 
 
@@ -52,11 +49,9 @@ class TestElements:
             self.df_buildings,
             segment=2,
         )
-        if GPD_GE_013:
-            assert (
-                sparser.get_coordinates().shape[0]
-                < tessellation.get_coordinates().shape[0]
-            )
+        assert (
+            sparser.get_coordinates().shape[0] < tessellation.get_coordinates().shape[0]
+        )
 
     def test_morphological_tessellation_buffer_clip(self):
         tessellation = mm.morphological_tessellation(
@@ -109,11 +104,9 @@ class TestElements:
             simplify=False,
             segment=2,
         )
-        if GPD_GE_013:
-            assert (
-                sparser.get_coordinates().shape[0]
-                < tessellation.get_coordinates().shape[0]
-            )
+        assert (
+            sparser.get_coordinates().shape[0] < tessellation.get_coordinates().shape[0]
+        )
 
         no_threshold_check = mm.enclosed_tessellation(
             self.df_buildings,
@@ -149,11 +142,10 @@ class TestElements:
         )
         assert not threshold_elimination.index.duplicated().any()
         assert_index_equal(threshold_elimination.index, tessellation.index)
-        if GPD_GE_013:
-            assert_geodataframe_equal(
-                tessellation.sort_values("geometry").reset_index(drop=True),
-                threshold_elimination.sort_values("geometry").reset_index(drop=True),
-            )
+        assert_geodataframe_equal(
+            tessellation.sort_values("geometry").reset_index(drop=True),
+            threshold_elimination.sort_values("geometry").reset_index(drop=True),
+        )
 
         tessellation_df = mm.enclosed_tessellation(
             self.df_buildings,
@@ -288,7 +280,6 @@ class TestElements:
         assert limit.geom_type == "Polygon"
         assert pytest.approx(limit.area) == 366525.967849688
 
-    @pytest.mark.skipif(not LPS_GE_411, reason="libpysal>=4.11 required")
     def test_buffered_limit_adaptive(self):
         limit = mm.buffered_limit(self.df_buildings, "adaptive")
         assert limit.geom_type == "Polygon"
@@ -303,13 +294,6 @@ class TestElements:
         )
         assert limit.geom_type == "Polygon"
         assert pytest.approx(limit.area) == 357671.831894244
-
-    @pytest.mark.skipif(LPS_GE_411, reason="libpysal>=4.11 required")
-    def test_buffered_limit_adaptive_error(self):
-        with pytest.raises(
-            ImportError, match="Adaptive buffer requires libpysal 4.11 or higher."
-        ):
-            mm.buffered_limit(self.df_buildings, "adaptive")
 
     def test_buffered_limit_error(self):
         with pytest.raises(
@@ -337,10 +321,7 @@ class TestElements:
         )
         assert not tessellation_id.isna().any()
         assert len(blocks) == 9
-        if GPD_GE_013:
-            assert len(blocks.sindex.query(blocks.geometry, "overlaps")[0]) == 0
-        else:
-            assert len(blocks.sindex.query_bulk(blocks.geometry, "overlaps")[0]) == 0
+        assert len(blocks.sindex.query(blocks.geometry, "overlaps")[0]) == 0
 
     @pytest.mark.skipif(not SHPLY_GE_210, reason="coverage_simplify required")
     def test_simplified_tesselations(self):
