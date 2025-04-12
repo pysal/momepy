@@ -1,16 +1,12 @@
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-import pytest
 from libpysal.graph import Graph
-from packaging.version import Version
 from pandas.testing import assert_frame_equal, assert_series_equal
 
 import momepy as mm
 
 from .conftest import assert_result
-
-GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 
 class TestShape:
@@ -118,7 +114,6 @@ class TestShape:
         )
         assert_series_equal(r, r2)
 
-    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_corners(self):
         expected = {
             "mean": 10.3125,
@@ -147,12 +142,6 @@ class TestShape:
         r = mm.corners(self.df_buildings, include_interiors=True)
         assert_result(r, expected, self.df_buildings)
 
-    @pytest.mark.skipif(GPD_013, reason="get_coordinates() not available")
-    def test_corners_error(self):
-        with pytest.raises(ImportError, match="momepy.corners requires geopandas 0.13"):
-            mm.corners(self.df_buildings)
-
-    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_squareness(self):
         expected = {
             "mean": 5.229888125861968,
@@ -181,13 +170,6 @@ class TestShape:
         r = mm.squareness(self.df_buildings, include_interiors=True)
         assert_result(r, expected, self.df_buildings)
 
-    @pytest.mark.skipif(GPD_013, reason="get_coordinates() not available")
-    def test_squareness_error(self):
-        with pytest.raises(
-            ImportError, match="momepy.squareness requires geopandas 0.13"
-        ):
-            mm.squareness(self.df_buildings)
-
     def test_equivalent_rectangular_index(self):
         expected = {
             "mean": 0.9307591166031689,
@@ -208,7 +190,6 @@ class TestShape:
         r = mm.elongation(self.df_buildings)
         assert_result(r, expected, self.df_buildings, rel=1e-3)
 
-    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_centroid_corner_distance(self):
         expected = pd.DataFrame(
             {
@@ -290,13 +271,6 @@ class TestShape:
         )
         r = mm.centroid_corner_distance(self.df_buildings, include_interiors=True)
         assert_frame_equal(r.describe(), expected)
-
-    @pytest.mark.skipif(GPD_013, reason="get_coordinates() not available")
-    def test_centroid_corner_distance_error(self):
-        with pytest.raises(
-            ImportError, match="momepy.centroid_corner_distance requires geopandas 0.13"
-        ):
-            mm.centroid_corner_distance(self.df_buildings)
 
     def test_linearity(self):
         expected = {
@@ -539,13 +513,11 @@ class TestEquality:
         ).series
         assert_series_equal(new, old, check_names=False)
 
-    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_corners(self):
         new = mm.corners(self.df_buildings)
         old = mm.Corners(self.df_buildings).series
         assert_series_equal(new, old, check_names=False)
 
-    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_squareness(self):
         new = mm.squareness(self.df_buildings, eps=5)
         old = mm.Squareness(self.df_buildings).series
@@ -561,7 +533,6 @@ class TestEquality:
         old = mm.Elongation(self.df_streets).series
         assert_series_equal(new, old, check_names=False)
 
-    @pytest.mark.skipif(not GPD_013, reason="get_coordinates() not available")
     def test_centroid_corner_distance(self):
         new = mm.centroid_corner_distance(self.df_buildings)
         ccd = mm.CentroidCorners(self.df_buildings)

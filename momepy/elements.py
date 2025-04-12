@@ -27,7 +27,6 @@ __all__ = [
     "get_network_ratio",
 ]
 
-GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 
 
@@ -443,14 +442,7 @@ class Tessellation:
         enclosures["position"] = range(len(enclosures))
 
         # determine which polygons should be split
-        if GPD_GE_013:
-            inp, res = buildings.sindex.query(
-                enclosures.geometry, predicate="intersects"
-            )
-        else:
-            inp, res = buildings.sindex.query_bulk(
-                enclosures.geometry, predicate="intersects"
-            )
+        inp, res = buildings.sindex.query(enclosures.geometry, predicate="intersects")
         unique, counts = np.unique(inp, return_counts=True)
         splits = unique[counts > 1]
         single = unique[counts == 1]
@@ -1003,14 +995,7 @@ def enclosures(
             )
         additional = pd.concat([gdf.geometry for gdf in additional_barriers])
 
-        if GPD_GE_013:
-            inp, res = enclosures.sindex.query(
-                additional.geometry, predicate="intersects"
-            )
-        else:
-            inp, res = enclosures.sindex.query_bulk(
-                additional.geometry, predicate="intersects"
-            )
+        inp, res = enclosures.sindex.query(additional.geometry, predicate="intersects")
         unique = np.unique(res)
 
         new = []
@@ -1053,14 +1038,9 @@ def enclosures(
                 "`limit` requires a GeoDataFrame or GeoSeries with Polygon or "
                 "MultiPolygon geometry to be used with `clip=True`."
             )
-        if GPD_GE_013:
-            _, encl_index = final_enclosures.representative_point().sindex.query(
-                limit.geometry, predicate="contains"
-            )
-        else:
-            _, encl_index = final_enclosures.representative_point().sindex.query_bulk(
-                limit.geometry, predicate="contains"
-            )
+        _, encl_index = final_enclosures.representative_point().sindex.query(
+            limit.geometry, predicate="contains"
+        )
         keep = np.unique(encl_index)
         return final_enclosures.iloc[keep]
 

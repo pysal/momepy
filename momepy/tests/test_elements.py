@@ -6,14 +6,11 @@ import numpy as np
 import pandas as pd
 import pytest
 from geopandas.testing import assert_geodataframe_equal
-from packaging.version import Version
 from pandas.testing import assert_index_equal
 from shapely import affinity
 from shapely.geometry import LineString, MultiPoint, Polygon
 
 import momepy as mm
-
-GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
 
 class TestElements:
@@ -150,20 +147,9 @@ class TestElements:
         assert not blocks.tessellation_id.isna().any()
         assert not blocks.buildings_id.isna().any()
         assert len(blocks.blocks) == 9
-        if GPD_GE_013:
-            assert (
-                len(blocks.blocks.sindex.query(blocks.blocks.geometry, "overlaps")[0])
-                == 0
-            )
-        else:
-            assert (
-                len(
-                    blocks.blocks.sindex.query_bulk(blocks.blocks.geometry, "overlaps")[
-                        0
-                    ]
-                )
-                == 0
-            )
+        assert (
+            len(blocks.blocks.sindex.query(blocks.blocks.geometry, "overlaps")[0]) == 0
+        )
 
     def test_get_network_id(self):
         buildings_id = mm.get_network_id(self.df_buildings, self.df_streets, "nID")

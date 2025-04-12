@@ -1,9 +1,7 @@
-import geopandas as gpd
 import numpy as np
 import shapely
 from geopandas import GeoDataFrame, GeoSeries
 from numpy.typing import NDArray
-from packaging.version import Version
 from pandas import DataFrame, MultiIndex, Series
 
 from momepy.functional import _dimension
@@ -27,8 +25,6 @@ __all__ = [
     "compactness_weighted_axis",
     "sunlight_optimised",
 ]
-
-GPD_013 = Version(gpd.__version__) >= Version("0.13")
 
 
 def form_factor(
@@ -501,8 +497,6 @@ def corners(
     143     4
     Length: 144, dtype: int64
     """
-    if not GPD_013:
-        raise ImportError("momepy.corners requires geopandas 0.13 or later. ")
 
     def _count_corners(points: DataFrame, eps: float) -> int:
         pts = points.values[:-1]
@@ -567,8 +561,6 @@ def squareness(
     143    0.028140
     Length: 144, dtype: float64
     """
-    if not GPD_013:
-        raise ImportError("momepy.squareness requires geopandas 0.13 or later. ")
 
     def _squareness(points: DataFrame, eps: float):
         pts = points.values[:-1]
@@ -720,10 +712,6 @@ def centroid_corner_distance(
     3  15.000439   4.999226
     4  14.965557   3.660826
     """
-    if not GPD_013:
-        raise ImportError(
-            "momepy.centroid_corner_distance requires geopandas 0.13 or later. "
-        )
 
     result_index = geometry.index
     if isinstance(geometry.index, MultiIndex):
