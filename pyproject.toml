@@ -32,7 +32,7 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "geopandas>=0.12.0",
     "libpysal>=4.12.0",
