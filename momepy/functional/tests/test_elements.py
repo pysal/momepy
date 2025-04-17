@@ -27,17 +27,14 @@ class TestElements:
         )
 
     def test_morphological_tessellation(self):
-        tessellation = mm.morphological_tessellation(
-            self.df_buildings,
-        )
+        tessellation = mm.morphological_tessellation(self.df_buildings, simplify=False)
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
         assert_index_equal(tessellation.index, self.df_buildings.index)
         assert isinstance(tessellation, gpd.GeoDataFrame)
 
         clipped = mm.morphological_tessellation(
-            self.df_buildings,
-            clip=self.limit,
+            self.df_buildings, clip=self.limit, simplify=False
         )
 
         assert (tessellation.geom_type == "Polygon").all()
@@ -46,8 +43,7 @@ class TestElements:
         assert clipped.area.sum() < tessellation.area.sum()
 
         sparser = mm.morphological_tessellation(
-            self.df_buildings,
-            segment=2,
+            self.df_buildings, segment=2, simplify=False
         )
         assert (
             sparser.get_coordinates().shape[0] < tessellation.get_coordinates().shape[0]
@@ -55,7 +51,7 @@ class TestElements:
 
     def test_morphological_tessellation_buffer_clip(self):
         tessellation = mm.morphological_tessellation(
-            self.df_buildings, clip=self.df_buildings.buffer(50)
+            self.df_buildings, clip=self.df_buildings.buffer(50), simplify=False
         )
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
@@ -82,13 +78,12 @@ class TestElements:
                 ),
             ]
         )
-        tessellation = mm.morphological_tessellation(
-            df,
-        )
+        tessellation = mm.morphological_tessellation(df, simplify=False)
         assert (tessellation.geom_type == "Polygon").all()
         assert 144 not in tessellation.index
         assert len(tessellation) == len(df) - 1
 
+    @pytest.mark.skipif(not SHPLY_GE_210, reason="coverage_simplify required")
     def test_morphological_tessellation_simplify(self):
         simplified = mm.morphological_tessellation(
             self.df_buildings,
