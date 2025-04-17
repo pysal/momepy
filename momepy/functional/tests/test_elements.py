@@ -190,7 +190,7 @@ class TestElements:
             ]
         )
         tessellation = mm.morphological_tessellation(
-            df, clip=self.df_streets.buffer(50)
+            df, clip=self.df_streets.buffer(50), simplify=False
         )
         with (
             pytest.warns(
@@ -377,7 +377,7 @@ class TestElements:
             ValueError,
             match="MultiIndex is not supported in `momepy.morphological_tessellation`.",
         ):
-            mm.morphological_tessellation(buildings)
+            mm.morphological_tessellation(buildings, simplify=False)
         with pytest.raises(
             ValueError,
             match="MultiIndex is not supported in `momepy.enclosed_tessellation`.",
