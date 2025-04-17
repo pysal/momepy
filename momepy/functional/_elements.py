@@ -30,6 +30,7 @@ def morphological_tessellation(
     clip: str | shapely.Geometry | GeoSeries | GeoDataFrame | None = "bounding_box",
     shrink: float = 0.4,
     segment: float = 0.5,
+    simplify: bool = True,
     **kwargs,
 ) -> GeoDataFrame:
     """Generate morphological tessellation.
@@ -70,6 +71,9 @@ def morphological_tessellation(
         By default 0.4
     segment : float, optional
         The maximum distance between points after discretization. By default 0.5
+    simplify: bool, optional
+        Whether to attempt to simplify the resulting tesselation boundaries with
+        ``shapely.coverage_simplify``. By default True.
     **kwargs
         Additional keyword arguments pased to libpysal.cg.voronoi_frames, such as
         ``grid_size``.
@@ -105,6 +109,13 @@ def morphological_tessellation(
     4  POLYGON ((1603084.231 6464104.386, 1603083.773...
 
     """
+    if simplify and not SHPLY_GE_210:
+        # TODO: remove the keyword and do simplification by default once it is
+        # safe to pin shapely 2.1
+        raise ImportError(
+            "`simplify=True` requires shapely 2.1 or higher. "
+            "Update shapely or set `simplify` to False."
+        )
 
     if isinstance(geometry.index, MultiIndex):
         raise ValueError(
@@ -114,7 +125,7 @@ def morphological_tessellation(
     if isinstance(clip, GeoSeries | GeoDataFrame):
         clip = clip.union_all() if GPD_GE_10 else clip.unary_union
 
-    return voronoi_frames(
+    mt = voronoi_frames(
         geometry,
         clip=clip,
         shrink=shrink,
@@ -123,6 +134,11 @@ def morphological_tessellation(
         as_gdf=True,
         **kwargs,
     )
+    if simplify:
+        mt.geometry = shapely.coverage_simplify(
+            mt.geometry, tolerance=segment / 2, simplify_boundary=False
+        )
+    return mt
 
 
 def enclosed_tessellation(
@@ -236,6 +252,8 @@ def enclosed_tessellation(
     """
 
     if simplify and not SHPLY_GE_210:
+        # TODO: remove the keyword and do simplification by default once it is
+        # safe to pin shapely 2.1
         raise ImportError(
             "`simplify=True` requires shapely 2.1 or higher. "
             "Update shapely or set `simplify` to False."
@@ -330,10 +348,9 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify, 
             **kwargs,
         )
         if to_simplify:
-            simpl_collection = shapely.coverage_simplify(
+            tess.geometry = shapely.coverage_simplify(
                 tess.geometry, tolerance=segment / 2, simplify_boundary=False
             )
-            tess.geometry = gpd.GeoSeries(simpl_collection).values
         tess[enclosure_id] = ix
         return tess
 

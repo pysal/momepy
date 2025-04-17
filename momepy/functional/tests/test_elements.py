@@ -89,6 +89,15 @@ class TestElements:
         assert 144 not in tessellation.index
         assert len(tessellation) == len(df) - 1
 
+    def test_morphological_tessellation_simplify(self):
+        simplified = mm.morphological_tessellation(
+            self.df_buildings,
+        )
+        assert simplified.get_coordinates().shape[0] == 4557
+
+        dense = mm.morphological_tessellation(self.df_buildings, simplify=False)
+        assert dense.get_coordinates().shape[0] == 47505
+
     def test_enclosed_tessellation(self):
         tessellation = mm.enclosed_tessellation(
             self.df_buildings, self.enclosures.geometry, simplify=False
