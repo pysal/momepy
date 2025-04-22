@@ -215,7 +215,7 @@ class TestDimensions:
             self.df_streets, self.df_buildings, heights=height, tick_length=100
         )
         assert results2.w[0] == 70.7214870365335
-        assert results2.wd[0] == 8.50508193935929
+        assert results2.wd[0] == pytest.approx(8.50508193935929)
         assert results2.h[0] == pytest.approx(23.87158296249206)
         assert results2.p[0] == pytest.approx(0.3375435664999579)
         assert results2.o[0] == 0.5769230769230769
