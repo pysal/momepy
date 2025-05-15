@@ -155,7 +155,12 @@ def sw_high(k, gdf=None, weights=None, ids=None, contiguity="queen", silent=True
     if k > 1:
         id_order = first_order.id_order
         w = first_order.sparse
-        wk = sum(w**x for x in range(1, k + 1))
+        #### when scipy>=1.12 is assured, we can do:
+        # wk = sum(scipy.sparse.linalg.matrix_power(w, x) for x in range(1, k+1))
+        wk = w.copy()
+        for _ in range(k - 1):
+            wk = wk @ w + w
+        ####
         rk, ck = wk.nonzero()
         sk = set(zip(rk, ck, strict=True))
         sk = {(i, j) for i, j in sk if i != j}
