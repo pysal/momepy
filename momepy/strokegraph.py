@@ -1,8 +1,13 @@
-import momepy
 import networkx as nx
+import numpy as np
 from itertools import combinations, product
 from shapely import LineString
-import numpy as np
+
+from .utils import gdf_to_nx
+
+__all__ = [
+    "strokes_to_graph"
+]
 
 def _get_interior_angle(a, b):
     '''
@@ -42,7 +47,7 @@ def _get_end_segment(linestring, point):
         raise ValueError("point is not an endpoint of linestring!")
     return np.array(geom[0] - geom[1])
 
-def make_stroke_graph(gdf, compute_metrics=True, angle_threshold=0, flow_mode=False):
+def strokes_to_graph(coins, compute_metrics=True, return_primal=False):
     '''
     Creates the stroke graph of a street network. The stroke graph is similar to, but not identical with,
     the dual graph. In the stroke graph, each stroke (see ``momepy.COINS``) is a node; and each intersection
@@ -50,37 +55,12 @@ def make_stroke_graph(gdf, compute_metrics=True, angle_threshold=0, flow_mode=Fa
 
     Parameters
     ----------
-    gdf: GeoDataFrame
-        A GeoDataFrame containing edge geometry of a street network.
+    coins: # TODO explain what this has to be
     compute_metrics: bool (default True)
         if True, computes stroke graph metrics and adds them as node attributes.
         The following metrics are computed: betweenness centrality, closeness centrality, 
         degree, connectivity, access, orthogonality, spacing. # TODO add references here
-    angle_threshold: int, float (default 0), units: degrees
-        Passed on to ``momepy.COINS()``
-     flow_mode : bool, default False
-        Passed on to ``momepy.COINS()``
     ''' 
-
-    # remove false nodes (interstitital nodes of degree 2)
-    gdf = momepy.remove_false_nodes(gdf)
-
-    # make primal graph
-    graph = momepy.gdf_to_nx(
-        gdf, 
-        preserve_index=True, # !! preserving index needed for unambiguous mapping to coins!
-        approach="primal"
-    )
-
-    # get momempy lines of graph
-    lines = momepy.nx_to_gdf(
-        graph,
-        points=False,
-        lines=True
-    )
-
-    # get COINS of graph lines
-    coins = momepy.COINS(lines, angle_threshold=angle_threshold, flow_mode=flow_mode)
 
     # get strokes attributes from coins
     stroke_attribute = coins.stroke_attribute()
@@ -98,6 +78,13 @@ def make_stroke_graph(gdf, compute_metrics=True, angle_threshold=0, flow_mode=Fa
     # (using COINS.stroke_attribute to map into ID defined in lines gdf)
     stroke_gdf["edge_indeces"] = stroke_gdf.stroke_id.apply(
         lambda x: list(stroke_attribute[stroke_attribute==x].index)
+    )
+
+    # recreate primal graph from coins.edge_gdf
+    graph = gdf_to_nx(
+        coins.edge_gdf,
+        preserve_index=True,
+        approach="primal"
     )
 
     # Add stroke ID to each edge on (primal) graph
@@ -206,4 +193,17 @@ def make_stroke_graph(gdf, compute_metrics=True, angle_threshold=0, flow_mode=Fa
             stroke_graph.nodes[n]["stroke_orthogonality"] = sum(angles) / stroke_graph.nodes[n]["stroke_connectivity"]
             stroke_graph.nodes[n]["stroke_spacing"] = stroke_graph.nodes[n]["stroke_length"] / stroke_graph.nodes[n]["stroke_connectivity"]
 
+
+        if return_primal:
+            # TODO add metrics, mapping from each stroke:graph node to all its graph edges
+            return stroke_graph, graph
+
+    if return_primal:
+        return stroke_graph, graph
+
     return stroke_graph
+
+# TODO:
+def graph_to_strokes(stroke_graph):
+    # BLABLA
+    return coins
