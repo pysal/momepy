@@ -205,7 +205,7 @@ class TestIntensity:
             nodes, edges, sw, weighted=True, node_degree="degree"
         ).series
         array = mm.NodeDensity(nodes, edges, W).series
-        assert density.mean() == 0.005534125924228438
+        assert density.mean() == pytest.approx(0.005534125924228438)
         assert weighted.mean() == pytest.approx(0.010090861332429164)
         assert array.mean() == 0.01026753724860306
 

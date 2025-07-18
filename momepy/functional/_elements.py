@@ -30,6 +30,7 @@ def morphological_tessellation(
     clip: str | shapely.Geometry | GeoSeries | GeoDataFrame | None = "bounding_box",
     shrink: float = 0.4,
     segment: float = 0.5,
+    simplify: bool = True,
     **kwargs,
 ) -> GeoDataFrame:
     """Generate morphological tessellation.
@@ -70,6 +71,9 @@ def morphological_tessellation(
         By default 0.4
     segment : float, optional
         The maximum distance between points after discretization. By default 0.5
+    simplify: bool, optional
+        Whether to attempt to simplify the resulting tesselation boundaries with
+        ``shapely.coverage_simplify``. By default True.
     **kwargs
         Additional keyword arguments pased to libpysal.cg.voronoi_frames, such as
         ``grid_size``.
@@ -98,13 +102,20 @@ def morphological_tessellation(
 
     >>> momepy.morphological_tessellation(buildings).head()
                                                 geometry
-    0  POLYGON ((1603577.153 6464348.291, 1603576.946...
-    1  POLYGON ((1603166.356 6464326.62, 1603166.425 ...
-    2  POLYGON ((1603006.941 6464167.63, 1603009.97 6...
-    3  POLYGON ((1602995.269 6464132.007, 1603001.768...
-    4  POLYGON ((1603084.231 6464104.386, 1603083.773...
+    0  POLYGON ((1603536.56 6464392.264, 1603541.262 ...
+    1  POLYGON ((1603167.679 6464323.194, 1603167.552...
+    2  POLYGON ((1603078.787 6464172.1, 1603077.665 6...
+    3  POLYGON ((1603070.306 6464154.611, 1603070.081...
+    4  POLYGON ((1603083.134 6464103.971, 1603077.387...
 
     """
+    if simplify and not SHPLY_GE_210:
+        # TODO: remove the keyword and do simplification by default once it is
+        # safe to pin shapely 2.1
+        raise ImportError(
+            "`simplify=True` requires shapely 2.1 or higher. "
+            "Update shapely or set `simplify` to False."
+        )
 
     if isinstance(geometry.index, MultiIndex):
         raise ValueError(
@@ -114,7 +125,7 @@ def morphological_tessellation(
     if isinstance(clip, GeoSeries | GeoDataFrame):
         clip = clip.union_all() if GPD_GE_10 else clip.unary_union
 
-    return voronoi_frames(
+    mt = voronoi_frames(
         geometry,
         clip=clip,
         shrink=shrink,
@@ -123,6 +134,11 @@ def morphological_tessellation(
         as_gdf=True,
         **kwargs,
     )
+    if simplify:
+        mt.geometry = shapely.coverage_simplify(
+            mt.geometry, tolerance=segment / 2, simplify_boundary=False
+        )
+    return mt
 
 
 def enclosed_tessellation(
@@ -236,6 +252,8 @@ def enclosed_tessellation(
     """
 
     if simplify and not SHPLY_GE_210:
+        # TODO: remove the keyword and do simplification by default once it is
+        # safe to pin shapely 2.1
         raise ImportError(
             "`simplify=True` requires shapely 2.1 or higher. "
             "Update shapely or set `simplify` to False."
@@ -330,10 +348,9 @@ def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify, 
             **kwargs,
         )
         if to_simplify:
-            simpl_collection = shapely.coverage_simplify(
+            tess.geometry = shapely.coverage_simplify(
                 tess.geometry, tolerance=segment / 2, simplify_boundary=False
             )
-            tess.geometry = gpd.GeoSeries(simpl_collection).values
         tess[enclosure_id] = ix
         return tess
 
@@ -619,24 +636,24 @@ def generate_blocks(
     Generate tessellation:
 
     >>> tessellation = momepy.morphological_tessellation(buildings)
-    >>> tessellation
+    >>> tessellation.head()
                                                 geometry
-    0  POLYGON ((1603577.153 6464348.291, 1603576.946...
-    1  POLYGON ((1603166.356 6464326.62, 1603166.425 ...
-    2  POLYGON ((1603006.941 6464167.63, 1603009.97 6...
-    3  POLYGON ((1602995.269 6464132.007, 1603001.768...
-    4  POLYGON ((1603084.231 6464104.386, 1603083.773...
+    0  POLYGON ((1603536.56 6464392.264, 1603541.262 ...
+    1  POLYGON ((1603167.679 6464323.194, 1603167.552...
+    2  POLYGON ((1603078.787 6464172.1, 1603077.665 6...
+    3  POLYGON ((1603070.306 6464154.611, 1603070.081...
+    4  POLYGON ((1603083.134 6464103.971, 1603077.387...
 
     >>> blocks, tessellation_id = momepy.generate_blocks(
     ...     tessellation, streets, buildings
     ... )
     >>> blocks.head()
                                                 geometry
-    0  POLYGON ((1603500.079 6464214.019, 1603499.565...
-    1  POLYGON ((1603431.893 6464278.302, 1603431.553...
-    2  POLYGON ((1603321.257 6464125.859, 1603320.938...
-    3  POLYGON ((1603137.411 6464124.658, 1603137.116...
-    4  POLYGON ((1603179.384 6463961.584, 1603179.357...
+    0  POLYGON ((1603421.741 6464282.377, 1603415.23 ...
+    1  POLYGON ((1603485.548 6464217.177, 1603483.228...
+    2  POLYGON ((1603314.034 6464117.593, 1603295.424...
+    3  POLYGON ((1602992.334 6464131.13, 1602992.334 ...
+    4  POLYGON ((1602992.334 6463992.499, 1602992.334...
 
     ``tessellation_id`` can be directly assigned to its
     respective parental DataFrame directly.
