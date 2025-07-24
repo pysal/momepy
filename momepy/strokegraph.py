@@ -71,6 +71,10 @@ def strokes_to_graph(coins, compute_metrics=True, return_primal=False):
         The following metrics are computed: betweenness centrality, closeness
         centrality, degree, connectivity, access, orthogonality, spacing.
         For details on all metrics computed, see :cite:`el2022urban`.
+    return_primal: bool (default False)
+        if True, return both the dual graph (where each node is a stroke and each
+        edge is if two strokes intersect) and the primal graph. Else return only
+        the dual graph.
     """
 
     # get strokes attributes from coins
