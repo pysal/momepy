@@ -79,7 +79,7 @@ class Streetscape:
     intersections with 3, 5, or more connections).
 
     This is a direct implementation of the algorithm proposed in
-    :cite:`araldi2024multi`. When using the igimplementation, please cite
+    :cite:`araldi2024multi`. When using the implementation, please cite
     :cite:`araldi2025Streetscape`.
 
     Parameters
