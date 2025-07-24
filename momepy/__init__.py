@@ -18,6 +18,7 @@ from .intensity import *
 from .preprocessing import *
 from .shape import *
 from .streetscape import *
+from .strokegraph import *
 from .utils import *
 from .weights import *
 
