@@ -256,6 +256,7 @@ def strokes_to_graph(coins, compute_metrics=True, return_primal=False):
 
 
 def graph_to_strokes(stroke_graph, *kwargs):
+    """Recreate COINS from the edges. TBD"""
     edge_gdf = GeoDataFrame(
         geometry=[
             unary_union(
@@ -263,4 +264,5 @@ def graph_to_strokes(stroke_graph, *kwargs):
             )
         ]
     ).explode()
+    # Remove false nodes ?
     return COINS(edge_gdf, *kwargs)
