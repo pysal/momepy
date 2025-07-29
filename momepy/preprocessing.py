@@ -180,6 +180,14 @@ def remove_false_nodes(gdf):
     momepy.extend_lines
     momepy.close_gaps
     """
+    warnings.warn(
+        "`remove_false_nodes` is deprecated and will be removed in momepy 1.1. The "
+        "function has been improved and moved to the `neatnet` package and can be used "
+        "as `neatnet.remove_interstitial_nodes`. See https://uscuni.org/neatnet for "
+        "details.",
+        FutureWarning,
+        stacklevel=2,
+    )
     if isinstance(gdf, gpd.GeoDataFrame | gpd.GeoSeries):
         # explode to avoid MultiLineStrings
         # reset index due to the bug in GeoPandas explode
@@ -426,6 +434,13 @@ def close_gaps(gdf, tolerance):
     momepy.remove_false_nodes
 
     """
+    warnings.warn(
+        "`close_gaps` is deprecated and will be removed in momepy 1.1. The "
+        "function has been moved to the `neatnet` package and can be used "
+        "as `neatnet.close_gaps`. See https://uscuni.org/neatnet for details.",
+        FutureWarning,
+        stacklevel=2,
+    )
     geom = gdf.geometry.array
     coords = shapely.get_coordinates(geom)
     indices = shapely.get_num_coordinates(geom)
@@ -496,6 +511,13 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     momepy.remove_false_nodes
 
     """
+    warnings.warn(
+        "`close_gaps` is deprecated and will be removed in momepy 1.1. The "
+        "function has been moved to the `neatnet` package and can be used "
+        "as `neatnet.close_gaps`. See https://uscuni.org/neatnet for details.",
+        FutureWarning,
+        stacklevel=2,
+    )
     # explode to avoid MultiLineStrings
     # reset index due to the bug in GeoPandas explode
     df = gdf.reset_index(drop=True).explode(ignore_index=True)
@@ -1587,6 +1609,13 @@ class FaceArtifacts:
         height_maxs=0.008,
         prominence=0.00075,
     ):
+        warnings.warn(
+            "`FaceArtifacts` is deprecated and will be removed in momepy 1.1. The "
+            "class has been moved to the `neatnet` package and can be used "
+            "as `neatnet.FaceArtifacts`. See https://uscuni.org/neatnet for details.",
+            FutureWarning,
+            stacklevel=2,
+        )
         try:
             from esda import shape
         except (ImportError, ModuleNotFoundError) as err:
