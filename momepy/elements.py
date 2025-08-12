@@ -19,7 +19,7 @@ def get_network_ratio(df, edges, initial_buffer=500):
     Link polygons to network edges based on the proportion of overlap (if a cell
     intersects more than one edge). Useful if you need to link enclosed tessellation to
     street network. Ratios can be used as weights when linking network-based values
-    to cells. For a purely distance-based link use :func:`momepy.get_network_id`.
+    to cells. For a purely distance-based link use :func:`momepy.get_nearest_street`.
     Links are based on the integer position of edge (``iloc``).
 
     Parameters
@@ -38,7 +38,6 @@ def get_network_ratio(df, edges, initial_buffer=500):
 
     See also
     --------
-    momepy.get_network_id
     momepy.get_node_id
 
     Examples
