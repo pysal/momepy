@@ -76,16 +76,15 @@ class TestElements:
         links = mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
 
         assert links.edgeID_values.apply(lambda x: sum(x)).sum() == len(enclosed_tess)
-        m = enclosed_tess.index[110]
-        assert sorted(links.loc[m].iloc[0]["edgeID_keys"]) == [0, 34]
+        assert sorted(links.loc[109]["edgeID_keys"]) == [0, 34]
 
         # ensure index is preserved
         enclosed_tess.index = [str(uuid.uuid4()) for _ in range(len(enclosed_tess))]
         links2 = mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
 
         assert_index_equal(enclosed_tess.index, links2.index, check_order=False)
-        expected_head = [[0, 34], [34], [34], [0], [0, 15, 3, 14, 4, 7]]
-        expected_tail = [[28], [29], [28], [32], [21]]
+        expected_head = [[34], [0, 34], [0], [0, 15, 3, 14, 4, 7], [34]]
+        expected_tail = [[8], [16], [8], [32], [21]]
 
         for i, idx in enumerate(expected_head):
             assert sorted(links2.edgeID_keys.iloc[i]) == sorted(idx)
