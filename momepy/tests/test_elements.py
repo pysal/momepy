@@ -71,7 +71,7 @@ class TestElements:
             self.df_streets, limit=gpd.GeoSeries([convex_hull], crs=self.df_streets.crs)
         )
         enclosed_tess = mm.enclosed_tessellation(
-            self.df_buildings, enclosures=enclosures
+            self.df_buildings, enclosures=enclosures, simplify=False
         )
         links = mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
 
