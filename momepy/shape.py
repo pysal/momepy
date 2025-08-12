@@ -4,7 +4,7 @@ from geopandas import GeoDataFrame, GeoSeries
 from numpy.typing import NDArray
 from pandas import DataFrame, MultiIndex, Series
 
-from momepy.functional import _dimension
+from momepy import dimension as _dimension
 
 __all__ = [
     "form_factor",

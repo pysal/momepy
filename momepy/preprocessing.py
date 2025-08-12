@@ -18,8 +18,8 @@ from shapely.ops import linemerge, polygonize, split
 from tqdm.auto import tqdm
 
 from .coins import COINS
-from .functional._shape import circular_compactness
 from .graph import node_degree
+from .shape import circular_compactness
 from .utils import gdf_to_nx, nx_to_gdf
 
 __all__ = [
