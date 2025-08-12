@@ -807,8 +807,8 @@ def get_network_ratio(df, edges, initial_buffer=500):
 
     Examples
     --------
-    >>> links = mm.get_network_ratio(enclosed_tessellation, streets)
-    >>> links.head()
+    >>> links = mm.get_network_ratio(enclosed_tessellation, streets)  # doctest: +SKIP
+    >>> links.head()  # doctest: +SKIP
       edgeID_keys                              edgeID_values
     0        [34]                                      [1.0]
     1     [0, 34]  [0.38508998545027145, 0.6149100145497285]
@@ -909,8 +909,8 @@ def enclosures(
 
     Examples
     --------
-    >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
-    """
+    >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])  # doctest: +SKIP
+    """  # noqa
     if limit is not None:
         if isinstance(limit, BaseGeometry):
             limit = gpd.GeoSeries([limit], crs=primary_barriers.crs)

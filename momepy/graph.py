@@ -50,7 +50,7 @@ def node_degree(graph: nx.Graph, name: str = "degree") -> nx.Graph:
 
     Examples
     --------
-    >>> network_graph = mm.node_degree(network_graph)
+    >>> network_graph = mm.node_degree(network_graph)  # doctest: +SKIP
     """
     netx = graph.copy()
 
@@ -113,7 +113,9 @@ def meshedness(
 
     Examples
     --------
-    >>> network_graph = mm.meshedness(network_graph, radius=800, distance='edge_length')
+    >>> network_graph = mm.meshedness(
+    ...     network_graph, radius=800, distance='edge_length'
+    ... )  # doctest: +SKIP
     """
     netx = graph.copy()
 
@@ -157,7 +159,7 @@ def mean_node_dist(
 
     Examples
     --------
-    >>> network_graph = mm.mean_node_dist(network_graph)
+    >>> network_graph = mm.mean_node_dist(network_graph)  # doctest: +SKIP
     """
     netx = graph.copy()
 
@@ -232,7 +234,9 @@ def cds_length(
 
     Examples
     --------
-    >>> network_graph = mm.cds_length(network_graph, radius=9, mode='mean')
+    >>> network_graph = mm.cds_length(
+    ...     network_graph, radius=9, mode='mean'
+    ... )  # doctest: +SKIP
     """
     # node degree needed beforehand
     netx = graph.copy()
@@ -303,7 +307,7 @@ def mean_node_degree(
 
     Examples
     --------
-    >>> network_graph = mm.mean_node_degree(network_graph, radius=3)
+    >>> network_graph = mm.mean_node_degree(network_graph, radius=3)  # doctest: +SKIP
     """
     netx = graph.copy()
 
@@ -375,7 +379,7 @@ def proportion(
     --------
     >>> network_graph = mm.proportion(
     ...     network_graph, three='threeway', four='fourway', dead='deadends'
-    ... )  # noqa
+    ... )  # doctest: +SKIP
     """
     if not three and not four and not dead:
         raise ValueError(
@@ -464,7 +468,7 @@ def cyclomatic(
 
     Examples
     --------
-    >>> network_graph = mm.cyclomatic(network_graph, radius=3)
+    >>> network_graph = mm.cyclomatic(network_graph, radius=3)  # doctest: +SKIP
     """
     netx = graph.copy()
 
@@ -535,7 +539,7 @@ def edge_node_ratio(
 
     Examples
     --------
-    >>> network_graph = mm.edge_node_ratio(network_graph, radius=3)
+    >>> network_graph = mm.edge_node_ratio(network_graph, radius=3)  # doctest: +SKIP
     """
     netx = graph.copy()
 
@@ -608,7 +612,7 @@ def gamma(
 
     Examples
     --------
-    >>> network_graph = mm.gamma(network_graph, radius=3)
+    >>> network_graph = mm.gamma(network_graph, radius=3)  # doctest: +SKIP
     """
     netx = graph.copy()
 
@@ -644,7 +648,7 @@ def clustering(graph: nx.Graph, name: str = "cluster") -> nx.Graph:
 
     Examples
     --------
-    >>> network_graph = mm.clustering(network_graph)
+    >>> network_graph = mm.clustering(network_graph)  # doctest: +SKIP
     """
     netx = graph.copy()
 
@@ -785,7 +789,7 @@ def closeness_centrality(
 
     Examples
     --------
-    >>> network_graph = mm.closeness_centrality(network_graph)
+    >>> network_graph = mm.closeness_centrality(network_graph)  # doctest: +SKIP
     """
     netx = graph.copy()
 
@@ -880,7 +884,7 @@ def betweenness_centrality(
 
     Examples
     --------
-    >>> network_graph = mm.betweenness_centrality(network_graph)
+    >>> network_graph = mm.betweenness_centrality(network_graph)  # doctest: +SKIP
 
     Notes
     -----
@@ -1001,7 +1005,7 @@ def straightness_centrality(
 
     Examples
     --------
-    >>> network_graph = mm.straightness_centrality(network_graph)
+    >>> network_graph = mm.straightness_centrality(network_graph)  # doctest: +SKIP
     """
     netx = graph.copy()
 
@@ -1061,7 +1065,7 @@ def node_density(
 
     Examples
     --------
-    >>> network_graph = mm.node_density(network_graph, radius: int=5)
+    >>> network_graph = mm.node_density(network_graph, radius: int=5)  # doctest: +SKIP
     """
     netx = graph.copy()
     orig_nodes_degree = Series(nx.get_node_attributes(netx, "degree"))
@@ -1159,7 +1163,7 @@ def subgraph(
 
     Examples
     --------
-    >>> network_graph = mm.subgraph(network_graph)
+    >>> network_graph = mm.subgraph(network_graph)  # doctest: +SKIP
     """
 
     netx = graph.copy()

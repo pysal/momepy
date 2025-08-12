@@ -335,7 +335,7 @@ class CheckTessellationInput:
 
     Examples
     --------
-    >>> check = CheckTessellationData(df)
+    >>> check = CheckTessellationData(df)  # doctest: +SKIP
     Collapsed features  : 3157
     Split features      : 519
     Overlapping features: 22
@@ -1561,10 +1561,10 @@ class FaceArtifacts:
 
     Examples
     --------
-    >>> fa = momepy.FaceArtifacts(street_network_prague)
-    >>> fa.threshold
+    >>> fa = momepy.FaceArtifacts(street_network_prague)  # doctest: +SKIP
+    >>> fa.threshold  # doctest: +SKIP
     6.9634555986177045
-    >>> fa.face_artifacts.head()
+    >>> fa.face_artifacts.head()  # doctest: +SKIP
                                                  geometry  face_artifact_index
     6   POLYGON ((-744164.625 -1043922.362, -744167.39...             5.112844
     9   POLYGON ((-744154.119 -1043804.734, -744152.07...             6.295660
