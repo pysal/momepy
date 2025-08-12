@@ -409,20 +409,20 @@ class TestDescribe:
         expected_area_sum = {
             "min": 618.4470363735187,
             "max": 18085.458977113314,
-            "count": 22,
-            "mean": 4765.589763157915,
+            "count": 20,
+            "mean": 5242.148739473707,
         }
         expected_area_mean = {
-            "min": 218.962248810988,
+            "min": 275.1517064869311,
             "max": 1808.5458977113315,
-            "count": 22,
-            "mean": 746.7028417890866,
+            "count": 20,
+            "mean": 725.2265163426758,
         }
         expected_area_count = {
             "min": 1,
             "max": 18,
-            "count": 22,
-            "mean": 6.545454545454546,
+            "count": 20,
+            "mean": 7.2,
         }
         assert_result(df["count"], expected_area_count, result_index, check_names=False)
         assert_result(df["sum"], expected_area_sum, result_index, check_names=False)
@@ -437,8 +437,8 @@ class TestDescribe:
         expected_filtered_area_count = {
             "min": 1,
             "max": 14,
-            "count": 22,
-            "mean": 4.727272,
+            "count": 20,
+            "mean": 5.1,
         }
         assert_result(
             filtered_counts,
@@ -453,16 +453,16 @@ class TestDescribe:
         )
 
         expected_fl_area_sum = {
-            "min": 1894.492021221426,
+            "min": 1923.1785460414899,
             "max": 79169.31385861782,
-            "count": 22,
-            "mean": 26494.88163951223,
+            "count": 20,
+            "mean": 29144.36980346345,
         }
         expected_fl_area_mean = {
-            "min": 939.9069666320963,
+            "min": 1186.0174544652502,
             "max": 7916.931385861784,
-            "count": 22,
-            "mean": 3995.8307750062318,
+            "count": 20,
+            "mean": 4042.894353435107,
         }
 
         assert_result(df["count"], expected_area_count, result_index)
@@ -487,7 +487,7 @@ class TestDescribe:
         df_sw = mm.describe_reached_agg(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
         )
-        expected = {"min": 6, "max": 138, "count": 35, "mean": 67.82857}
+        expected = {"min": 6, "max": 140, "count": 35, "mean": 68}
         assert_result(df_sw["count"], expected, self.df_streets, check_names=False)
 
         df_sw_dummy_filtration = mm.describe_reached_agg(
@@ -507,7 +507,7 @@ class TestDescribe:
             q=(10, 90),
             statistics=["count"],
         )
-        filtered_expected = {"min": 4, "max": 110, "count": 35, "mean": 53.48571}
+        filtered_expected = {"min": 4, "max": 112, "count": 35, "mean": 53.7142857}
         assert_result(
             filtered_df["count"], filtered_expected, self.df_streets, check_names=False
         )
