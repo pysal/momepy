@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from libpysal.graph import Graph
-from pandas.testing import assert_series_equal
 from shapely import Polygon
 
 import momepy as mm
@@ -187,77 +186,4 @@ class TestDimensions:
             self.df_tessellation,
             check_names=False,
             exact=False,
-        )
-
-
-class TestDimensionEquivalence:
-    def setup_method(self):
-        test_file_path = mm.datasets.get_path("bubenec")
-        self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
-        self.df_streets = gpd.read_file(test_file_path, layer="streets")
-        self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
-        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
-        self.sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
-        self.graph = (
-            Graph.build_contiguity(self.df_tessellation)
-            .higher_order(k=3, lower_order=True)
-            .assign_self_weight()
-        )
-
-    def test_street_profile(self):
-        sp_new = mm.street_profile(
-            self.df_streets,
-            self.df_buildings,
-            tick_length=50,
-            distance=1,
-            height=self.df_buildings["height"],
-        )
-        sp_old = mm.StreetProfile(
-            self.df_streets,
-            self.df_buildings,
-            tick_length=50,
-            distance=1,
-            heights=self.df_buildings["height"],
-        )
-
-        ## needs tolerance because the generate ticks are different
-        assert_series_equal(sp_new["width"], sp_old.w, rtol=1e-2, check_names=False)
-        assert_series_equal(
-            sp_new["width_deviation"].replace(np.nan, 0),
-            sp_old.wd,
-            rtol=1,
-            check_names=False,
-        )
-        assert_series_equal(sp_new["openness"], sp_old.o, rtol=1e-1, check_names=False)
-        assert_series_equal(
-            sp_new["height"].replace(np.nan, 0), sp_old.h, check_names=False, rtol=1e-1
-        )
-        assert_series_equal(
-            sp_new["height_deviation"].replace(np.nan, 0),
-            sp_old.hd,
-            check_names=False,
-            rtol=1e-1,
-        )
-        assert_series_equal(
-            sp_new["hw_ratio"].replace(np.nan, 0), sp_old.p, check_names=False, rtol=1
-        )
-
-    def test_covered_area(self):
-        covered_sw_new = self.graph.describe(
-            self.df_tessellation.area, statistics=["sum"]
-        )["sum"]
-        covered_sw_old = mm.CoveredArea(self.df_tessellation, self.sw, "uID").series
-        assert_series_equal(
-            covered_sw_new, covered_sw_old, check_names=False, check_index_type=False
-        )
-
-    def test_weighted_char(self):
-        weighted_new = mm.weighted_character(
-            self.df_buildings.height, self.df_buildings.area, self.graph
-        )
-        weighted_old = mm.WeightedCharacter(
-            self.df_buildings, "height", self.sw, "uID"
-        ).series
-        assert_series_equal(
-            weighted_new, weighted_old, check_names=False, check_index_type=False
         )

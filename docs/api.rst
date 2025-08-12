@@ -9,11 +9,6 @@
 momepy API reference
 ======================
 
-The current version of momepy includes two implementations of most of the functionality
-due to the ongoing migration period moving from the legacy class-based API to a new
-function-based API. This page outlines the stable API. For the legacy functionality, see
-:doc:`Legacy API  <legacy_api>`.
-
 Managing morphological elements
 -------------------------------
 .. _elements:

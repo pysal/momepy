@@ -5,7 +5,7 @@ import pytest
 import shapely
 from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
-from pandas.testing import assert_index_equal, assert_series_equal
+from pandas.testing import assert_index_equal
 from shapely import affinity
 from shapely.geometry import MultiPoint, Polygon, box
 
@@ -426,32 +426,3 @@ class TestElements:
 
         # assert that there is a tessellation for building 1
         assert 1 in new_tess.index
-
-
-class TestElementsEquivalence:
-    def setup_method(self):
-        test_file_path = mm.datasets.get_path("bubenec")
-        self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
-        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
-        self.df_streets = gpd.read_file(test_file_path, layer="streets")
-        self.limit = mm.buffered_limit(self.df_buildings, 50)
-        self.enclosures = mm.enclosures(
-            self.df_streets,
-            gpd.GeoSeries([self.limit.exterior], crs=self.df_streets.crs),
-        )
-
-    def test_blocks(self):
-        blocks, tessellation_id = mm.generate_blocks(
-            self.df_tessellation, self.df_streets, self.df_buildings
-        )
-        res = mm.Blocks(
-            self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
-        )
-
-        assert_geodataframe_equal(
-            blocks.geometry.to_frame(), res.blocks.geometry.to_frame()
-        )
-        assert_series_equal(
-            tessellation_id[tessellation_id.index >= 0], res.buildings_id
-        )
-        assert_series_equal(tessellation_id, res.tessellation_id)

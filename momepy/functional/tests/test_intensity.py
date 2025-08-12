@@ -20,20 +20,23 @@ class TestIntensity:
         self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
         self.df_streets = gpd.read_file(test_file_path, layer="streets")
         self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
-        self.df_streets["nID"] = mm.unique_id(self.df_streets)
+        # self.df_streets["nID"] = mm.unique_id(self.df_streets)
         self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
         self.df_tessellation["area"] = self.df_tessellation.geometry.area
         self.df_buildings["area"] = self.df_buildings.geometry.area
-        self.df_buildings["fl_area"] = mm.FloorArea(self.df_buildings, "height").series
-        self.df_buildings["nID"] = mm.get_network_id(
-            self.df_buildings, self.df_streets, "nID"
+        self.df_buildings["fl_area"] = mm.floor_area(
+            self.df_buildings.area, self.df_buildings["height"]
         )
-        blocks = mm.Blocks(
-            self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
+        self.df_buildings["nID"] = mm.get_nearest_street(
+            self.df_buildings, self.df_streets
         )
-        self.blocks = blocks.blocks
-        self.df_buildings["bID"] = blocks.buildings_id
-        self.df_tessellation["bID"] = blocks.tessellation_id
+        self.blocks, ids = mm.generate_blocks(
+            self.df_tessellation,
+            self.df_streets,
+            self.df_buildings,
+        )
+        self.df_buildings["bID"] = ids
+        self.df_tessellation["bID"] = ids
 
         self.buildings_graph = Graph.build_contiguity(
             self.df_buildings, rook=False
@@ -176,179 +179,4 @@ class TestIntensity:
         }
         assert_result(
             far, far_expected, self.df_tessellation, exact=False, check_names=False
-        )
-
-
-class TestIntensityEquality:
-    def setup_method(self):
-        test_file_path = mm.datasets.get_path("bubenec")
-        self.df_buildings = gpd.read_file(test_file_path, layer="buildings")
-        self.df_streets = gpd.read_file(test_file_path, layer="streets")
-        self.df_tessellation = gpd.read_file(test_file_path, layer="tessellation")
-        self.df_streets["nID"] = mm.unique_id(self.df_streets)
-        self.df_buildings["height"] = np.linspace(10.0, 30.0, 144)
-        self.df_tessellation["area"] = self.df_tessellation.geometry.area
-        self.df_buildings["area"] = self.df_buildings.geometry.area
-        self.df_buildings["fl_area"] = mm.FloorArea(self.df_buildings, "height").series
-        self.df_buildings["nID"] = mm.get_network_id(
-            self.df_buildings, self.df_streets, "nID"
-        )
-        blocks = mm.Blocks(
-            self.df_tessellation, self.df_streets, self.df_buildings, "bID", "uID"
-        )
-        self.blocks = blocks.blocks
-        self.df_buildings["bID"] = blocks.buildings_id
-        self.df_tessellation["bID"] = blocks.tessellation_id
-
-        self.buildings_graph = Graph.build_contiguity(
-            self.df_buildings, rook=False
-        ).assign_self_weight()
-
-    def test_courtyards(self):
-        old_courtyards = mm.Courtyards(self.df_buildings).series
-        new_courtyards = mm.courtyards(self.df_buildings, self.buildings_graph)
-        assert_series_equal(
-            new_courtyards, old_courtyards, check_names=False, check_dtype=False
-        )
-
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
-    def test_area_ratio(self):
-        def area_ratio(overlay, covering, agg_key):
-            res = mm.describe_agg(covering, agg_key)
-            return res["sum"] / overlay
-
-        self.blocks["area"] = self.blocks.geometry.area
-        car_block_new = area_ratio(
-            self.blocks.geometry.area,
-            self.df_buildings["area"],
-            self.df_buildings["bID"],
-        )
-        car_block_old = mm.AreaRatio(
-            self.blocks, self.df_buildings, "area", "area", "bID"
-        ).series
-        assert_series_equal(
-            car_block_new,
-            car_block_old,
-            check_dtype=False,
-            check_names=False,
-            check_index_type=False,
-        )
-
-        car_new = area_ratio(
-            self.df_tessellation.geometry.area,
-            self.df_buildings["area"],
-            self.df_buildings["uID"] - 1,
-        )
-        car2_new = area_ratio(
-            self.df_tessellation.set_index("uID").area,
-            self.df_buildings.set_index("uID").area,
-            self.df_tessellation.set_index("uID").index,
-        )
-        car_old = mm.AreaRatio(
-            self.df_tessellation, self.df_buildings, "area", "area", "uID"
-        ).series
-        assert_series_equal(
-            car_new,
-            car_old,
-            check_dtype=False,
-            check_names=False,
-            check_index_type=False,
-        )
-        assert_series_equal(
-            car_old,
-            car2_new.reset_index(drop=True),
-            check_dtype=False,
-            check_names=False,
-            check_index_type=False,
-        )
-
-        car_sel = mm.AreaRatio(
-            self.df_tessellation.iloc[10:20], self.df_buildings, "area", "area", "uID"
-        ).series
-        car_sel_new = area_ratio(
-            self.df_tessellation.iloc[10:20]["area"],
-            self.df_buildings["area"],
-            self.df_tessellation.iloc[10:20]["uID"] - 1,
-        )
-
-        assert_series_equal(
-            car_sel_new,
-            car_sel,
-            check_dtype=False,
-            check_index_type=False,
-            check_names=False,
-        )
-
-        far_new = area_ratio(
-            self.df_tessellation.geometry.area,
-            self.df_buildings["fl_area"],
-            self.df_buildings["uID"] - 1,
-        )
-
-        far_old = mm.AreaRatio(
-            self.df_tessellation,
-            self.df_buildings,
-            self.df_tessellation.area,
-            self.df_buildings.fl_area,
-            "uID",
-        ).series
-
-        assert_series_equal(
-            far_new,
-            far_old,
-            check_index_type=False,
-            check_dtype=False,
-            check_names=False,
-        )
-
-    def test_density(self):
-        sw = mm.sw_high(k=3, gdf=self.df_tessellation, ids="uID")
-        graph = (
-            Graph.build_contiguity(self.df_tessellation, rook=False)
-            .higher_order(k=3, lower_order=True)
-            .assign_self_weight()
-        )
-
-        fl_area = graph.describe(self.df_buildings["fl_area"])["sum"]
-        tess_area = graph.describe(self.df_tessellation["area"])["sum"]
-        dens_new = fl_area / tess_area
-
-        dens_old = mm.Density(
-            self.df_tessellation,
-            self.df_buildings["fl_area"],
-            sw,
-            "uID",
-            self.df_tessellation.area,
-        ).series
-
-        assert_series_equal(
-            dens_new,
-            dens_old,
-            check_names=False,
-            check_dtype=False,
-            check_index_type=False,
-        )
-
-    def test_node_density(self):
-        g = mm.gdf_to_nx(self.df_streets, integer_labels=True)
-        g = mm.node_degree(g)
-        g = mm.node_density(g, radius=3)
-        nodes, edges, w = mm.nx_to_gdf(g, spatial_weights=True)
-
-        sw = mm.sw_high(k=3, weights=w)
-
-        density_old = mm.NodeDensity(nodes, edges, sw).series
-        density_new = pd.Series(nx.get_node_attributes(g, "node_density"))
-        assert_series_equal(
-            density_old, density_new, check_names=False, check_dtype=False
-        )
-
-        weighted_old = mm.NodeDensity(
-            nodes, edges, sw, weighted=True, node_degree="degree"
-        ).series
-        weighted_new = pd.Series(nx.get_node_attributes(g, "node_density_weighted"))
-        assert_series_equal(
-            weighted_old, weighted_new, check_names=False, check_dtype=False
         )

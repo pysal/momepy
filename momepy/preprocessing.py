@@ -18,8 +18,8 @@ from shapely.ops import linemerge, polygonize, split
 from tqdm.auto import tqdm
 
 from .coins import COINS
+from .functional._shape import circular_compactness
 from .graph import node_degree
-from .shape import CircularCompactness
 from .utils import gdf_to_nx, nx_to_gdf
 
 __all__ = [
@@ -90,7 +90,7 @@ def preprocess(
         )
         blg["neighbors"] = sw.neighbors.values()
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
-        blg["circu"] = CircularCompactness(blg).series
+        blg["circu"] = circular_compactness(blg)
 
         # idetify those smaller than x with only one neighbor and attaches it to it.
         join = {}
@@ -765,7 +765,7 @@ def _selecting_rabs_from_poly(
     # calculate parameters
     if area_col == "area":
         gdf.loc[:, area_col] = gdf.geometry.area
-    circom_serie = CircularCompactness(gdf, area_col).series
+    circom_serie = circular_compactness(gdf)
     # selecting roundabout polygons based on compactness
     mask = circom_serie > circom_threshold
     rab = gdf[mask]
