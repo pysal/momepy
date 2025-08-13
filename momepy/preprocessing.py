@@ -19,7 +19,7 @@ from tqdm.auto import tqdm
 
 from .coins import COINS
 from .graph import node_degree
-from .shape import CircularCompactness
+from .shape import circular_compactness
 from .utils import gdf_to_nx, nx_to_gdf
 
 __all__ = [
@@ -90,7 +90,7 @@ def preprocess(
         )
         blg["neighbors"] = sw.neighbors.values()
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
-        blg["circu"] = CircularCompactness(blg).series
+        blg["circu"] = circular_compactness(blg)
 
         # idetify those smaller than x with only one neighbor and attaches it to it.
         join = {}
@@ -335,7 +335,7 @@ class CheckTessellationInput:
 
     Examples
     --------
-    >>> check = CheckTessellationData(df)
+    >>> check = CheckTessellationData(df)  # doctest: +SKIP
     Collapsed features  : 3157
     Split features      : 519
     Overlapping features: 22
@@ -765,7 +765,7 @@ def _selecting_rabs_from_poly(
     # calculate parameters
     if area_col == "area":
         gdf.loc[:, area_col] = gdf.geometry.area
-    circom_serie = CircularCompactness(gdf, area_col).series
+    circom_serie = circular_compactness(gdf)
     # selecting roundabout polygons based on compactness
     mask = circom_serie > circom_threshold
     rab = gdf[mask]
@@ -1561,10 +1561,10 @@ class FaceArtifacts:
 
     Examples
     --------
-    >>> fa = momepy.FaceArtifacts(street_network_prague)
-    >>> fa.threshold
+    >>> fa = momepy.FaceArtifacts(street_network_prague)  # doctest: +SKIP
+    >>> fa.threshold  # doctest: +SKIP
     6.9634555986177045
-    >>> fa.face_artifacts.head()
+    >>> fa.face_artifacts.head()  # doctest: +SKIP
                                                  geometry  face_artifact_index
     6   POLYGON ((-744164.625 -1043922.362, -744167.39...             5.112844
     9   POLYGON ((-744154.119 -1043804.734, -744152.07...             6.295660

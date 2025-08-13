@@ -19,9 +19,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  ALLOW_LEGACY_MOMEPY: true
-
 jobs:
   Test:
     name: ${{ matrix.os }}, ${{ matrix.environment-file }}

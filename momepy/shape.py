@@ -1,60 +1,37 @@
-#!/usr/bin/env python
-
-# shape.py
-# definitions of shape characters
-
-import math
-import random
-
 import numpy as np
-import pandas as pd
 import shapely
-from shapely.geometry import Point
-from tqdm.auto import tqdm  # progress bar
+from geopandas import GeoDataFrame, GeoSeries
+from numpy.typing import NDArray
+from pandas import DataFrame, MultiIndex, Series
 
-from .utils import deprecated
+from momepy import dimension as _dimension
 
 __all__ = [
-    "FormFactor",
-    "FractalDimension",
-    "VolumeFacadeRatio",
-    "CircularCompactness",
-    "SquareCompactness",
-    "Convexity",
-    "CourtyardIndex",
-    "Rectangularity",
-    "ShapeIndex",
-    "Corners",
-    "Squareness",
-    "EquivalentRectangularIndex",
-    "Elongation",
-    "CentroidCorners",
-    "Linearity",
-    "CompactnessWeightedAxis",
+    "form_factor",
+    "fractal_dimension",
+    "facade_ratio",
+    "circular_compactness",
+    "square_compactness",
+    "convexity",
+    "courtyard_index",
+    "rectangularity",
+    "shape_index",
+    "corners",
+    "squareness",
+    "equivalent_rectangular_index",
+    "elongation",
+    "centroid_corner_distance",
+    "linearity",
+    "compactness_weighted_axis",
+    "sunlight_optimised",
 ]
 
 
-def _form_factor(height, geometry, area=None, perimeter=None, volume=None):
-    """Helper for FormFactor."""
-    if area is None:
-        area = geometry.area
-    if perimeter is None:
-        perimeter = geometry.length
-    if volume is None:
-        volume = area * height
-
-    surface = (perimeter * height) + area
-    zeros = volume == 0
-    res = np.empty(len(geometry))
-    res[zeros] = np.nan
-    res[~zeros] = surface[~zeros] / (volume[~zeros] ** (2 / 3))
-    return res
-
-
-@deprecated("form_factor")
-class FormFactor:
-    """
-    Calculates the form factor of each object in a given GeoDataFrame.
+def form_factor(
+    geometry: GeoDataFrame | GeoSeries,
+    height: NDArray[np.float64] | Series,
+) -> Series:
+    """Calculates the form factor of each object given its geometry and height.
 
     .. math::
         surface \\over {volume^{2 \\over 3}}
@@ -68,79 +45,54 @@ class FormFactor:
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    volumes : str, list, np.array, pd.Series
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where volume
-        values are stored. To calculate volume you can use :py:func:`momepy.volume`.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        area values stored. If set to ``None``, this function will calculate areas
-        during the process without saving them separately.
-    heights : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where height
-        values are stored. Note that it cannot be ``None``.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
+    height : NDArray[np.float64] | Series
+        array of heights
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    volumes : Series
-        A Series containing used volume values.
-    areas : Series
-        A Series containing used area values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, 'volume').series
-    >>> buildings_df.formfactor[0]
-    1.9385988170288635
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
 
-    >>> volume = momepy.Volume(buildings_df, 'height').series
-    >>> buildings_df['formfactor'] = momepy.FormFactor(buildings_df, volume).series
-    >>> buildings_df.formfactor[0]
-    1.9385988170288635
+    Synthesize some  building height information.
+
+    >>> import numpy as np
+    >>> rng = np.random.default_rng(seed=42)
+    >>> height = rng.integers(low=9, high=30, size=len(buildings))
+
+    >>> momepy.form_factor(buildings, height)
+    0      5.588952
+    1      8.403204
+    2      5.149302
+    3      5.381587
+    4      5.030861
+            ...
+    139    6.039771
+    140    5.904980
+    141    5.508910
+    142    5.869335
+    143    5.378663
+    Name: form_factor, Length: 144, dtype: float64
     """
-
-    def __init__(self, gdf, volumes, areas=None, heights=None):
-        if heights is None:
-            raise ValueError("`heights` cannot be None.")
-            # TODO: this shouldn't be needed but it would be a breaking change now.
-            # remove during the functional refactor
-        self.gdf = gdf
-
-        gdf = gdf.copy()
-        if not isinstance(volumes, str):
-            gdf["mm_v"] = volumes
-            volumes = "mm_v"
-        self.volumes = gdf[volumes]
-        if areas is None:
-            areas = gdf.geometry.area
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
-        self.areas = gdf[areas]
-
-        if isinstance(heights, str):
-            heights = gdf[heights]
-
-        self.series = pd.Series(
-            _form_factor(
-                height=np.asarray(heights),
-                geometry=gdf.geometry,
-                area=self.areas,
-                volume=self.volumes,
-            ),
-            index=gdf.index,
-        )
+    area = geometry.area
+    volume = area * height
+    surface = (geometry.length * height) + geometry.area
+    zeros = volume == 0
+    res = np.empty(len(geometry))
+    res[zeros] = np.nan
+    res[~zeros] = surface[~zeros] / (volume[~zeros] ** (2 / 3))
+    return Series(res, index=geometry.index, name="form_factor")
 
 
-@deprecated("fractal_dimension")
-class FractalDimension:
-    """
-    Calculates fractal dimension of each object in given GeoDataFrame.
+def fractal_dimension(
+    geometry: GeoDataFrame | GeoSeries,
+) -> Series:
+    """Calculates fractal dimension based on area and perimeter.
 
     .. math::
         {2log({{perimeter} \\over {4}})} \\over log(area)
@@ -149,319 +101,77 @@ class FractalDimension:
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        area values stored. If set to ``None``, this function will calculate areas
-        during the process without saving them separately.
-    perimeters : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        perimeter values stored. If set to ``None``, this function will calculate
-        perimeters during the process without saving them separately.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    perimeters : Series
-        A Series containing used perimeter values.
-    areas : Series
-        A Series containing used area values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['fractal'] = momepy.FractalDimension(buildings_df,
-    ...                                                   'area',
-    ...                                                   'peri').series
-    >>> buildings_df.fractal[0]
-    1.0726778567038908
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.fractal_dimension(buildings)
+    0      1.072678
+    1      1.182350
+    2      1.018422
+    3      1.048314
+    4      1.017328
+            ...
+    139    1.014975
+    140    1.033581
+    141    1.064103
+    142    1.022617
+    143    1.000008
+    Length: 144, dtype: float64
     """
-
-    def __init__(self, gdf, areas=None, perimeters=None):
-        self.gdf = gdf
-
-        gdf = gdf.copy()
-
-        if perimeters is None:
-            gdf["mm_p"] = gdf.geometry.length
-            perimeters = "mm_p"
-        else:
-            if not isinstance(perimeters, str):
-                gdf["mm_p"] = perimeters
-                perimeters = "mm_p"
-        self.perimeters = gdf[perimeters]
-        if areas is None:
-            areas = gdf.geometry.area
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
-
-        self.series = pd.Series(
-            (2 * np.log(gdf[perimeters] / 4)) / np.log(gdf[areas]), index=gdf.index
-        )
+    return (2 * np.log(geometry.length / 4)) / np.log(geometry.area)
 
 
-@deprecated("facade_ratio")
-class VolumeFacadeRatio:
+def facade_ratio(
+    geometry: GeoDataFrame | GeoSeries,
+) -> Series:
     """
-    Calculates the volume/facade ratio of each object in a given GeoDataFrame.
+    Calculates the facade ratio of each object given its geometry.
 
     .. math::
-        volume \\over perimeter * height
+        area \\over perimeter
 
     Adapted from :cite:`schirmer2015`.
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    heights : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series``
-        where height values are stored.
-    volumes : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series``
-        where volume values are stored.
-    perimeters : , list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series``
-        where perimeter values are stored.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    perimeters : Series
-        A Series containing used perimeter values.
-    volumes : Series
-        A Series containing used volume values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['vfr'] = momepy.VolumeFacadeRatio(buildings_df, 'height').series
-    >>> buildings_df.vfr[0]
-    5.310715735236504
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.facade_ratio(buildings)
+    0       5.310716
+    1      11.314008
+    2       5.963959
+    3       6.376086
+    4       5.987687
+            ...
+    139     1.868981
+    140     4.046407
+    141     5.963454
+    142     1.711740
+    143     2.734681
+    Length: 144, dtype: float64
     """
-
-    def __init__(self, gdf, heights, volumes=None, perimeters=None):
-        self.gdf = gdf
-
-        gdf = gdf.copy()
-        if perimeters is None:
-            gdf["mm_p"] = gdf.geometry.length
-            perimeters = "mm_p"
-        else:
-            if not isinstance(perimeters, str):
-                gdf["mm_p"] = perimeters
-                perimeters = "mm_p"
-        self.perimeters = gdf[perimeters]
-
-        if volumes is None:
-            gdf["mm_v"] = gdf.geometry.area * gdf[heights]
-            volumes = "mm_v"
-        else:
-            if not isinstance(volumes, str):
-                gdf["mm_v"] = volumes
-                volumes = "mm_v"
-        self.volumes = gdf[volumes]
-
-        self.series = gdf[volumes] / (gdf[perimeters] * gdf[heights])
+    return geometry.area / geometry.length
 
 
-#######################################################################################
-# Smallest enclosing circle - Library (Python)
-
-# Copyright (c) 2017 Project Nayuki
-# https://www.nayuki.io/page/smallest-enclosing-circle
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program (see COPYING.txt and COPYING.LESSER.txt).
-# If not, see <http://www.gnu.org/licenses/>.
-
-# Data conventions: A point is a pair of floats (x, y).
-# A circle is a triple of floats (center x, center y, radius).
-
-# Returns the smallest circle that encloses all the given points.
-# Runs in expected O(n) time, randomized.
-# Input: A sequence of pairs of floats or ints, e.g. [(0,5), (3.1,-2.7)].
-
-# Output: A triple of floats representing a circle.
-# Note: If 0 points are given, None is returned. If 1 point is given,
-# a circle of radius 0 is returned.
-#
-# Initially: No boundary points known
-
-
-def _make_circle(points):
-    # Convert to float and randomize order
-    shuffled = [(float(x), float(y)) for (x, y) in points]
-    random.shuffle(shuffled)
-
-    # Progressively add points to circle or recompute circle
-    c = None
-    for i, p in enumerate(shuffled):
-        if c is None or not _is_in_circle(c, p):
-            c = _make_circle_one_point(shuffled[: i + 1], p)
-    return c
-
-
-def _make_circle_one_point(points, p):
-    """One boundary point known."""
-    c = (p[0], p[1], 0)
-    for i, q in enumerate(points):
-        if not _is_in_circle(c, q):
-            if c[2] == 0:
-                c = _make_diameter(p, q)
-            else:
-                c = _make_circle_two_points(points[: i + 1], p, q)
-    return c
-
-
-def _make_circle_two_points(points, p, q):
-    """Two boundary points known."""
-    circ = _make_diameter(p, q)
-    left = None
-    right = None
-    px, py = p
-    qx, qy = q
-
-    # For each point not in the two-point circle
-    for r in points:
-        if _is_in_circle(circ, r):
-            continue
-
-        # Form a circumcircle and classify it on left or right side
-        cross = _cross_product(px, py, qx, qy, r[0], r[1])
-        c = _make_circumcircle(p, q, r)
-        if c is None:
-            continue
-        elif cross > 0 and (
-            left is None
-            or _cross_product(px, py, qx, qy, c[0], c[1])
-            > _cross_product(px, py, qx, qy, left[0], left[1])
-        ):
-            left = c
-        elif cross < 0 and (
-            right is None
-            or _cross_product(px, py, qx, qy, c[0], c[1])
-            < _cross_product(px, py, qx, qy, right[0], right[1])
-        ):
-            right = c
-
-    # Select which circle to return
-    if left is None and right is None:
-        return circ
-    if left is None:
-        return right
-    if right is None:
-        return left
-    if left[2] <= right[2]:
-        return left
-    return right
-
-
-def _make_circumcircle(p0, p1, p2):
-    """Mathematical algorithm from Wikipedia: Circumscribed circle."""
-    ax, ay = p0
-    bx, by = p1
-    cx, cy = p2
-    ox = (min(ax, bx, cx) + max(ax, bx, cx)) / 2
-    oy = (min(ay, by, cy) + max(ay, by, cy)) / 2
-    ax -= ox
-    ay -= oy
-    bx -= ox
-    by -= oy
-    cx -= ox
-    cy -= oy
-    d = (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)) * 2
-    if d == 0:
-        return None
-    x = (
-        ox
-        + (
-            (ax * ax + ay * ay) * (by - cy)
-            + (bx * bx + by * by) * (cy - ay)
-            + (cx * cx + cy * cy) * (ay - by)
-        )
-        / d
-    )
-    y = (
-        oy
-        + (
-            (ax * ax + ay * ay) * (cx - bx)
-            + (bx * bx + by * by) * (ax - cx)
-            + (cx * cx + cy * cy) * (bx - ax)
-        )
-        / d
-    )
-    ra = math.hypot(x - p0[0], y - p0[1])
-    rb = math.hypot(x - p1[0], y - p1[1])
-    rc = math.hypot(x - p2[0], y - p2[1])
-    return (x, y, max(ra, rb, rc))
-
-
-def _make_diameter(p0, p1):
-    cx = (p0[0] + p1[0]) / 2
-    cy = (p0[1] + p1[1]) / 2
-    r0 = math.hypot(cx - p0[0], cy - p0[1])
-    r1 = math.hypot(cx - p1[0], cy - p1[1])
-    return (cx, cy, max(r0, r1))
-
-
-_MULTIPLICATIVE_EPSILON = 1 + 1e-14
-
-
-def _is_in_circle(c, p):
-    return (
-        c is not None
-        and math.hypot(p[0] - c[0], p[1] - c[1]) <= c[2] * _MULTIPLICATIVE_EPSILON
-    )
-
-
-def _cross_product(x0, y0, x1, y1, x2, y2):
-    """
-    Returns twice the signed area of the
-    triangle defined by (x0, y0), (x1, y1), (x2, y2).
-    """
-    return (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0)
-
-
-# end of Nayuiki script to define the smallest enclosing circle
-#######################################################################################
-
-
-def _circle_area(points):
-    """calculate the area of circumcircle."""
-    if len(points[0]) == 3:
-        points = [x[:2] for x in points]
-    circ = _make_circle(points)
-    return math.pi * circ[2] ** 2
-
-
-def _circle_radius(points):
-    if len(points[0]) == 3:
-        points = [x[:2] for x in points]
-    circ = _make_circle(points)
-    return circ[2]
-
-
-@deprecated("circular_compactness")
-class CircularCompactness:
-    """
-    Calculates the compactness index of each object in a given GeoDataFrame.
+def circular_compactness(geometry: GeoDataFrame | GeoSeries) -> Series:
+    """Calculates the circular compactness of each object given its geometry.
 
     .. math::
         area \\over \\textit{area of enclosing circle}
@@ -470,48 +180,38 @@ class CircularCompactness:
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        area values stored. If set to ``None``, this function will calculate areas
-        during the process without saving them separately.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    areas : Series
-        A Series containing used area values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['comp'] = momepy.CircularCompactness(buildings_df, 'area').series
-    >>> buildings_df['comp'][0]
-    0.572145421828038
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.circular_compactness(buildings)
+    0      0.572145
+    1      0.390417
+    2      0.588332
+    3      0.520411
+    4      0.591297
+            ...
+    139    0.563433
+    140    0.525733
+    141    0.404872
+    142    0.530405
+    143    0.636387
+    Length: 144, dtype: float64
     """
-
-    def __init__(self, gdf, areas=None):
-        self.gdf = gdf
-
-        if areas is None:
-            areas = gdf.geometry.area
-        elif isinstance(areas, str):
-            areas = gdf[areas]
-        self.areas = areas
-        hull = gdf.convex_hull.exterior
-        radius = hull.apply(
-            lambda g: _circle_radius(list(g.coords)) if g is not None else None
-        )
-        self.series = areas / (np.pi * radius**2)
+    return geometry.area / (
+        np.pi * shapely.minimum_bounding_radius(geometry.geometry.array) ** 2
+    )
 
 
-@deprecated("square_compactness")
-class SquareCompactness:
-    """
-    Calculates the compactness index of each object in a given GeoDataFrame.
+def square_compactness(geometry: GeoDataFrame | GeoSeries) -> Series:
+    """Calculates the square compactness of each object given its geometry.
 
     .. math::
         \\begin{equation*}
@@ -522,110 +222,77 @@ class SquareCompactness:
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        area values stored. If set to ``None``, this function will calculate areas
-        during the process without saving them separately.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        perimeter values stored. If set to ``None``, this function will calculate
-        perimeters during the process without saving them separately.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    areas : Series
-        A Series containing used area values.
-    perimeters : Series
-        A Series containing used perimeter values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['squ_comp'] = momepy.SquareCompactness(buildings_df).series
-    >>> buildings_df['squ_comp'][0]
-    0.6193872538650996
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.square_compactness(buildings)
+    0      0.619387
+    1      0.182604
+    2      0.887750
+    3      0.719750
+    4      0.894034
+            ...
+    139    0.940666
+    140    0.824085
+    141    0.647576
+    142    0.914813
+    143    0.999961
+    Length: 144, dtype: float64
     """
-
-    def __init__(self, gdf, areas=None, perimeters=None):
-        self.gdf = gdf
-
-        gdf = gdf.copy()
-
-        if perimeters is None:
-            gdf["mm_p"] = gdf.geometry.length
-            perimeters = "mm_p"
-        else:
-            if not isinstance(perimeters, str):
-                gdf["mm_p"] = perimeters
-                perimeters = "mm_p"
-        self.perimeters = gdf[perimeters]
-        if areas is None:
-            areas = gdf.geometry.area
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
-        self.areas = gdf[areas]
-        self.series = ((np.sqrt(gdf[areas]) * 4) / gdf[perimeters]) ** 2
+    return ((np.sqrt(geometry.area) * 4) / geometry.length) ** 2
 
 
-@deprecated("convexity")
-class Convexity:
-    """
-    Calculates the Convexity index of each object in a given GeoDataFrame.
+def convexity(geometry: GeoDataFrame | GeoSeries) -> Series:
+    """Calculates the convexity of each object given its geometry.
 
     .. math::
-        area \\over \\textit{convex hull area}
+        \\frac{\\textit{area}}{\\textit{area of convex hull}}
 
     Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        area values stored. If set to ``None``, this function will calculate areas
-        during the process without saving them separately.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    areas : Series
-        A Series containing used area values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['convexity'] = momepy.Convexity(buildings_df).series
-    >>> buildings_df['convexity'][0]
-    0.8151964258521672
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.convexity(buildings)
+    0      0.815196
+    1      0.703008
+    2      0.953398
+    3      0.890489
+    4      0.957323
+            ...
+    139    1.000000
+    140    0.904176
+    141    0.795774
+    142    1.000000
+    143    1.000000
+    Length: 144, dtype: float64
     """
-
-    def __init__(self, gdf, areas=None):
-        self.gdf = gdf
-
-        gdf = gdf.copy()
-
-        if areas is None:
-            areas = gdf.geometry.area
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
-        self.areas = gdf[areas]
-        self.series = gdf[areas] / gdf.geometry.convex_hull.area
+    return geometry.area / geometry.geometry.convex_hull.area
 
 
-@deprecated("courtyard_index")
-class CourtyardIndex:
-    """
-    Calculates the courtyard index of each object in a given GeoDataFrame.
+def courtyard_index(
+    geometry: GeoDataFrame | GeoSeries,
+    courtyard_area: NDArray[np.float64] | Series | None = None,
+) -> Series:
+    """Calculates the courtyard index of each object given its geometry.
 
     .. math::
         \\textit{area of courtyards} \\over \\textit{total area}
@@ -634,373 +301,287 @@ class CourtyardIndex:
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    courtyard_areas : str, list, np.array, pd.Series
-        the name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        courtyard area values are stored. To calculate volume you can use
-        :py:class:`momepy.CourtyardArea`.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        area values stored. If set to ``None``, this function will calculate areas
-        during the process without saving them separately.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
+    courtyard_area : NDArray[np.float64] | Series | None, optional
+        array of courtyard areas. If None, it will be calculated, by default None
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    courtyard_areas : Series
-        A Series containing used courtyard areas values.
-    areas : Series
-        A Series containing used area values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['courtyard_index'] = momepy.CourtyardIndex(buildings,
-    ...                                                         'courtyard_area',
-    ...                                                         'area').series
-    >>> buildings_df.courtyard_index[80]
-    0.16605915738643523
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> ci = momepy.courtyard_index(buildings)
+    >>> ci
+    0      0.0
+    1      0.0
+    2      0.0
+    3      0.0
+    4      0.0
+        ...
+    139    0.0
+    140    0.0
+    141    0.0
+    142    0.0
+    143    0.0
+    Length: 144, dtype: float64
+
+    >>> ci.max()
+    np.float64(0.16605915738643523)
+
+    If you know the courtyard area, you can pass it to skip the computation step.
+
+    >>> courtyard_area = momepy.courtyard_area(buildings)
+    >>> momepy.courtyard_index(buildings, courtyard_area=courtyard_area)
+    0      0.0
+    1      0.0
+    2      0.0
+    3      0.0
+    4      0.0
+        ...
+    139    0.0
+    140    0.0
+    141    0.0
+    142    0.0
+    143    0.0
+    Length: 144, dtype: float64
     """
-
-    def __init__(self, gdf, courtyard_areas, areas=None):
-        self.gdf = gdf
-        gdf = gdf.copy()
-
-        if not isinstance(courtyard_areas, str):
-            gdf["mm_ca"] = courtyard_areas
-            courtyard_areas = "mm_ca"
-        self.courtyard_areas = gdf[courtyard_areas]
-        if areas is None:
-            areas = gdf.geometry.area
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
-        self.areas = gdf[areas]
-        self.series = gdf[courtyard_areas] / gdf[areas]
+    if courtyard_area is None:
+        courtyard_area = _dimension.courtyard_area(geometry)
+    return courtyard_area / geometry.area
 
 
-@deprecated("rectangularity")
-class Rectangularity:
-    """
-    Calculates the rectangularity of each object in a given GeoDataFrame.
+def rectangularity(geometry: GeoDataFrame | GeoSeries) -> Series:
+    """Calculates the rectangularity of each object given its geometry.
 
     .. math::
-        {area \\over \\textit{minimum bounding rotated rectangle area}}
+        \\frac{\\textit{area}}{\\textit{area of minimum bounding rectangle}}
 
     Adapted from :cite:`dibble2017`.
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        area values stored. If set to ``None``, this function will calculate areas
-        during the process without saving them separately.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    areas : Series
-        A Series containing used area values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['rect'] = momepy.Rectangularity(buildings_df, 'area').series
-    100%|██████████| 144/144 [00:00<00:00, 866.62it/s]
-    >>> buildings_df.rect[0]
-    0.6942676157646379
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.rectangularity(buildings)
+    0      0.694268
+    1      0.702242
+    2      0.901582
+    3      0.821797
+    4      0.912858
+             ...
+    139    0.996876
+    140    0.820865
+    141    0.659281
+    142    0.971600
+    143    0.999400
+    Length: 144, dtype: float64
     """
-
-    def __init__(self, gdf, areas=None):
-        self.gdf = gdf
-        gdf = gdf.copy()
-        if areas is None:
-            areas = gdf.geometry.area
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
-        self.areas = gdf[areas]
-        mrr = shapely.minimum_rotated_rectangle(gdf.geometry.array)
-        mrr_area = shapely.area(mrr)
-        self.series = gdf[areas] / mrr_area
+    return geometry.area / shapely.area(
+        shapely.minimum_rotated_rectangle(geometry.geometry.array)
+    )
 
 
-@deprecated("shape_index")
-class ShapeIndex:
-    """
-    Calculates the shape index of each object in a given GeoDataFrame.
+def shape_index(
+    geometry: GeoDataFrame | GeoSeries,
+    longest_axis_length: NDArray[np.float64] | Series | None = None,
+) -> Series:
+    """Calculates the shape index of each object given its geometry.
 
     .. math::
         {\\sqrt{{area} \\over {\\pi}}} \\over {0.5 * \\textit{longest axis}}
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    longest_axis : str, list, np.array, pd.Series
-        The name of the dataframe column, ``np.array``, or ``pd.Series``
-        where is longest axis values are stored.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        area values stored. If set to ``None``, this function will calculate areas
-        during the process without saving them separately.
+    geometry : GeoDataFrame | GeoSeries
+         A GeoDataFrame or GeoSeries containing polygons to analyse.
+    longest_axis_length : NDArray[np.float64] | Series | None, optional
+        array of longest axis lengths. If None, it will be calculated, by default None
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    longest_axis : Series
-        A Series containing used longest axis values.
-    areas : Series
-        A Series containing used area values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['shape_index'] = momepy.ShapeIndex(buildings_df,
-    ...                                                 longest_axis='long_ax',
-    ...                                                 areas='area').series
-    100%|██████████| 144/144 [00:00<00:00, 5558.33it/s]
-    >>> buildings_df['shape_index'][0]
-    0.7564029493781987
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.shape_index(buildings)
+    0      0.756403
+    1      0.624834
+    2      0.767028
+    3      0.721395
+    4      0.768958
+            ...
+    139    0.750622
+    140    0.725074
+    141    0.636296
+    142    0.728289
+    143    0.797739
+    Length: 144, dtype: float64
+
+    If you know the longest axis length, you can pass it to skip the computation step.
+
+    >>> lal = momepy.longest_axis_length(buildings)
+    >>> momepy.shape_index(buildings, longest_axis_length=lal)
+    0      0.756403
+    1      0.624834
+    2      0.767028
+    3      0.721395
+    4      0.768958
+            ...
+    139    0.750622
+    140    0.725074
+    141    0.636296
+    142    0.728289
+    143    0.797739
+    Length: 144, dtype: float64
+
+    """
+    if longest_axis_length is None:
+        longest_axis_length = _dimension.longest_axis_length(geometry)
+    return np.sqrt(geometry.area / np.pi) / (0.5 * longest_axis_length)
+
+
+def corners(
+    geometry: GeoDataFrame | GeoSeries,
+    eps: float = 10,
+    include_interiors: bool = False,
+) -> Series:
+    """Calculates the number of corners of each object given its geometry.
+
+    As a corner is considered a point where the angle between two consecutive segments
+    deviates from 180 degrees by more than ``eps``.
+
+    Parameters
+    ----------
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
+    eps : float, optional
+        Deviation from 180 degrees to consider a corner, by default 10
+    include_interiors : bool, optional
+        If True, polygon interiors are included in the calculation. If False, only
+        exterior is considered, by default False
+
+    Returns
+    -------
+    Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.corners(buildings)
+    0      24
+    1      43
+    2       8
+    3      16
+    4       8
+        ..
+    139     4
+    140     6
+    141     6
+    142     4
+    143     4
+    Length: 144, dtype: int64
     """
 
-    def __init__(self, gdf, longest_axis, areas=None):
-        self.gdf = gdf
-        gdf = gdf.copy()
+    def _count_corners(points: DataFrame, eps: float) -> int:
+        pts = points.values[:-1]
+        true_angles = _true_angles_mask(pts, eps=eps)
+        corners = np.count_nonzero(true_angles)
 
-        if not isinstance(longest_axis, str):
-            gdf["mm_la"] = longest_axis
-            longest_axis = "mm_la"
-        self.longest_axis = gdf[longest_axis]
-        if areas is None:
-            areas = gdf.geometry.area
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
-        self.areas = gdf[areas]
-        self.series = pd.Series(
-            np.sqrt(gdf[areas] / np.pi) / (0.5 * gdf[longest_axis]), index=gdf.index
+        return corners
+
+    if include_interiors:
+        coords = geometry.reset_index(drop=True).get_coordinates(index_parts=False)
+    else:
+        coords = geometry.reset_index(drop=True).exterior.get_coordinates(
+            index_parts=False
         )
 
-
-@deprecated("corners")
-class Corners:
-    """
-    Calculates the number of corners of each object in a given GeoDataFrame. Uses only
-    external shape (``shapely.geometry.exterior``), courtyards are not included.
-
-    .. math::
-        \\sum corner
-
-    Parameters
-    ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    verbose : bool (default True)
-        If ``True``, shows progress bars in loops and indication of steps.
-
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-
-    Examples
-    --------
-    >>> buildings_df['corners'] = momepy.Corners(buildings_df).series
-    100%|██████████| 144/144 [00:00<00:00, 1042.15it/s]
-    >>> buildings_df.corners[0]
-    24
-    """
-
-    def __init__(self, gdf, verbose=True):
-        self.gdf = gdf
-
-        # define empty list for results
-        results_list = []
-
-        # calculate angle between points, return true or false if real corner
-        def _true_angle(a, b, c):
-            ba = a - b
-            bc = c - b
-
-            cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-            angle = np.arccos(cosine_angle)
-
-            # TODO: add arg to specify these values
-            if np.degrees(angle) <= 170:
-                return True
-            return np.degrees(angle) >= 190
-
-        # fill new column with the value of area, iterating over rows one by one
-        for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
-            if geom.geom_type == "Polygon":
-                corners = 0  # define empty variables
-                points = list(geom.exterior.coords)  # get points of a shape
-                stop = len(points) - 1  # define where to stop
-                for i in np.arange(
-                    len(points)
-                ):  # for every point, calculate angle and add 1 if True angle
-                    if i == 0:
-                        continue
-                    elif i == stop:
-                        a = np.asarray(points[i - 1])
-                        b = np.asarray(points[i])
-                        c = np.asarray(points[1])
-
-                        if _true_angle(a, b, c) is True:
-                            corners = corners + 1
-                        else:
-                            continue
-
-                    else:
-                        a = np.asarray(points[i - 1])
-                        b = np.asarray(points[i])
-                        c = np.asarray(points[i + 1])
-
-                        if _true_angle(a, b, c) is True:
-                            corners = corners + 1
-                        else:
-                            continue
-            elif geom.geom_type == "MultiPolygon":
-                corners = 0  # define empty variables
-                for g in geom.geoms:
-                    points = list(g.exterior.coords)  # get points of a shape
-                    stop = len(points) - 1  # define where to stop
-                    for i in np.arange(
-                        len(points)
-                    ):  # for every point, calculate angle and add 1 if True angle
-                        if i == 0:
-                            continue
-                        elif i == stop:
-                            a = np.asarray(points[i - 1])
-                            b = np.asarray(points[i])
-                            c = np.asarray(points[1])
-
-                            if _true_angle(a, b, c) is True:
-                                corners = corners + 1
-                            else:
-                                continue
-
-                        else:
-                            a = np.asarray(points[i - 1])
-                            b = np.asarray(points[i])
-                            c = np.asarray(points[i + 1])
-
-                            if _true_angle(a, b, c) is True:
-                                corners = corners + 1
-                            else:
-                                continue
-            else:
-                corners = np.nan
-
-            results_list.append(corners)
-
-        self.series = pd.Series(results_list, index=gdf.index)
+    cc = coords.groupby(level=0).apply(_count_corners, eps=eps)
+    cc.index = geometry.index
+    return cc
 
 
-@deprecated("squareness")
-class Squareness:
-    """
-    Calculates the squareness of each object in a given GeoDataFrame. Uses only
-    external shape (``shapely.geometry.exterior``), courtyards are not included.
-    Returns ``np.nan`` for true MultiPolygons (containing multiple geometries).
-    MultiPolygons with a singular geometry are treated as Polygons.
+def squareness(
+    geometry: GeoDataFrame | GeoSeries,
+    eps: float = 10,
+    include_interiors: bool = False,
+) -> Series:
+    """Calculates the squareness of each object given its geometry.
 
-    .. math::
-        \\mu=\\frac{\\sum_{i=1}^{N} d_{i}}{N}
+    Squareness is a mean deviation of angles at corners from 90 degrees.
 
-    where :math:`d` is the deviation of angle of corner :math:`i` from 90 degrees.
-
-    Adapted from :cite:`dibble2017`.
+    As a corner is considered a point where the angle between two consecutive segments
+    deviates from 180 degrees by more than ``eps``.
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    verbose : bool (default True)
-        If ``True``, shows progress bars in loops and indication of steps.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
+    eps : float, optional
+        Deviation from 180 degrees to consider a corner, by default 10
+    include_interiors : bool, optional
+        If True, polygon interiors are included in the calculation. If False, only
+        exterior is considered, by default False
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['squareness'] = momepy.Squareness(buildings_df).series
-    100%|██████████| 144/144 [00:01<00:00, 129.49it/s]
-    >>> buildings_df.squareness[0]
-    3.7075816043359864
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.squareness(buildings)
+    0      3.707582
+    1      2.990318
+    2      0.437987
+    3      4.573564
+    4      0.382146
+            ...
+    139    0.214733
+    140    0.307916
+    141    0.343259
+    142    0.899731
+    143    0.028140
+    Length: 144, dtype: float64
     """
 
-    def __init__(self, gdf, verbose=True):
-        self.gdf = gdf
-        # define empty list for results
-        results_list = []
+    def _squareness(points: DataFrame, eps: float):
+        pts = points.values[:-1]
+        true_angles, degrees = _true_angles_mask(pts, eps=eps, return_degrees=True)
 
-        def _angle(a, b, c):
-            ba = a - b
-            bc = c - b
+        return np.nanmean(np.abs(90 - degrees[true_angles]))
 
-            cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-            angle = np.degrees(np.arccos(cosine_angle))
+    if include_interiors:
+        coords = geometry.reset_index(drop=True).get_coordinates(index_parts=False)
+    else:
+        coords = geometry.reset_index(drop=True).exterior.get_coordinates(
+            index_parts=False
+        )
 
-            return angle
-
-        def _calc(geom):
-            angles = []
-            points = list(geom.exterior.coords)  # get points of a shape
-            n_points = len(points)
-            if n_points < 3:
-                return np.nan
-            stop = n_points - 1
-            for i in range(
-                1, n_points
-            ):  # for every point, calculate angle and add 1 if True angle
-                a = np.asarray(points[i - 1])
-                b = np.asarray(points[i])
-                # in last case, needs to wrap around start to find finishing angle
-                c = np.asarray(points[i + 1]) if i != stop else np.asarray(points[1])
-                ang = _angle(a, b, c)
-                if ang <= 175 or ang >= 185:
-                    angles.append(ang)
-                else:
-                    continue
-            deviations = [abs(90 - i) for i in angles]
-            return np.mean(deviations)
-
-        # fill new column with the value of area, iterating over rows one by one
-        for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
-            if geom.geom_type == "Polygon" or (
-                geom.geom_type == "MultiPolygon" and len(geom.geoms) == 1
-            ):
-                # unpack multis with single geoms
-                if geom.geom_type == "MultiPolygon":
-                    geom = geom.geoms[0]
-                results_list.append(_calc(geom))
-            else:
-                results_list.append(np.nan)
-
-        self.series = pd.Series(results_list, index=gdf.index)
+    sq = coords.groupby(level=0).apply(_squareness, eps=eps)
+    sq.index = geometry.index
+    return sq
 
 
-@deprecated("equivalent_rectangular_index")
-class EquivalentRectangularIndex:
-    """
-    Calculates the equivalent rectangular index of each object in a given GeoDataFrame.
+def equivalent_rectangular_index(geometry: GeoDataFrame | GeoSeries) -> Series:
+    """Calculates the equivalent rectangular index of each object given its geometry.
 
     .. math::
         \\sqrt{{area} \\over \\textit{area of bounding rectangle}} *
@@ -1010,67 +591,41 @@ class EquivalentRectangularIndex:
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        area values are stored. If set to ``None``, this function will calculate areas
-        during the process without saving them separately.
-    perimeters : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        perimeter values are stored. If set to ``None``, the function will calculate
-        perimeters during the process without saving them separately.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    areas : Series
-        A Series containing used area values.
-    perimeters : Series
-        A Series containing used perimeter values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['eri'] = momepy.EquivalentRectangularIndex(buildings_df,
-    ...                                                         'area',
-    ...                                                         'peri').series
-    >>> buildings_df['eri'][0]
-    0.7879229963118455
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.equivalent_rectangular_index(buildings)
+    0      0.787923
+    1      0.443137
+    2      0.954252
+    3      0.851658
+    4      0.957543
+             ...
+    139    1.000050
+    140    0.907837
+    141    0.813269
+    142    0.995926
+    143    0.999999
+    Length: 144, dtype: float64
     """
-
-    def __init__(self, gdf, areas=None, perimeters=None):
-        self.gdf = gdf
-        # define empty list for results
-
-        if perimeters is None:
-            perimeters = gdf.geometry.length
-        else:
-            if isinstance(perimeters, str):
-                perimeters = gdf[perimeters]
-
-        self.perimeters = perimeters
-
-        if areas is None:
-            areas = gdf.geometry.area
-        else:
-            if isinstance(areas, str):
-                areas = gdf[areas]
-
-        self.areas = areas
-        bbox = shapely.minimum_rotated_rectangle(gdf.geometry)
-        res = np.sqrt(areas / bbox.area) * (bbox.length / perimeters)
-
-        self.series = pd.Series(res, index=gdf.index)
+    bbox = shapely.minimum_rotated_rectangle(geometry.geometry.array)
+    return np.sqrt(geometry.area / shapely.area(bbox)) * (
+        shapely.length(bbox) / geometry.length
+    )
 
 
-@deprecated("elongation")
-class Elongation:
-    """
-    Calculates the elongation of each object seen as
-    elongation of its minimum bounding rectangle.
+def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
+    """Calculates the elongation of each object given its geometry.
+
+    The elongation is defined as the elongation of the minimum bounding rectangle.
 
     .. math::
         {{p - \\sqrt{p^2 - 16a}} \\over {4}} \\over
@@ -1082,162 +637,110 @@ class Elongation:
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
 
-    Attributes
-    ----------
-    e : Series
-        A Series containing resulting values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> buildings_df['elongation'] = momepy.Elongation(buildings_df).series
-    >>> buildings_df['elongation'][0]
-    0.9082437463675544
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.elongation(buildings)
+    0      0.908244
+    1      0.581318
+    2      0.726527
+    3      0.838840
+    4      0.727294
+             ...
+    139    0.608004
+    140    0.979998
+    141    0.747326
+    142    0.564060
+    143    0.987953
+    Name: elongation, Length: 144, dtype: float64
     """
+    bbox = shapely.minimum_rotated_rectangle(geometry.geometry.array)
+    a = shapely.area(bbox)
+    p = shapely.length(bbox)
+    sqrt = np.maximum(p**2 - 16 * a, 0)
 
-    def __init__(self, gdf):
-        self.gdf = gdf
+    elo1 = ((p - np.sqrt(sqrt)) / 4) / ((p / 2) - ((p - np.sqrt(sqrt)) / 4))
+    elo2 = ((p + np.sqrt(sqrt)) / 4) / ((p / 2) - ((p + np.sqrt(sqrt)) / 4))
 
-        bbox = shapely.minimum_rotated_rectangle(gdf.geometry)
-        a = bbox.area
-        p = bbox.length
-        cond1 = p**2
-        cond2 = 16 * a
-        bigger = cond1 >= cond2
-        sqrt = np.empty(len(a))
-        sqrt[bigger] = cond1[bigger] - cond2[bigger]
-        sqrt[~bigger] = 0
+    res = np.where(elo1 <= elo2, elo1, elo2)
 
-        # calculate both width/length and length/width
-        elo1 = ((p - np.sqrt(sqrt)) / 4) / ((p / 2) - ((p - np.sqrt(sqrt)) / 4))
-        elo2 = ((p + np.sqrt(sqrt)) / 4) / ((p / 2) - ((p + np.sqrt(sqrt)) / 4))
-
-        # use the smaller one (e.g. shorter/longer)
-        res = np.empty(len(a))
-        res[elo1 <= elo2] = elo1[elo1 <= elo2]
-        res[~(elo1 <= elo2)] = elo2[~(elo1 <= elo2)]
-
-        self.series = pd.Series(res, index=gdf.index)
+    return Series(res, index=geometry.index, name="elongation")
 
 
-@deprecated("centroid_corner_distance")
-class CentroidCorners:
-    """
-    Calculates the mean distance centroid - corners and standard deviation.
-    Returns ``np.nan`` for true MultiPolygons (containing multiple geometries).
-    MultiPolygons with a singular geometry are treated as Polygons.
+def centroid_corner_distance(
+    geometry: GeoDataFrame | GeoSeries,
+    eps: float = 10,
+    include_interiors: bool = False,
+) -> DataFrame:
+    """Calculates the centroid-corner distance of each object given its geometry.
 
-    .. math::
-        \\overline{x}=\\frac{1}{n}\\left(\\sum_{i=1}^{n} dist_{i}\\right);
-        \\space \\mathrm{SD}=\\sqrt{\\frac{\\sum|x-\\overline{x}|^{2}}{n}}
-
-    Adapted from :cite:`schirmer2015` and :cite:`cimburova2017`.
+    As a corner is considered a point where the angle between two consecutive segments
+    deviates from 180 degrees by more than ``eps``.
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    verbose : bool (default True)
-        If ``True``, shows progress bars in loops and indication of steps.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing polygons to analyse.
+    eps : float, optional
+        Deviation from 180 degrees to consider a corner, by default 10
+    include_interiors : bool, optional
+        If True, polygon interiors are included in the calculation. If False, only
+        exterior is considered, by default False
 
-    Attributes
-    ----------
-    mean : Series
-        A Series containing mean distance values.
-    std : Series
-        A Series containing standard deviation values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
+    Returns
+    -------
+    DataFrame
+        DataFrame with columns 'mean' and 'std'
 
     Examples
     --------
-    >>> ccd = momepy.CentroidCorners(buildings_df)
-    100%|██████████| 144/144 [00:00<00:00, 846.58it/s]
-    >>> buildings_df['ccd_means'] = ccd.mean
-    >>> buildings_df['ccd_stdev'] = ccd.std
-    >>> buildings_df['ccd_means'][0]
-    15.961531913184833
-    >>> buildings_df['ccd_stdev'][0]
-    3.0810634305400177
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.centroid_corner_distance(buildings).head()
+           mean        std
+    0  15.961532   3.081063
+    1  58.763388  22.922368
+    2  14.988106   3.648731
+    3  15.000439   4.999226
+    4  14.965557   3.660826
     """
 
-    def __init__(self, gdf, verbose=True):
-        self.gdf = gdf
-        # define empty list for results
-        results_list = []
-        results_list_sd = []
+    result_index = geometry.index
+    if isinstance(geometry.index, MultiIndex):
+        geometry = geometry.reset_index(drop=True)
 
-        # calculate angle between points, return true or false if real corner
-        def true_angle(a, b, c):
-            ba = a - b
-            bc = c - b
+    def _ccd(points: DataFrame, eps: float) -> Series:
+        centroid = points.values[0, 2:]
+        pts = points.values[:-1, :2]
 
-            cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-            angle = np.arccos(cosine_angle)
+        true_angles = _true_angles_mask(pts, eps=eps)
+        dists = np.linalg.norm(pts[true_angles] - centroid, axis=1)
+        return Series({"mean": np.nanmean(dists), "std": np.nanstd(dists)})
 
-            if np.degrees(angle) <= 170:
-                return True
-            return np.degrees(angle) >= 190
-
-        def _calc(geom):
-            distances = []  # set empty list of distances
-            centroid = geom.centroid  # define centroid
-            points = list(geom.exterior.coords)  # get points of a shape
-            n_points = len(points)
-            stop = n_points - 1  # define where to stop
-            for i in range(
-                1, n_points
-            ):  # for every point, calculate angle and add 1 if True angle
-                a = np.asarray(points[i - 1])
-                b = np.asarray(points[i])
-                # in last case, needs to wrap around start to find finishing angle
-                c = np.asarray(points[i + 1]) if i != stop else np.asarray(points[1])
-                p = Point(points[i])
-                # calculate distance point - centroid
-                if true_angle(a, b, c) is True:
-                    distances.append(centroid.distance(p))
-                else:
-                    continue
-            return distances
-
-        # iterating over rows one by one
-        for geom in tqdm(gdf.geometry, total=gdf.shape[0], disable=not verbose):
-            if geom.geom_type == "Polygon" or (
-                geom.geom_type == "MultiPolygon" and len(geom.geoms) == 1
-            ):
-                # unpack multis with single geoms
-                if geom.geom_type == "MultiPolygon":
-                    geom = geom.geoms[0]
-                distances = _calc(geom)
-                # circular buildings
-                if not distances:
-                    # handle z dims
-                    coords = [
-                        (coo[0], coo[1]) for coo in geom.convex_hull.exterior.coords
-                    ]
-                    results_list.append(_circle_radius(coords))
-                    results_list_sd.append(0)
-                # calculate mean and std dev
-                else:
-                    results_list.append(np.mean(distances))
-                    results_list_sd.append(np.std(distances))
-            else:
-                results_list.append(np.nan)
-                results_list_sd.append(np.nan)
-
-        self.mean = pd.Series(results_list, index=gdf.index)
-        self.std = pd.Series(results_list_sd, index=gdf.index)
+    if include_interiors:
+        coords = geometry.get_coordinates(index_parts=False)
+    else:
+        coords = geometry.exterior.get_coordinates(index_parts=False)
+    coords[["cent_x", "cent_y"]] = geometry.centroid.get_coordinates(index_parts=False)
+    ccd = coords.groupby(level=0).apply(_ccd, eps=eps)
+    ccd.index = result_index
+    return ccd
 
 
-@deprecated("linearity")
-class Linearity:
-    """
-    Calculates the linearity of each LineString object in a given GeoDataFrame.
-    MultiLineString returns ``np.nan``.
+def linearity(geometry: GeoDataFrame | GeoSeries) -> Series:
+    """Calculates the linearity of each LineString
+
+    The linearity is defined as the ratio of the length of the segment between the first
+    and last point to the length of the LineString. While other geometry types are
+    accepted, the result is not well defined.
 
     .. math::
         \\frac{l_{euclidean}}{l_{segment}}
@@ -1246,46 +749,42 @@ class Linearity:
 
     Adapted from :cite:`araldi2019`.
 
+
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    verbose : bool (default True)
-        If ``True``, shows progress bars in loops and indication of steps.
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing lines to analyse.
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing mean distance values.
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> streets_df['linearity'] = momepy.Linearity(streets_df).series
-    >>> streets_df['linearity'][0]
-    1.0
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> streets = geopandas.read_file(path, layer="streets")
+    >>> momepy.linearity(streets).head()
+    0    1.000000
+    1    0.995987
+    2    0.999653
+    3    0.999997
+    4    1.000000
+    dtype: float64
     """
-
-    def __init__(self, gdf):
-        self.gdf = gdf
-
-        euclidean = gdf.geometry.apply(
-            lambda geom: self._dist(geom.coords[0], geom.coords[-1])
-            if geom.geom_type == "LineString"
-            else np.nan
+    return (
+        shapely.distance(
+            shapely.get_point(geometry.geometry.array, 0),
+            shapely.get_point(geometry.geometry.array, -1),
         )
-        self.series = euclidean / gdf.geometry.length
-
-    def _dist(self, a, b):
-        return math.hypot(b[0] - a[0], b[1] - a[1])
+        / geometry.length
+    )
 
 
-@deprecated("compactness_weighted_axis")
-class CompactnessWeightedAxis:
-    """
-    Calculates the compactness-weighted axis of each object in a given GeoDataFrame.
-    Initially designed for blocks.
+def compactness_weighted_axis(
+    geometry: GeoDataFrame | GeoSeries,
+    longest_axis_length: NDArray[np.float64] | Series | None = None,
+) -> Series:
+    """Calculates the compactness-weighted axis of each object in a given GeoDataFrame.
 
     .. math::
         d_{i} \\times\\left(\\frac{4}{\\pi}-\\frac{16 (area_{i})}
@@ -1293,70 +792,162 @@ class CompactnessWeightedAxis:
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-        A GeoDataFrame containing objects.
-    areas : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        area value are stored . If set to ``None``, this function will calculate areas
-        during the process without saving them separately.
-    perimeters : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        perimeter values are stored. If set to ``None``, this function will calculate
-        perimeters during the process without saving them separately.
-    longest_axis : str, list, np.array, pd.Series (default None)
-        The name of the dataframe column, ``np.array``, or ``pd.Series`` where
-        longest axis length values are stored. If set to ``None``, this function will
-        calculate longest axis lengths during the process without saving them
-        separately.
+    geometry : GeoDataFrame | GeoSeries
+         A GeoDataFrame or GeoSeries containing polygons to analyse.
+    longest_axis_length : NDArray[np.float64] | Series | None, optional
+        array of longest axis lengths. If None, it will be calculated, by default None
 
-    Attributes
-    ----------
-    series : Series
-        A Series containing resulting values
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    areas : Series
-        A Series containing used area values.
-    longest_axis : Series
-        A Series containing used area values.
-    perimeters : Series
-        A Series containing used area values.
+    Returns
+    -------
+    Series
 
     Examples
     --------
-    >>> blocks_df['cwa'] = mm.CompactnessWeightedAxis(blocks_df).series
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> momepy.compactness_weighted_axis(buildings)
+    0       26.327730
+    1      208.588747
+    2       14.358370
+    3       26.026429
+    4       14.095118
+            ...
+    139      3.853623
+    140     12.462700
+    141     32.888900
+    142      3.975422
+    143      4.228395
+    Length: 144, dtype: float64
+
+    If you know the longest axis length, you can pass it to skip the computation step.
+
+    >>> lal = momepy.longest_axis_length(buildings)
+    >>> momepy.compactness_weighted_axis(buildings, longest_axis_length=lal)
+    0       26.327730
+    1      208.588747
+    2       14.358370
+    3       26.026429
+    4       14.095118
+            ...
+    139      3.853623
+    140     12.462700
+    141     32.888900
+    142      3.975422
+    143      4.228395
+    Length: 144, dtype: float64
     """
+    if longest_axis_length is None:
+        longest_axis_length = _dimension.longest_axis_length(geometry)
 
-    def __init__(self, gdf, areas=None, perimeters=None, longest_axis=None):
-        self.gdf = gdf
-        gdf = gdf.copy()
+    return longest_axis_length * (
+        (4 / np.pi) - (16 * geometry.area) / (geometry.length**2)
+    )
 
-        if perimeters is None:
-            gdf["mm_p"] = gdf.geometry.length
-            perimeters = "mm_p"
-        else:
-            if not isinstance(perimeters, str):
-                gdf["mm_p"] = perimeters
-                perimeters = "mm_p"
-        self.perimeters = gdf[perimeters]
-        if longest_axis is None:
-            from .dimension import LongestAxisLength
 
-            gdf["mm_la"] = LongestAxisLength(gdf).series
-            longest_axis = "mm_la"
-        else:
-            if not isinstance(longest_axis, str):
-                gdf["mm_la"] = longest_axis
-                longest_axis = "mm_la"
-        self.longest_axis = gdf[longest_axis]
-        if areas is None:
-            areas = gdf.geometry.area
-        if not isinstance(areas, str):
-            gdf["mm_a"] = areas
-            areas = "mm_a"
-        self.areas = gdf[areas]
-        self.series = pd.Series(
-            gdf[longest_axis]
-            * ((4 / np.pi) - (16 * gdf[areas]) / ((gdf[perimeters]) ** 2)),
-            index=gdf.index,
-        )
+# helper functions
+
+
+def _true_angles_mask(
+    points: NDArray[np.float64], eps: float, return_degrees: bool = False
+) -> NDArray[np.bool_] | tuple[NDArray[np.bool_], NDArray[np.float64]]:
+    """Calculates the mask of true angles.
+
+    Parameters
+    ----------
+    points : NDArray[np.float64]
+        array of points
+    eps : float
+        Deviation from 180 degrees to consider a corner
+    return_degrees : bool, optional
+        If True, returns also degrees, by default False
+
+    Returns
+    -------
+    NDArray[np.bool_] | tuple[NDArray[np.bool_], NDArray[np.float64]]
+        boolean array or a tuple of boolean array and float array of degrees
+    """
+    a = np.roll(points, 1, axis=0)
+    b = points
+    c = np.roll(points, -1, axis=0)
+
+    ba = a - b
+    bc = c - b
+
+    cosine_angle = np.sum(ba * bc, axis=1) / (
+        np.linalg.norm(ba, axis=1) * np.linalg.norm(bc, axis=1)
+    )
+    angles = np.arccos(cosine_angle)
+    degrees = np.degrees(angles)
+
+    if return_degrees:
+        return np.logical_or(degrees <= 180 - eps, degrees >= 180 + eps), degrees
+    return np.logical_or(degrees <= 180 - eps, degrees >= 180 + eps)
+
+
+def sunlight_optimised(
+    geometry, graph, fr_ratio=8, elongation_ratio=0.9, min_courtyard_area=1
+):
+    """A bool indicating whether geometry shapes are optimised for sunlight exposure.
+
+    A building and its adjacent parts (i.e. connected component) are considered likely
+    to be optimised for sunlight if its :func:`facade_ratio` and  :func:`elongation` are
+    lower than the respective parameters, or if its :func:`courtyard_area` is higher.
+
+    Parameters
+    ----------
+    geometry : GeoDataFrame | GeoSeries
+        A GeoDataFrame or GeoSeries containing building polygons to analyse.
+    graph : libpysal.graph.Graph
+        A spatial weights matrix that contains adjacency information
+        for `geometry` polygons.
+    fr_ratio : float, optional
+        Maximum area to perimeter ratio, for a building structure to be considered
+        optimised for sunlight.
+    elongation_ratio : float, optional
+        Maximum elongation ratio, for a building structure to be considered
+        optimised for sunlight.
+    min_courtyard_area : float, optional
+        Minimum courtyard area for a building structure to be considered
+        optimised for sunlight.
+
+    Returns
+    -------
+    Series
+
+
+    Examples
+    --------
+    >>> from libpysal import graph
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> building_graph = graph.Graph.build_fuzzy_contiguity(buildings, buffer=.1)
+    >>> momepy.sunlight_optimised(buildings, building_graph)
+    0      False
+    1       True
+    2       True
+    3       True
+    4       True
+        ...
+    139     True
+    140    False
+    141     True
+    142     True
+    143     True
+    Length: 144, dtype: bool
+    """
+    ccs = graph.component_labels
+    connected_buildings = geometry.geometry.groupby(ccs).apply(
+        lambda x: shapely.union_all(x.values)
+    )
+    struct_elongation = elongation(connected_buildings)
+    fr = facade_ratio(connected_buildings)
+    lib_ncos = _dimension.courtyard_area(connected_buildings) > min_courtyard_area
+    likely_sunlight_optimised_ccs = (
+        (fr < fr_ratio) & (struct_elongation < elongation_ratio)
+    ) | lib_ncos
+    likely_sunlight_optimised_buildings = ccs.map(
+        likely_sunlight_optimised_ccs.to_dict()
+    )
+    likely_sunlight_optimised_buildings.name = None
+
+    return likely_sunlight_optimised_buildings.loc[geometry.index]
