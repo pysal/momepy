@@ -1,6 +1,7 @@
 import uuid
 
 import geopandas as gpd
+import libpysal
 import numpy as np
 import pandas as pd
 import pytest
@@ -14,6 +15,7 @@ from shapely.geometry import MultiPoint, Polygon, box
 import momepy as mm
 
 SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
+LPS_G_4_13_0 = Version(libpysal.__version__) > Version("4.13.0")
 
 
 class TestElements:
@@ -290,17 +292,29 @@ class TestElements:
     def test_buffered_limit_adaptive(self):
         limit = mm.buffered_limit(self.df_buildings, "adaptive")
         assert limit.geom_type == "Polygon"
-        assert pytest.approx(limit.area) == 355819.18954170
+        if LPS_G_4_13_0:
+            exp = 347096.5835217
+        else:
+            exp = 355819.1895417
+        assert pytest.approx(limit.area) == exp
 
         limit = mm.buffered_limit(self.df_buildings, "adaptive", max_buffer=30)
         assert limit.geom_type == "Polygon"
-        assert pytest.approx(limit.area) == 304200.301833294
+        if LPS_G_4_13_0:
+            exp = 304712.451361391
+        else:
+            exp = 304200.301833294
+        assert pytest.approx(limit.area) == exp
 
         limit = mm.buffered_limit(
             self.df_buildings, "adaptive", min_buffer=30, max_buffer=300
         )
         assert limit.geom_type == "Polygon"
-        assert pytest.approx(limit.area) == 357671.831894244
+        if LPS_G_4_13_0:
+            exp = 348777.778371144
+        else:
+            exp = 357671.831894244
+        assert pytest.approx(limit.area) == exp
 
     def test_buffered_limit_error(self):
         with pytest.raises(
