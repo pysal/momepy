@@ -287,7 +287,8 @@ class TestElements:
     def test_buffered_limit(self):
         limit = mm.buffered_limit(self.df_buildings, 50)
         assert limit.geom_type == "Polygon"
-        assert pytest.approx(limit.area) == 366525.967849688
+        exp = 366525.967849688
+        assert exp == pytest.approx(limit.area)
 
     def test_buffered_limit_adaptive(self):
         limit = mm.buffered_limit(self.df_buildings, "adaptive")
@@ -296,7 +297,7 @@ class TestElements:
             exp = 347096.5835217
         else:
             exp = 355819.1895417
-        assert pytest.approx(limit.area) == exp
+        assert exp == pytest.approx(limit.area)
 
         limit = mm.buffered_limit(self.df_buildings, "adaptive", max_buffer=30)
         assert limit.geom_type == "Polygon"
@@ -304,7 +305,7 @@ class TestElements:
             exp = 304712.451361391
         else:
             exp = 304200.301833294
-        assert pytest.approx(limit.area) == exp
+        assert exp == pytest.approx(limit.area)
 
         limit = mm.buffered_limit(
             self.df_buildings, "adaptive", min_buffer=30, max_buffer=300
@@ -314,7 +315,7 @@ class TestElements:
             exp = 348777.778371144
         else:
             exp = 357671.831894244
-        assert pytest.approx(limit.area) == exp
+        assert exp == pytest.approx(limit.area)
 
     def test_buffered_limit_error(self):
         with pytest.raises(
