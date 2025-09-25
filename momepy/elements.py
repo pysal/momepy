@@ -582,7 +582,9 @@ def _voronoi_by_ca(
                 states[indices[:, 1], indices[:, 0]] = site_id
 
     # Initialize the BFS queue with all seeded cells’ neighbors.
-    queue = deque()
+    # ... existing code ...
+
+    queue: deque[tuple[int, int]] = deque()
     seed_indices = np.argwhere(states >= 0)
     for y, x in seed_indices:
         _enqueue_neighbors(x, y, states, grid_width, grid_height, neighbor_mode, queue)
