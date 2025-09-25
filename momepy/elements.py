@@ -554,16 +554,18 @@ def _voronoi_by_ca(
     states = np.full((grid_height, grid_width), CellState.UNKNOWN.value, dtype=int)
 
     xs, ys = np.meshgrid(np.arange(grid_width), np.arange(grid_height))
-    cell_polys = GeoSeries(
-        [
-            _get_cell_polygon(x, y, cell_size, origin)
-            for x, y in zip(xs.flatten(), ys.flatten(), strict=True)
-        ]
+    xs_flat = xs.ravel()
+    ys_flat = ys.ravel()
+    cell_polys_array = shapely.box(
+        origin[0] + xs_flat * cell_size,
+        origin[1] + ys_flat * cell_size,
+        origin[0] + (xs_flat + 1) * cell_size,
+        origin[1] + (ys_flat + 1) * cell_size,
     )
 
     # Identify barrier cells in the grid
     if prep_barrier is not None:
-        barrier_mask = cell_polys.intersects(prep_barrier).values.reshape(
+        barrier_mask = shapely.intersects(cell_polys_array, prep_barrier).reshape(
             grid_height, grid_width
         )
     else:
@@ -630,11 +632,7 @@ def _voronoi_by_ca(
     states = _assign_adjacent_seed_cells(states, neighbor_mode)
 
     # Create grid cell polygons and build a GeoDataFrame.
-    xs, ys = np.meshgrid(np.arange(grid_width), np.arange(grid_height))
-    grid_polys = [
-        _get_cell_polygon(x, y, cell_size, origin)
-        for x, y in zip(xs.flatten(), ys.flatten(), strict=True)
-    ]
+    grid_polys = GeoSeries(cell_polys_array, crs=seed_geoms.crs)
     grid_gdf = GeoDataFrame(
         {"site_id": states.flatten()}, geometry=grid_polys, crs=seed_geoms.crs
     )
@@ -836,14 +834,16 @@ def _geom_to_cells(
         x_range = np.arange(start_x, end_x)
         y_range = np.arange(start_y, end_y)
         xx, yy = np.meshgrid(x_range, y_range)
-        candidate_polys = GeoSeries(
-            [
-                _get_cell_polygon(x, y, cell_size, origin)
-                for x, y in zip(xx.flatten(), yy.flatten(), strict=True)
-            ]
+        xx_flat = xx.ravel()
+        yy_flat = yy.ravel()
+        candidate_polys = shapely.box(
+            origin[0] + xx_flat * cell_size,
+            origin[1] + yy_flat * cell_size,
+            origin[0] + (xx_flat + 1) * cell_size,
+            origin[1] + (yy_flat + 1) * cell_size,
         )
-        mask = candidate_polys.intersects(geom)
-        return list(zip(xx.flatten()[mask], yy.flatten()[mask], strict=True))
+        mask = shapely.intersects(candidate_polys, geom)
+        return list(zip(xx_flat[mask], yy_flat[mask], strict=True))
 
 
 def _enqueue_neighbors(
