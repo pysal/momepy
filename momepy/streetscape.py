@@ -79,7 +79,8 @@ class Streetscape:
     intersections with 3, 5, or more connections).
 
     This is a direct implementation of the algorithm proposed in
-    :cite:`araldi2024multi`.
+    :cite:`araldi2024multi`. When using the implementation, please cite
+    :cite:`araldi2025Streetscape`.
 
     Parameters
     ----------
@@ -116,23 +117,23 @@ class Streetscape:
     Given only streets and buildings, you can already measure the majority of
     characters:
 
-    >>> sc = momepy.Streetscape(streets, buildings)
+    >>> sc = momepy.Streetscape(streets, buildings)  # doctest: +SKIP
 
     The resulting data can be extracted either on a street level:
 
-    >>> street_df = sc.street_level()
+    >>> street_df = sc.street_level()  # doctest: +SKIP
 
     Or for all individual sightline points:
 
-    >>> point_df = sc.point_level()
+    >>> point_df = sc.point_level()  # doctest: +SKIP
 
     If you have access to plots, you can additionally measure plot-based data:
 
-    >>> sc.compute_plots(plots)
+    >>> sc.compute_plots(plots)  # doctest: +SKIP
 
     If you have a digital terrain model, you can measure slope-based data:
 
-    >>> sc.compute_slope(dtm)
+    >>> sc.compute_slope(dtm)  # doctest: +SKIP
 
     Notes
     -----
@@ -959,8 +960,8 @@ class Streetscape:
 
         Examples
         --------
-        >>> sc = momepy.Streetscape(streets, buildings)
-        >>> sc.compute_plots(plots)
+        >>> sc = momepy.Streetscape(streets, buildings)  # doctest: +SKIP
+        >>> sc.compute_plots(plots)  # doctest: +SKIP
         """
         self.sightline_plot_depth_extension = sightline_plot_depth_extension
 
@@ -1285,8 +1286,8 @@ class Streetscape:
 
         Examples
         --------
-        >>> sc = momepy.Streetscape(streets, buildings)
-        >>> sc.compute_slope(dtm)
+        >>> sc = momepy.Streetscape(streets, buildings)  # doctest: +SKIP
+        >>> sc.compute_slope(dtm)  # doctest: +SKIP
         """
         try:
             import rioxarray  # noqa: F401
@@ -1478,8 +1479,8 @@ class Streetscape:
 
         Examples
         --------
-        >>> sc = momepy.Streetscape(streets, buildings)
-        >>> sc.steet_level()
+        >>> sc = momepy.Streetscape(streets, buildings)  # doctest: +SKIP
+        >>> sc.steet_level()  # doctest: +SKIP
         """
         values = []
 
@@ -2086,8 +2087,8 @@ class Streetscape:
 
         Examples
         --------
-        >>> sc = momepy.Streetscape(streets, buildings)
-        >>> sc.point_level()
+        >>> sc = momepy.Streetscape(streets, buildings)  # doctest: +SKIP
+        >>> sc.point_level()  # doctest: +SKIP
         """
         point_data = self._sightline_indicators[
             [

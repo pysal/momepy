@@ -62,15 +62,15 @@ class COINS:
 
     Initialise a ``COINS`` class. This step will compute the topology.
 
-    >>> coins = momepy.COINS(streets)
+    >>> coins = momepy.COINS(streets)  # doctest: +SKIP
 
     To get final stroke geometry:
 
-    >>> stroke_gdf = coins.stroke_gdf()
+    >>> stroke_gdf = coins.stroke_gdf()  # doctest: +SKIP
 
     To get a Series encoding stroke groups:
 
-    >>> stroke_attr = coins.stroke_attribute()
+    >>> stroke_attr = coins.stroke_attribute()  # doctest: +SKIP
 
     Notes
     -----

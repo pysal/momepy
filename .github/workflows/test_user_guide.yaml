@@ -25,12 +25,12 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: setup micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
-          environment-file: ci/envs/312-latest.yaml
+          environment-file: ci/envs/313-latest.yaml
 
       - name: Install momepy
         run: pip install .

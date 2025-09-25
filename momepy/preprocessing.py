@@ -11,7 +11,6 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import shapely
-from packaging.version import Version
 from scipy.signal import find_peaks
 from scipy.stats import gaussian_kde
 from shapely.geometry import LineString, Point
@@ -20,7 +19,7 @@ from tqdm.auto import tqdm
 
 from .coins import COINS
 from .graph import node_degree
-from .shape import CircularCompactness
+from .shape import circular_compactness
 from .utils import gdf_to_nx, nx_to_gdf
 
 __all__ = [
@@ -33,8 +32,6 @@ __all__ = [
     "consolidate_intersections",
     "FaceArtifacts",
 ]
-
-GPD_GE_013 = Version(gpd.__version__) >= Version("0.13.0")
 
 
 def preprocess(
@@ -93,7 +90,7 @@ def preprocess(
         )
         blg["neighbors"] = sw.neighbors.values()
         blg["n_count"] = blg.apply(lambda row: len(row.neighbors), axis=1)
-        blg["circu"] = CircularCompactness(blg).series
+        blg["circu"] = circular_compactness(blg)
 
         # idetify those smaller than x with only one neighbor and attaches it to it.
         join = {}
@@ -183,6 +180,14 @@ def remove_false_nodes(gdf):
     momepy.extend_lines
     momepy.close_gaps
     """
+    warnings.warn(
+        "`remove_false_nodes` is deprecated and will be removed in momepy 1.1. The "
+        "function has been improved and moved to the `neatnet` package and can be used "
+        "as `neatnet.remove_interstitial_nodes`. See https://uscuni.org/neatnet for "
+        "details.",
+        FutureWarning,
+        stacklevel=2,
+    )
     if isinstance(gdf, gpd.GeoDataFrame | gpd.GeoSeries):
         # explode to avoid MultiLineStrings
         # reset index due to the bug in GeoPandas explode
@@ -338,7 +343,7 @@ class CheckTessellationInput:
 
     Examples
     --------
-    >>> check = CheckTessellationData(df)
+    >>> check = CheckTessellationData(df)  # doctest: +SKIP
     Collapsed features  : 3157
     Split features      : 519
     Overlapping features: 22
@@ -429,6 +434,13 @@ def close_gaps(gdf, tolerance):
     momepy.remove_false_nodes
 
     """
+    warnings.warn(
+        "`close_gaps` is deprecated and will be removed in momepy 1.1. The "
+        "function has been moved to the `neatnet` package and can be used "
+        "as `neatnet.close_gaps`. See https://uscuni.org/neatnet for details.",
+        FutureWarning,
+        stacklevel=2,
+    )
     geom = gdf.geometry.array
     coords = shapely.get_coordinates(geom)
     indices = shapely.get_num_coordinates(geom)
@@ -499,6 +511,13 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     momepy.remove_false_nodes
 
     """
+    warnings.warn(
+        "`close_gaps` is deprecated and will be removed in momepy 1.1. The "
+        "function has been moved to the `neatnet` package and can be used "
+        "as `neatnet.close_gaps`. See https://uscuni.org/neatnet for details.",
+        FutureWarning,
+        stacklevel=2,
+    )
     # explode to avoid MultiLineStrings
     # reset index due to the bug in GeoPandas explode
     df = gdf.reset_index(drop=True).explode(ignore_index=True)
@@ -768,7 +787,7 @@ def _selecting_rabs_from_poly(
     # calculate parameters
     if area_col == "area":
         gdf.loc[:, area_col] = gdf.geometry.area
-    circom_serie = CircularCompactness(gdf, area_col).series
+    circom_serie = circular_compactness(gdf)
     # selecting roundabout polygons based on compactness
     mask = circom_serie > circom_threshold
     rab = gdf[mask]
@@ -894,14 +913,9 @@ def _selecting_incoming_lines(rab_multipolygons, edges, angle_threshold=0):
     """
     # selecting the lines that are touching but not covered by
     touching = gpd.sjoin(edges, rab_multipolygons, predicate="touches")
-    if GPD_GE_013:
-        edges_idx, _ = rab_multipolygons.sindex.query(
-            edges.geometry, predicate="covered_by"
-        )
-    else:
-        edges_idx, _ = rab_multipolygons.sindex.query_bulk(
-            edges.geometry, predicate="covered_by"
-        )
+    edges_idx, _ = rab_multipolygons.sindex.query(
+        edges.geometry, predicate="covered_by"
+    )
     idx_drop = edges.index.take(edges_idx)
     touching_idx = touching.index
     ls = list(set(touching_idx) - set(idx_drop))
@@ -1569,10 +1583,10 @@ class FaceArtifacts:
 
     Examples
     --------
-    >>> fa = momepy.FaceArtifacts(street_network_prague)
-    >>> fa.threshold
+    >>> fa = momepy.FaceArtifacts(street_network_prague)  # doctest: +SKIP
+    >>> fa.threshold  # doctest: +SKIP
     6.9634555986177045
-    >>> fa.face_artifacts.head()
+    >>> fa.face_artifacts.head()  # doctest: +SKIP
                                                  geometry  face_artifact_index
     6   POLYGON ((-744164.625 -1043922.362, -744167.39...             5.112844
     9   POLYGON ((-744154.119 -1043804.734, -744152.07...             6.295660
@@ -1595,6 +1609,13 @@ class FaceArtifacts:
         height_maxs=0.008,
         prominence=0.00075,
     ):
+        warnings.warn(
+            "`FaceArtifacts` is deprecated and will be removed in momepy 1.1. The "
+            "class has been moved to the `neatnet` package and can be used "
+            "as `neatnet.FaceArtifacts`. See https://uscuni.org/neatnet for details.",
+            FutureWarning,
+            stacklevel=2,
+        )
         try:
             from esda import shape
         except (ImportError, ModuleNotFoundError) as err:

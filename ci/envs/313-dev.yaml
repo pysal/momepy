@@ -2,10 +2,10 @@ name: test
 channels:
   - conda-forge
 dependencies:
-  - python=3.12
+  - python=3.13
   - packaging
   - tqdm
-  # - numba
+  - numba
   # testing
   - codecov
   - pytest
@@ -13,7 +13,6 @@ dependencies:
   - pip
   - pip:
       - --pre  --index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --extra-index-url https://pypi.org/simple
-      - numpy
       - pandas
       - shapely
       - git+https://github.com/geopandas/geopandas.git

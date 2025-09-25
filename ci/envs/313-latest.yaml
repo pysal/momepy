@@ -2,12 +2,13 @@ name: test
 channels:
   - conda-forge
 dependencies:
-  - python=3.10
+  - python=3.13
   - geopandas
   - inequality
   - libpysal>=4.12.0
   - mapclassify
   - networkx
+  - osmnx
   - packaging
   - pandas!=1.5.0
   - shapely>=2
@@ -20,3 +21,15 @@ dependencies:
   - codecov
   - pytest
   - pytest-cov
+  # user guide testing
+  - dask
+  - inequality
+  - jupyter
+  - matplotlib
+  - osmnx
+  - clustergram
+  - bokeh
+  - geopy
+  - ipywidgets
+  - Iprogress
+  - pytest-doctestplus

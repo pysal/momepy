@@ -2,17 +2,17 @@ name: momepy_env
 channels:
   - conda-forge
 dependencies:
-  - python=3.10
-  - geopandas>=0.12.0
+  - python
+  - geopandas>=0.14.0
   - inequality
   - jupyter
   - libpysal>=4.12.0
   - mapclassify
   - matplotlib
-  - networkx>=2.8
+  - networkx>=3.2
   - osmnx
-  - pandas>=1.5.1
+  - pandas>=2.0
   - shapely>=2
-  - tqdm>=4.63.0
+  - tqdm>=4.65
   - numba
   - esda
