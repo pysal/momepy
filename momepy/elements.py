@@ -423,10 +423,8 @@ def _tess(
                 as_gdf=True,
                 **kwargs,
             )
-            if to_simplify:
-                tess.geometry = shapely.coverage_simplify(
-                    tess.geometry, tolerance=segment / 2, simplify_boundary=False
-                )
+            tolerance = segment / 2
+
         else:
             tess = _voronoi_by_ca(
                 seed_geoms=blg,
@@ -434,7 +432,14 @@ def _tess(
                 cell_size=cell_size,
                 neighbor_mode=neighbor_mode,
                 barriers_for_inner=inner_barriers,
-                to_simplify=to_simplify,
+            )
+            # torelance set as the square root of the isosceles right triangle with 2
+            # cells_size edges
+            tolerance = ((2 * cell_size) ** 2 / 2) ** 0.5
+
+        if to_simplify:
+            tess.geometry = shapely.coverage_simplify(
+                tess.geometry, tolerance=tolerance, simplify_boundary=False
             )
 
         tess[enclosure_id] = ix
@@ -460,7 +465,6 @@ def _voronoi_by_ca(
     cell_size: float = 1.0,
     neighbor_mode: str = "moore",
     barriers_for_inner: GeoSeries | GeoDataFrame = None,
-    to_simplify: bool = True,
 ) -> GeoDataFrame:
     """
     Generate an aggregated Voronoi tessellation as a GeoDataFrame via cellular automata.
@@ -656,15 +660,27 @@ def _voronoi_by_ca(
         # Clip each polygon in the grid using the barrier boundary.
         grid_gdf["geometry"] = grid_gdf["geometry"].intersection(barrier_union)
 
-    # Simplify coverages with coverage_simplify.
-    # torelance set as the square root of the isosceles right triangle with 2
-    # cells_size edges. For the behavior of coverage_simplify see
-    # https://shapely.readthedocs.io/en/latest/reference/shapely.coverage_simplify.html
-    if to_simplify:
-        grid_gdf["geometry"] = shapely.coverage_simplify(
-            grid_gdf["geometry"].array, tolerance=((2 * cell_size) ** 2 / 2) ** 0.5
-        )
+    # cleanup possible collections
+    def sanitize_geometry(geom):
+        if geom.geom_type in ["Polygon", "MultiPolygon"]:
+            return geom
+        elif geom.geom_type == "GeometryCollection":
+            parts = shapely.get_parts(geom)
+            valid_parts = [
+                p for p in parts if p.geom_type in ["Polygon", "MultiPolygon"]
+            ]
+            if len(valid_parts) == 0:
+                return None
+            elif len(valid_parts) == 1:
+                return valid_parts[0]
+            else:
+                return shapely.MultiPolygon(valid_parts)
+        else:
+            # Drop points, lines, etc.
+            return None
 
+    grid_gdf["geometry"] = grid_gdf["geometry"].apply(sanitize_geometry)
+    grid_gdf = grid_gdf.dropna(subset=["geometry"])
     return grid_gdf
 
 
