@@ -222,7 +222,7 @@ def enclosed_tessellation(
         By default 1.0
     neighbor_mode : str, optional
         Choice of neighbor connectivity ('moore' or 'neumann') when ``inner_barriers``
-        is not None. Otherwise ignored.. By default 'moore'.
+        is not None. Otherwise ignored. By default 'moore'.
     **kwargs
         Additional keyword arguments pased to libpysal.cg.voronoi_frames, such as
         ``grid_size``.
