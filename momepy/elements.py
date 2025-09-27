@@ -495,7 +495,6 @@ def _voronoi_by_ca(
     barriers_for_inner : GeoSeries | GeoDataFrame, optional
         GeoDataFrame containing inner barriers to be included. By default None
 
-
     Returns
     -------
     GeoDataFrame
