@@ -498,7 +498,7 @@ def corners(
     Length: 144, dtype: int64
     """
 
-    def _count_corners(points: DataFrame, eps: float) -> int:
+    def _count_corners(points: DataFrame, eps: float) -> np.integer:
         pts = points.values[:-1]
         true_angles = _true_angles_mask(pts, eps=eps)
         corners = np.count_nonzero(true_angles)
