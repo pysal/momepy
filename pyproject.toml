@@ -50,7 +50,7 @@ Repository = "https://github.com/pysal/momepy"
 
 [project.optional-dependencies]
 plus = [
-    "numba>=0.58",
+    "numba>=0.60",
     "inequality",
     "mapclassify",
     "esda",

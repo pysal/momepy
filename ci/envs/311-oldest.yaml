@@ -13,7 +13,7 @@ dependencies:
   - pandas=2.2
   - shapely=2.0
   - tqdm=4.67
-  - numba=0.58
+  - numba=0.60
   - fiona=1.10
   # testing
   - codecov
