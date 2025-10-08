@@ -13,7 +13,6 @@ from pandas import MultiIndex, Series
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
 
-GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 
 __all__ = [
@@ -127,7 +126,7 @@ def morphological_tessellation(
         )
 
     if isinstance(clip, GeoSeries | GeoDataFrame):
-        clip = clip.union_all() if GPD_GE_10 else clip.unary_union
+        clip = clip.union_all()
 
     mt = voronoi_frames(
         geometry,
@@ -772,11 +771,7 @@ def buffered_limit(
     elif not isinstance(buffer, int | float):
         raise ValueError("`buffer` must be either 'adaptive' or a number.")
 
-    return (
-        gdf.buffer(buffer, **kwargs).union_all()
-        if GPD_GE_10
-        else gdf.buffer(buffer, **kwargs).unary_union
-    )
+    return gdf.buffer(buffer, **kwargs).union_all()
 
 
 def get_network_ratio(df, edges, initial_buffer=500):
@@ -921,7 +916,7 @@ def enclosures(
         barriers = pd.concat([primary_barriers.geometry, limit_b.geometry])
     else:
         barriers = primary_barriers
-    unioned = barriers.union_all() if GPD_GE_10 else barriers.unary_union
+    unioned = barriers.union_all()
     polygons = polygonize(unioned)
     enclosures = gpd.GeoSeries(list(polygons), crs=primary_barriers.crs)
 
