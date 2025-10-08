@@ -169,6 +169,11 @@ def enclosed_tessellation(
     street network, railway). Original morphological tessellation is used under the hood
     to partition each enclosure.
 
+    When ``inner_barriers`` are provided, the tessellation is derived using a Cellular
+    Automata implementation that recognizes dangling barriers (such as dead-end streets)
+    as valid limits of cell growth. This is more computationally intensive but handles
+    complex barrier configurations more accurately.
+
     Tessellation requires data of relatively high level of precision and there are three
     particular patterns causing issues:
 
@@ -213,19 +218,26 @@ def enclosed_tessellation(
         The number of jobs to run in parallel. -1 means using all available cores.
         By default -1
     inner_barriers: GeoSeries | GeoDataFrame, optional
-        Barriers that should be included in the tessellation process. By passing
-        inner barriers, tessellation will be derived using less performant
-        Cellular Automata implememtation but it will recognise dangling barries as valid
-        limits of the cell growth. See the user guide for details. By default None.
+        Barriers that should be included in the tessellation process. When provided,
+        tessellation will be derived using a Cellular Automata implementation that
+        recognizes dangling barriers (such as dead-end streets or cul-de-sacs) as valid
+        limits of cell growth. This is more computationally intensive than the default
+        Voronoi-based approach but can handle inner barriers. By default None.
     cell_size : float, optional
-        Grid cell size when ``inner_barriers`` is not None. Otherwise ignored.
-        By default 1.0
+        Grid cell size for the Cellular Automata implementation when ``inner_barriers``
+        is not None. Smaller values provide higher resolution but increase computational
+        cost. This parameter controls the spatial granularity of the tessellation grid.
+        When ``inner_barriers`` is None, this parameter is ignored. By default 1.0
     neighbor_mode : str, optional
-        Choice of neighbor connectivity ('moore' or 'neumann') when ``inner_barriers``
-        is not None. Otherwise ignored. By default 'moore'.
+        Choice of neighbor connectivity for the Cellular Automata implementation when
+        ``inner_barriers`` is not None. Options are 'moore' (8-connected, including
+        diagonal neighbors) or 'neumann' (4-connected, only orthogonal neighbors).
+        When ``inner_barriers`` is None, this parameter is ignored. By default 'moore'.
     **kwargs
-        Additional keyword arguments pased to libpysal.cg.voronoi_frames, such as
-        ``grid_size``.
+        Additional keyword arguments passed to :func:`libpysal.cg.voronoi_frames` when
+        ``inner_barriers`` is None, such as ``grid_size``. These arguments are ignored
+        when ``inner_barriers`` is provided and the Cellular Automata implementation is
+        used.
 
     Warnings
     --------
