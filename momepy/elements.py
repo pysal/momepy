@@ -528,22 +528,18 @@ def _voronoi_by_ca(
         barrier_geoms = GeoSeries(parts, crs=seed_geoms.crs)
 
     outer_union = barrier_geoms_buffered.union_all()
+    inner_union = (
+        inner_barriers.union_all()
+        if inner_barriers is not None and not inner_barriers.empty
+        else None
+    )
 
-    # Compute inner barriers union if available
-    if inner_barriers is not None and not inner_barriers.empty:
-        inner_union = inner_barriers.union_all()
-    else:
-        inner_union = None
-
-    # Combine outer barrier with inner barriers
-    if outer_union and inner_union:
-        prep_barrier = shapely.union(outer_union, inner_union)
-    elif outer_union:
-        prep_barrier = outer_union
-    elif inner_union:
-        prep_barrier = inner_union
-    else:
-        prep_barrier = None
+    geoms_to_union = [
+        geom
+        for geom in (outer_union, inner_union)
+        if geom is not None and not geom.is_empty
+    ]
+    prep_barrier = shapely.union_all(geoms_to_union) if geoms_to_union else None
 
     # Compute grid bounds
     origin, grid_width, grid_height = _get_grid_bounds(
@@ -564,12 +560,11 @@ def _voronoi_by_ca(
     )
 
     # Identify barrier cells in the grid
-    if prep_barrier is not None:
+    barrier_mask = np.zeros((grid_height, grid_width), dtype=bool)
+    if prep_barrier is not None and not prep_barrier.is_empty:
         barrier_mask = shapely.intersects(cell_polys_array, prep_barrier).reshape(
             grid_height, grid_width
         )
-    else:
-        barrier_mask = np.zeros((grid_height, grid_width), dtype=bool)
     states[barrier_mask] = CellState.BARRIER.value
 
     # Seed the grid with seed geometries.
@@ -647,37 +642,31 @@ def _voronoi_by_ca(
 
     # Clip by barriers
     if barrier_geoms is not None and (not barrier_geoms.empty):
-        # Create a union of the barrier geometries.
         barrier_union = barrier_geoms.union_all()
-        # If the barrier union is not a polygon (e.g., it's a MultiLineString),
-        # polygonize it.
-        if not isinstance(
-            barrier_union, shapely.geometry.Polygon | shapely.geometry.MultiPolygon
-        ):
-            barrier_polys = shapely.get_parts(shapely.polygonize(barrier_union))
-            if not barrier_polys.empty:
-                barrier_union = shapely.union_all(barrier_polys)
-        # Clip each polygon in the grid using the barrier boundary.
-        grid_gdf["geometry"] = grid_gdf["geometry"].intersection(barrier_union)
+        polygonized = []
+        if barrier_union is not None and not barrier_union.is_empty:
+            polygonized = [
+                geom
+                for geom in shapely.get_parts(shapely.polygonize([barrier_union]))
+                if geom.geom_type in {"Polygon", "MultiPolygon"}
+            ]
+        if polygonized:
+            barrier_union = shapely.union_all(polygonized)
+        if barrier_union is not None and not barrier_union.is_empty:
+            grid_gdf["geometry"] = grid_gdf["geometry"].intersection(barrier_union)
 
     # cleanup possible collections
     def sanitize_geometry(geom):
-        if geom.geom_type in ["Polygon", "MultiPolygon"]:
-            return geom
-        elif geom.geom_type == "GeometryCollection":
-            parts = shapely.get_parts(geom)
-            valid_parts = [
-                p for p in parts if p.geom_type in ["Polygon", "MultiPolygon"]
+        parts = (
+            [
+                part
+                for part in shapely.get_parts(geom)
+                if part.geom_type in {"Polygon", "MultiPolygon"}
             ]
-            if len(valid_parts) == 0:
-                return None
-            elif len(valid_parts) == 1:
-                return valid_parts[0]
-            else:
-                return shapely.MultiPolygon(valid_parts)
-        else:
-            # Drop points, lines, etc.
-            return None
+            if geom is not None
+            else []
+        )
+        return shapely.union_all(parts) if parts else None
 
     grid_gdf["geometry"] = grid_gdf["geometry"].apply(sanitize_geometry)
     grid_gdf = grid_gdf.dropna(subset=["geometry"])
@@ -730,23 +719,6 @@ class CellState(Enum):
     BOUNDARY = -2
     BARRIER = -3
     FRONTIER = -4
-
-
-def _get_cell_polygon(
-    x_idx: int, y_idx: int, cell_size: float = 1.0, origin: tuple[float, float] = (0, 0)
-) -> shapely.geometry.Polygon:
-    """
-    Generate a grid cell polygon based on the given indices, cell size, and origin.
-    """
-    ox, oy = origin
-    return shapely.Polygon(
-        [
-            (ox + x_idx * cell_size, oy + y_idx * cell_size),
-            (ox + (x_idx + 1) * cell_size, oy + y_idx * cell_size),
-            (ox + (x_idx + 1) * cell_size, oy + (y_idx + 1) * cell_size),
-            (ox + x_idx * cell_size, oy + (y_idx + 1) * cell_size),
-        ]
-    )
 
 
 def _get_neighbors(
