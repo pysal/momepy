@@ -12,6 +12,16 @@ repos:
     hooks:
       - id: check-toml
         files: "."
+  - repo: https://github.com/adrienverge/yamllint
+    rev: "v1.37.1"
+    hooks:
+      - id: yamllint
+        files: "."
+        args: [
+          -d,
+          "{extends: default, ignore: .github/ISSUE_TEMPLATE/*}",
+          ".",
+        ]
 
 ci:
   autofix_prs: false
