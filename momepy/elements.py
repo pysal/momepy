@@ -501,30 +501,31 @@ def _voronoi_by_ca(
         A GeoDataFrame representing the aggregated Voronoi tessellation, clipped by
         barriers.
     """
+    geom_type = barrier_geoms.geom_type
+    if geom_type not in {"Polygon", "MultiPolygon"}:
+        raise ValueError("Enclosure must be a Polygon or MultiPolygon")
+
     # Get inner barriers as intersection or containment of the barrier_geoms
     inner_barriers = _get_inner_barriers(barrier_geoms, barriers_for_inner)
 
     # Handle barrier_geoms if it is a Polygon or MultiPolygon
-    if barrier_geoms.geom_type == "Polygon":
+    if geom_type == "Polygon":
         # Take buffer of polygon and extract its exterior boundary (10 cells)
         barrier_geoms_buffered = GeoSeries(
             [barrier_geoms.buffer(10 * cell_size).exterior], crs=seed_geoms.crs
         )
         barrier_geoms = GeoSeries([barrier_geoms], crs=seed_geoms.crs)
 
-    elif barrier_geoms.geom_type == "MultiPolygon":
+    elif geom_type == "MultiPolygon":
         # Process each polygon: take buffer then exterior boundary
         # (to ensure there's no gap between enclosures)
+        parts = list(shapely.get_parts(barrier_geoms))
+        exteriors = shapely.get_exterior_ring(parts)
+        buffered_exteriors = shapely.buffer(exteriors, 10 * cell_size)
         barrier_geoms_buffered = GeoSeries(
-            shapely.buffer(
-                shapely.get_exterior(shapely.get_parts(barrier_geoms)), 10 * cell_size
-            ),
-            crs=seed_geoms.crs,
+            list(buffered_exteriors), crs=seed_geoms.crs
         )
-        barrier_geoms = GeoSeries(barrier_geoms, crs=seed_geoms.crs)
-
-    else:
-        raise ValueError("Enclosure must be a Polygon or MultiPolygon")
+        barrier_geoms = GeoSeries(parts, crs=seed_geoms.crs)
 
     outer_union = barrier_geoms_buffered.union_all()
 
