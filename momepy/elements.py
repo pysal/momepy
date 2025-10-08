@@ -702,7 +702,8 @@ def _get_inner_barriers(enclosure, barriers):
     inner_barriers = gpd.clip(barriers, enclosure)
 
     # Only keep the geometry which is within the enclosure
-    inner_barriers = inner_barriers[inner_barriers.within(enclosure)]
+    inner_barriers = inner_barriers[inner_barriers.intersects(enclosure) |
+                                    inner_barriers.within(enclosure)]
 
     return inner_barriers
 

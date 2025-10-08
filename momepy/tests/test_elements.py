@@ -10,9 +10,10 @@ from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
 from pandas.testing import assert_index_equal
 from shapely import LineString, affinity
-from shapely.geometry import MultiPoint, Polygon, box
+from shapely.geometry import MultiPoint, MultiPolygon, Polygon, box
 
 import momepy as mm
+import momepy.elements as elements
 
 SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 LPS_G_4_13_0 = Version(libpysal.__version__) > Version("4.13.0")
@@ -174,6 +175,134 @@ class TestElements:
         assert tessellation_custom_index.crs == self.df_buildings.crs
         assert (self.df_buildings.index.isin(tessellation_custom_index.index)).all()
         assert tessellation_custom_index.enclosure_index.isin(custom_index.index).all()
+
+        tessellation_inner_barrier = mm.enclosed_tessellation(
+            self.df_buildings,
+            self.enclosures.geometry,
+            simplify=False,
+            inner_barriers=self.df_streets,
+            cell_size=5,
+            neighbor_mode="neumann",
+            n_jobs=1,
+        )
+        assert set(tessellation_inner_barrier.geom_type.unique()) <= {"Polygon", "MultiPolygon"}
+        assert tessellation_inner_barrier.crs == self.df_buildings.crs
+        assert len(tessellation_inner_barrier) == len(tessellation)
+        assert tessellation_inner_barrier.enclosure_index.isin(
+            self.enclosures.index
+        ).all()
+
+    def test_enclosed_tessellation_inner_barrier_cellular(self):
+        crs = self.df_buildings.crs
+        buildings = gpd.GeoDataFrame(
+            {"uID": [0, 1, 2]},
+            geometry=[
+                box(10, 10, 30, 30),
+                box(70, 10, 90, 30),
+                shapely.Point(15, 65),
+            ],
+            crs=crs,
+        )
+        multipolygon = shapely.MultiPolygon([box(0, 0, 40, 80), box(60, 0, 100, 80)])
+        enclosures = gpd.GeoDataFrame({"geometry": [multipolygon]}, crs=crs)
+        inner_barriers = gpd.GeoDataFrame(
+            {
+                "geometry": [
+                    LineString([(50, -10), (50, 90)]),
+                    LineString([(0, 40), (100, 40)]),
+                ]
+            },
+            crs=crs,
+        )
+
+        tess = mm.enclosed_tessellation(
+            buildings,
+            enclosures,
+            simplify=False,
+            inner_barriers=inner_barriers,
+            cell_size=1,
+            neighbor_mode="neumann",
+            threshold=None,
+            n_jobs=1,
+        )
+
+        assert set(tess.geom_type.unique()) <= {"Polygon", "MultiPolygon"}
+        assert tess.enclosure_index.unique().tolist() == [0]
+        assert set(buildings.index).issubset(tess.index)
+
+        point_barriers = gpd.GeoDataFrame(
+            {"geometry": [shapely.Point(20, 40), shapely.Point(80, 40)]}, crs=crs
+        )
+        tess_point = mm.enclosed_tessellation(
+            buildings,
+            enclosures,
+            simplify=False,
+            inner_barriers=point_barriers,
+            cell_size=1,
+            neighbor_mode="moore",
+            threshold=None,
+            n_jobs=1,
+        )
+        assert set(tess_point.geom_type.unique()) <= {"Polygon", "MultiPolygon"}
+        assert set(buildings.index).issubset(tess_point.index)
+
+    def test_enclosed_tessellation_invalid_enclosure_geometry(self):
+        crs = self.df_buildings.crs
+        buildings = gpd.GeoDataFrame(
+            {"uID": [1, 2]},
+            geometry=[box(10, 10, 30, 30), box(70, 10, 90, 30)],
+            crs=crs,
+        )
+        invalid_enclosures = gpd.GeoDataFrame(
+            {"geometry": [LineString([(0, 20), (100, 20)])]}, crs=crs
+        )
+        with pytest.raises(ValueError, match="Enclosure must be a Polygon"):
+            mm.enclosed_tessellation(
+                buildings,
+                invalid_enclosures,
+                simplify=False,
+                inner_barriers=self.df_streets.head(1),
+                cell_size=1,
+                threshold=None,
+                n_jobs=1,
+            )
+
+    def test_enclosed_tessellation_invalid_neighbor_mode(self):
+        crs = self.df_buildings.crs
+        buildings = gpd.GeoDataFrame(
+            {"uID": [1, 2]},
+            geometry=[box(10, 10, 30, 30), box(70, 10, 90, 30)],
+            crs=crs,
+        )
+        enclosures = gpd.GeoDataFrame(
+            {
+                "geometry": [
+                    shapely.MultiPolygon([box(0, 0, 40, 80), box(60, 0, 100, 80)])
+                ]
+            },
+            crs=crs,
+        )
+        with pytest.raises(ValueError, match="Invalid neighbor_mode"):
+            mm.enclosed_tessellation(
+                buildings,
+                enclosures,
+                simplify=False,
+                inner_barriers=self.df_streets.head(1),
+                cell_size=1,
+                neighbor_mode="invalid",
+                threshold=None,
+                n_jobs=1,
+            )
+
+    def test_morphological_and_enclosed_tessellation_require_shapely(self, monkeypatch):
+        monkeypatch.setattr(elements, "SHPLY_GE_210", False)
+        with pytest.raises(ImportError):
+            mm.morphological_tessellation(self.df_buildings.head(1))
+        with pytest.raises(ImportError):
+            mm.enclosed_tessellation(
+                self.df_buildings.head(1),
+                self.enclosures.geometry,
+            )
 
     def test_verify_tessellation(self):
         df = self.df_buildings
