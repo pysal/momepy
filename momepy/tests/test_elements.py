@@ -193,26 +193,57 @@ class TestElements:
         ).all()
 
     def test_enclosed_tessellation_inner_barrier_cellular(self):
-        crs = self.df_buildings.crs
+        # Define sample building geometries (including Points to cover Point handling).
+        blg_polygons = [
+            shapely.geometry.Polygon([(15, 32), (35, 32), (35, 38), (15, 38)]),
+            shapely.geometry.Polygon([(15, 22), (35, 22), (35, 28), (15, 28)]),
+            shapely.geometry.Polygon([(15, 92), (35, 92), (35, 98), (15, 98)]),
+            shapely.geometry.Polygon([(15, 82), (35, 82), (35, 88), (15, 88)]),
+            shapely.geometry.Polygon([(45, 62), (65, 62), (65, 68), (45, 68)]),
+            shapely.geometry.Polygon([(45, 52), (65, 52), (65, 58), (45, 58)]),
+            shapely.geometry.Point(25, 50),  # Point building to test Point handling
+            shapely.geometry.Point(55, 80),  # Another Point building
+        ]
         buildings = gpd.GeoDataFrame(
-            {"uID": [0, 1, 2]},
-            geometry=[
-                box(10, 10, 30, 30),
-                box(70, 10, 90, 30),
-                shapely.Point(15, 65),
-            ],
-            crs=crs,
+            {
+                "building_id": list(range(1, len(blg_polygons) + 1)),
+                "geometry": blg_polygons,
+            },
+            crs="EPSG:3857",
         )
-        multipolygon = shapely.MultiPolygon([box(0, 0, 40, 80), box(60, 0, 100, 80)])
-        enclosures = gpd.GeoDataFrame({"geometry": [multipolygon]}, crs=crs)
+
+        # Define sample barrier geometries.
+        barrier_geoms = [
+            shapely.geometry.LineString([(0, 0), (80, 0)]),
+            shapely.geometry.LineString([(80, 0), (80, 120)]),
+            shapely.geometry.LineString([(80, 120), (0, 120)]),
+            shapely.geometry.LineString([(0, 120), (0, 0)]),
+            shapely.geometry.LineString([(40, 0), (40, 110)]),
+            shapely.geometry.LineString([(10, 30), (40, 30)]),
+            shapely.geometry.LineString([(10, 90), (40, 90)]),
+            shapely.geometry.LineString([(40, 60), (70, 60)]),
+        ]
+
         inner_barriers = gpd.GeoDataFrame(
             {
-                "geometry": [
-                    LineString([(50, -10), (50, 90)]),
-                    LineString([(0, 40), (100, 40)]),
-                ]
+                "name": [
+                    "Bottom Edge",
+                    "Right Edge",
+                    "Top Edge",
+                    "Left Edge",
+                    "Main Vertical",
+                    "Left Cul-de-Sac (Bottom)",
+                    "Left Cul-de-Sac (Top)",
+                    "Right Cul-de-Sac (Middle)",
+                ],
+                "geometry": barrier_geoms,
             },
-            crs=crs,
+            crs="EPSG:3857",
+        )
+
+        # Create enclosure from the barrier boundaries
+        enclosures = gpd.GeoDataFrame(
+            {"geometry": [box(0, 0, 80, 120)]}, crs="EPSG:3857"
         )
 
         tess = mm.enclosed_tessellation(
@@ -231,7 +262,8 @@ class TestElements:
         assert set(buildings.index).issubset(tess.index)
 
         point_barriers = gpd.GeoDataFrame(
-            {"geometry": [shapely.Point(20, 40), shapely.Point(80, 40)]}, crs=crs
+            {"geometry": [shapely.Point(20, 40), shapely.Point(80, 40)]},
+            crs="EPSG:3857",
         )
         tess_point = mm.enclosed_tessellation(
             buildings,
@@ -245,6 +277,20 @@ class TestElements:
         )
         assert set(tess_point.geom_type.unique()) <= {"Polygon", "MultiPolygon"}
         assert set(buildings.index).issubset(tess_point.index)
+
+        empty_barriers = gpd.GeoDataFrame(geometry=[], crs="EPSG:3857")
+        tess_empty = mm.enclosed_tessellation(
+            buildings,
+            enclosures,
+            simplify=False,
+            inner_barriers=empty_barriers,
+            cell_size=1,
+            neighbor_mode="moore",
+            threshold=None,
+            n_jobs=1,
+        )
+        assert set(tess_empty.geom_type.unique()) <= {"Polygon", "MultiPolygon"}
+        assert set(buildings.index).issubset(tess_empty.index)
 
     def test_enclosed_tessellation_invalid_enclosure_geometry(self):
         crs = self.df_buildings.crs
