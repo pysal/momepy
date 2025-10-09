@@ -33,6 +33,7 @@ jobs:
           - ci/envs/312-latest.yaml
           - ci/envs/313-latest.yaml
           - ci/envs/313-dev.yaml
+          - ci/envs/314-latest.yaml
         include:
           - environment-file: ci/envs/313-latest.yaml
             os: macos-13 # Intel
