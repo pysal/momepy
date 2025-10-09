@@ -1,3 +1,4 @@
+---
 name: test
 channels:
   - conda-forge
@@ -36,8 +37,8 @@ dependencies:
   - myst-parser
   - pip
   - pip:
-    - sphinx_copybutton
-    - sphinx-gallery
-    - sphinxext-rediraffe
-    - sphinxcontrib.bibtex
-    - git+https://github.com/geopandas/geopandas.git
+      - sphinx_copybutton
+      - sphinx-gallery
+      - sphinxext-rediraffe
+      - sphinxcontrib.bibtex
+      - git+https://github.com/geopandas/geopandas.git

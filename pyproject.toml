@@ -68,7 +68,6 @@ lint.select = ["E", "F", "W", "I", "UP", "N", "B", "A", "C4", "SIM", "ARG"]
 lint.ignore = ["B006", "SIM108", "C420"]
 include = ["*.py", "*.ipynb"]
 
-
 [tool.ruff.lint.per-file-ignores]
 "*__init__.py" = ["F403"]
 "momepy/tests/*" = ["N802", "N806"]
