@@ -34,13 +34,14 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "geopandas>=0.14.0",
+    "geopandas>=1.0",
     "libpysal>=4.12.0",
-    "networkx>=3.2",
+    "networkx>=3.3",
+    "numpy>=2.0",
     "packaging",
-    "pandas>=2.0",
-    "shapely>=2",
-    "tqdm>=4.65",
+    "pandas>=2.2",
+    "shapely>=2.0",
+    "tqdm>=4.67",
 ]
 
 [project.urls]
@@ -49,7 +50,7 @@ Repository = "https://github.com/pysal/momepy"
 
 [project.optional-dependencies]
 plus = [
-    "numba",
+    "numba>=0.60",
     "inequality",
     "mapclassify",
     "esda",

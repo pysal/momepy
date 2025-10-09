@@ -2,16 +2,12 @@ import geopandas as gpd
 import networkx as nx
 import numpy as np
 import pandas as pd
-import pytest
 from libpysal.graph import Graph
-from packaging.version import Version
 from pandas.testing import assert_series_equal
 
 import momepy as mm
 
 from .conftest import assert_result
-
-PD_210 = Version(pd.__version__) >= Version("2.1.0")
 
 
 class TestIntensity:
@@ -95,9 +91,6 @@ class TestIntensity:
         assert_series_equal(alternative_density, density)
         assert_series_equal(alternative_weighted, weighted)
 
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
     def test_area_ratio(self):
         def area_ratio(overlay, covering, agg_key):
             res = mm.describe_agg(covering, agg_key)
