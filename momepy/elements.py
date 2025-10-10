@@ -71,9 +71,14 @@ def morphological_tessellation(
         object that will be automatically unioned.
     shrink : float, optional
         The distance for negative buffer to generate space between adjacent polygons.
+        Shall be changed in sync with ``segment``.
         By default 0.4
     segment : float, optional
-        The maximum distance between points after discretization. By default 0.5
+        The maximum distance between points after discretization. A right value is
+        a sweet spot between computational inefficiency (when the value is too low)
+        and suboptimal resulting geometry (when the value is too large). The default
+        is empirically derived for the use case on building footprints represented in
+        meters. By default 0.5
     simplify: bool, optional
         Whether to attempt to simplify the resulting tesselation boundaries with
         ``shapely.coverage_simplify``. By default True.
@@ -189,10 +194,14 @@ def enclosed_tessellation(
     enclosures : GeoSeries | GeoDataFrame
         The enclosures geometry, which can be generated using :func:`momepy.enclosures`.
     shrink : float, optional
-        The distance for negative buffer to generate space between adjacent polygons).
+        The distance for negative buffer to generate space between adjacent polygons.
+        Shall be changed in sync with ``segment``.
         By default 0.4
     segment : float, optional
-        The maximum distance between points after discretization. By default 0.5
+        The maximum distance between points after discretization. A right value is
+        a sweet spot between computational inefficiency (when the value is too low)
+        and suboptimal resulting geometry (when the value is too large). The default
+        is empirically derived for the use case on
     threshold : float, optional
         The minimum threshold for a building to be considered within an enclosure.
         Threshold is a ratio of building area which needs to be within an enclosure to
