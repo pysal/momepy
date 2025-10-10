@@ -70,7 +70,7 @@ def morphological_tessellation(
         pass any option accepted by :func:`libpysal.cg.voronoi_frames` or geopandas
         object that will be automatically unioned.
     shrink : float, optional
-        The distance for negative buffer to generate space between adjacent polygons).
+        The distance for negative buffer to generate space between adjacent polygons.
         By default 0.4
     segment : float, optional
         The maximum distance between points after discretization. By default 0.5
