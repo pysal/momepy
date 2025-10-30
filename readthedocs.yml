@@ -1,3 +1,4 @@
+---
 version: 2
 build:
   os: ubuntu-22.04
@@ -12,8 +13,8 @@ build:
       - mamba list
 python:
   install:
-  - method: pip
-    path: .
+    - method: pip
+      path: .
 conda:
   environment: docs/environment.yml
 formats: []

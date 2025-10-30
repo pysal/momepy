@@ -16,7 +16,6 @@ from pandas import MultiIndex, Series
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
 
-GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 
 __all__ = [
@@ -74,10 +73,15 @@ def morphological_tessellation(
         pass any option accepted by :func:`libpysal.cg.voronoi_frames` or geopandas
         object that will be automatically unioned.
     shrink : float, optional
-        The distance for negative buffer to generate space between adjacent polygons).
+        The distance for negative buffer to generate space between adjacent polygons.
+        Shall be changed in sync with ``segment``.
         By default 0.4
     segment : float, optional
-        The maximum distance between points after discretization. By default 0.5
+        The maximum distance between points after discretization. A right value is
+        a sweet spot between computational inefficiency (when the value is too low)
+        and suboptimal resulting geometry (when the value is too large). The default
+        is empirically derived for the use case on building footprints represented in
+        meters. By default 0.5
     simplify: bool, optional
         Whether to attempt to simplify the resulting tesselation boundaries with
         ``shapely.coverage_simplify``. By default True.
@@ -130,7 +134,7 @@ def morphological_tessellation(
         )
 
     if isinstance(clip, GeoSeries | GeoDataFrame):
-        clip = clip.union_all() if GPD_GE_10 else clip.unary_union
+        clip = clip.union_all()
 
     mt = voronoi_frames(
         geometry,
@@ -201,10 +205,14 @@ def enclosed_tessellation(
     enclosures : GeoSeries | GeoDataFrame
         The enclosures geometry, which can be generated using :func:`momepy.enclosures`.
     shrink : float, optional
-        The distance for negative buffer to generate space between adjacent polygons).
+        The distance for negative buffer to generate space between adjacent polygons.
+        Shall be changed in sync with ``segment``.
         By default 0.4
     segment : float, optional
-        The maximum distance between points after discretization. By default 0.5
+        The maximum distance between points after discretization. A right value is
+        a sweet spot between computational inefficiency (when the value is too low)
+        and suboptimal resulting geometry (when the value is too large). The default
+        is empirically derived for the use case on
     threshold : float, optional
         The minimum threshold for a building to be considered within an enclosure.
         Threshold is a ratio of building area which needs to be within an enclosure to
@@ -1278,11 +1286,7 @@ def buffered_limit(
     elif not isinstance(buffer, int | float):
         raise ValueError("`buffer` must be either 'adaptive' or a number.")
 
-    return (
-        gdf.buffer(buffer, **kwargs).union_all()
-        if GPD_GE_10
-        else gdf.buffer(buffer, **kwargs).unary_union
-    )
+    return gdf.buffer(buffer, **kwargs).union_all()
 
 
 def get_network_ratio(df, edges, initial_buffer=500):
@@ -1427,7 +1431,7 @@ def enclosures(
         barriers = pd.concat([primary_barriers.geometry, limit_b.geometry])
     else:
         barriers = primary_barriers
-    unioned = barriers.union_all() if GPD_GE_10 else barriers.unary_union
+    unioned = barriers.union_all()
     polygons = polygonize(unioned)
     enclosures = gpd.GeoSeries(list(polygons), crs=primary_barriers.crs)
 

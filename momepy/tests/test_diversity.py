@@ -3,14 +3,11 @@ import numpy as np
 import pandas as pd
 import pytest
 from libpysal.graph import Graph
-from packaging.version import Version
 from pandas.testing import assert_frame_equal, assert_series_equal
 
 import momepy as mm
 
 from .conftest import assert_frame_result, assert_result
-
-PD_210 = Version(pd.__version__) >= Version("2.1.0")
 
 
 class TestDescribe:
@@ -394,9 +391,6 @@ class TestDescribe:
             un_nan_drop, un_nan_drop_expected, self.df_tessellation, check_names=False
         )
 
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
     def test_describe_agg(self):
         df = mm.describe_agg(
             self.df_buildings["area"],
@@ -469,9 +463,6 @@ class TestDescribe:
         assert_result(df["sum"], expected_fl_area_sum, result_index)
         assert_result(df["mean"], expected_fl_area_mean, result_index)
 
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
     def test_describe_cols(self):
         df = mm.describe_agg(
             self.df_buildings["area"],
@@ -480,9 +471,6 @@ class TestDescribe:
         )
         assert list(df.columns) == ["min", "max"]
 
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
     def test_describe_reached_agg(self):
         df_sw = mm.describe_reached_agg(
             self.df_buildings["fl_area"], self.df_buildings["nID"], graph=self.graph_sw
@@ -512,9 +500,6 @@ class TestDescribe:
             filtered_df["count"], filtered_expected, self.df_streets, check_names=False
         )
 
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
     def test_describe_reached_input_equality(self):
         island_result_df = mm.describe_agg(
             self.df_buildings["area"], self.df_buildings["nID"]
@@ -529,9 +514,6 @@ class TestDescribe:
             island_result_df.values, island_result_ndarray.values, equal_nan=True
         )
 
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
     def test_describe_reached_cols(self):
         df = mm.describe_reached_agg(
             self.df_buildings["fl_area"],
@@ -542,9 +524,6 @@ class TestDescribe:
         )
         assert list(df.columns) == ["min", "max"]
 
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
     def test_na_results(self):
         nan_areas = self.df_buildings["area"]
         nan_areas.iloc[range(0, len(self.df_buildings), 3),] = np.nan
@@ -614,9 +593,6 @@ class TestDescribe:
             check_names=False,
         )
 
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
     def test_unweighted_percentile(self):
         perc = mm.percentile(self.df_tessellation["area"], self.diversity_graph)
         perc_expected = {
@@ -662,9 +638,6 @@ class TestDescribe:
         perc = mm.percentile(self.df_tessellation["area"].iloc[:100], graph)
         assert perc.loc[0].isna().all()
 
-    @pytest.mark.skipif(
-        not PD_210, reason="aggregation is different in previous pandas versions"
-    )
     def test_distance_decay_linearly_weighted_percentiles(self):
         # setup weight decay graph
 
