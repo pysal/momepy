@@ -1,3 +1,4 @@
+---
 changelog:
   exclude:
     labels:
@@ -6,7 +7,7 @@ changelog:
       - dependabot
       - pre-commit-ci
   categories:
-    - title:  API Changes
+    - title: API Changes
       labels:
         - api
     - title: Enhancements

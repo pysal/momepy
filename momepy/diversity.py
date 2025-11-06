@@ -3,7 +3,6 @@ import pandas as pd
 from libpysal.graph import Graph
 from libpysal.graph._utils import _percentile_filtration_grouper
 from numpy.typing import NDArray
-from packaging.version import Version
 from pandas import DataFrame, Series
 
 try:
@@ -162,9 +161,6 @@ def describe_agg(
     6.0           652.432194   32.829824
     """  # noqa: E501
 
-    if Version(pd.__version__) <= Version("2.1.0"):
-        raise ImportError("pandas 2.1.0 or newer is required to use this function.")
-
     # series indice needs renaming, since multiindices
     # without explicit names cannot be joined
     if isinstance(y, np.ndarray):
@@ -288,9 +284,6 @@ def describe_reached_agg(
     3  378.431992  274.631290
     4  683.514930         NaN
     """  # noqa: E501
-
-    if Version(pd.__version__) <= Version("2.1.0"):
-        raise ImportError("pandas 2.1.0 or newer is required to use this function.")
 
     # series indice needs renaming, since multiindices
     # without explicit names cannot be joined

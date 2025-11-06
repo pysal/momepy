@@ -1,6 +1,7 @@
+---
 name: Tests
 
-on:
+on:  # yamllint disable-line rule:truthy
   push:
     branches: [main]
   pull_request:
@@ -36,9 +37,9 @@ jobs:
           - ci/envs/314-latest.yaml
         include:
           - environment-file: ci/envs/313-latest.yaml
-            os: macos-13 # Intel
+            os: macos-13  # Intel
           - environment-file: ci/envs/313-latest.yaml
-            os: macos-14 # Apple Silicon
+            os: macos-14  # Apple Silicon
           - environment-file: ci/envs/313-latest.yaml
             os: windows-latest
           - environment-file: ci/envs/313-min.yaml
@@ -60,6 +61,12 @@ jobs:
 
       - name: Test momepy
         run: |
-          pytest -v --color yes --cov momepy --cov-append --cov-report term-missing --cov-report xml .
+          pytest \
+            -v \
+            --color yes \
+            --cov momepy \
+            --cov-append \
+            --cov-report term-missing \
+            --cov-report xml .
 
       - uses: codecov/codecov-action@v5

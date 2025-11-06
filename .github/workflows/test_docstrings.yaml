@@ -1,11 +1,12 @@
+---
 name: Test docstrings
 
-on:
+on:  # yamllint disable-line rule:truthy
   push:
     branches: [main]
   pull_request:
-      branches:
-        - "*"
+    branches:
+      - "*"
   schedule:
     - cron: "0 0 * * 1,4"
   workflow_dispatch:
@@ -14,7 +15,6 @@ on:
         description: Manual docstring test
         default: test
         required: false
-
 
 jobs:
   Test:
@@ -38,4 +38,3 @@ jobs:
       - name: Test docstrings
         run: |
           pytest -v --color=yes --doctest-only momepy
-
