@@ -201,7 +201,8 @@ def enclosed_tessellation(
         The maximum distance between points after discretization. A right value is
         a sweet spot between computational inefficiency (when the value is too low)
         and suboptimal resulting geometry (when the value is too large). The default
-        is empirically derived for the use case on
+        is empirically derived for the use case on building footprints represented in
+        meters. By default 0.5
     threshold : float, optional
         The minimum threshold for a building to be considered within an enclosure.
         Threshold is a ratio of building area which needs to be within an enclosure to
