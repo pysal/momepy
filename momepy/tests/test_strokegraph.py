@@ -44,6 +44,3 @@ class TestStrokeGraph:
 
         with pytest.raises(ValueError, match="point is not an endpoint of linestring!"):
             mm.strokegraph._get_end_segment(linestring, [0,2])
-
-    def test_strokes_to_graph(self):
-        pass

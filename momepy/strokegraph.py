@@ -10,7 +10,6 @@ from .utils import gdf_to_nx
 
 __all__ = [
     "strokes_to_graph",
-    "graph_to_strokes",
 ]
 
 
@@ -257,16 +256,3 @@ def strokes_to_graph(coins, compute_metrics=True, return_primal=False):
         return stroke_graph, graph
 
     return stroke_graph
-
-
-def graph_to_strokes(stroke_graph, *kwargs):
-    """Recreate COINS from the edges. TBD"""
-    edge_gdf = GeoDataFrame(
-        geometry=[
-            unary_union(
-                list(nx.get_node_attributes(stroke_graph, "stroke_geometry").values())
-            )
-        ]
-    ).explode()
-    # Remove false nodes ?
-    return COINS(edge_gdf, *kwargs)
