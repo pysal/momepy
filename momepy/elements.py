@@ -78,7 +78,8 @@ def morphological_tessellation(
         a sweet spot between computational inefficiency (when the value is too low)
         and suboptimal resulting geometry (when the value is too large). The default
         is empirically derived for the use case on building footprints represented in
-        meters. By default 0.5
+        map units.
+        By default 0.5
     simplify: bool, optional
         Whether to attempt to simplify the resulting tesselation boundaries with
         ``shapely.coverage_simplify``. By default True.
@@ -202,7 +203,8 @@ def enclosed_tessellation(
         a sweet spot between computational inefficiency (when the value is too low)
         and suboptimal resulting geometry (when the value is too large). The default
         is empirically derived for the use case on building footprints represented in
-        meters. By default 0.5
+        map units.
+        By default 0.5
     threshold : float, optional
         The minimum threshold for a building to be considered within an enclosure.
         Threshold is a ratio of building area which needs to be within an enclosure to
