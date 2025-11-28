@@ -42,7 +42,7 @@ jobs:
             os: macos-latest  # Apple Silicon
           - environment-file: ci/envs/314-latest.yaml
             os: windows-latest
-          - environment-file: ci/envs/314-min.yaml
+          - environment-file: ci/envs/313-min.yaml
             os: ubuntu-latest
     defaults:
       run:
