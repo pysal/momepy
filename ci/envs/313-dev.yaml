@@ -1,3 +1,4 @@
+---
 name: test
 channels:
   - conda-forge
@@ -12,7 +13,11 @@ dependencies:
   - pytest-cov
   - pip
   - pip:
-      - --pre  --index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --extra-index-url https://pypi.org/simple
+      - --pre \
+        --index-url \
+        https://pypi.anaconda.org/scientific-python-nightly-wheels/simple \
+        --extra-index-url \
+        https://pypi.org/simple
       - pandas
       - shapely
       - git+https://github.com/geopandas/geopandas.git

@@ -1,6 +1,7 @@
+---
 name: Type checking
 
-on:
+on:  # yamllint disable-line rule:truthy
   push:
     branches: [main]
   pull_request:
@@ -23,7 +24,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: setup micromamba
         uses: mamba-org/setup-micromamba@v2
@@ -37,5 +38,7 @@ jobs:
 
       - name: Check momepy
         run: |
-            mypy momepy/ --install-types --ignore-missing-imports --non-interactive
-
+            mypy momepy/ \
+            --install-types \
+            --ignore-missing-imports \
+            --non-interactive
