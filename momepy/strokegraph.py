@@ -55,7 +55,7 @@ def _get_end_segment(linestring, point):
     return np.array(geom[0] - geom[1])
 
 
-def strokes_to_graph(coins, compute_metrics=True, return_primal=False):
+def strokes_to_graph(coins, compute_metrics=True):
     """
     Creates the stroke graph of a street network. The stroke graph is similar to, but
     not identical with, the dual graph. In the stroke graph, each stroke (see
@@ -70,10 +70,6 @@ def strokes_to_graph(coins, compute_metrics=True, return_primal=False):
         The following metrics are computed: betweenness centrality, closeness
         centrality, degree, connectivity, access, orthogonality, spacing.
         For details on all metrics computed, see :cite:`el2022urban`.
-    return_primal: bool (default False)
-        if True, return both the dual graph (where each node is a stroke and each
-        edge is if two strokes intersect) and the primal graph. Else return only
-        the dual graph.
     """
 
     # get strokes attributes from coins
@@ -217,28 +213,5 @@ def strokes_to_graph(coins, compute_metrics=True, return_primal=False):
                 stroke_graph.nodes[n]["stroke_length"]
                 / stroke_graph.nodes[n]["stroke_connectivity"]
             )
-
-        if return_primal:
-            edgelist = {
-                val: key
-                for key, val in nx.get_edge_attributes(graph, "index_position").items()
-            }
-            for n in stroke_graph.nodes:
-                for e in stroke_graph.nodes[n]["edge_indeces"]:
-                    for attr in [
-                        "stroke_betweenness",
-                        "stroke_closeness",
-                        "stroke_degree",
-                        "stroke_length",
-                        "stroke_connectivity",
-                        "stroke_orthogonality",
-                        "stroke_access",
-                        "stroke_spacing",
-                    ]:
-                        graph.edges[edgelist[e]][attr] = stroke_graph.nodes[n][attr]
-            return stroke_graph, graph
-
-    if return_primal:
-        return stroke_graph, graph
 
     return stroke_graph
