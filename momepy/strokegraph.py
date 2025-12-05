@@ -55,7 +55,7 @@ def _get_end_segment(linestring, point):
     return np.array(geom[0] - geom[1])
 
 
-def strokes_to_graph(coins, compute_metrics=True):
+def coins_to_nx(coins):
     """
     Creates the stroke graph of a street network. The stroke graph is similar to, but
     not identical with, the dual graph. In the stroke graph, each stroke (see
@@ -65,11 +65,6 @@ def strokes_to_graph(coins, compute_metrics=True):
     ----------
     coins: momepy.COINS
         Strokes computed from a street network.
-    compute_metrics: bool (default True)
-        if True, computes stroke graph metrics and adds them as node attributes.
-        The following metrics are computed: betweenness centrality, closeness
-        centrality, degree, connectivity, access, orthogonality, spacing.
-        For details on all metrics computed, see :cite:`el2022urban`.
     """
 
     # get strokes attributes from coins
@@ -185,33 +180,30 @@ def strokes_to_graph(coins, compute_metrics=True):
                         number_connections=len(angle_list),
                     )
 
-    # once stroke graph is created, compute metrics
-    if compute_metrics:
-
-        # add derived metrics
-        for n in stroke_graph.nodes:
-            stroke_graph.nodes[n]["stroke_connectivity"] = sum(
-                [
-                    stroke_graph.edges[e]["number_connections"]
-                    for e in stroke_graph.edges(n)
-                ]
-            )
-            stroke_graph.nodes[n]["stroke_access"] = (
-                stroke_graph.nodes[n]["stroke_connectivity"]
-                - stroke_graph.nodes[n]["stroke_degree"]
-            )
-            angles = [
-                val
-                for e in stroke_graph.edges(n)
-                if stroke_graph.edges[e]["angles"]
-                for val in stroke_graph.edges[e]["angles"]
-            ]
-            stroke_graph.nodes[n]["stroke_orthogonality"] = (
-                sum(angles) / stroke_graph.nodes[n]["stroke_connectivity"]
-            )
-            stroke_graph.nodes[n]["stroke_spacing"] = (
-                stroke_graph.nodes[n]["stroke_length"]
-                / stroke_graph.nodes[n]["stroke_connectivity"]
-            )
-
     return stroke_graph
+
+# # add derived metrics
+# for n in stroke_graph.nodes:
+#     stroke_graph.nodes[n]["stroke_connectivity"] = sum(
+#         [
+#             stroke_graph.edges[e]["number_connections"]
+#             for e in stroke_graph.edges(n)
+#         ]
+#     )
+#     stroke_graph.nodes[n]["stroke_access"] = (
+#         stroke_graph.nodes[n]["stroke_connectivity"]
+#         - stroke_graph.nodes[n]["stroke_degree"]
+#     )
+#     angles = [
+#         val
+#         for e in stroke_graph.edges(n)
+#         if stroke_graph.edges[e]["angles"]
+#         for val in stroke_graph.edges[e]["angles"]
+#     ]
+#     stroke_graph.nodes[n]["stroke_orthogonality"] = (
+#         sum(angles) / stroke_graph.nodes[n]["stroke_connectivity"]
+#     )
+#     stroke_graph.nodes[n]["stroke_spacing"] = (
+#         stroke_graph.nodes[n]["stroke_length"]
+#         / stroke_graph.nodes[n]["stroke_connectivity"]
+#             )
