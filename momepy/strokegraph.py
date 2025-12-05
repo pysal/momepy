@@ -191,20 +191,6 @@ def strokes_to_graph(coins, compute_metrics=True, return_primal=False):
 
     # once stroke graph is created, compute metrics
     if compute_metrics:
-        # add stroke betweenness
-        nx.set_node_attributes(
-            stroke_graph, nx.betweenness_centrality(stroke_graph), "stroke_betweenness"
-        )
-
-        # add stroke closeness
-        nx.set_node_attributes(
-            stroke_graph, nx.closeness_centrality(stroke_graph), "stroke_closeness"
-        )
-
-        # add stroke degree
-        nx.set_node_attributes(
-            stroke_graph, dict(nx.degree(stroke_graph)), "stroke_degree"
-        )
 
         # add derived metrics
         for n in stroke_graph.nodes:
