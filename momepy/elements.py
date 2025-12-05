@@ -1,549 +1,622 @@
-#!/usr/bin/env python
-
-# elements.py
-# generating derived elements (street edge, block)
-import os
 import warnings
 
 import geopandas as gpd
-import libpysal
 import numpy as np
 import pandas as pd
 import shapely
+from geopandas import GeoDataFrame, GeoSeries
+from joblib import Parallel, delayed
+from libpysal.cg import voronoi_frames
+from libpysal.graph import Graph
 from packaging.version import Version
-from scipy.spatial import Voronoi
+from pandas import MultiIndex, Series
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
-from tqdm.auto import tqdm
 
-from .utils import deprecated
+SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 
 __all__ = [
-    "Tessellation",
-    "Blocks",
-    "get_network_id",
-    "get_node_id",
+    "morphological_tessellation",
+    "enclosed_tessellation",
+    "verify_tessellation",
+    "get_nearest_street",
+    "get_nearest_node",
+    "generate_blocks",
+    "buffered_limit",
     "enclosures",
     "get_network_ratio",
 ]
 
-GPD_GE_10 = Version(gpd.__version__) >= Version("1.0dev")
 
+def morphological_tessellation(
+    geometry: GeoSeries | GeoDataFrame,
+    clip: str | shapely.Geometry | GeoSeries | GeoDataFrame | None = "bounding_box",
+    shrink: float = 0.4,
+    segment: float = 0.5,
+    simplify: bool = True,
+    **kwargs,
+) -> GeoDataFrame:
+    """Generate morphological tessellation.
 
-class Tessellation:
-    """
-    Generates tessellation. Three versions of tessellation can be created:
-
-        1. Morphological tessellation around given buildings
-            ``gdf`` within set ``limit``.
-        2. Proximity bands around given street network ``gdf``
-            within set ``limit``.
-        3. Enclosed tessellation based on given buildings
-            ``gdf`` within ``enclosures``.
-
-    Pass either ``limit`` to create morphological tessellation or proximity bands or
-    ``enclosures`` to create enclosed tessellation.
-
-    See :cite:`fleischmann2020` for details of implementation of morphological
-    tessellation and :cite:`araldi2019` for proximity bands.
+    Morpohological tessellation is a method to divide space into cells based on
+    building footprints and Voronoi tessellation. The function wraps
+    :func:`libpysal.cg.voronoi_frames` and provides customized default parameters
+    following :cite:`fleischmann2020`.
 
     Tessellation requires data of relatively high level of precision
     and there are three particular patterns causing issues:
 
-        1. Features will collapse into empty polygon - these
-            do not have tessellation cell in the end.
-        2. Features will split into MultiPolygons - in some cases,
-            features with narrow links between parts split into two
-            during 'shrinking'. In most cases that is not an issue
-            and the resulting tessellation is correct anyway, but
-            sometimes this results in a cell being a MultiPolygon,
-            which is not correct.
-        3. Overlapping features - features which overlap even
-            after 'shrinking' cause invalid tessellation geometry.
+    1. Features will collapse into empty polygon - these
+       do not have tessellation cell in the end.
+    2. Features will split into MultiPolygons - in some cases,
+       features with narrow links between parts split into two
+       during 'shrinking'. In most cases that is not an issue
+       and the resulting tessellation is correct anyway, but
+       sometimes this results in a cell being a MultiPolygon,
+       which is not correct.
+    3. Overlapping features - features which overlap even
+       after 'shrinking' cause invalid tessellation geometry.
 
-    All three types can be tested prior :class:`momepy.Tessellation` using
-    :class:`momepy.CheckTessellationInput`.
+    All three types can be tested using :class:`momepy.CheckTessellationInput`.
+
+    See :cite:`fleischmann2020` for details of implementation.
 
     Parameters
     ----------
-    gdf : GeoDataFrame
-       A GeoDataFrame containing building footprints or street network.
-    unique_id : str
-        The name of the column with the unique ID.
-    limit : MultiPolygon or Polygon (default None)
-        MultiPolygon or Polygon defining the study area limiting morphological
-        tessellation or proximity bands (otherwise it could go to infinity).
-    shrink : float (default 0.4)
-        The distance for negative buffer to generate space between adjacent polygons
-        (if geometry type of gdf is (Multi)Polygon).
-    segment : float (default 0.5)
-        The maximum distance between points after discretization.
-    verbose : bool (default True)
-        If ``True``, shows progress bars in loops and indication of steps.
-    enclosures : GeoDataFrame (default None)
-        The enclosures geometry, which can be generated
-        using :func:`momepy.enclosures`.
-    enclosure_id : str (default 'eID')
-        The name of the ``enclosure_id`` containing unique identifer for each row in
-        ``enclosures``. Applies only if ``enclosures`` are passed.
-    threshold : float (default 0.05)
-        The minimum threshold for a building to be considered within an enclosure.
-        Threshold is a ratio of building area which needs to be within an enclosure to
-        inlude it in the tessellation of that enclosure. Resolves sliver geometry
-        issues. Applies only if ``enclosures`` are passed.
-    use_dask : bool (default True)
-        Use parallelised algorithm based on ``dask.dataframe``. Requires dask.
-        Applies only if ``enclosures`` are passed.
-    n_chunks : None
-        The number of chunks to be used in parallelization. Ideal is one chunk per
-        thread. Applies only if ``enclosures`` are passed. Default automatically
-        uses ``n == dask.system.cpu_count``.
-
-    Attributes
-    ----------
-    tessellation : GeoDataFrame
-        A GeoDataFrame containing resulting tessellation.
-        For enclosed tessellation, gdf contains three columns:
-
-            - ``geometry``,
-            - ``unique_id`` matching with parental building,
-            - ``enclosure_id`` matching with enclosure integer index
-
-    gdf : GeoDataFrame
-        The original GeoDataFrame.
-    id : Series
-        A Series containing used unique ID.
-    limit : MultiPolygon or Polygon
-        MultiPolygon or Polygon defining the study area limiting morphological
-        tessellation or proximity bands.
-    shrink : float
+    geometry : GeoSeries | GeoDataFrame
+        A GeoDataFrame or GeoSeries containing buildings to tessellate the space around.
+    clip : str | shapely.Geometry | GeoSeries | GeoDataFrame | None
+        Polygon used to clip the Voronoi polygons, by default "bounding_box". You can
+        pass any option accepted by :func:`libpysal.cg.voronoi_frames` or geopandas
+        object that will be automatically unioned.
+    shrink : float, optional
         The distance for negative buffer to generate space between adjacent polygons.
-    segment : float
-        The maximum distance between points after discretization.
-    collapsed : list
-        A list of ``unique_id``s of collapsed features (if there are any).
-        Applies only if ``limit`` is passed.
-    multipolygons : list
-        A list of ``unique_id``s of features causing MultiPolygons (if there are any).
-        Applies only if ``limit`` is passed.
+        Shall be changed in sync with ``segment``.
+        By default 0.4
+    segment : float, optional
+        The maximum distance between points after discretization. A right value is
+        a sweet spot between computational inefficiency (when the value is too low)
+        and suboptimal resulting geometry (when the value is too large). The default
+        is empirically derived for the use case on building footprints represented in
+        map units. By default 0.5
+    simplify: bool, optional
+        Whether to attempt to simplify the resulting tesselation boundaries with
+        ``shapely.coverage_simplify``. By default True.
+    **kwargs
+        Additional keyword arguments pased to libpysal.cg.voronoi_frames, such as
+        ``grid_size``.
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with an index matching the index of input geometry
+
+    See also
+    --------
+    momepy.enclosed_tessellation
+    momepy.CheckTessellationInput
+    momepy.verify_tessellation
 
     Examples
     --------
-    >>> tess = mm.Tessellation(
-    ... buildings_df, 'uID', limit=mm.buffered_limit(buildings_df)
-    ... )
-    Inward offset...
-    Generating input point array...
-    Generating Voronoi diagram...
-    Generating GeoDataFrame...
-    Dissolving Voronoi polygons...
-    >>> tess.tessellation.head()
-        uID	geometry
-    0	1	POLYGON ((1603586.677274485 6464344.667944215,...
-    1	2	POLYGON ((1603048.399497852 6464176.180701573,...
-    2	3	POLYGON ((1603071.342637536 6464158.863329805,...
-    3	4	POLYGON ((1603055.834005827 6464093.614718676,...
-    4	5	POLYGON ((1603106.417554705 6464130.215958447,...
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
 
-    >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
-    >>> encl_tess = mm.Tessellation(
-    ... buildings_df, 'uID', enclosures=enclosures
-    ... )
-    >>> encl_tess.tessellation.head()
-         uID                                           geometry  eID
-    0  109.0  POLYGON ((1603369.789 6464340.661, 1603368.754...    0
-    1  110.0  POLYGON ((1603368.754 6464340.097, 1603369.789...    0
-    2  111.0  POLYGON ((1603458.666 6464332.614, 1603458.332...    0
-    3  112.0  POLYGON ((1603462.235 6464285.609, 1603454.795...    0
-    4  113.0  POLYGON ((1603524.561 6464388.609, 1603532.241...    0
+    Define a limit used to clip the extent:
+
+    >>> limit = momepy.buffered_limit(buildings, buffer="adaptive")
+
+    Generate tessellation:
+
+    >>> momepy.morphological_tessellation(buildings).head()
+                                                geometry
+    0  POLYGON ((1603536.56 6464392.264, 1603541.262 ...
+    1  POLYGON ((1603167.679 6464323.194, 1603167.552...
+    2  POLYGON ((1603078.787 6464172.1, 1603077.665 6...
+    3  POLYGON ((1603070.306 6464154.611, 1603070.081...
+    4  POLYGON ((1603083.134 6464103.971, 1603077.387...
+
+    """
+    if simplify and not SHPLY_GE_210:
+        # TODO: remove the keyword and do simplification by default once it is
+        # safe to pin shapely 2.1
+        raise ImportError(
+            "`simplify=True` requires shapely 2.1 or higher. "
+            "Update shapely or set `simplify` to False."
+        )
+
+    if isinstance(geometry.index, MultiIndex):
+        raise ValueError(
+            "MultiIndex is not supported in `momepy.morphological_tessellation`."
+        )
+
+    if isinstance(clip, GeoSeries | GeoDataFrame):
+        clip = clip.union_all()
+
+    mt = voronoi_frames(
+        geometry,
+        clip=clip,
+        shrink=shrink,
+        segment=segment,
+        return_input=False,
+        as_gdf=True,
+        **kwargs,
+    )
+    if simplify:
+        mt.geometry = shapely.coverage_simplify(
+            mt.geometry, tolerance=segment / 2, simplify_boundary=False
+        )
+    return mt
+
+
+def enclosed_tessellation(
+    geometry: GeoSeries | GeoDataFrame,
+    enclosures: GeoSeries | GeoDataFrame,
+    shrink: float = 0.4,
+    segment: float = 0.5,
+    threshold: float = 0.05,
+    simplify: bool = True,
+    n_jobs: int = -1,
+    **kwargs,
+) -> GeoDataFrame:
+    """Generate enclosed tessellation
+
+    Enclosed tessellation is an enhanced :func:`morphological_tessellation`, based on
+    predefined enclosures and building footprints. We can see enclosed tessellation as
+    two-step partitioning of space based on building footprints and boundaries (e.g.
+    street network, railway). Original morphological tessellation is used under the hood
+    to partition each enclosure.
+
+    Tessellation requires data of relatively high level of precision and there are three
+    particular patterns causing issues:
+
+    1. Features will collapse into empty polygon - these
+       do not have tessellation cell in the end.
+    2. Features will split into MultiPolygons - in some cases,
+       features with narrow links between parts split into two during 'shrinking'.
+       In most cases that is not an issue and the resulting tessellation is correct
+       anyway, but sometimes this results in a cell being a MultiPolygon, which is
+       not correct.
+    3. Overlapping features - features which overlap even
+       after 'shrinking' cause invalid tessellation geometry.
+
+    All three types can be tested using :class:`momepy.CheckTessellationInput`.
+
+    The index of the resulting GeoDataFrame links the input buildings with the output
+    geometry. Enclosures with no buildings are also included in the output with negative
+    index. Ensure that the input geometry has unique non-negative index for this to work
+    correctly.
+
+    Parameters
+    ----------
+    geometry : GeoSeries | GeoDataFrame
+        A GeoDataFrame or GeoSeries containing buildings to tessellate the space around.
+    enclosures : GeoSeries | GeoDataFrame
+        The enclosures geometry, which can be generated using :func:`momepy.enclosures`.
+    shrink : float, optional
+        The distance for negative buffer to generate space between adjacent polygons.
+        Shall be changed in sync with ``segment``.
+        By default 0.4
+    segment : float, optional
+        The maximum distance between points after discretization. A right value is
+        a sweet spot between computational inefficiency (when the value is too low)
+        and suboptimal resulting geometry (when the value is too large). The default
+        is empirically derived for the use case on building footprints represented in
+        map units. By default 0.5
+    threshold : float, optional
+        The minimum threshold for a building to be considered within an enclosure.
+        Threshold is a ratio of building area which needs to be within an enclosure to
+        inlude it in the tessellation of that enclosure. Resolves sliver geometry
+        issues. If None, the check is skipped and all intersecting buildings are
+        considered. By default 0.05
+    simplify: bool, optional
+        Whether to attempt to simplify the resulting tesselation boundaries with
+        ``shapely.coverage_simplify``. By default True.
+    n_jobs : int, optional
+        The number of jobs to run in parallel. -1 means using all available cores.
+        By default -1
+    **kwargs
+        Additional keyword arguments pased to libpysal.cg.voronoi_frames, such as
+        ``grid_size``.
+
+    Warnings
+    --------
+    Due to the floating point precision issues in clipping the tessellation cells to the
+    extent of their parental enclosures, the result does not form a precise polygonal
+    coverage. To build a contiguity graph, use fuzzy contiguity builder with a small
+    buffer, e.g.::
+
+        from libpysal import graph
+
+        graph.Graph.build_fuzzy_contiguity(tessellation, buffer=1e-6)
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame with an index matching the index of input geometry and a column
+        matching the index of input enclosures.
+
+    See also
+    --------
+    momepy.enclosures
+    momepy.morphological_tessellation
+    momepy.CheckTessellationInput
+    momepy.verify_tessellation
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+
+    Generate enclosures:
+
+    >>> enclosures = momepy.enclosures(streets)
+
+    Generate tessellation:
+
+    >>> momepy.enclosed_tessellation(buildings, enclosures).head()
+                                                  geometry  enclosure_index
+    0    POLYGON ((1603546.697 6464383.596, 1603585.64 ...                0
+    113  POLYGON ((1603517.131 6464349.296, 1603546.697...                0
+    114  POLYGON ((1603517.87 6464285.864, 1603515.152 ...                0
+    125  POLYGON ((1603586.269 6464256.691, 1603581.813...                0
+    126  POLYGON ((1603499.92 6464243.917, 1603493.299 ...                0
     """
 
-    def __init__(
-        self,
-        gdf,
-        unique_id,
-        limit=None,
-        shrink=0.4,
-        segment=0.5,
-        verbose=True,
-        enclosures=None,
-        enclosure_id="eID",
-        threshold=0.05,
-        use_dask=True,
-        n_chunks=None,
-    ):
-        if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
-            "true",
-            "1",
-            "yes",
-        ):
-            warnings.warn(
-                "Class based API like `momepy.Tessellation` is deprecated. "
-                "Replace it with `momepy.morphological_tessellation` or "
-                "`momepy.enclosed_tessellation` to use functional API instead "
-                "or pin momepy version <1.0. Class-based API will be removed in "
-                "1.0. "
-                # "See details at https://docs.momepy.org/en/stable/migration.html",
-                "",
-                FutureWarning,
-                stacklevel=2,
-            )
-        self.gdf = gdf
-        self.id = gdf[unique_id]
-        self.limit = limit
-        self.shrink = shrink
-        self.segment = segment
-        self.enclosure_id = enclosure_id
-
-        if gdf.crs and gdf.crs.is_geographic:
-            raise ValueError(
-                "Geometry is in a geographic CRS. "
-                "Use 'GeoDataFrame.to_crs()' to re-project geometries to a "
-                "projected CRS before using Tessellation.",
-            )
-
-        if limit is not None and enclosures is not None:
-            raise ValueError(
-                "Both `limit` and `enclosures` cannot be passed together. "
-                "Pass `limit` for morphological tessellation or `enclosures` "
-                "for enclosed tessellation."
-            )
-
-        gdf = gdf.copy()
-
-        if enclosures is not None:
-            enclosures = enclosures.copy()
-
-            bounds = enclosures.total_bounds
-            centre_x = (bounds[0] + bounds[2]) / 2
-            centre_y = (bounds[1] + bounds[3]) / 2
-
-            gdf.geometry = gdf.geometry.translate(xoff=-centre_x, yoff=-centre_y)
-            enclosures.geometry = enclosures.geometry.translate(
-                xoff=-centre_x, yoff=-centre_y
-            )
-
-            self.tessellation = self._enclosed_tessellation(
-                gdf,
-                enclosures,
-                unique_id,
-                threshold,
-                use_dask,
-                n_chunks,
-            )
-        else:
-            if isinstance(limit, gpd.GeoSeries | gpd.GeoDataFrame):
-                limit = limit.union_all() if GPD_GE_10 else limit.unary_union
-
-            bounds = shapely.bounds(limit)
-            centre_x = (bounds[0] + bounds[2]) / 2
-            centre_y = (bounds[1] + bounds[3]) / 2
-            gdf.geometry = gdf.geometry.translate(xoff=-centre_x, yoff=-centre_y)
-
-            # add convex hull buffered large distance to eliminate infinity issues
-            limit = (
-                gpd.GeoSeries(limit, crs=gdf.crs)
-                .translate(xoff=-centre_x, yoff=-centre_y)
-                .array[0]
-            )
-
-            self.tessellation = self._morphological_tessellation(
-                gdf, unique_id, limit, shrink, segment, verbose
-            )
-
-        self.tessellation["geometry"] = self.tessellation["geometry"].translate(
-            xoff=centre_x, yoff=centre_y
+    if simplify and not SHPLY_GE_210:
+        # TODO: remove the keyword and do simplification by default once it is
+        # safe to pin shapely 2.1
+        raise ImportError(
+            "`simplify=True` requires shapely 2.1 or higher. "
+            "Update shapely or set `simplify` to False."
         )
 
-    def _morphological_tessellation(
-        self, gdf, unique_id, limit, shrink, segment, verbose, check=True
-    ):
-        objects = gdf
-
-        if shrink != 0:
-            print("Inward offset...") if verbose else None
-            mask = objects.geom_type.isin(["Polygon", "MultiPolygon"])
-            objects.loc[mask, objects.geometry.name] = objects[mask].buffer(
-                -shrink, cap_style=2, join_style=2
-            )
-        objects = objects.reset_index(drop=True).explode(ignore_index=True)
-        objects = objects.set_index(unique_id)
-
-        print("Generating input point array...") if verbose else None
-        points, ids = self._dense_point_array(
-            objects.geometry.array, distance=segment, index=objects.index
+    if isinstance(geometry.index, MultiIndex):
+        raise ValueError(
+            "MultiIndex is not supported in `momepy.enclosed_tessellation`."
         )
 
-        hull = shapely.convex_hull(limit)
-        bounds = shapely.bounds(hull)
-        width = bounds[2] - bounds[0]
-        leng = bounds[3] - bounds[1]
-        hull = shapely.buffer(hull, 2 * width if width > leng else 2 * leng)
+    # convert to GeoDataFrame and add position (we will need it later)
+    enclosures = enclosures.geometry.to_frame()
+    enclosures["position"] = range(len(enclosures))
 
-        hull_p, hull_ix = self._dense_point_array(
-            [hull], distance=shapely.length(hull) / 100, index=[0]
+    # preserve index name if exists
+    index_name = enclosures.index.name
+    if not index_name:
+        index_name = "enclosure_index"
+    enclosures[index_name] = enclosures.index
+
+    # figure out which enlosures contain which buildings
+    inp, res = geometry.sindex.query(enclosures.geometry, predicate="intersects")
+
+    # find out which enclosures contain one and multiple buildings
+    unique, counts = np.unique(inp, return_counts=True)
+    splits = unique[counts > 1]
+    single = unique[counts == 1]
+    altered = unique[counts > 0]
+
+    # prepare input for parallel processing
+    tuples = [
+        (
+            enclosures.index[i],  # enclosure index
+            enclosures.geometry.iloc[i],  # enclosure geometry
+            geometry.iloc[res[inp == i]],  # buildings within the enclosure
         )
-        points = np.append(points, hull_p, axis=0)
-        ids = ids + ([-1] * len(hull_ix))
+        for i in splits
+    ]
 
-        print("Generating Voronoi diagram...") if verbose else None
-        voronoi_diagram = Voronoi(np.array(points))
+    # generate tessellation in parallel
+    new = Parallel(n_jobs=n_jobs)(
+        delayed(_tess)(*t, threshold, shrink, segment, index_name, simplify, kwargs)
+        for t in tuples
+    )
 
-        print("Generating GeoDataFrame...") if verbose else None
-        regions_gdf = self._regions(voronoi_diagram, unique_id, ids, crs=gdf.crs)
+    new_df = pd.concat(new, axis=0)
 
-        print("Dissolving Voronoi polygons...") if verbose else None
-        morphological_tessellation = regions_gdf[[unique_id, "geometry"]].dissolve(
-            by=unique_id, as_index=False
-        )
-
-        morphological_tessellation = gpd.clip(
-            morphological_tessellation, gpd.GeoSeries(limit, crs=gdf.crs)
-        )
-
-        if check:
-            self._check_result(morphological_tessellation, gdf, unique_id=unique_id)
-
-        return morphological_tessellation
-
-    def _dense_point_array(self, geoms, distance, index):
-        """
-        geoms : array of shapely lines
-        """
-        # interpolate lines to represent them as points for Voronoi
-        points = []
-        ids = []
-
-        if shapely.get_type_id(geoms[0]) not in [1, 2, 5]:
-            lines = shapely.boundary(geoms)
-        else:
-            lines = geoms
-        lengths = shapely.length(lines)
-        for ix, line, length in zip(index, lines, lengths, strict=True):
-            if length > distance:  # some polygons might have collapsed
-                pts = shapely.line_interpolate_point(
-                    line,
-                    np.linspace(0.1, length - 0.1, num=int((length - 0.1) // distance)),
-                )  # .1 offset to keep a gap between two segments
-                points.append(shapely.get_coordinates(pts))
-                ids += [ix] * len(pts)
-
-        points = np.vstack(points)
-
-        return points, ids
-
-        # here we might also want to append original coordinates of each line
-        # to get a higher precision on the corners
-
-    def _regions(self, voronoi_diagram, unique_id, ids, crs):
-        """Generate GeoDataFrame of Voronoi regions from scipy.spatial.Voronoi."""
-        vertices = pd.Series(voronoi_diagram.regions).take(voronoi_diagram.point_region)
-        polygons = []
-        for region in vertices:
-            if -1 not in region:
-                polygons.append(shapely.polygons(voronoi_diagram.vertices[region]))
-            else:
-                polygons.append(None)
-
-        regions_gdf = gpd.GeoDataFrame(
-            {unique_id: ids}, geometry=polygons, crs=crs
-        ).dropna()
-        regions_gdf = regions_gdf.loc[
-            regions_gdf[unique_id] != -1
-        ]  # delete hull-based cells
-
-        return regions_gdf
-
-    def _check_result(self, tesselation, orig_gdf, unique_id):
-        """Check whether result matches buildings and contains only Polygons."""
-        # check against input layer
-        ids_original = list(orig_gdf[unique_id])
-        ids_generated = list(tesselation[unique_id])
-        if len(ids_original) != len(ids_generated):
-            self.collapsed = set(ids_original).difference(ids_generated)
-            warnings.warn(
-                message=(
-                    "Tessellation does not fully match buildings. "
-                    f"{len(self.collapsed)} element(s) collapsed "
-                    f"during generation - unique_id: {self.collapsed}."
-                ),
-                category=UserWarning,
-                stacklevel=4,
-            )
-
-        # check MultiPolygons - usually caused by error in input geometry
-        self.multipolygons = tesselation[
-            tesselation.geometry.geom_type == "MultiPolygon"
-        ][unique_id]
-        if len(self.multipolygons) > 0:
-            warnings.warn(
-                message=(
-                    "Tessellation contains MultiPolygon elements. Initial "
-                    "objects should  be edited. `unique_id` of affected "
-                    f"elements: {list(self.multipolygons)}."
-                ),
-                category=UserWarning,
-                stacklevel=4,
-            )
-
-    def _enclosed_tessellation(
-        self,
-        buildings,
-        enclosures,
-        unique_id,
-        threshold=0.05,
-        use_dask=True,
-        n_chunks=None,
-        **kwargs,
-    ):
-        """
-        Generate enclosed tessellation based on barriers
-        defining enclosures and building footprints.
-
-        Parameters
-        ----------
-        buildings : GeoDataFrame
-            A GeoDataFrame containing building footprints.
-            Expects (Multi)Polygon geometry.
-        enclosures : GeoDataFrame
-            Enclosures geometry. Can  be generated using :func:`momepy.enclosures`.
-        unique_id : str
-            The name of the column with the unique ID of ``buildings`` gdf.
-        threshold : float (default 0.05)
-            The minimum threshold for a building to be considered within an enclosure.
-            Threshold is a ratio of building area which needs to be within an enclosure
-            to inlude it in the tessellation of that enclosure.
-            Resolves sliver geometry issues.
-        use_dask : bool (default True)
-            Use parallelised algorithm based on ``dask.dataframe``. Requires dask.
-        n_chunks : None
-            The number of chunks to be used in parallelization. Ideal is one chunk per
-            thread. Applies only if ``enclosures`` are passed. Default automatically
-            uses ``n == dask.system.cpu_count``.
-        **kwargs : dict
-            Keyword arguments passed to Tessellation algorithm
-            (such as ``'shrink'`` or ``'segment'``).
-
-        Returns
-        -------
-        tessellation : GeoDataFrame
-            A GeoDataFrame containing three columns:
-
-                - ``geometry``,
-                - ``unique_id`` matching with parent building,
-                - ``enclosure_id`` matching with enclosure integer index
-
-        Examples
-        --------
-        >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
-        >>> enclosed_tess = mm.enclosed_tessellation(buildings, enclosures)
-        """
-        enclosures = enclosures.reset_index(drop=True)
-        enclosures["position"] = range(len(enclosures))
-
-        # determine which polygons should be split
-        inp, res = buildings.sindex.query(enclosures.geometry, predicate="intersects")
-        unique, counts = np.unique(inp, return_counts=True)
-        splits = unique[counts > 1]
-        single = unique[counts == 1]
-
-        if use_dask:
-            try:
-                import dask.bag as db
-                from dask.system import cpu_count
-            except ImportError:
-                use_dask = False
-
-                warnings.warn(
-                    message=(
-                        "dask.dataframe could not be imported. "
-                        f"Setting `use_dask={use_dask}`."
-                    ),
-                    category=UserWarning,
-                    stacklevel=3,
-                )
-
-        if use_dask:
-            if n_chunks is None:
-                n_chunks = cpu_count() - 1 if cpu_count() > 1 else 1
-            # initialize dask.bag
-            bag = db.from_sequence(splits, npartitions=n_chunks)
-            # generate enclosed tessellation using dask
-            new = bag.map(
-                self._tess,
-                enclosures,
-                buildings,
-                inp,
-                res,
-                threshold,
-                unique_id,
-            ).compute()
-
-        else:
-            new = [
-                self._tess(
-                    i,
-                    enclosures,
-                    buildings,
-                    inp,
-                    res,
-                    threshold=threshold,
-                    unique_id=unique_id,
-                    **kwargs,
-                )
-                for i in splits
+    # some enclosures had building intersections that did not meet the threshold
+    if -1 in new_df.index:
+        unchanged_in_new = new_df.loc[[-1]]
+        new_df = new_df.drop(-1)
+        clean_blocks = pd.concat(
+            [
+                enclosures.drop(enclosures.index[altered]).drop(columns="position"),
+                unchanged_in_new,
             ]
-
-        # finalise the result
-        clean_blocks = enclosures.drop(splits)
-        clean_blocks.loc[single, unique_id] = clean_blocks.loc[
-            single, "position"
-        ].apply(lambda ix: buildings.iloc[res[inp == ix][0]][unique_id])
-        return pd.concat(new + [clean_blocks.drop(columns="position")]).reset_index(
-            drop=True
+        )
+    else:
+        clean_blocks = enclosures.drop(enclosures.index[altered]).drop(
+            columns="position"
         )
 
-    def _tess(
-        self,
-        ix,
-        enclosure,
-        buildings,
-        query_inp,
-        query_res,
-        threshold,
-        unique_id,
-    ):
-        poly = enclosure.geometry.array[ix]
-        blg = buildings.iloc[query_res[query_inp == ix]]
-        within = blg[
+    # assign negative index to enclosures with no buildings
+    clean_blocks.index = range(-len(clean_blocks), 0, 1)
+
+    # get building index for enclosures with single building
+    singles = enclosures.iloc[single]
+    singles.index = singles.position.loc[singles.index].apply(
+        lambda ix: geometry.iloc[res[inp == ix]].index[0]
+    )
+    # combine results
+    return pd.concat([new_df, singles.drop(columns="position"), clean_blocks])
+
+
+def _tess(ix, poly, blg, threshold, shrink, segment, enclosure_id, to_simplify, kwargs):
+    """Generate tessellation for a single enclosure. Helper for enclosed_tessellation"""
+    # check if threshold is set and filter buildings based on the threshold
+    if threshold:
+        blg = blg[
             shapely.area(shapely.intersection(blg.geometry.array, poly))
             > (shapely.area(blg.geometry.array) * threshold)
-        ].copy()
-        if len(within) > 1:
-            tess = self._morphological_tessellation(
-                within,
-                unique_id,
-                poly,
-                shrink=self.shrink,
-                segment=self.segment,
-                verbose=False,
-                check=False,
+        ]
+
+    if len(blg) > 1:
+        tess = voronoi_frames(
+            blg,
+            clip=poly,
+            shrink=shrink,
+            segment=segment,
+            return_input=False,
+            as_gdf=True,
+            **kwargs,
+        )
+        if to_simplify:
+            tess.geometry = shapely.coverage_simplify(
+                tess.geometry, tolerance=segment / 2, simplify_boundary=False
             )
-            tess[self.enclosure_id] = enclosure[self.enclosure_id].iloc[ix]
-            return tess
-        return gpd.GeoDataFrame(
-            {self.enclosure_id: enclosure[self.enclosure_id].iloc[ix], unique_id: None},
-            geometry=[poly],
-            index=[0],
+        tess[enclosure_id] = ix
+        return tess
+
+    ## in case a single building is left in blg
+    if len(blg) == 1:
+        assigned_ix = blg.index[0]
+    else:
+        assigned_ix = -1
+
+    return GeoDataFrame(
+        {enclosure_id: ix},
+        geometry=[poly],
+        index=[assigned_ix],
+        crs=blg.crs,
+    )
+
+
+def verify_tessellation(tessellation, geometry):
+    """Check whether result matches buildings and contains only Polygons.
+
+    Checks if the generated tessellation fully matches the input buildings, i.e. if
+    there are all building indices present in the tessellation. Also checks if there are
+    any MultiPolygons present in the tessellation. The former is often caused by
+    buildings collapsing during the generation process, the latter is usually caused by
+    errors in the input geometry, overlapping buildings, or narrow links between parts
+    of the building.
+
+    Parameters
+    ----------
+    tessellation : GeoSeries | GeoDataFrame
+        tessellation geometry
+    geometry : GeoSeries | GeoDataFrame
+        building geometry used to generate tessellation
+
+    Returns
+    -------
+    tuple(excluded, multipolygons)
+        Tuple of indices of building IDs not present in tessellations and MultiPolygons.
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+
+    Define a limit used to clip the extent:
+
+    >>> limit = momepy.buffered_limit(buildings, buffer="adaptive")
+
+    Generate tessellation:
+
+    >>> tessellation = momepy.morphological_tessellation(buildings)
+
+    Verify the result.
+
+    >>> excluded, multipolygons = momepy.verify_tessellation(tessellation, buildings)
+    """
+
+    if isinstance(geometry.index, MultiIndex) or isinstance(
+        tessellation.index, MultiIndex
+    ):
+        raise ValueError("MultiIndex is not supported in `momepy.verify_tessellation`.")
+
+    # check against input layer
+    ids_original = geometry.index
+    ids_generated = tessellation.index
+    collapsed = pd.Index([])
+    if len(ids_original) != len(ids_generated):
+        collapsed = ids_original.difference(ids_generated)
+        warnings.warn(
+            message=(
+                "Tessellation does not fully match buildings. "
+                f"{len(collapsed)} element(s) disappeared "
+                f"during generation. Index of the affected elements: {collapsed}."
+            ),
+            category=UserWarning,
+            stacklevel=2,
         )
 
+    # check MultiPolygons - usually caused by error in input geometry
+    multipolygons = tessellation[
+        tessellation.geometry.geom_type == "MultiPolygon"
+    ].index
+    if len(multipolygons) > 0:
+        warnings.warn(
+            message=(
+                "Tessellation contains MultiPolygon elements. Initial "
+                "objects should  be edited. Index of affected "
+                f"elements: {list(multipolygons)}."
+            ),
+            category=UserWarning,
+            stacklevel=2,
+        )
+    return collapsed, multipolygons
 
-@deprecated("generate_blocks")
-class Blocks:
+
+def get_nearest_street(
+    buildings: GeoSeries | GeoDataFrame,
+    streets: GeoSeries | GeoDataFrame,
+    max_distance: float | None = None,
+) -> Series:
+    """Identify the nearest street for each building.
+
+    Parameters
+    ----------
+    buildings : GeoSeries | GeoDataFrame
+        GeoSeries or GeoDataFrame of buildings
+    streets : GeoSeries | GeoDataFrame
+        GeoSeries or GeoDataFrame of streets
+    max_distance : float | None, optional
+        Maximum distance within which to query for nearest street. Must be
+        greater than 0. By default None, indicating no distance limit. Note that it is
+        advised to set a limit to avoid long processing times.
+
+    Notes
+    -----
+    In case of multiple streets within the same distance, only one is returned.
+
+    Returns
+    -------
+    np.ndarray
+        array containing the index of the nearest street for each building
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+
+    Get street index.
+
+    >>> momepy.get_nearest_street(buildings, streets)
+    0       0.0
+    1      33.0
+    2      10.0
+    3       8.0
+    4       8.0
+        ...
+    139    34.0
+    140    32.0
+    141    21.0
+    142    16.0
+    143    19.0
+    Length: 144, dtype: float64
+    """
+    blg_idx, str_idx = streets.sindex.nearest(
+        buildings.geometry, return_all=False, max_distance=max_distance
+    )
+
+    ids = pd.Series(None, index=buildings.index, dtype=streets.index.dtype)
+
+    ids.iloc[blg_idx] = streets.index[str_idx]
+    return ids
+
+
+def get_nearest_node(
+    buildings: GeoSeries | GeoDataFrame,
+    nodes: GeoDataFrame,
+    edges: GeoDataFrame,
+    nearest_edge: Series,
+) -> Series:
+    """Identify the nearest node for each building.
+
+    Snap each building to the closest street network node on the closest network edge.
+    This assumes that the nearest street network edge has already been identified using
+    :func:`get_nearest_street`.
+
+    The ``edges`` and ``nodes`` GeoDataFrames are expected to be an outcome of
+    :func:`momepy.nx_to_gdf` or match its structure with ``["node_start", "node_end"]``
+    columns and their meaning.
+
+
+    Parameters
+    ----------
+    buildings : GeoSeries | GeoDataFrame
+        GeoSeries or GeoDataFrame of buildings.
+    nodes : GeoDataFrame
+        A GeoDataFrame containing street nodes.
+    edges : GeoDataFrame
+        A GeoDataFrame containing street edges with ``["node_start", "node_end"]``
+        columns marking start and end nodes of each edge. These are the default
+        outcome of :func:`momepy.nx_to_gdf`.
+    nearest_edge : Series
+        A Series aligned with ``buildings`` containing the information on the nearest
+        street edge. Matches the outcome of :func:`get_nearest_street`.
+
+    Returns
+    -------
+    Series
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+
+    Pass an object via ``networkx`` to get the nodes and necessary information.
+
+    >>> G = momepy.gdf_to_nx(streets)
+    >>> nodes, edges = momepy.nx_to_gdf(G)
+
+    Get nearest edge:
+
+    >>> buildings["edge_index"] = momepy.get_nearest_street(buildings, edges)
+
+    Get nearest node:
+
+    >>> momepy.get_nearest_node(buildings, nodes, edges, buildings["edge_index"])
+    0       0.0
+    1       9.0
+    2      11.0
+    3      11.0
+    4      11.0
+        ...
+    139     1.0
+    140    20.0
+    141    15.0
+    142     2.0
+    143    22.0
+    Length: 144, dtype: float64
+    """
+
+    if (
+        isinstance(buildings.index, MultiIndex)
+        or isinstance(nearest_edge.index, MultiIndex)
+        or isinstance(nodes.index, MultiIndex)
+        or isinstance(edges.index, MultiIndex)
+    ):
+        raise ValueError("MultiIndex is not supported in `momepy.get_nearest_node`.")
+
+    # treat possibly missing edge index
+    a = np.empty(len(buildings))
+    na_mask = np.isnan(nearest_edge)
+    a[na_mask] = np.nan
+
+    streets = edges.loc[nearest_edge[~na_mask]]
+    starts = nodes.loc[streets["node_start"]].distance(buildings[~na_mask], align=False)
+    ends = nodes.loc[streets["node_end"]].distance(buildings[~na_mask], align=False)
+    mask = starts.values > ends.values
+    r = starts.index.to_numpy(copy=True)
+    r[mask] = ends.index[mask]
+
+    a[~na_mask] = r
+    return pd.Series(a, index=buildings.index)
+
+
+def generate_blocks(
+    tessellation: GeoDataFrame, edges: GeoDataFrame, buildings: GeoDataFrame
+) -> tuple[GeoDataFrame, Series]:
     """
     Generate blocks based on buildings, tessellation, and street network.
     Dissolves tessellation cells based on street-network based polygons.
-    Links resulting ID to ``buildings`` and ``tessellation`` as attributes.
+    Links resulting ID to ``tessellation`` and returns
+    ``blocks`` and ``tessellation`` ids.
 
     Parameters
     ----------
@@ -553,291 +626,162 @@ class Blocks:
         A GeoDataFrame containing a street network.
     buildings : GeoDataFrame
         A GeoDataFrame containing buildings.
-    id_name : str
-        The name of the unique blocks ID column to be generated.
-    unique_id : str
-        The name of the column with the unique ID. If there is none, it can be
-        generated with :func:`momepy.unique_id`. This should be the same for
-        cells and buildings; ID's should match.
 
-    Attributes
-    ----------
+    Notes
+    -----
+    This function assumes morphological tessellation and 1:1 relationship
+    between buildings and cells. Tesselation cells that do not have buildings
+    can break the functionality.
+
+    Returns
+    -------
     blocks : GeoDataFrame
         A GeoDataFrame containing generated blocks.
-    buildings_id : Series
-        A Series derived from buildings with block ID.
-    tessellation_id : Series
+    tessellation_ids : Series
         A Series derived from morphological tessellation with block ID.
-    tessellation : GeoDataFrame
-        A GeoDataFrame containing original tessellation.
-    edges : GeoDataFrame
-        A GeoDataFrame containing original edges.
-    buildings : GeoDataFrame
-        A GeoDataFrame containing original buildings.
-    id_name : str
-        The name of the unique blocks ID column.
-    unique_id : str
-        The name of the column with unique ID.
 
     Examples
     --------
-    >>> blocks = mm.Blocks(tessellation_df, streets_df, buildings_df, 'bID', 'uID')
-    >>> blocks.blocks.head()
-        bID	geometry
-    0	1.0	POLYGON ((1603560.078648818 6464202.366899694,...
-    1	2.0	POLYGON ((1603457.225976106 6464299.454696888,...
-    2	3.0	POLYGON ((1603056.595487018 6464093.903488506,...
-    3	4.0	POLYGON ((1603260.943782872 6464141.327631323,...
-    4	5.0	POLYGON ((1603183.399594798 6463966.109982309,...
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> streets = geopandas.read_file(path, layer="streets")
+
+    Generate tessellation:
+
+    >>> tessellation = momepy.morphological_tessellation(buildings)
+    >>> tessellation.head()
+                                                geometry
+    0  POLYGON ((1603536.56 6464392.264, 1603541.262 ...
+    1  POLYGON ((1603167.679 6464323.194, 1603167.552...
+    2  POLYGON ((1603078.787 6464172.1, 1603077.665 6...
+    3  POLYGON ((1603070.306 6464154.611, 1603070.081...
+    4  POLYGON ((1603083.134 6464103.971, 1603077.387...
+
+    >>> blocks, tessellation_id = momepy.generate_blocks(
+    ...     tessellation, streets, buildings
+    ... )
+    >>> blocks.head()
+                                                geometry
+    0  POLYGON ((1603421.741 6464282.377, 1603415.23 ...
+    1  POLYGON ((1603485.548 6464217.177, 1603483.228...
+    2  POLYGON ((1603314.034 6464117.593, 1603295.424...
+    3  POLYGON ((1602992.334 6464131.13, 1602992.334 ...
+    4  POLYGON ((1602992.334 6463992.499, 1602992.334...
+
+    ``tessellation_id`` can be directly assigned to its
+    respective parental DataFrame directly.
+
+    >>> tessellation["block_id"] = tessellation_id
     """
 
-    def __init__(self, tessellation, edges, buildings, id_name, unique_id):
-        self.tessellation = tessellation
-        self.edges = edges
-        self.buildings = buildings
-        self.id_name = id_name
-        self.unique_id = unique_id
-
-        if id_name in buildings.columns:
-            raise ValueError(
-                f"'{id_name}' column cannot be in the buildings GeoDataFrame."
-            )
-
-        cut = gpd.overlay(
-            tessellation,
-            gpd.GeoDataFrame(geometry=edges.buffer(0.001)),
-            how="difference",
-        )
-        cut = cut.explode(ignore_index=True)
-        weights = libpysal.weights.Queen.from_dataframe(
-            cut, silence_warnings=True, use_index=False
-        )
-        cut["component"] = weights.component_labels
-        buildings_c = buildings.copy()
-        buildings_c.geometry = buildings_c.representative_point()  # make points
-        centroids_temp_id = gpd.sjoin(
-            buildings_c,
-            cut[[cut.geometry.name, "component"]],
-            how="left",
-            predicate="within",
-        )
-
-        cells_copy = tessellation[[unique_id, tessellation.geometry.name]].merge(
-            centroids_temp_id[[unique_id, "component"]], on=unique_id, how="left"
-        )
-        blocks = cells_copy.dissolve(by="component").explode(ignore_index=True)
-        blocks[id_name] = range(len(blocks))
-        blocks = blocks[[id_name, blocks.geometry.name]]
-
-        centroids_w_bl_id2 = gpd.sjoin(
-            buildings_c, blocks, how="left", predicate="within"
-        )
-
-        self.buildings_id = centroids_w_bl_id2[id_name]
-
-        cells_m = tessellation[[unique_id]].merge(
-            centroids_w_bl_id2[[unique_id, id_name]], on=unique_id, how="left"
-        )
-
-        self.tessellation_id = cells_m[id_name]
-        self.tessellation_id.index = self.tessellation.index
-
-        self.blocks = blocks
-
-
-@deprecated("get_nearest_street")
-def get_network_id(left, right, network_id, min_size=100, verbose=True):
-    """
-    Snap each element (preferably building) to the closest
-    street network segment and save its ID. Also, adds network ID to elements.
-
-    Parameters
-    ----------
-    left : GeoDataFrame
-        A GeoDataFrame containing objects to snap.
-    right : GeoDataFrame
-        A GeoDataFrame containing a street network with unique network IDs.
-        If there is none, it can be generated with :func:`momepy.unique_id`.
-    network_id : str, list, np.array, pd.Series (default None)
-        The name of the streets dataframe column, ``np.array``, or ``pd.Series``
-        with network unique IDs.
-    min_size : int (default 100)
-        A minimum size should be a valuee such that if you build a box centered in each
-        building centroid with edges of size ``2*min_size``, you know a priori that at
-        least one segment is intersected with the box.
-    verbose : bool (default True)
-        If ``True``, shows progress bars in loops and indication of steps.
-
-    Returns
-    -------
-    elements_nID : Series
-        A Series containing network ID for elements.
-
-    Examples
-    --------
-    >>> buildings_df['nID'] = momepy.get_network_id(buildings_df, streets_df, 'nID')
-    Generating centroids...
-    Generating rtree...
-    Snapping: 100%|██████████| 144/144 [00:00<00:00, 2718.98it/s]
-    >>> buildings_df['nID'][0]
-    1
-
-    See also
-    --------
-    momepy.get_network_ratio
-    momepy.get_node_id
-    """
-    infty = 1000000000000
-    left = left.copy()
-    right = right.copy()
-
-    if not isinstance(network_id, str):
-        right["mm_nid"] = network_id
-        network_id = "mm_nid"
-
-    buildings_c = left.copy()
-
-    buildings_c[buildings_c.geometry.name] = buildings_c.centroid  # make centroids
-
-    idx = right.sindex
-
-    # TODO: use sjoin nearest once done
-    result = []
-    for p in tqdm(
-        buildings_c.geometry,
-        total=buildings_c.shape[0],
-        desc="Snapping",
-        disable=not verbose,
+    if (
+        isinstance(buildings.index, MultiIndex)
+        or isinstance(tessellation.index, MultiIndex)
+        or isinstance(edges.index, MultiIndex)
     ):
-        pbox = (p.x - min_size, p.y - min_size, p.x + min_size, p.y + min_size)
-        hits = list(idx.intersection(pbox))
-        d = infty
-        nid = None
-        for h in hits:
-            new_d = p.distance(right.geometry.iloc[h])
-            if d >= new_d:
-                d = new_d
-                nid = right[network_id].iloc[h]
-        if nid is None:
-            result.append(np.nan)
-        else:
-            result.append(nid)
+        raise ValueError("MultiIndex is not supported in `momepy.generate_blocks`.")
+    id_name: str = "bID"
 
-    series = pd.Series(result, index=left.index)
+    # slice the tessellations by the street network
+    cut = gpd.overlay(
+        tessellation,
+        gpd.GeoDataFrame(geometry=edges.buffer(0.001)),
+        how="difference",
+    )
+    cut = cut.explode(ignore_index=True)
+    # touching tessellations form a block
+    weights = Graph.build_contiguity(cut, rook=False)
+    cut["component"] = weights.component_labels
 
-    if series.isnull().any():
-        warnings.warn(
-            message=(
-                "Some objects were not attached to the network. Set larger "
-                f"`min_size``. {sum(series.isnull())} affected elements."
-            ),
-            category=UserWarning,
-            stacklevel=2,
-        )
-    return series
+    # generate block geometries
+    buildings_c = buildings.copy()
+    buildings_c.geometry = buildings_c.representative_point()  # make points
+    centroids_temp_id = gpd.sjoin(
+        buildings_c,
+        cut[[cut.geometry.name, "component"]],
+        how="left",
+        predicate="within",
+    )
+    cells_copy = tessellation[[tessellation.geometry.name]].merge(
+        centroids_temp_id[["component"]], right_index=True, left_index=True, how="left"
+    )
+    blocks = cells_copy.dissolve(by="component").explode(ignore_index=True)
+
+    # assign block ids to buildings and tessellations
+    centroids_w_bl_id2 = gpd.sjoin(buildings_c, blocks, how="left", predicate="within")
+    buildings_id = centroids_w_bl_id2["index_right"]
+    buildings_id.name = id_name
+    cells_m = tessellation.merge(
+        buildings_id, left_index=True, right_index=True, how="left"
+    )
+    tessellation_id = cells_m[id_name]
+
+    return blocks, tessellation_id
 
 
-@deprecated("get_nearest_node")
-def get_node_id(
-    objects,
-    nodes,
-    edges,
-    node_id,
-    edge_id=None,
-    edge_keys=None,
-    edge_values=None,
-    verbose=True,
-):
+def buffered_limit(
+    gdf: GeoDataFrame | GeoSeries,
+    buffer: float | str = 100,
+    min_buffer: float = 0,
+    max_buffer: float = 100,
+    **kwargs,
+) -> shapely.Geometry:
     """
-    Snap each building to the closest street network node on the closest network edge.
-    Adds node ID to objects (preferably buildings). Gets ID of edge
-    (:func:`momepy.get_network_id` or :func:`get_network_ratio`), and determines
-    which of its end points is closer to the building centroid. Pass either ``edge_id``
-    with a single value or ``edge_keys`` and ``edge_values`` with ratios.
+    Define limit for tessellation as a buffer around buildings.
+
+    The function calculates a buffer around buildings and returns a MultiPolygon or
+    Polygon defining the study area. The buffer can be either a fixed number or
+    "adaptive" which calculates the buffer based on Gabriel graph.
+
+    See :cite:`fleischmann2020` for details.
 
     Parameters
     ----------
-    objects : GeoDataFrame
-        A GeoDataFrame containing objects to snap.
-    nodes : GeoDataFrame
-        A GeoDataFrame containing street nodes with unique node IDs.
-        If there is none, it can be generated by :func:`momepy.unique_id`.
-    edges : GeoDataFrame
-        A GeoDataFrame containing street edges with unique edge IDs and IDs
-        of start and end points of each segment. Start and endpoints are default
-        outcome of :func:`momepy.nx_to_gdf`.
-    node_id : str, list, np.array, pd.Series
-        The name of the ``nodes`` dataframe column, ``np.array``,
-        or ``pd.Series`` with a unique ID.
-    edge_id : str (default None)
-        The name of the objects dataframe column with unique edge IDs
-        (like an outcome of :func:`momepy.get_network_id`).
-    edge_keys : str (default None)
-        The name of the objects dataframe column with ``edgeID_keys``
-        (like an outcome of :func:`momepy.get_network_ratio`).
-    edge_values : str (default None)
-        The name of the objects dataframe column with ``edgeID_values``
-        (like an outcome of :func:`momepy.get_network_ratio`).
-    verbose : bool (default True)
-        If ``True``, shows progress bars in loops and indication of steps.
+    gdf : GeoDataFrame | GeoSeries
+        A GeoDataFrame containing building footprints.
+    buffer : float | str, optional
+        A buffer around buildings limiting the extend of tessellation. If "adaptive",
+        the buffer is calculated based on Gabriel graph as the half of the maximum
+        distance between neighbors (represented as centroids) of each node + 10% of
+        such the maximum distance. The lower and upper bounds can be furhter specified
+        by ``min_buffer`` and ``max_buffer``. By default 100.
+    min_buffer : float, optional
+        The minimum adaptive buffer distance. By default 0.
+    max_buffer : float, optional
+        The maximum adaptive buffer distance. By default 100.
+    **kwargs
+        Keyword arguments passed to :meth:`geopandas.GeoSeries.buffer`.
 
     Returns
     -------
-    node_ids : Series
-        A Series containing node the ID for objects.
+    MultiPolygon
+        A MultiPolygon or Polygon defining the study area.
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> buildings = geopandas.read_file(path, layer="buildings")
+    >>> buildings.head()
+       uID                                           geometry
+    0    1  POLYGON ((1603599.221 6464369.816, 1603602.984...
+    1    2  POLYGON ((1603042.88 6464261.498, 1603038.961 ...
+    2    3  POLYGON ((1603044.65 6464178.035, 1603049.192 ...
+    3    4  POLYGON ((1603036.557 6464141.467, 1603036.969...
+    4    5  POLYGON ((1603082.387 6464142.022, 1603081.574...
+
+    >>> limit = momepy.buffered_limit(buildings)
+    >>> type(limit)
+    <class 'shapely.geometry.polygon.Polygon'>
     """
-    nodes = nodes.set_index(node_id)
+    if buffer == "adaptive":
+        gabriel = Graph.build_triangulation(gdf.centroid, "gabriel", kernel="identity")
+        max_dist = gabriel.aggregate("max")
+        buffer = np.clip(max_dist / 2 + max_dist * 0.1, min_buffer, max_buffer).values
 
-    if not isinstance(node_id, str):
-        nodes["mm_noid"] = node_id
-        node_id = "mm_noid"
+    elif not isinstance(buffer, int | float):
+        raise ValueError("`buffer` must be either 'adaptive' or a number.")
 
-    results_list = []
-    if edge_id is not None:
-        edges = edges.set_index(edge_id)
-        centroids = objects.centroid
-        for eid, centroid in tqdm(
-            zip(objects[edge_id], centroids, strict=True),
-            total=objects.shape[0],
-            disable=not verbose,
-        ):
-            if pd.isna(eid):
-                results_list.append(pd.NA)
-            else:
-                edge = edges.loc[eid]
-                start_id = edge.node_start
-                start = nodes.loc[start_id].geometry
-                sd = centroid.distance(start)
-                end_id = edge.node_end
-                end = nodes.loc[end_id].geometry
-                ed = centroid.distance(end)
-                if sd > ed:
-                    results_list.append(end_id)
-                else:
-                    results_list.append(start_id)
-
-    elif edge_keys is not None and edge_values is not None:
-        for edge_i, edge_r, geom in tqdm(
-            zip(
-                objects[edge_keys], objects[edge_values], objects.geometry, strict=True
-            ),
-            total=objects.shape[0],
-            disable=not verbose,
-        ):
-            edge = edges.iloc[edge_i[edge_r.index(max(edge_r))]]
-            start_id = edge.node_start
-            start = nodes.loc[start_id].geometry
-            sd = geom.distance(start)
-            end_id = edge.node_end
-            end = nodes.loc[end_id].geometry
-            ed = geom.distance(end)
-            if sd > ed:
-                results_list.append(end_id)
-            else:
-                results_list.append(start_id)
-
-    series = pd.Series(results_list, index=objects.index)
-    return series
+    return gdf.buffer(buffer, **kwargs).union_all()
 
 
 def get_network_ratio(df, edges, initial_buffer=500):
@@ -845,7 +789,7 @@ def get_network_ratio(df, edges, initial_buffer=500):
     Link polygons to network edges based on the proportion of overlap (if a cell
     intersects more than one edge). Useful if you need to link enclosed tessellation to
     street network. Ratios can be used as weights when linking network-based values
-    to cells. For a purely distance-based link use :func:`momepy.get_network_id`.
+    to cells. For a purely distance-based link use :func:`momepy.get_nearest_street`.
     Links are based on the integer position of edge (``iloc``).
 
     Parameters
@@ -864,13 +808,12 @@ def get_network_ratio(df, edges, initial_buffer=500):
 
     See also
     --------
-    momepy.get_network_id
     momepy.get_node_id
 
     Examples
     --------
-    >>> links = mm.get_network_ratio(enclosed_tessellation, streets)
-    >>> links.head()
+    >>> links = mm.get_network_ratio(enclosed_tessellation, streets)  # doctest: +SKIP
+    >>> links.head()  # doctest: +SKIP
       edgeID_keys                              edgeID_values
     0        [34]                                      [1.0]
     1     [0, 34]  [0.38508998545027145, 0.6149100145497285]
@@ -971,8 +914,8 @@ def enclosures(
 
     Examples
     --------
-    >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])
-    """
+    >>> enclosures = mm.enclosures(streets, admin_boundary, [railway, rivers])  # doctest: +SKIP
+    """  # noqa
     if limit is not None:
         if isinstance(limit, BaseGeometry):
             limit = gpd.GeoSeries([limit], crs=primary_barriers.crs)
@@ -983,7 +926,7 @@ def enclosures(
         barriers = pd.concat([primary_barriers.geometry, limit_b.geometry])
     else:
         barriers = primary_barriers
-    unioned = barriers.union_all() if GPD_GE_10 else barriers.unary_union
+    unioned = barriers.union_all()
     polygons = polygonize(unioned)
     enclosures = gpd.GeoSeries(list(polygons), crs=primary_barriers.crs)
 

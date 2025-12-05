@@ -1,11 +1,27 @@
+---
 files: "momepy\/|docs\/"
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
 
-    rev: "v0.12.2"
+    rev: "v0.14.0"
     hooks:
-      - id: ruff
+      - id: ruff-check
       - id: ruff-format
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v6.0.0"
+    hooks:
+      - id: check-toml
+        files: "."
+  - repo: https://github.com/adrienverge/yamllint
+    rev: "v1.37.1"
+    hooks:
+      - id: yamllint
+        files: "."
+        args: [
+          -d,
+          "{extends: default, ignore: .github/ISSUE_TEMPLATE/*}",
+          ".",
+        ]
 
 ci:
   autofix_prs: false

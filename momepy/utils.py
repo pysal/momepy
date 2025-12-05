@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import math
-import os
 import warnings
 
 import geopandas as gpd
@@ -16,69 +15,6 @@ __all__ = [
     "nx_to_gdf",
     "limit_range",
 ]
-
-
-def deprecated(new_way):
-    """
-    Decorator to mark classes as deprecated and point towards functional API.
-    """
-
-    def decorator(func1):
-        import functools
-
-        @functools.wraps(func1)
-        def new_func1(*args, **kwargs):
-            if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
-                "true",
-                "1",
-                "yes",
-            ):
-                warnings.warn(
-                    f"Class based API like `momepy.{func1.__name__}` is deprecated. "
-                    f"Replace it with `momepy.{new_way}` to use functional API instead "
-                    "or pin momepy version <1.0. Class-based API will be removed in "
-                    "1.0. "
-                    # "See details at https://docs.momepy.org/en/stable/migration.html",
-                    "",
-                    FutureWarning,
-                    stacklevel=2,
-                )
-            return func1(*args, **kwargs)
-
-        return new_func1
-
-    return decorator
-
-
-def removed(new_way):
-    """
-    Decorator to mark classes as deprecated and removed from momepy.
-    """
-
-    def decorator(func1):
-        import functools
-
-        @functools.wraps(func1)
-        def new_func1(*args, **kwargs):
-            if os.getenv("ALLOW_LEGACY_MOMEPY", "False").lower() not in (
-                "true",
-                "1",
-                "yes",
-            ):
-                warnings.warn(
-                    f"`momepy.{func1.__name__}` is deprecated. Replace it with "
-                    f"{new_way} "
-                    "or pin momepy version <1.0. This class will be removed in 1.0. "
-                    # "See details at https://docs.momepy.org/en/stable/migration.html"
-                    "",
-                    FutureWarning,
-                    stacklevel=2,
-                )
-            return func1(*args, **kwargs)
-
-        return new_func1
-
-    return decorator
 
 
 def unique_id(objects):
@@ -300,8 +236,8 @@ def gdf_to_nx(
     Examples
     --------
     >>> import geopandas as gpd
-    >>> df = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='streets')
-    >>> df.head(5)
+    >>> df = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='streets')  # doctest: +SKIP
+    >>> df.head(5)  # doctest: +SKIP
                                                 geometry
     0  LINESTRING (1603585.640 6464428.774, 1603413.2...
     1  LINESTRING (1603268.502 6464060.781, 1603296.8...
@@ -311,29 +247,29 @@ def gdf_to_nx(
 
     Primal graph:
 
-    >>> G = momepy.gdf_to_nx(df)
-    >>> G
+    >>> G = momepy.gdf_to_nx(df)  # doctest: +SKIP
+    >>> G  # doctest: +SKIP
     <networkx.classes.multigraph.MultiGraph object at 0x7f8cf90fad50>
 
-    >>> G_directed = momepy.gdf_to_nx(df, directed=True)
-    >>> G_directed
+    >>> G_directed = momepy.gdf_to_nx(df, directed=True)  # doctest: +SKIP
+    >>> G_directed  # doctest: +SKIP
     <networkx.classes.multidigraph.MultiDiGraph object at 0x7f8cf90f56d0>
 
-    >>> G_digraph = momepy.gdf_to_nx(df, multigraph=False, directed=True)
-    >>> G_digraph
+    >>> G_digraph = momepy.gdf_to_nx(df, multigraph=False, directed=True)  # doctest: +SKIP
+    >>> G_digraph  # doctest: +SKIP
     <networkx.classes.digraph.DiGraph object at 0x7f8cf9150c10>
 
-    >>> G_graph = momepy.gdf_to_nx(df, multigraph=False, directed=False)
-    >>> G_graph
+    >>> G_graph = momepy.gdf_to_nx(df, multigraph=False, directed=False)  # doctest: +SKIP
+    >>> G_graph  # doctest: +SKIP
     <networkx.classes.graph.Graph object at 0x7f8cf90facd0>
 
     Dual graph:
 
-    >>> G_dual = momepy.gdf_to_nx(df, approach="dual")
-    >>> G_dual
+    >>> G_dual = momepy.gdf_to_nx(df, approach="dual")  # doctest: +SKIP
+    >>> G_dual  # doctest: +SKIP
     <networkx.classes.multigraph.MultiGraph object at 0x7f8cf9150fd0>
 
-    """
+    """  # noqa
     gdf_network = gdf_network.copy()
     if "key" in gdf_network.columns:
         gdf_network.rename(columns={"key": "__key"}, inplace=True)
@@ -508,41 +444,41 @@ def nx_to_gdf(
 
     Examples
     --------
-    >>> import geopandas as gpd
-    >>> df = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='streets')
-    >>> df.head(2)
+    >>> import geopandas as gpd  # doctest: +SKIP
+    >>> df = gpd.read_file(momepy.datasets.get_path('bubenec'), layer='streets')  # doctest: +SKIP
+    >>> df.head(2)  # doctest: +SKIP
                                                 geometry
     0  LINESTRING (1603585.640 6464428.774, 1603413.2...
     1  LINESTRING (1603268.502 6464060.781, 1603296.8...
-    >>> G = momepy.gdf_to_nx(df)
+    >>> G = momepy.gdf_to_nx(df)  # doctest: +SKIP
 
     Converting the primal Graph to points as intersections and lines as street segments:
 
-    >>> points, lines = momepy.nx_to_gdf(graph)
-    >>> points.head(2)
+    >>> points, lines = momepy.nx_to_gdf(graph)  # doctest: +SKIP
+    >>> points.head(2)  # doctest: +SKIP
        nodeID                         geometry
     0       1  POINT (1603585.640 6464428.774)
     1       2  POINT (1603413.206 6464228.730)
-    >>> lines.head(2)
+    >>> lines.head(2)  # doctest: +SKIP
                          geometry      mm_len  node_start  node_end
     0  LINESTRING (1603585.640...  264.103950           1         2
     1  LINESTRING (1603561.740...   70.020202           1         9
 
     Storing the relationship between points/nodes as a libpysal W object:
 
-    >>> points, lines, W = momepy.nx_to_gdf(graph, spatial_weights=True)
-    >>> W
+    >>> points, lines, W = momepy.nx_to_gdf(graph, spatial_weights=True)  # doctest: +SKIP
+    >>> W  # doctest: +SKIP
     <libpysal.weights.weights.W object at 0x7f8d01837210>
 
     Converting the dual Graph to lines. The dual Graph does not export edges to GDF:
 
-    >>> G = momepy.gdf_to_nx(df, approach="dual")
-    >>> lines = momepy.nx_to_gdf(graph)
-    >>> lines.head(2)
+    >>> G = momepy.gdf_to_nx(df, approach="dual")  # doctest: +SKIP
+    >>> lines = momepy.nx_to_gdf(graph)  # doctest: +SKIP
+    >>> lines.head(2)  # doctest: +SKIP
                                                 geometry      mm_len
     0  LINESTRING (1603585.640 6464428.774, 1603413.2...  264.103950
     1  LINESTRING (1603607.303 6464181.853, 1603592.8...  199.746503
-    """
+    """  # noqa
     # generate nodes and edges geodataframes from graph
     primal = None
     if "approach" in net.graph:
