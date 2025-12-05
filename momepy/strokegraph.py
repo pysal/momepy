@@ -9,9 +9,12 @@ from .coins import COINS
 from .utils import gdf_to_nx
 
 __all__ = [
-    "strokes_to_graph",
+    "coins_to_nx",
+    "compute_stroke_connectivity",
+    "compute_stroke_access",
+    "compute_stroke_orthogonality",
+    "compute_stroke_spacing"
 ]
-
 
 def _get_interior_angle(a, b):
     """
@@ -182,28 +185,137 @@ def coins_to_nx(coins):
 
     return stroke_graph
 
-# # add derived metrics
-# for n in stroke_graph.nodes:
-#     stroke_graph.nodes[n]["stroke_connectivity"] = sum(
-#         [
-#             stroke_graph.edges[e]["number_connections"]
-#             for e in stroke_graph.edges(n)
-#         ]
-#     )
-#     stroke_graph.nodes[n]["stroke_access"] = (
-#         stroke_graph.nodes[n]["stroke_connectivity"]
-#         - stroke_graph.nodes[n]["stroke_degree"]
-#     )
-#     angles = [
-#         val
-#         for e in stroke_graph.edges(n)
-#         if stroke_graph.edges[e]["angles"]
-#         for val in stroke_graph.edges[e]["angles"]
-#     ]
-#     stroke_graph.nodes[n]["stroke_orthogonality"] = (
-#         sum(angles) / stroke_graph.nodes[n]["stroke_connectivity"]
-#     )
-#     stroke_graph.nodes[n]["stroke_spacing"] = (
-#         stroke_graph.nodes[n]["stroke_length"]
-#         / stroke_graph.nodes[n]["stroke_connectivity"]
-#             )
+
+def compute_stroke_connectivity(stroke_graph):
+
+    """
+    Computes the stroke connectivity. # TODO expand explanation here
+
+    Parameters
+    ----------
+    stroke_graph: nx.Graph()
+        Stroke graph of a network, generated with momepy.coins_to_nx().
+    
+    Returns
+    ----------
+    stroke_graph: nx.Graph()
+        Returns stroke_graph where each node has acquired the additional 
+        attribute `stroke_connectivity`.
+    """
+
+    for n in stroke_graph.nodes:
+        stroke_graph.nodes[n]["stroke_connectivity"] = sum(
+            [
+                stroke_graph.edges[e]["number_connections"]
+                for e in stroke_graph.edges(n)
+            ]
+        )
+    
+    return stroke_graph
+
+
+def compute_stroke_access(stroke_graph):
+
+    """
+    Computes the stroke access. # TODO expand explanation here
+
+    Parameters
+    ----------
+    stroke_graph: nx.Graph()
+        Stroke graph of a network, generated with momepy.coins_to_nx().
+    
+    Returns
+    ----------
+    stroke_graph: nx.Graph()
+        Returns stroke_graph where each node has acquired the additional 
+        attribute `stroke_access`; and the additional attribute(s) 
+        `stroke_connectivity` and `stroke_degree` 
+        (unless they have been present in the input graph).
+    """
+
+    # if it doesn't exist as attribute yet, add stroke connectivity
+    if not bool(nx.get_node_attributes(stroke_graph, "stroke_connectivity")):
+        stroke_graph = compute_stroke_connectivity(stroke_graph)
+
+    # if it doesn't exist as attribute yet, add stroke degree
+    if not bool(nx.get_node_attributes(stroke_graph, "stroke_degree")):
+        nx.set_node_attributes(
+            stroke_graph, dict(nx.degree(stroke_graph)), "stroke_degree"
+        )
+    
+    # add stroke access (computed via stroke connectivity and stroke degree)
+    for n in stroke_graph.nodes:
+        stroke_graph.nodes[n]["stroke_access"] = (
+            stroke_graph.nodes[n]["stroke_connectivity"]
+            - stroke_graph.nodes[n]["stroke_degree"]
+        )
+
+    return stroke_graph
+
+
+def compute_stroke_orthogonality(stroke_graph):
+
+    """
+    Computes the stroke orthogonality. # TODO expand explanation here
+
+    Parameters
+    ----------
+    stroke_graph: nx.Graph()
+        Stroke graph of a network, generated with momepy.coins_to_nx().
+    
+    Returns
+    ----------
+    stroke_graph: nx.Graph()
+        Returns stroke_graph where each node has acquired the additional 
+        attribute `stroke_orthogonality`; and the additional attribute 
+        `stroke_connectivity` (unless it has been present in the input graph).
+    """
+
+    # if it doesn't exist as attribute yet, add stroke connectivity
+    if not bool(nx.get_node_attributes(stroke_graph, "stroke_connectivity")):
+        stroke_graph = compute_stroke_connectivity(stroke_graph)
+
+    for n in stroke_graph.nodes:
+        # get angles for that stroke
+        angles = [
+            val
+            for e in stroke_graph.edges(n)
+            if stroke_graph.edges[e]["angles"]
+            for val in stroke_graph.edges[e]["angles"]
+        ]
+        # get orthogonality
+        stroke_graph.nodes[n]["stroke_orthogonality"] = (
+            sum(angles) / stroke_graph.nodes[n]["stroke_connectivity"]
+        )
+ 
+    return stroke_graph
+
+def compute_stroke_spacing(stroke_graph):
+
+    """
+    Computes the stroke spacing. # TODO expand explanation here
+
+    Parameters
+    ----------
+    stroke_graph: nx.Graph()
+        Stroke graph of a network, generated with momepy.coins_to_nx().
+    
+    Returns
+    ----------
+    stroke_graph: nx.Graph()
+        Returns stroke_graph where each node has acquired the additional 
+        attribute `stroke_spacing`; and the additional attribute 
+        `stroke_connectivity` (unless it has been present in the input graph).
+    """
+
+    # if it doesn't exist as attribute yet, add stroke connectivity
+    if not bool(nx.get_node_attributes(stroke_graph, "stroke_connectivity")):
+        stroke_graph = compute_stroke_connectivity(stroke_graph)
+
+    for n in stroke_graph.nodes:
+        stroke_graph.nodes[n]["stroke_spacing"] = (
+            stroke_graph.nodes[n]["stroke_length"]
+            / stroke_graph.nodes[n]["stroke_connectivity"]
+                )
+
+    return stroke_graph
