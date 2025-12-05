@@ -74,10 +74,7 @@ def coins_to_nx(coins):
 
     Examples
     --------
-    >>> import geopandas
-    >>> path = momepy.datasets.get_path("bubenec")
-    >>> streets = geopandas.read_file(path, layer="streets")
-    >>> coins = momepy.COINS(streets)
+    >>> coins = momepy.COINS(streets_gdf)
     >>> stroke_graph = momepy.coins_to_nx(coins)
     """
 
