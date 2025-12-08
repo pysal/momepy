@@ -3,6 +3,7 @@ from itertools import combinations, product
 import networkx as nx
 import numpy as np
 from shapely import LineString
+
 from .utils import gdf_to_nx
 
 __all__ = [
@@ -74,6 +75,11 @@ def coins_to_nx(coins):
 
     Examples
     --------
+    >>> import geopandas as gpd
+    >>> gdf = gpd.read_file(momepy.datasets.get_path("bubenec"), layer="streets")
+    >>> gdf = momepy.remove_false_nodes(gdf)
+    >>> primal_graph = momepy.gdf_to_nx(gdf, preserve_index=True, approach="primal")
+    >>> lines = momepy.nx_to_gdf(primal_graph, points=False, lines=True)
     >>> coins = momepy.COINS(streets_gdf)
     >>> stroke_graph = momepy.coins_to_nx(coins)
     """
@@ -81,7 +87,7 @@ def coins_to_nx(coins):
     # get strokes attributes from coins
     stroke_attribute = coins.stroke_attribute()
 
-    # get strokes gdf fro coins
+    # get strokes gdf from coins
     stroke_gdf = coins.stroke_gdf()
 
     # add representative point to stroke_gdf (for later visualization)
