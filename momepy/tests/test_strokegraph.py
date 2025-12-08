@@ -1,9 +1,11 @@
 import geopandas as gpd
-import pandas as pd
-import pytest
-from pandas.testing import assert_index_equal, assert_series_equal
-from shapely.geometry import LineString
 import numpy as np
+
+# import pandas as pd
+import pytest
+
+#  from pandas.testing import assert_index_equal, assert_series_equal
+from shapely.geometry import LineString
 
 import momepy as mm
 
@@ -14,7 +16,6 @@ class TestStrokeGraph:
         self.gdf = gpd.read_file(test_file_path, layer="streets")
 
     def test_get_interior_angle(self):
-
         a = [172.43389124, 200.04361864]
         b = [-21.00598791, 53.213871]
         result = mm.strokegraph._get_interior_angle(a, b)
@@ -26,7 +27,6 @@ class TestStrokeGraph:
         assert result == 45
 
     def test_get_end_segment(self):
-
         linestring = LineString([[0, 0], [0, 1], [0, 2], [0, 3], [1, 3]])
 
         first_segment = np.array([0, -1])

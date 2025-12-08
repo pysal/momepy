@@ -80,7 +80,7 @@ def coins_to_nx(coins):
     >>> gdf = momepy.remove_false_nodes(gdf)
     >>> primal_graph = momepy.gdf_to_nx(gdf, preserve_index=True, approach="primal")
     >>> lines = momepy.nx_to_gdf(primal_graph, points=False, lines=True)
-    >>> coins = momepy.COINS(streets_gdf)
+    >>> coins = momepy.COINS(lines)
     >>> stroke_graph = momepy.coins_to_nx(coins)
     """
 
@@ -221,7 +221,7 @@ def stroke_connectivity(stroke_graph):
 
     Examples
     --------
-    >>> stroke_graph = stroke_connectivity(stroke_graph)
+    >>> stroke_graph = stroke_connectivity(stroke_graph) # doctest: +SKIP
     """
 
     for n in stroke_graph.nodes:
@@ -255,7 +255,7 @@ def stroke_access(stroke_graph):
 
     Examples
     --------
-    >>> stroke_graph = stroke_access(stroke_graph)
+    >>> stroke_graph = stroke_access(stroke_graph) # doctest: +SKIP
     """
 
     # if it doesn't exist as attribute yet, add stroke connectivity
@@ -309,7 +309,7 @@ def stroke_orthogonality(stroke_graph):
 
     Examples
     --------
-    >>> stroke_graph = stroke_orthogonality(stroke_graph)
+    >>> stroke_graph = stroke_orthogonality(stroke_graph) # doctest: +SKIP
     """
 
     # if it doesn't exist as attribute yet, add stroke connectivity
@@ -354,7 +354,7 @@ def stroke_spacing(stroke_graph):
 
     Examples
     --------
-    >>> stroke_graph = stroke_spacing(stroke_graph)
+    >>> stroke_graph = stroke_spacing(stroke_graph) # doctest: +SKIP
     """
 
     # if it doesn't exist as attribute yet, add stroke connectivity
