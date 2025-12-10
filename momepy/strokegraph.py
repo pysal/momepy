@@ -47,7 +47,6 @@ def _get_end_segment(linestring, point):
     """
     point = tuple(point)
     coords = list(linestring.coords)
-    assert point in coords, "point not on linestring!"
     if point == coords[0]:
         geom = [np.array(val) for val in linestring.coords[:2]]
     elif point == coords[-1]:
@@ -59,14 +58,14 @@ def _get_end_segment(linestring, point):
 
 def coins_to_nx(coins):
     """
-    Creates the stroke graph of a street network. The stroke graph is similar to, but
-    not identical with, the dual graph. In the stroke graph, each stroke (see
+    Creates the continuity stroke graph of a street network. The continuity stroke graph is similar to, but
+    not identical with, the dual graph. In the continuity stroke graph, each stroke (see
     ``momepy.COINS``) is a node; and each intersection between two strokes is an edge.
 
     Parameters
     ----------
     coins: momepy.COINS
-        Strokes computed from a street network.
+        Continuity strokes computed from a street network.
 
     Returns
     -------
@@ -77,10 +76,7 @@ def coins_to_nx(coins):
     --------
     >>> import geopandas as gpd
     >>> gdf = gpd.read_file(momepy.datasets.get_path("bubenec"), layer="streets")
-    >>> gdf = momepy.remove_false_nodes(gdf)
-    >>> primal_graph = momepy.gdf_to_nx(gdf, preserve_index=True, approach="primal")
-    >>> lines = momepy.nx_to_gdf(primal_graph, points=False, lines=True)
-    >>> coins = momepy.COINS(lines)
+    >>> coins = momepy.COINS(gdf)
     >>> stroke_graph = momepy.coins_to_nx(coins)
     """
 
@@ -91,18 +87,14 @@ def coins_to_nx(coins):
     stroke_gdf = coins.stroke_gdf()
 
     # add representative point to stroke_gdf (for later visualization)
-    stroke_gdf["rep_point"] = stroke_gdf.geometry.apply(
-        lambda x: x.interpolate(0.5, normalized=True)
-    )
+    stroke_gdf["rep_point"] = stroke_gdf.geometry.interpolate(0.5, normalized=True)
 
     # add stroke_id column
     stroke_gdf["stroke_id"] = stroke_gdf.index
 
     # add column containing indeces of edges comprising each stroke
     # (using COINS.stroke_attribute to map into ID defined in lines gdf)
-    stroke_gdf["edge_indeces"] = stroke_gdf.stroke_id.apply(
-        lambda x: list(stroke_attribute[stroke_attribute == x].index)
-    )
+    stroke_attribute.groupby(stroke_attribute).apply(lambda group: group.index.tolist())
 
     # recreate primal graph from coins.edge_gdf
     graph = gdf_to_nx(coins.edge_gdf, preserve_index=True, approach="primal")

@@ -178,10 +178,10 @@ With utilities allowing conversion between networkx objects and GeoPandas object
    nx_to_gdf
 
 
-Computing dual graph
----------------------
+Computing continuity graph
+---------------------------
 
-Set of functions to create a dual graph and compute metrics on:
+Set of functions to create a continuity graph and compute metrics on:
 
 .. autosummary::
    :toctree: api/
