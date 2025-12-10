@@ -10,7 +10,7 @@ from shapely.geometry import LineString
 import momepy as mm
 
 
-class TestStrokeGraph:
+class TestContinuityGraph:
     def setup_method(self):
         test_file_path = mm.datasets.get_path("bubenec")
         self.gdf = gpd.read_file(test_file_path, layer="streets")

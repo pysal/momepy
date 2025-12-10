@@ -58,9 +58,10 @@ def _get_end_segment(linestring, point):
 
 def coins_to_nx(coins):
     """
-    Creates the continuity stroke graph of a street network. The continuity stroke graph is similar to, but
-    not identical with, the dual graph. In the continuity stroke graph, each stroke (see
-    ``momepy.COINS``) is a node; and each intersection between two strokes is an edge.
+    Creates the continuity stroke graph of a street network. The continuity graph
+    is similar to, but not identical with, the dual graph. In the continuity graph,
+    each stroke (see ``momepy.COINS``) is a node; and each intersection between
+    two strokes is an edge.
 
     Parameters
     ----------
@@ -195,8 +196,8 @@ def coins_to_nx(coins):
 def stroke_connectivity(stroke_graph):
     """
     Computes the stroke's connectivity. Connectivity is defined as
-    the number of arcs a stroke intersects. Comparing to the degree,
-    the same stroke can intersects via several arcs another stroke.
+    the number of street segments a stroke intersects. Comparing to the degree,
+    the same stroke can intersects via several street segments with another stroke.
 
     Adapted from :cite:`el2022urban`.
 
@@ -274,12 +275,12 @@ def stroke_orthogonality(stroke_graph):
     """
     Computes the stroke's orthogonality. Orthogonality is defined
     as the average of the sine of the minimum angles between the
-    stroke and the arcs it intersects:
+    stroke and the street segments it intersects:
 
     .. math::
         O(s)=\\frac{\\sum_{i\\in A}sin(\\theta_i)}{C(s)}
 
-    Where :math:`\\theta_i` is the minimum angle between the arc
+    Where :math:`\\theta_i` is the minimum angle between the street segment
     :math:`i` and the stroke :math:`s`, and :math:`C(s)` is the
     connectivity of the stroke :math:`s`.
 

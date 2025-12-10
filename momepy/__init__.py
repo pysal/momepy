@@ -3,6 +3,7 @@ from importlib.metadata import PackageNotFoundError, version
 
 from . import datasets  # noqa
 from .coins import *
+from .continuity import *
 from .dimension import *
 from .distribution import *
 from .diversity import *
@@ -12,7 +13,6 @@ from .intensity import *
 from .preprocessing import *
 from .shape import *
 from .streetscape import *
-from .strokegraph import *
 from .utils import *
 
 __author__ = "Martin Fleischmann"
