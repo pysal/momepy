@@ -95,7 +95,9 @@ def coins_to_nx(coins):
 
     # add column containing indeces of edges comprising each stroke
     # (using COINS.stroke_attribute to map into ID defined in lines gdf)
-    stroke_attribute.groupby(stroke_attribute).apply(lambda group: group.index.tolist())
+    stroke_gdf["edge_indeces"] = stroke_attribute.groupby(stroke_attribute).apply(
+        lambda group: group.index.tolist()
+    )
 
     # recreate primal graph from coins.edge_gdf
     graph = gdf_to_nx(coins.edge_gdf, preserve_index=True, approach="primal")
