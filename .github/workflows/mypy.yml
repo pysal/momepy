@@ -28,7 +28,7 @@ jobs:
       - name: setup micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
-          environment-file: ci/envs/313-latest.yaml
+          environment-file: ci/envs/314-latest.yaml
           create-args: >-
             mypy
 
