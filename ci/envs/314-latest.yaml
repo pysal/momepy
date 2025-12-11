@@ -14,7 +14,7 @@ dependencies:
   - shapely>=2
   - esda
   - tqdm
-  # - numba
+  - numba
   - rioxarray
   - xvec
   # testing
