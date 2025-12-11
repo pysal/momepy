@@ -100,17 +100,10 @@ def coins_to_nx(coins):
     )
 
     # recreate primal graph from coins.edge_gdf
-    graph = gdf_to_nx(coins.edge_gdf, preserve_index=True, approach="primal")
-
-    # Add stroke ID to each edge on (primal) graph
-    nx.set_edge_attributes(
-        G=graph,
-        values={
-            e: int(stroke_attribute[graph.edges[e]["index_position"]])
-            for e in graph.edges
-        },
-        name="stroke_id",
-    )
+    edge_gdf = coins.edge_gdf
+    # Add stroke ID to each edge
+    edge_gdf["stroke_id"] = coins.stroke_attribute()
+    graph = gdf_to_nx(edge_gdf, preserve_index=True, approach="primal")
 
     # make stroke graph
     stroke_graph = nx.Graph()
