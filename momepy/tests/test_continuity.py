@@ -15,6 +15,7 @@ class TestContinuity:
     def setup_method(self):
         test_file_path = mm.datasets.get_path("bubenec")
         self.gdf = gpd.read_file(test_file_path, layer="streets")
+        self.gdf = mm.remove_false_nodes(self.gdf)
         self.coins = mm.COINS(self.gdf, angle_threshold=0, flow_mode=False)
         self.continuity_graph = mm.coins_to_nx(self.coins)
 
@@ -44,7 +45,7 @@ class TestContinuity:
     def test_coins_to_nx(self):
         assert len(self.continuity_graph.nodes) == 10
         assert len(self.continuity_graph.edges) == 17
-        assert nx.get_node_attributes(self.continuity_graph) == {
+        assert nx.get_node_attributes(self.continuity_graph, "edge_indeces") == {
             0: [0, 3, 15, 27],
             1: [1, 12, 14, 25],
             2: [2, 11, 28, 30],
