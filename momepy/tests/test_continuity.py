@@ -1,4 +1,5 @@
 import geopandas as gpd
+import neatnet
 import networkx as nx
 import numpy as np
 
@@ -15,7 +16,7 @@ class TestContinuity:
     def setup_method(self):
         test_file_path = mm.datasets.get_path("bubenec")
         self.gdf = gpd.read_file(test_file_path, layer="streets")
-        self.gdf = mm.remove_false_nodes(self.gdf)
+        self.gdf = neatnet.remove_interstitial_nodes(self.gdf)
         self.coins = mm.COINS(self.gdf, angle_threshold=0, flow_mode=False)
         self.continuity_graph = mm.coins_to_nx(self.coins)
 
@@ -46,28 +47,28 @@ class TestContinuity:
         assert len(self.continuity_graph.nodes) == 10
         assert len(self.continuity_graph.edges) == 17
         assert nx.get_node_attributes(self.continuity_graph, "edge_indeces") == {
-            0: [0, 3, 15, 27],
-            1: [1, 12, 14, 25],
-            2: [2, 11, 28, 30],
-            3: [4, 5, 6],
-            4: [7, 8, 9, 13, 21, 22, 24],
-            5: [10],
-            6: [16, 17, 18, 23, 29],
-            7: [19],
-            8: [20],
-            9: [26],
+            0: [0, 4, 7, 19],
+            1: [1, 3, 6, 15],
+            2: [2, 20, 21, 22, 27],
+            3: [5, 16, 18, 29],
+            4: [8, 9, 10],
+            5: [11, 12, 13, 17, 25, 26, 28],
+            6: [14],
+            7: [23],
+            8: [24],
+            9: [30],
         }
 
     def test_stroke_connectivity(self):
         graph_with_attribute = mm.stroke_connectivity(self.continuity_graph)
         assert nx.get_node_attributes(graph_with_attribute, "stroke_connectivity") == {
             0: 8,
-            1: 6,
-            2: 8,
-            3: 7,
-            4: 9,
-            5: 1,
-            6: 7,
+            1: 8,
+            2: 7,
+            3: 6,
+            4: 7,
+            5: 9,
+            6: 1,
             7: 1,
             8: 2,
             9: 3,
@@ -79,12 +80,12 @@ class TestContinuity:
         assert bool(nx.get_node_attributes(graph_with_attribute, "stroke_degree"))
         assert nx.get_node_attributes(graph_with_attribute, "stroke_access") == {
             0: 3,
-            1: 2,
+            1: 4,
             2: 4,
             3: 2,
-            4: 3,
-            5: 0,
-            6: 4,
+            4: 2,
+            5: 3,
+            6: 0,
             7: 0,
             8: 0,
             9: 0,
@@ -98,12 +99,12 @@ class TestContinuity:
         ) == pytest.approx(
             {
                 0: np.float64(0.8577408232193254),
-                1: np.float64(0.9899635850266516),
-                2: np.float64(0.8411759936266772),
-                3: np.float64(0.8646755014619606),
-                4: np.float64(0.9971868630623598),
-                5: np.float64(0.9991299603577619),
-                6: np.float64(0.9393327452953741),
+                1: np.float64(0.8411759936266773),
+                2: np.float64(0.9392111060209969),
+                3: np.float64(0.9899635850266516),
+                4: np.float64(0.8646755014619606),
+                5: np.float64(0.9970922547378444),
+                6: np.float64(0.9991299603577619),
                 7: np.float64(0.9790865311515882),
                 8: np.float64(0.9695975401850382),
                 9: np.float64(0.7988075340542938),
@@ -118,12 +119,12 @@ class TestContinuity:
         ) == pytest.approx(
             {
                 0: 104.94583547900395,
-                1: 126.51500708434862,
-                2: 93.09474171560097,
-                3: 80.32095592022247,
-                4: 119.70674174439718,
-                5: 193.04063727323836,
-                6: 145.67278692563468,
+                1: 93.09474171560097,
+                2: 145.67278692563468,
+                3: 126.51500708434862,
+                4: 80.32095592022247,
+                5: 119.70674174439718,
+                6: 193.04063727323836,
                 7: 187.49184699173748,
                 8: 91.34248700198054,
                 9: 127.50065014307602,
