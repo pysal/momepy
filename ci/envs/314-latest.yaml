@@ -17,6 +17,7 @@ dependencies:
   - numba
   - rioxarray
   - xvec
+  - neatnet
   # testing
   - codecov
   - pytest
