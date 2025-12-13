@@ -2,7 +2,6 @@ from itertools import combinations, product
 
 import networkx as nx
 import numpy as np
-from shapely import LineString
 
 from .utils import gdf_to_nx
 
@@ -87,15 +86,12 @@ def coins_to_nx(coins):
     # get strokes gdf from coins
     stroke_gdf = coins.stroke_gdf()
 
-    # add representative point to stroke_gdf (for later visualization)
-    stroke_gdf["rep_point"] = stroke_gdf.geometry.interpolate(0.5, normalized=True)
-
     # add stroke_id column
     stroke_gdf["stroke_id"] = stroke_gdf.index
 
-    # add column containing indeces of edges comprising each stroke
+    # add column containing indices of edges comprising each stroke
     # (using COINS.stroke_attribute to map into ID defined in lines gdf)
-    stroke_gdf["edge_indeces"] = stroke_attribute.groupby(stroke_attribute).apply(
+    stroke_gdf["edge_indices"] = stroke_attribute.groupby(stroke_attribute).apply(
         lambda group: group.index.tolist()
     )
 
@@ -110,7 +106,7 @@ def coins_to_nx(coins):
 
     # copy crs and approach attributes from "original" primal graph
     stroke_graph.graph["crs"] = graph.graph["crs"]
-    stroke_graph.graph["approach"] = graph.graph["approach"]
+    stroke_graph.graph["approach"] = "continuity"
 
     # add nodes to stroke graph
     stroke_graph.add_nodes_from(
@@ -118,12 +114,9 @@ def coins_to_nx(coins):
             (
                 row.stroke_id,
                 {
-                    "edge_indeces": row.edge_indeces,
-                    "geometry": row.rep_point,  # "geometry" is the representative point
-                    "stroke_geometry": row.geometry,
+                    "edge_indices": row.edge_indices,
+                    "geometry": row.geometry,  # "geometry" is the representative point
                     "stroke_length": row.geometry.length,
-                    "x": row.rep_point.xy[0][0],
-                    "y": row.rep_point.xy[1][0],
                     "connectivity": 0,
                 },
             )
@@ -171,16 +164,9 @@ def coins_to_nx(coins):
                         stroke_graph.edges[u, v]["angles"]
                     )
                 else:
-                    edge_geometry = LineString(
-                        [
-                            stroke_graph.nodes[u]["geometry"],
-                            stroke_graph.nodes[v]["geometry"],
-                        ]
-                    )
                     stroke_graph.add_edge(
                         u,
                         v,
-                        geometry=edge_geometry,
                         angles=angle_list,
                         number_connections=len(angle_list),
                     )

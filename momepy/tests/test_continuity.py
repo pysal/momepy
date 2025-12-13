@@ -46,7 +46,7 @@ class TestContinuity:
     def test_coins_to_nx(self):
         assert len(self.continuity_graph.nodes) == 10
         assert len(self.continuity_graph.edges) == 17
-        assert nx.get_node_attributes(self.continuity_graph, "edge_indeces") == {
+        assert nx.get_node_attributes(self.continuity_graph, "edge_indices") == {
             0: [0, 4, 7, 19],
             1: [1, 3, 6, 15],
             2: [2, 20, 21, 22, 27],
