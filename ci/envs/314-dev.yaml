@@ -3,7 +3,7 @@ name: test
 channels:
   - conda-forge
 dependencies:
-  - python=3.13
+  - python=3.14
   - packaging
   - tqdm
   - numba
@@ -19,7 +19,9 @@ dependencies:
         https://pypi.anaconda.org/scientific-python-nightly-wheels/simple \
         --extra-index-url \
         https://pypi.org/simple
+      - osmnx
       - pandas
+      - scikit-learn
       - shapely
       - git+https://github.com/geopandas/geopandas.git
       - git+https://github.com/pysal/libpysal.git
@@ -27,5 +29,3 @@ dependencies:
       - git+https://github.com/pysal/mapclassify.git
       - git+https://github.com/pysal/esda.git
       - git+https://github.com/pysal/inequality.git
-      - osmnx
-      - scikit-learn
