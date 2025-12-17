@@ -115,7 +115,7 @@ def coins_to_nx(coins):
                 row.stroke_id,
                 {
                     "edge_indices": row.edge_indices,
-                    "geometry": row.geometry,  # "geometry" is the representative point
+                    "geometry": row.geometry,
                     "stroke_length": row.geometry.length,
                     "connectivity": 0,
                 },
