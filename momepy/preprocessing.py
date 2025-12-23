@@ -79,6 +79,13 @@ def preprocess(
     GeoDataFrame
         GeoDataFrame containing preprocessed geometry
     """
+    warnings.warn(
+        "`preprocess` is deprecated and will be removed in momepy 1.0. "
+        "Use the explicit tools available in the package `geoplanar`. "
+        "See https://geoplanar.readthedocs.io for details.",
+        FutureWarning,
+        stacklevel=2,
+    )
     blg = buildings.copy()
     blg = blg.explode(ignore_index=True)
     for loop in range(0, loops):
@@ -181,7 +188,7 @@ def remove_false_nodes(gdf):
     momepy.close_gaps
     """
     warnings.warn(
-        "`remove_false_nodes` is deprecated and will be removed in momepy 1.1. The "
+        "`remove_false_nodes` is deprecated and will be removed in momepy 1.0. The "
         "function has been improved and moved to the `neatnet` package and can be used "
         "as `neatnet.remove_interstitial_nodes`. See https://uscuni.org/neatnet for "
         "details.",
@@ -435,7 +442,7 @@ def close_gaps(gdf, tolerance):
 
     """
     warnings.warn(
-        "`close_gaps` is deprecated and will be removed in momepy 1.1. The "
+        "`close_gaps` is deprecated and will be removed in momepy 1.0. The "
         "function has been moved to the `neatnet` package and can be used "
         "as `neatnet.close_gaps`. See https://uscuni.org/neatnet for details.",
         FutureWarning,
@@ -512,7 +519,7 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
 
     """
     warnings.warn(
-        "`close_gaps` is deprecated and will be removed in momepy 1.1. The "
+        "`close_gaps` is deprecated and will be removed in momepy 1.0. The "
         "function has been moved to the `neatnet` package and can be used "
         "as `neatnet.close_gaps`. See https://uscuni.org/neatnet for details.",
         FutureWarning,
@@ -1062,6 +1069,14 @@ def roundabout_simplification(
         GeoDataFrame with an updated geometry and an additional column labeling modified
         edges.
     """
+    warnings.warn(
+        "`roundabout_simplification` is deprecated and will be removed in momepy 1.0. "
+        "The functionality has been superseded by the `neatnet` package. "
+        " See https://uscuni.org/neatnet for details.",
+        FutureWarning,
+        stacklevel=2,
+    )
+
     if len(edges[edges.geom_type != "LineString"]) > 0:
         raise TypeError(
             "Only LineString geometries are allowed. "
@@ -1145,8 +1160,14 @@ def consolidate_intersections(
     -------
     Networkx.MultiGraph or Networkx.MultiDiGraph
         directionality inferred from input type
-
     """
+    warnings.warn(
+        "`consolidate_intersections` is deprecated and will be removed in momepy 1.0. "
+        "The functionality has been superseded by the `neatnet` package. "
+        " See https://uscuni.org/neatnet for details.",
+        FutureWarning,
+        stacklevel=2,
+    )
     # Collect nodes and their data:
     nodes, nodes_dict = zip(*graph.nodes(data=True), strict=False)
     nodes_df = pd.DataFrame(nodes_dict, index=nodes)
@@ -1610,7 +1631,7 @@ class FaceArtifacts:
         prominence=0.00075,
     ):
         warnings.warn(
-            "`FaceArtifacts` is deprecated and will be removed in momepy 1.1. The "
+            "`FaceArtifacts` is deprecated and will be removed in momepy 1.0. The "
             "class has been moved to the `neatnet` package and can be used "
             "as `neatnet.FaceArtifacts`. See https://uscuni.org/neatnet for details.",
             FutureWarning,
