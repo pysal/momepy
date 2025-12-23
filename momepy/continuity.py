@@ -315,7 +315,7 @@ def stroke_orthogonality(stroke_graph):
 def stroke_spacing(stroke_graph):
     """
     Computes the stroke's spacing. Spacing is defined as the
-    average lenght between connections for a stroke.
+    average length between connections for a stroke.
 
     Adapted from :cite:`el2022urban`.
 
