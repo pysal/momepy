@@ -7,7 +7,7 @@ some of the network-based characters are included. The main difference
 here is that functions in the ``graph`` module, allowing this kind of
 study, are based on ``networkx.Graph``, not ``geopandas.GeoDataFrame``.
 
-This section covers: 
+This section covers:
 
 .. toctree::
    :maxdepth: 2
@@ -16,3 +16,4 @@ This section covers:
    network
    centrality
    coins
+   coins_graph
