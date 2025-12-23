@@ -299,10 +299,15 @@ def stroke_orthogonality(stroke_graph):
             for val in stroke_graph.edges[e]["angles"]
         ]
         # get orthogonality
-        stroke_graph.nodes[n]["stroke_orthogonality"] = (
-            sum([np.sin(np.deg2rad(angle)) for angle in angles])
-            / stroke_graph.nodes[n]["stroke_connectivity"]
-        )
+        if stroke_graph.nodes[n]["stroke_connectivity"] > 0:
+            orthogonality = (
+                sum([np.sin(np.deg2rad(angle)) for angle in angles])
+                / stroke_graph.nodes[n]["stroke_connectivity"]
+            )
+        else:
+            orthogonality = 0
+
+        stroke_graph.nodes[n]["stroke_orthogonality"] = orthogonality
 
     return stroke_graph
 
