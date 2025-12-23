@@ -12,6 +12,7 @@ dependencies:
   - pytest
   - pytest-cov
   - pip
+  - neatnet
   - pip:
       - --pre \
         --index-url \
