@@ -3,6 +3,7 @@ from importlib.metadata import PackageNotFoundError, version
 
 from . import datasets  # noqa
 from .coins import *
+from .continuity import *
 from .dimension import *
 from .distribution import *
 from .diversity import *

@@ -1,3 +1,4 @@
+---
 name: test
 channels:
   - conda-forge
@@ -17,6 +18,7 @@ dependencies:
   - numba
   - rioxarray
   - xvec
+  - neatnet
   # testing
   - codecov
   - pytest

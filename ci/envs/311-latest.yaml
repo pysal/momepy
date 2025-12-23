@@ -20,6 +20,7 @@ dependencies:
   - codecov
   - pytest
   - pytest-cov
+  - neatnet
   # user guide testing
   - dask
   - inequality

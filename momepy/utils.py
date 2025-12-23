@@ -394,27 +394,36 @@ def gdf_to_nx(
 def _points_to_gdf(net):
     """Generate a point gdf from nodes. Helper for ``nx_to_gdf``."""
     node_xy, node_data = zip(*net.nodes(data=True), strict=True)
-    if isinstance(node_xy[0], int) and "x" in node_data[0]:
+
+    # continuity graph contains LineStrings, so we can use them
+    if "geometry" in node_data[0]:
+        geometry = [data["geometry"] for data in node_data]
+
+    elif isinstance(node_xy[0], int) and "x" in node_data[0]:
         geometry = [Point(data["x"], data["y"]) for data in node_data]  # osmnx graph
     else:
         geometry = [Point(*p) for p in node_xy]
     gdf_nodes = gpd.GeoDataFrame(list(node_data), geometry=geometry)
     if "crs" in net.graph:
-        gdf_nodes.crs = net.graph["crs"]
+        gdf_nodes = gdf_nodes.set_crs(net.graph["crs"])
     return gdf_nodes
 
 
 def _lines_to_gdf(net, points, node_id):
     """Generate a linestring gdf from edges. Helper for ``nx_to_gdf``."""
     starts, ends, edge_data = zip(*net.edges(data=True), strict=True)
-    gdf_edges = gpd.GeoDataFrame(list(edge_data))
+
+    if "geometry" in edge_data[0]:
+        gdf_edges = gpd.GeoDataFrame(list(edge_data))
+        if "crs" in net.graph:
+            gdf_edges.crs = net.graph["crs"]
+    else:
+        gdf_edges = pd.DataFrame(list(edge_data))
 
     if points is True:
         gdf_edges["node_start"] = [net.nodes[s][node_id] for s in starts]
         gdf_edges["node_end"] = [net.nodes[e][node_id] for e in ends]
 
-    if "crs" in net.graph:
-        gdf_edges.crs = net.graph["crs"]
     if "index_position" in gdf_edges.columns:
         gdf_edges = gdf_edges.sort_values("index_position").drop(
             columns="index_position"
@@ -430,6 +439,9 @@ def _lines_to_gdf(net, points, node_id):
 
 def _primal_to_gdf(net, points, lines, spatial_weights, node_id):
     """Generate gdf(s) from a primal network. Helper for ``nx_to_gdf``."""
+    if "approach" in net.graph and net.graph["approach"] == "continuity":
+        points, lines = lines, points
+
     if points is True:
         gdf_nodes = _points_to_gdf(net)
 
@@ -488,9 +500,11 @@ def nx_to_gdf(
     net : networkx.Graph
         A ``networkx.Graph`` object.
     points : bool (default is ``True``)
-        Export point-based gdf representing intersections.
+        Export point-based gdf representing intersections. When converting
+        continuity-based graph generated using :func:`momepy.coins_to_nx`, ``points``
+        represent edges with no associated geometry.
     lines : bool (default is ``True``)
-        Export line-based gdf representing streets.
+        Export line-based gdf representing streets or continuity strokes.
     spatial_weights : bool (default is ``False``)
         Set to ``True`` to export a libpysal spatial weights
         for nodes (only for primal graphs).
@@ -546,7 +560,7 @@ def nx_to_gdf(
     # generate nodes and edges geodataframes from graph
     primal = None
     if "approach" in net.graph:
-        if net.graph["approach"] == "primal":
+        if net.graph["approach"] in ["primal", "continuity"]:
             primal = True
         elif net.graph["approach"] == "dual":
             return _dual_to_gdf(net)
