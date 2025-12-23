@@ -286,10 +286,13 @@ class Streetscape:
             vec_clock = vec_clock * self.sightline_length
 
             # Calculate displacements from midpoint
-            prof_st = (seg_mid.x + float(vec_anti[0]), seg_mid.y + float(vec_anti[1]))
+            prof_st = (
+                seg_mid.x + float(vec_anti[0][0]),
+                seg_mid.y + float(vec_anti[1][0]),
+            )
             prof_end = (
-                seg_mid.x + float(vec_clock[0]),
-                seg_mid.y + float(vec_clock[1]),
+                seg_mid.x + float(vec_clock[0][0]),
+                seg_mid.y + float(vec_clock[1][0]),
             )
 
             results_sight_points.append(seg_mid)
@@ -721,10 +724,12 @@ class Streetscape:
             left_sb = np.nan
             left_h = np.nan
             left_hw = np.nan
-            if left_sb_count != 0:
+            if left_sl_building_sb:
                 left_sb = np.nanmean(left_sl_building_sb)
+            if not np.isnan(left_sl_building_sb_heights).all():
                 left_h = np.nanmean(left_sl_building_sb_heights)
-                # HACk if sb = 0 --> 10cm
+            if not np.isnan([left_sb, left_h]).all():
+                # HACK if sb = 0 --> 10cm
                 left_hw = left_h / max(left_sb, 0.1)
             left_cr = left_sl_cr_total / left_os_count
             # RIGHT
@@ -734,10 +739,12 @@ class Streetscape:
             right_sb = np.nan
             right_h = np.nan
             right_hw = np.nan
-            if right_sb_count != 0:
+            if right_sl_building_sb:
                 right_sb = np.nanmean(right_sl_building_sb)
+            if not np.isnan(right_sl_building_sb_heights).all():
                 right_h = np.nanmean(right_sl_building_sb_heights)
-                # HACk if sb = 0 --> 10cm
+            if not np.isnan([right_sb, right_h]).all():
+                # HACK if sb = 0 --> 10cm
                 right_hw = right_h / max(right_sb, 0.1)
             right_cr = right_sl_cr_total / right_os_count
 
