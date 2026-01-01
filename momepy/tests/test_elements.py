@@ -10,7 +10,7 @@ from geopandas.testing import assert_geodataframe_equal
 from packaging.version import Version
 from pandas.testing import assert_index_equal
 from shapely import LineString, affinity
-from shapely.geometry import MultiPoint, MultiPolygon, Polygon, box
+from shapely.geometry import MultiPoint, Polygon, box
 
 import momepy as mm
 import momepy.elements as elements
@@ -185,7 +185,10 @@ class TestElements:
             neighbor_mode="neumann",
             n_jobs=1,
         )
-        assert set(tessellation_inner_barrier.geom_type.unique()) <= {"Polygon", "MultiPolygon"}
+        assert set(tessellation_inner_barrier.geom_type.unique()) <= {
+            "Polygon",
+            "MultiPolygon",
+        }
         assert tessellation_inner_barrier.crs == self.df_buildings.crs
         assert len(tessellation_inner_barrier) == len(tessellation)
         assert tessellation_inner_barrier.enclosure_index.isin(

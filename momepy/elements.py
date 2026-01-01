@@ -543,9 +543,7 @@ def _voronoi_by_ca(
         parts = list(shapely.get_parts(barrier_geoms))
         exteriors = shapely.get_exterior_ring(parts)
         buffered_exteriors = shapely.buffer(exteriors, 10 * cell_size)
-        barrier_geoms_buffered = GeoSeries(
-            list(buffered_exteriors), crs=seed_geoms.crs
-        )
+        barrier_geoms_buffered = GeoSeries(list(buffered_exteriors), crs=seed_geoms.crs)
         barrier_geoms = GeoSeries(parts, crs=seed_geoms.crs)
 
     outer_union = barrier_geoms_buffered.union_all()
@@ -713,8 +711,9 @@ def _get_inner_barriers(enclosure, barriers):
     inner_barriers = gpd.clip(barriers, enclosure)
 
     # Only keep the geometry which is within the enclosure
-    inner_barriers = inner_barriers[inner_barriers.intersects(enclosure) |
-                                    inner_barriers.within(enclosure)]
+    inner_barriers = inner_barriers[
+        inner_barriers.intersects(enclosure) | inner_barriers.within(enclosure)
+    ]
 
     return inner_barriers
 
