@@ -25,5 +25,4 @@ Notebooks cover just a small selection of functions as an illustration of princi
    Characters based on multiple GeoDataFrames <combined/combined>
    Using spatial weights matrix <weights/weights>
    Street network analysis <graph/graph>
-   Data preprocessing <preprocessing/preprocessing>
    migration
