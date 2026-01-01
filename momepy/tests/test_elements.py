@@ -17,6 +17,7 @@ import momepy.elements as elements
 
 SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 LPS_G_4_13_0 = Version(libpysal.__version__) > Version("4.13.0")
+GEOS_GE_314 = Version(shapely.geos_version_string) >= Version("3.14.0")
 
 
 class TestElements:
@@ -195,6 +196,7 @@ class TestElements:
             self.enclosures.index
         ).all()
 
+    @pytest.mark.skipif(not GEOS_GE_314, reason="bug fixed in GEOS 3.14")
     def test_enclosed_tessellation_inner_barrier_cellular(self):
         # Define sample building geometries (including Points to cover Point handling).
         blg_polygons = [
