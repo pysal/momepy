@@ -116,6 +116,18 @@
         ],
         "generated/momepy.straightness_centrality": [
             "porta2006"
-        ]
+        ],
+        "generated/momepy.stroke_access": [
+            "el2022urban"
+        ],
+        "generated/momepy.stroke_connectivity": [
+            "el2022urban"
+        ],
+        "generated/momepy.stroke_orthogonality": [
+            "el2022urban"
+        ],
+        "generated/momepy.stroke_spacing": [
+            "el2022urban"
+        ],
     }
 }

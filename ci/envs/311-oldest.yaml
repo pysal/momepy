@@ -6,7 +6,7 @@ dependencies:
   - python=3.11
   - geopandas=1.0
   - inequality
-  - libpysal=4.12.0
+  - libpysal=4.12.1
   - mapclassify
   - networkx=3.3
   - numpy=2.0
@@ -20,3 +20,4 @@ dependencies:
   - codecov
   - pytest
   - pytest-cov
+  - neatnet

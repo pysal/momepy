@@ -178,6 +178,20 @@ With utilities allowing conversion between networkx objects and GeoPandas object
    nx_to_gdf
 
 
+Computing continuity graph
+---------------------------
+
+Set of functions to create a continuity graph and compute metrics on:
+
+.. autosummary::
+   :toctree: api/
+
+   coins_to_nx
+   stroke_access
+   stroke_connectivity
+   stroke_orthogonality
+   stroke_spacing
+
 Measuring streetscape
 ---------------------
 

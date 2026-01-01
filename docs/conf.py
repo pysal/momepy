@@ -76,7 +76,6 @@ extensions = [
     "myst_parser",
     "sphinx_copybutton",
     "sphinx_gallery.load_style",
-    "sphinxext.rediraffe",
 ]
 
 # nbsphinx do not use requirejs (breaks bootstrap)
@@ -239,10 +238,6 @@ epub_exclude_files = ["search.html"]
 
 # Add redirect for previously existing pages,
 # each item is like `(from_old, to_new)`
-
-rediraffe_redirects = {
-    "user_guide/elements/preprocessing.ipynb": "user_guide/preprocessing/simple_preprocessing.ipynb",  # noqa: E501
-}
 
 # -- Extension configuration -------------------------------------------------
 intersphinx_mapping = {
