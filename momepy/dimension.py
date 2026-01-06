@@ -356,7 +356,7 @@ def weighted_character(
 
     >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
     >>> knn5
-    <Graph of 144 nodes and 720 nonzero edges indexed by
+    <Graph of 144 nodes and 720 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Measure the area-weighted character:

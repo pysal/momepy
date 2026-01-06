@@ -195,7 +195,7 @@ def alignment(orientation: Series, graph: Graph) -> Series:
     ...     buildings.centroid
     ... ).assign_self_weight()
     >>> delaunay
-    <Graph of 144 nodes and 970 nonzero edges indexed by
+    <Graph of 144 nodes and 970 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Alignment of orienation within triangulated neighbors:
@@ -253,7 +253,7 @@ def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Serie
 
     >>> delaunay = graph.Graph.build_triangulation(buildings.centroid)
     >>> delaunay
-    <Graph of 144 nodes and 826 nonzero edges indexed by
+    <Graph of 144 nodes and 826 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Mean distance to adjacent buildings within triangulated neighbors:
@@ -323,14 +323,14 @@ def mean_interbuilding_distance(
 
     >>> delaunay = graph.Graph.build_triangulation(buildings.centroid)
     >>> delaunay
-    <Graph of 144 nodes and 826 nonzero edges indexed by
+    <Graph of 144 nodes and 826 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Define a spatial graph denoting the neighborhood:
 
     >>> knn15 = graph.Graph.build_knn(buildings.centroid, k=15)
     >>> knn15
-    <Graph of 144 nodes and 2160 nonzero edges indexed by
+    <Graph of 144 nodes and 2160 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
      Measure mean interbuilding distance:
@@ -420,14 +420,14 @@ def building_adjacency(
 
     >>> contig = graph.Graph.build_contiguity(buildings)
     >>> contig
-    <Graph of 144 nodes and 248 nonzero edges indexed by
+    <Graph of 144 nodes and 248 nonzero edges (28 components, 10 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Define a spatial graph denoting the neighborhood:
 
     >>> knn15 = graph.Graph.build_knn(buildings.centroid, k=15)
     >>> knn15
-    <Graph of 144 nodes and 2160 nonzero edges indexed by
+    <Graph of 144 nodes and 2160 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
      Measure mean interbuilding distance:
@@ -506,7 +506,7 @@ def neighbors(
 
     >>> contig = graph.Graph.build_contiguity(tessellation)
     >>> contig
-    <Graph of 144 nodes and 768 nonzero edges indexed by
+    <Graph of 144 nodes and 768 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Number of neighbors of each tessellation cell:
