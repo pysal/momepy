@@ -44,7 +44,7 @@ def courtyards(
 
     >>> contiguity = graph.Graph.build_contiguity(buildings)
     >>> contiguity
-    <Graph of 144 nodes and 248 nonzero edges indexed by
+    <Graph of 144 nodes and 248 nonzero edges  (28 components, 10 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     >>> momepy.courtyards(buildings, contiguity)
