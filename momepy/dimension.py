@@ -1,4 +1,5 @@
 import math
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -458,6 +459,16 @@ def street_profile(
     3  50.000000  1.000000              NaN        NaN               NaN       NaN
     4  50.000000  1.000000              NaN        NaN               NaN       NaN
     """
+
+    # Warn if using geographic CRS
+    if streets.crs is not None and streets.crs.is_geographic:
+        warnings.warn(
+            "Geometry is in a geographic CRS. Results from 'street_profile' "
+            "are likely incorrect. Use 'GeoDataFrame.to_crs()' to re-project "
+            "geometries to a projected CRS before using this function.",
+            UserWarning,
+            stacklevel=2,
+        )
 
     # filter relevant buildings and streets
     inp, res = shapely.STRtree(streets.geometry).query(

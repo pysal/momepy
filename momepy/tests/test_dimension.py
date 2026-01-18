@@ -170,6 +170,19 @@ class TestDimensions:
             "hw_ratio"
         ].equals(pd.Series([np.nan, 0.35]))
 
+    def test_street_profile_geographic_crs_warning(self):
+        # Test that a warning is raised when using geographic CRS
+        streets_geo = self.df_streets.to_crs("EPSG:4326")
+        buildings_geo = self.df_buildings.to_crs("EPSG:4326")
+
+        with pytest.warns(UserWarning, match="geographic CRS"):
+            mm.street_profile(
+                streets_geo,
+                buildings_geo,
+                tick_length=50,
+                distance=1,
+            )
+
     def test_weighted_char(self):
         weighted = mm.weighted_character(
             self.df_buildings.height, self.df_buildings.area, self.graph
