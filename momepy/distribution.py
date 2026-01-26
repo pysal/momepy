@@ -201,6 +201,7 @@ def alignment(orientation: Series, graph: Graph) -> Series:
     Alignment of orienation within triangulated neighbors:
 
     >>> momepy.alignment(orientation, delaunay)
+    focal
     0      14.639585
     1       0.217417
     2       0.205626
@@ -259,12 +260,13 @@ def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Serie
     Mean distance to adjacent buildings within triangulated neighbors:
 
     >>> momepy.neighbor_distance(buildings, delaunay)
+    focal
     0      29.185890
     1      30.244905
     2      47.052305
     3      22.831824
     4      16.183615
-            ...
+             ...
     139    39.698734
     140    20.634252
     141    38.208668
