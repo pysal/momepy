@@ -10,6 +10,9 @@ jobs:
   build-n-publish:
     name: Build and publish momepy to PyPI
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # MANDATORY for trusted publishing to PyPI
+      contents: write  # MANDATORY for the Github release action
 
     steps:
       - uses: actions/checkout@v6
@@ -41,6 +44,3 @@ jobs:
 
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
