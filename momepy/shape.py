@@ -625,15 +625,17 @@ def equivalent_rectangular_index(geometry: GeoDataFrame | GeoSeries) -> Series:
 def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the elongation of each object given its geometry.
 
-    The elongation is defined as the elongation of the minimum bounding rectangle.
+    Elongation is measured as the ratio of the shorter to the longer side of the
+    minimum rotated rectangle:
 
     .. math::
-        {{p - \\sqrt{p^2 - 16a}} \\over {4}} \\over
-        {{{p} \\over {2}} - {{p - \\sqrt{p^2 - 16a}} \\over {4}}}
 
-    where `a` is the area of the object and `p` its perimeter.
+        \\frac{\\min(d_1, d_2)}{\\max(d_1, d_2)}
 
-    Based on :cite:`gil2012`.
+    where :math:`d_1` and :math:`d_2` are the side lengths of the minimum rotated
+    rectangle of the polygon.
+
+    Based on :cite:`gil2012`, who refer to sides as width and length.
 
     Parameters
     ----------
@@ -651,26 +653,25 @@ def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
     >>> momepy.elongation(buildings)
     0      0.908244
     1      0.581318
-    2      0.726527
+    2      0.726529
     3      0.838840
-    4      0.727294
+    4      0.727277
              ...
-    139    0.608004
+    139    0.607990
     140    0.979998
-    141    0.747326
+    141    0.747320
     142    0.564060
     143    0.987953
     Name: elongation, Length: 144, dtype: float64
     """
     bbox = shapely.minimum_rotated_rectangle(geometry.geometry.array)
-    a = shapely.area(bbox)
-    p = shapely.length(bbox)
-    sqrt = np.maximum(p**2 - 16 * a, 0)
+    coords = shapely.get_coordinates(bbox)
 
-    elo1 = ((p - np.sqrt(sqrt)) / 4) / ((p / 2) - ((p - np.sqrt(sqrt)) / 4))
-    elo2 = ((p + np.sqrt(sqrt)) / 4) / ((p / 2) - ((p + np.sqrt(sqrt)) / 4))
+    # d1, d2 represent distance of two sides of bbox
+    d1 = np.linalg.norm(coords[1::5] - coords[0::5], axis=1)
+    d2 = np.linalg.norm(coords[2::5] - coords[1::5], axis=1)
 
-    res = np.where(elo1 <= elo2, elo1, elo2)
+    res = np.minimum(d1, d2) / np.maximum(d1, d2)
 
     return Series(res, index=geometry.index, name="elongation")
 

@@ -347,9 +347,9 @@ def weighted_character(
     >>> elongation.head()
     0    0.908244
     1    0.581318
-    2    0.726527
+    2    0.726529
     3    0.838840
-    4    0.727294
+    4    0.727277
     Name: elongation, dtype: float64
 
     Define spatial graph:
@@ -364,16 +364,16 @@ def weighted_character(
     >>> momepy.weighted_character(elongation, buildings.area, knn5)
     focal
     0      0.808190
-    1      0.817309
+    1      0.817306
     2      0.627589
     3      0.794769
-    4      0.806403
+    4      0.806406
              ...
-    139    0.780744
+    139    0.780755
     140    0.875046
-    141    0.753670
-    142    0.440000
-    143    0.901127
+    141    0.753673
+    142    0.440004
+    143    0.901120
     Name: sum, Length: 144, dtype: float64
     """
 
