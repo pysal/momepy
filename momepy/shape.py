@@ -256,7 +256,7 @@ def convexity(geometry: GeoDataFrame | GeoSeries) -> Series:
     .. math::
         \\frac{\\textit{area}}{\\textit{area of convex hull}}
 
-    Adapted from :cite:`dibble2017`.
+    Adapted from :cite:`steiniger2008`.
 
     Parameters
     ----------
