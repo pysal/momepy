@@ -347,9 +347,9 @@ def weighted_character(
     >>> elongation.head()
     0    0.908244
     1    0.581318
-    2    0.726527
+    2    0.726529
     3    0.838840
-    4    0.727294
+    4    0.727277
     Name: elongation, dtype: float64
 
     Define spatial graph:

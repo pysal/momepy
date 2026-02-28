@@ -653,13 +653,13 @@ def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
     >>> momepy.elongation(buildings)
     0      0.908244
     1      0.581318
-    2      0.726527
+    2      0.726529
     3      0.838840
-    4      0.727294
+    4      0.727277
              ...
-    139    0.608004
+    139    0.607990
     140    0.979998
-    141    0.747326
+    141    0.747320
     142    0.564060
     143    0.987953
     Name: elongation, Length: 144, dtype: float64
