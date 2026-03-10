@@ -485,7 +485,7 @@ def neighbors(
 
     Parameters
     ----------
-    gdf : GeoDataFrame | GeoSeries
+    geometry : GeoDataFrame | GeoSeries
         GeoDataFrame containing geometries to analyse.
     graph : libpysal.graph.Graph
         Graph representing spatial relationships between elements.
@@ -528,7 +528,7 @@ def neighbors(
     143     5
     Name: neighbors, Length: 144, dtype: int64
 
-    Weighted by the tessellation area:
+    Weighted by the tessellation perimeter:
 
     >>> momepy.neighbors(tessellation, contig, weighted=True)
     focal
