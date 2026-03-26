@@ -155,6 +155,7 @@ nb_execution_mode = "cache"
 nb_execution_timeout = -1
 nb_kernel_rgx_aliases = {".*": "python3"}
 nb_merge_streams = True
+nb_execution_raise_on_error = True
 autodoc_typehints = "none"
 
 
