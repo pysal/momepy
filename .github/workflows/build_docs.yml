@@ -15,6 +15,11 @@ on:  # yamllint disable-line rule:truthy
         description: Manual Doc Build
         default: run-doc-build
         required: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   docs:
     name: Build & push docs
