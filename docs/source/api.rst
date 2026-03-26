@@ -43,6 +43,7 @@ And tools linking various elements together.
 Measuring dimension
 -------------------
 
+
 A set of functions to measure dimensions of geometric elements:
 
 .. autosummary::
@@ -201,10 +202,6 @@ Specialised class for the advanced streetscape analysis.
    :toctree: api/
 
    Streetscape
-   Streetscape.compute_plots
-   Streetscape.compute_slope
-   Streetscape.street_level
-   Streetscape.point_level
 
 Data preprocessing
 ------------------
@@ -231,9 +228,3 @@ Additionally, there are methods for data assessment.
 
 
 Further analysis can be done directly using methods available in :class:`libpysal.graph.Graph`.
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-
-   legacy_api

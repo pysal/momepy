@@ -3,7 +3,6 @@
 [![Documentation Status](https://readthedocs.org/projects/momepy/badge/?version=latest)](http://docs.momepy.org/en/latest/?badge=latest) [![Actions Status](https://github.com/pysal/momepy/workflows/Tests/badge.svg)](https://github.com/pysal/momepy/actions?query=workflow%3ATests)
 [![codecov](https://codecov.io/gh/pysal/momepy/branch/main/graph/badge.svg?token=VNn0WR5JWT)](https://codecov.io/gh/pysal/momepy) [![Discord](https://img.shields.io/badge/Discord-join%20chat-7289da?style=flat&logo=discord&logoColor=cccccc&link=https://discord.gg/he6Y8D2ap3)](https://discord.gg/he6Y8D2ap3) [![DOI](https://joss.theoj.org/papers/10.21105/joss.01807/status.svg)](https://doi.org/10.21105/joss.01807)
 
-
 <img src="https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/logo.png" width="50%">
 
 ## Introduction
@@ -35,11 +34,9 @@ The package is currently maintained by [**@martinfleis**](https://github.com/mar
 
 A quick and easy [getting-started guide](http://docs.momepy.org/en/stable/user_guide/getting_started.html) is part of the [User Guide](http://docs.momepy.org/en/stable/user_guide/intro.html).
 
-
 ## Documentation
 
 Documentation of `momepy` is available at [docs.momepy.org](https://docs.momepy.org/).
-
 
 ## Examples
 
@@ -55,35 +52,40 @@ G = momepy.straightness_centrality(G)
 
 ![Straightness centrality](https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/centrality_27_0.png)
 
-
 ## How to cite
 
-To cite `momepy` please use the following [software paper](https://doi.org/10.21105/joss.01807)](https://doi.org/10.21105/joss.01807) published in the JOSS.
+To cite `momepy` please use the following [software paper](https://doi.org/10.21105/joss.01807)](<https://doi.org/10.21105/joss.01807>) published in the JOSS.
 
-Fleischmann, M. (2019) ‘momepy: Urban Morphology Measuring Toolkit’, Journal of Open Source Software, 4(43), p. 1807. doi: 10.21105/joss.01807.
+> Fleischmann, M. (2019) ‘momepy: Urban Morphology Measuring Toolkit’, Journal of Open Source Software, 4(43), p. 1807. doi: 10.21105/joss.01807.
 
 BibTeX:
 
-    @article{fleischmann_2019,
-        author={Fleischmann, Martin},
-        title={momepy: Urban Morphology Measuring Toolkit},
-        journal={Journal of Open Source Software},
-        year={2019},
-        volume={4},
-        number={43},
-        pages={1807},
-        DOI={10.21105/joss.01807}
-    }
+```bibtex
+@article{fleischmann_2019,
+    author={Fleischmann, Martin},
+    title={momepy: Urban Morphology Measuring Toolkit},
+    journal={Journal of Open Source Software},
+    year={2019},
+    volume={4},
+    number={43},
+    pages={1807},
+    DOI={10.21105/joss.01807}
+}
+```
 
 ## Install
 
 You can install `momepy` using Conda from `conda-forge` (recommended):
 
-    conda install -c conda-forge momepy
+```sh
+conda install -c conda-forge momepy
+```
 
 or from PyPI using `pip`:
 
-    pip install momepy
+```sh
+pip install momepy
+```
 
 See the [installation instructions](http://docs.momepy.org/en/latest/install.html) for detailed instructions.
 Momepy depends on the Python geospatial stack, which might cause some dependency issues.
@@ -109,7 +111,7 @@ If you have a question regarding momepy, feel free to open an [issue](https://gi
 
 ## Acknowledgments
 
-The initial release of momepy was a result of research of [Urban](http://udsu-strath.com) Design Studies Unit (UDSU)](http://udsu-strath.com) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with the University of Strathclyde in Glasgow, UK. Further development was supported by the [Geographic Data Science Lab](https://www.liverpool.ac.uk/geographic-data-science/) of the University of Liverpool within the [Urban Grammar AI](https://urbangrammarai.xyz) research project.
+The initial release of momepy was a result of research of [Urban Design Studies Unit (UDSU)](<http://udsu-strath.com>) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with the University of Strathclyde in Glasgow, UK. Further development was supported by the [Geographic Data Science Lab](https://www.liverpool.ac.uk/geographic-data-science/) of the University of Liverpool within the [Urban Grammar AI](https://urbangrammarai.xyz) research project.
 
 ---
 Copyright (c) 2018-, Martin Fleischmann and PySAL Developers

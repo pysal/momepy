@@ -32,13 +32,10 @@ dependencies:
   - Iprogress
   - matplotlib
   - numpydoc
-  - pydata-sphinx-theme
-  - nbsphinx
-  - myst-parser
-  - pip
-  - pip:
-      - sphinx_copybutton
-      - sphinx-gallery
-      - sphinxext-rediraffe
-      - sphinxcontrib.bibtex
-      - git+https://github.com/geopandas/geopandas.git
+  - sphinxcontrib-bibtex
+  - sphinx-autosummary-accessors
+  - sphinx-copybutton
+  - sphinx-immaterial
+  - myst-nb
+  - sphinx
+  - ipykernel
