@@ -1,0 +1,22 @@
+﻿momepy.Area
+===========
+
+.. currentmodule:: momepy
+
+.. autoclass:: Area
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Area.__init__
+   
+   
+
+   
+   
+   

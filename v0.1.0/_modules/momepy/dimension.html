@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>momepy.dimension &#8212; momepy 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="http://docs.momepy.org/en/latest/_modules/momepy/dimension.html" />
+
+
+
+<script type="text/javascript" src="../../_static/readthedocs-data.js"></script>
+
+<!-- Add page-specific data, which must exist in the page js, not global -->
+<script type="text/javascript">
+READTHEDOCS_DATA['page'] = "_modules/momepy/dimension"
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.1.0" /><meta name="readthedocs-resolver-filename" content="/_modules/momepy/dimension.html" /><meta name="readthedocs-http-status" content="200" /></head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><span><img src="../../_static/favicon.png"></span>
+          momepy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../../install.html">Installation</a></li>
+                <li><a href="https://guide.momepy.org/">User Guide</a></li>
+                <li><a href="../../api.html">API</a></li>
+                <li><a href="../../contributing.html">Contributing</a></li>
+                <li><a href="../../references.html">References</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#install-via-conda">Install via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#install-via-pip">Install via pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#install-from-the-repository">Install from the repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#dependencies">Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="http://guide.momepy.org">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">momepy API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#elements">elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#dimension">dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#shape">shape</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#spatial-distribution">spatial distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#intensity">intensity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#graph">graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#diversity">diversity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#utilities">utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to momepy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../contributing.html#eight-steps-for-contributing">Eight Steps for Contributing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for momepy.dimension</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># dimension.py</span>
+<span class="c1"># definitons of dimension characters</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="k">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">Point</span><span class="p">,</span> <span class="n">Polygon</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span> <span class="nn">.shape</span> <span class="k">import</span> <span class="n">_make_circle</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;Area&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Perimeter&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Volume&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;FloorArea&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CourtyardArea&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LongestAxisLength&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;AverageCharacter&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;StreetProfile&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;WeightedCharacter&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CoveredArea&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PerimeterWall&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SegmentsLength&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="Area"><a class="viewcode-back" href="../../generated/momepy.Area.html#momepy.Area">[docs]</a><span class="k">class</span> <span class="nc">Area</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates area of each object in given GeoDataFrame. It can be used for any</span>
+<span class="sd">    suitable element (building footprint, plot, tessellation, block).</span>
+
+<span class="sd">    It is a simple wrapper for geopandas `gdf.geometry.area` for the consistency of momepy.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing objects to analyse</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; buildings = gpd.read_file(momepy.datasets.get_path(&#39;bubenec&#39;), layer=&#39;buildings&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; buildings[&#39;area&#39;] = momepy.Area(buildings).series</span>
+<span class="sd">    &gt;&gt;&gt; buildings.area[0]</span>
+<span class="sd">    728.5574947044363</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Area.__init__"><a class="viewcode-back" href="../../generated/momepy.Area.html#momepy.Area.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">area</span></div></div>
+
+
+<div class="viewcode-block" id="Perimeter"><a class="viewcode-back" href="../../generated/momepy.Perimeter.html#momepy.Perimeter">[docs]</a><span class="k">class</span> <span class="nc">Perimeter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates perimeter of each object in given GeoDataFrame. It can be used for any</span>
+<span class="sd">    suitable element (building footprint, plot, tessellation, block).</span>
+
+<span class="sd">    It is a simple wrapper for geopandas `gdf.geometry.length` for the consistency of momepy.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing objects to analyse</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; buildings = gpd.read_file(momepy.datasets.get_path(&#39;bubenec&#39;), layer=&#39;buildings&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; buildings[&#39;perimeter&#39;] = momepy.Perimeter(buildings).series</span>
+<span class="sd">    &gt;&gt;&gt; buildings.perimeter[0]</span>
+<span class="sd">    137.18630991119903</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Perimeter.__init__"><a class="viewcode-back" href="../../generated/momepy.Perimeter.html#momepy.Perimeter.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">length</span></div></div>
+
+
+<div class="viewcode-block" id="Volume"><a class="viewcode-back" href="../../generated/momepy.Volume.html#momepy.Volume">[docs]</a><span class="k">class</span> <span class="nc">Volume</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates volume of each object in given GeoDataFrame based on its height and area.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        area * height</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing objects to analyse</span>
+<span class="sd">    heights : str, list, np.array, pd.Series</span>
+<span class="sd">        the name of the dataframe column, np.array, or pd.Series where is stored height value</span>
+<span class="sd">    areas : str, list, np.array, pd.Series (default None)</span>
+<span class="sd">        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas</span>
+<span class="sd">        during the process without saving them separately.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+
+<span class="sd">    heights : Series</span>
+<span class="sd">        Series containing used heights values</span>
+
+<span class="sd">    areas : GeoDataFrame</span>
+<span class="sd">        Series containing used areas values</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; buildings[&#39;volume&#39;] = momepy.Volume(buildings, heights=&#39;height_col&#39;).series</span>
+<span class="sd">    &gt;&gt;&gt; buildings.volume[0]</span>
+<span class="sd">    7285.5749470443625</span>
+
+<span class="sd">    &gt;&gt;&gt; buildings[&#39;volume&#39;] = momepy.Volume(buildings, heights=&#39;height_col&#39;, areas=&#39;area_col&#39;).series</span>
+<span class="sd">    &gt;&gt;&gt; buildings.volume[0]</span>
+<span class="sd">    7285.5749470443625</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Volume.__init__"><a class="viewcode-back" href="../../generated/momepy.Volume.html#momepy.Volume.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">heights</span><span class="p">,</span> <span class="n">areas</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+
+        <span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">heights</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;mm_h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">heights</span>
+            <span class="n">heights</span> <span class="o">=</span> <span class="s2">&quot;mm_h&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heights</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">heights</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">areas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">areas</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;mm_a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">areas</span>
+                <span class="n">areas</span> <span class="o">=</span> <span class="s2">&quot;mm_a&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">areas</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">areas</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">areas</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">area</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">areas</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">heights</span>
+
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s2">&quot;ERROR: Column not found. Define heights and areas or set areas to None.&quot;</span>
+            <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="FloorArea"><a class="viewcode-back" href="../../generated/momepy.FloorArea.html#momepy.FloorArea">[docs]</a><span class="k">class</span> <span class="nc">FloorArea</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates floor area of each object based on height and area.</span>
+
+<span class="sd">    Number of floors is simplified into formula height / 3</span>
+<span class="sd">    (it is assumed that on average one floor is approximately 3 metres)</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        area * \\frac{height}{3}</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing objects to analyse</span>
+<span class="sd">    heights : str, list, np.array, pd.Series</span>
+<span class="sd">        the name of the dataframe column, np.array, or pd.Series where is stored height value</span>
+<span class="sd">    areas : str, list, np.array, pd.Series (default None)</span>
+<span class="sd">        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas</span>
+<span class="sd">        during the process without saving them separately.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+<span class="sd">    heights : Series</span>
+<span class="sd">        Series containing used heights values</span>
+<span class="sd">    areas : GeoDataFrame</span>
+<span class="sd">        Series containing used areas values</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; buildings[&#39;floor_area&#39;] = momepy.FloorArea(buildings, heights=&#39;height_col&#39;).series</span>
+<span class="sd">    Calculating floor areas...</span>
+<span class="sd">    Floor areas calculated.</span>
+<span class="sd">    &gt;&gt;&gt; buildings.floor_area[0]</span>
+<span class="sd">    2185.672484113309</span>
+
+<span class="sd">    &gt;&gt;&gt; buildings[&#39;floor_area&#39;] = momepy.FloorArea(buildings, heights=&#39;height_col&#39;, areas=&#39;area_col&#39;).series</span>
+<span class="sd">    &gt;&gt;&gt; buildings.floor_area[0]</span>
+<span class="sd">    2185.672484113309</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FloorArea.__init__"><a class="viewcode-back" href="../../generated/momepy.FloorArea.html#momepy.FloorArea.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">heights</span><span class="p">,</span> <span class="n">areas</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+
+        <span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">heights</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;mm_h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">heights</span>
+            <span class="n">heights</span> <span class="o">=</span> <span class="s2">&quot;mm_h&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heights</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">heights</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">areas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">areas</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;mm_a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">areas</span>
+                <span class="n">areas</span> <span class="o">=</span> <span class="s2">&quot;mm_a&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">areas</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">areas</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">areas</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">area</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">areas</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">heights</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s2">&quot;ERROR: Column not found. Define heights and areas or set areas to None.&quot;</span>
+            <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CourtyardArea"><a class="viewcode-back" href="../../generated/momepy.CourtyardArea.html#momepy.CourtyardArea">[docs]</a><span class="k">class</span> <span class="nc">CourtyardArea</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates area of holes within geometry - area of courtyards.</span>
+
+<span class="sd">    Ensure that your geometry is shapely Polygon.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing objects to analyse</span>
+<span class="sd">    areas : str, list, np.array, pd.Series (default None)</span>
+<span class="sd">        the name of the dataframe column, np.array, or pd.Series where is stored area value. If set to None, function will calculate areas</span>
+<span class="sd">        during the process without saving them separately.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+
+<span class="sd">    areas : GeoDataFrame</span>
+<span class="sd">        Series containing used areas values</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; buildings[&#39;courtyard_area&#39;] = momepy.CourtyardArea(buildings).series</span>
+<span class="sd">    &gt;&gt;&gt; buildings.courtyard_area[80]</span>
+<span class="sd">    353.33274206543274</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CourtyardArea.__init__"><a class="viewcode-back" href="../../generated/momepy.CourtyardArea.html#momepy.CourtyardArea.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">areas</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+
+        <span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">areas</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">areas</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">area</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">areas</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;mm_a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">areas</span>
+            <span class="n">areas</span> <span class="o">=</span> <span class="s2">&quot;mm_a&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">areas</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">areas</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">Polygon</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">exterior</span><span class="p">)</span><span class="o">.</span><span class="n">area</span> <span class="o">-</span> <span class="n">row</span><span class="p">[</span><span class="n">areas</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span></div></div>
+
+
+<span class="c1"># calculate the radius of circumcircle</span>
+<span class="k">def</span> <span class="nf">_longest_axis</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+    <span class="n">circ</span> <span class="o">=</span> <span class="n">_make_circle</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">circ</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+
+
+<div class="viewcode-block" id="LongestAxisLength"><a class="viewcode-back" href="../../generated/momepy.LongestAxisLength.html#momepy.LongestAxisLength">[docs]</a><span class="k">class</span> <span class="nc">LongestAxisLength</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the length of the longest axis of object.</span>
+
+<span class="sd">    Axis is defined as a diameter of minimal circumscribed circle around the convex hull.</span>
+<span class="sd">    It does not have to be fully inside an object.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\max \\left\\{d_{1}, d_{2}, \\ldots, d_{n}\\right\\}</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing objects to analyse</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; buildings[&#39;lal&#39;] = momepy.LongestAxisLength(buildings).series</span>
+<span class="sd">    &gt;&gt;&gt; buildings.lal[0]</span>
+<span class="sd">    40.2655616057102</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LongestAxisLength.__init__"><a class="viewcode-back" href="../../generated/momepy.LongestAxisLength.html#momepy.LongestAxisLength.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">_longest_axis</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">convex_hull</span><span class="o">.</span><span class="n">exterior</span><span class="o">.</span><span class="n">coords</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="AverageCharacter"><a class="viewcode-back" href="../../generated/momepy.AverageCharacter.html#momepy.AverageCharacter">[docs]</a><span class="k">class</span> <span class="nc">AverageCharacter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the average of a character within k steps of morphological tessellation</span>
+
+<span class="sd">    Average value of the character within k topological steps defined in spatial_weights.</span>
+<span class="sd">    Can be set to `mean`, `median` or `mode`. `mean` is defined as:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\frac{1}{n}\\left(\\sum_{i=1}^{n} value_{i}\\right)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing morphological tessellation</span>
+<span class="sd">    values : str, list, np.array, pd.Series</span>
+<span class="sd">        the name of the dataframe column, np.array, or pd.Series where is stored character value.</span>
+<span class="sd">    unique_id : str</span>
+<span class="sd">        name of the column with unique id used as spatial_weights index.</span>
+<span class="sd">    spatial_weights : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    rng : Two-element sequence containing floats in range of [0,100], optional</span>
+<span class="sd">        Percentiles over which to compute the range. Each must be</span>
+<span class="sd">        between 0 and 100, inclusive. The order of the elements is not important.</span>
+<span class="sd">    mode : str (default &#39;mean&#39;)</span>
+<span class="sd">        mode of average calculation. Can be set to `mean`, `median` or `mode`.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+<span class="sd">    values : GeoDataFrame</span>
+<span class="sd">        Series containing used values</span>
+<span class="sd">    sw : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    id : Series</span>
+<span class="sd">        Series containing used unique ID</span>
+<span class="sd">    rng : tuple</span>
+<span class="sd">        range</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        mode</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Hausleitner B and Berghauser Pont M (2017) Development of a configurational</span>
+<span class="sd">    typology for micro-businesses integrating geometric and configurational variables. [adapted]</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; sw = libpysal.weights.DistanceBand.from_dataframe(tessellation, threshold=100, silence_warnings=True, ids=&#39;uID&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; tessellation[&#39;mesh_100&#39;] = momepy.AverageCharacter(tessellation, values=&#39;area&#39;, spatial_weights=sw, unique_id=&#39;uID&#39;).series</span>
+<span class="sd">    100%|██████████| 144/144 [00:00&lt;00:00, 1433.32it/s]</span>
+<span class="sd">    &gt;&gt;&gt; tessellation.mesh_100[0]</span>
+<span class="sd">    4823.1334436678835</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AverageCharacter.__init__"><a class="viewcode-back" href="../../generated/momepy.AverageCharacter.html#momepy.AverageCharacter.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">spatial_weights</span><span class="p">,</span> <span class="n">unique_id</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sw</span> <span class="o">=</span> <span class="n">spatial_weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">unique_id</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">rng</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mm_v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="s2">&quot;mm_v&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">values</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">unique_id</span><span class="p">)</span>
+
+        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">total</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">neighbours</span> <span class="o">=</span> <span class="n">spatial_weights</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">neighbours</span><span class="p">:</span>
+                <span class="n">neighbours</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="n">values_list</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neighbours</span><span class="p">][</span><span class="n">values</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">rng</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">momepy</span> <span class="k">import</span> <span class="n">limit_range</span>
+
+                <span class="n">values_list</span> <span class="o">=</span> <span class="n">limit_range</span><span class="p">(</span><span class="n">values_list</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values_list</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;median&quot;</span><span class="p">:</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">values_list</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;mode&quot;</span><span class="p">:</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="n">values_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> is not supported as mode.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">results_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="StreetProfile"><a class="viewcode-back" href="../../generated/momepy.StreetProfile.html#momepy.StreetProfile">[docs]</a><span class="k">class</span> <span class="nc">StreetProfile</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the street profile characters.</span>
+
+<span class="sd">    Returns a dictionary with widths, standard deviation of width, openness, heights,</span>
+<span class="sd">    standard deviation of height and ratio height/width. Algorithm generates perpendicular</span>
+<span class="sd">    lines to `right` dataframe features every `distance` and measures values on intersection</span>
+<span class="sd">    with features of `left.` If no feature is reached within</span>
+<span class="sd">    `tick_length` its value is set as width (being theoretical maximum).</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    left : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing streets to analyse</span>
+<span class="sd">    right : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing buildings along the streets (only Polygon geometry type is supported)</span>
+<span class="sd">    heights: str, list, np.array, pd.Series (default None)</span>
+<span class="sd">        the name of the buildings dataframe column, np.array, or pd.Series where is stored building height. If set to None,</span>
+<span class="sd">        height and ratio height/width will not be calculated.</span>
+<span class="sd">    distance : int (default 10)</span>
+<span class="sd">        distance between perpendicular ticks</span>
+<span class="sd">    tick_length : int (default 50)</span>
+<span class="sd">        lenght of ticks</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    w : Series</span>
+<span class="sd">        Series containing street profile width values</span>
+<span class="sd">    wd : Series</span>
+<span class="sd">        Series containing street profile standard deviation values</span>
+<span class="sd">    o : Series</span>
+<span class="sd">        Series containing street profile openness values</span>
+<span class="sd">    h : Series</span>
+<span class="sd">        Series containing street profile heights values. Returned only when heights is set.</span>
+<span class="sd">    hd : Series</span>
+<span class="sd">        Series containing street profile heights standard deviation values. Returned only when heights is set.</span>
+<span class="sd">    p : Series</span>
+<span class="sd">        Series containing street profile height/width ratio values. Returned only when heights is set.</span>
+<span class="sd">    left : GeoDataFrame</span>
+<span class="sd">        original left GeoDataFrame</span>
+<span class="sd">    right : GeoDataFrame</span>
+<span class="sd">        original right GeoDataFrame</span>
+<span class="sd">    distance : int</span>
+<span class="sd">        distance between perpendicular ticks</span>
+<span class="sd">    tick_length : int</span>
+<span class="sd">        lenght of ticks</span>
+<span class="sd">    heights : GeoDataFrame</span>
+<span class="sd">        Series containing used height values</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Oliveira V (2013) Morpho: a methodology for assessing urban form. Urban Morphology 17(1): 21–33.</span>
+
+<span class="sd">    Araldi A and Fusco G (2017) Decomposing and Recomposing Urban Fabric: The City from the Pedestrian</span>
+<span class="sd">    Point of View. In: Gervasi O, Murgante B, Misra S, et al. (eds), Computational Science and Its</span>
+<span class="sd">    Applications – ICCSA 2017, Lecture Notes in Computer Science, Cham: Springer International</span>
+<span class="sd">    Publishing, pp. 365–376. Available from: http://link.springer.com/10.1007/978-3-319-62407-5.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; street_profile = momepy.StreetProfile(streets_df, buildings_df, heights=&#39;height&#39;)</span>
+<span class="sd">    100%|██████████| 33/33 [00:02&lt;00:00, 15.66it/s]</span>
+<span class="sd">    &gt;&gt;&gt; streets_df[&#39;width&#39;] = street_profile.w</span>
+<span class="sd">    &gt;&gt;&gt; streets_df[&#39;deviations&#39;] = street_profile.wd</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="StreetProfile.__init__"><a class="viewcode-back" href="../../generated/momepy.StreetProfile.html#momepy.StreetProfile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">heights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">tick_length</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">left</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="n">right</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">distance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tick_length</span> <span class="o">=</span> <span class="n">tick_length</span>
+
+        <span class="k">if</span> <span class="n">heights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">heights</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">right</span><span class="p">[</span><span class="s2">&quot;mm_h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">heights</span>
+                <span class="n">heights</span> <span class="o">=</span> <span class="s2">&quot;mm_h&quot;</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">heights</span> <span class="o">=</span> <span class="n">right</span><span class="p">[</span><span class="n">heights</span><span class="p">]</span>
+
+        <span class="n">sindex</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">sindex</span>
+
+        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">deviations_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">heights_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">heights_deviations_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">openness_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">left</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">total</span><span class="o">=</span><span class="n">left</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="c1"># if idx == 2:</span>
+            <span class="c1">#     ee</span>
+            <span class="c1"># list to hold all the point coords</span>
+            <span class="n">list_points</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># set the current distance to place the point</span>
+            <span class="n">current_dist</span> <span class="o">=</span> <span class="n">distance</span>
+            <span class="c1"># make shapely MultiLineString object</span>
+            <span class="n">shapely_line</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">geometry</span>
+            <span class="c1"># get the total length of the line</span>
+            <span class="n">line_length</span> <span class="o">=</span> <span class="n">shapely_line</span><span class="o">.</span><span class="n">length</span>
+            <span class="c1"># append the starting coordinate to the list</span>
+            <span class="n">list_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">shapely_line</span><span class="o">.</span><span class="n">coords</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="c1"># https://nathanw.net/2012/08/05/generating-chainage-distance-nodes-in-qgis/</span>
+            <span class="c1"># while the current cumulative distance is less than the total length of the line</span>
+            <span class="k">while</span> <span class="n">current_dist</span> <span class="o">&lt;</span> <span class="n">line_length</span><span class="p">:</span>
+                <span class="c1"># use interpolate and increase the current distance</span>
+                <span class="n">list_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shapely_line</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">current_dist</span><span class="p">))</span>
+                <span class="n">current_dist</span> <span class="o">+=</span> <span class="n">distance</span>
+            <span class="c1"># append end coordinate to the list</span>
+            <span class="n">list_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">shapely_line</span><span class="o">.</span><span class="n">coords</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+            <span class="n">ticks</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">num</span><span class="p">,</span> <span class="n">pt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_points</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="c1"># start chainage 0</span>
+                <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAngle</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">list_points</span><span class="p">[</span><span class="n">num</span><span class="p">])</span>
+                    <span class="n">line_end_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPoint1</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">tick_length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="n">angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAngle</span><span class="p">(</span><span class="n">line_end_1</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
+                    <span class="n">line_end_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPoint2</span><span class="p">(</span><span class="n">line_end_1</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">tick_length</span><span class="p">)</span>
+                    <span class="n">tick1</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">([(</span><span class="n">line_end_1</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">line_end_1</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">y</span><span class="p">)])</span>
+                    <span class="n">tick2</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">([(</span><span class="n">line_end_2</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">line_end_2</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">y</span><span class="p">)])</span>
+                    <span class="n">ticks</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">tick1</span><span class="p">,</span> <span class="n">tick2</span><span class="p">])</span>
+
+                <span class="c1"># everything in between</span>
+                <span class="k">if</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_points</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAngle</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">list_points</span><span class="p">[</span><span class="n">num</span><span class="p">])</span>
+                    <span class="n">line_end_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPoint1</span><span class="p">(</span>
+                        <span class="n">list_points</span><span class="p">[</span><span class="n">num</span><span class="p">],</span> <span class="n">angle</span><span class="p">,</span> <span class="n">tick_length</span> <span class="o">/</span> <span class="mi">2</span>
+                    <span class="p">)</span>
+                    <span class="n">angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAngle</span><span class="p">(</span><span class="n">line_end_1</span><span class="p">,</span> <span class="n">list_points</span><span class="p">[</span><span class="n">num</span><span class="p">])</span>
+                    <span class="n">line_end_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPoint2</span><span class="p">(</span><span class="n">line_end_1</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">tick_length</span><span class="p">)</span>
+                    <span class="n">tick1</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="p">(</span><span class="n">line_end_1</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">line_end_1</span><span class="o">.</span><span class="n">y</span><span class="p">),</span>
+                            <span class="p">(</span><span class="n">list_points</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">list_points</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="o">.</span><span class="n">y</span><span class="p">),</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">tick2</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="p">(</span><span class="n">line_end_2</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">line_end_2</span><span class="o">.</span><span class="n">y</span><span class="p">),</span>
+                            <span class="p">(</span><span class="n">list_points</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">list_points</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="o">.</span><span class="n">y</span><span class="p">),</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">ticks</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">tick1</span><span class="p">,</span> <span class="n">tick2</span><span class="p">])</span>
+
+                <span class="c1"># end chainage</span>
+                <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_points</span><span class="p">):</span>
+                    <span class="n">angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAngle</span><span class="p">(</span><span class="n">list_points</span><span class="p">[</span><span class="n">num</span> <span class="o">-</span> <span class="mi">2</span><span class="p">],</span> <span class="n">pt</span><span class="p">)</span>
+                    <span class="n">line_end_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPoint1</span><span class="p">(</span><span class="n">pt</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">tick_length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="n">angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAngle</span><span class="p">(</span><span class="n">line_end_1</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
+                    <span class="n">line_end_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPoint2</span><span class="p">(</span><span class="n">line_end_1</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">tick_length</span><span class="p">)</span>
+                    <span class="n">tick1</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">([(</span><span class="n">line_end_1</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">line_end_1</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">y</span><span class="p">)])</span>
+                    <span class="n">tick2</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">([(</span><span class="n">line_end_2</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">line_end_2</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">y</span><span class="p">)])</span>
+                    <span class="n">ticks</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">tick1</span><span class="p">,</span> <span class="n">tick2</span><span class="p">])</span>
+            <span class="c1"># widths = []</span>
+            <span class="n">m_heights</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">lefts</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">rights</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">duo</span> <span class="ow">in</span> <span class="n">ticks</span><span class="p">:</span>
+
+                <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">tick</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">duo</span><span class="p">):</span>
+                    <span class="n">possible_intersections_index</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                        <span class="n">sindex</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">tick</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">possible_intersections</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">possible_intersections_index</span><span class="p">]</span>
+                    <span class="n">real_intersections</span> <span class="o">=</span> <span class="n">possible_intersections</span><span class="o">.</span><span class="n">intersects</span><span class="p">(</span><span class="n">tick</span><span class="p">)</span>
+                    <span class="n">get_height</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">real_intersections</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span>
+                    <span class="n">possible_int</span> <span class="o">=</span> <span class="n">get_height</span><span class="o">.</span><span class="n">exterior</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">tick</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">possible_int</span><span class="o">.</span><span class="n">is_empty</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                        <span class="n">true_int</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">possible_int</span><span class="o">.</span><span class="n">index</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="n">possible_int</span><span class="p">[</span><span class="n">one</span><span class="p">]</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Point&quot;</span><span class="p">:</span>
+                                <span class="n">true_int</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">possible_int</span><span class="p">[</span><span class="n">one</span><span class="p">])</span>
+                            <span class="k">elif</span> <span class="n">possible_int</span><span class="p">[</span><span class="n">one</span><span class="p">]</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;MultiPoint&quot;</span><span class="p">:</span>
+                                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">possible_int</span><span class="p">[</span><span class="n">one</span><span class="p">]:</span>
+                                    <span class="n">true_int</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_int</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">distances</span> <span class="o">=</span> <span class="p">[]</span>
+                            <span class="n">ix</span> <span class="o">=</span> <span class="mi">0</span>
+                            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">true_int</span><span class="p">:</span>
+                                <span class="n">dist</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="n">tick</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                                <span class="n">distances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dist</span><span class="p">)</span>
+                                <span class="n">ix</span> <span class="o">=</span> <span class="n">ix</span> <span class="o">+</span> <span class="mi">1</span>
+                            <span class="n">minimal</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">ix</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">lefts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">minimal</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">rights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">minimal</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">ix</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">lefts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                    <span class="n">true_int</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="n">tick</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                                <span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">rights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                    <span class="n">true_int</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="n">tick</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                                <span class="p">)</span>
+                        <span class="k">if</span> <span class="n">heights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">indices</span> <span class="o">=</span> <span class="p">{}</span>
+                            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">get_height</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                                <span class="n">dist</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">Point</span><span class="p">(</span><span class="n">tick</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                                <span class="n">indices</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span>
+                            <span class="n">minim</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">indices</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+                            <span class="n">m_heights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">right</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">minim</span><span class="p">][</span><span class="n">heights</span><span class="p">])</span>
+
+            <span class="n">openness</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lefts</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">rights</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">ticks</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">openness_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">openness</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rights</span> <span class="ow">and</span> <span class="n">lefts</span><span class="p">:</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">lefts</span> <span class="o">+</span> <span class="n">rights</span><span class="p">))</span>
+                <span class="n">deviations_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">lefts</span> <span class="o">+</span> <span class="n">rights</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">lefts</span> <span class="ow">and</span> <span class="n">rights</span><span class="p">:</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">rights</span><span class="p">),</span> <span class="n">tick_length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]))</span>
+                <span class="n">deviations_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">rights</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">rights</span> <span class="ow">and</span> <span class="n">lefts</span><span class="p">:</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">lefts</span><span class="p">),</span> <span class="n">tick_length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]))</span>
+                <span class="n">deviations_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">lefts</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tick_length</span><span class="p">)</span>
+                <span class="n">deviations_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">heights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">m_heights</span><span class="p">:</span>
+                    <span class="n">heights_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">m_heights</span><span class="p">))</span>
+                    <span class="n">heights_deviations_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">m_heights</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">heights_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">heights_deviations_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">results_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">left</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wd</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">deviations_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">left</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">openness_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">left</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">heights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">heights_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">left</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hd</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">heights_deviations_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">left</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span></div>
+
+    <span class="c1"># http://wikicode.wikidot.com/get-angle-of-line-between-two-points</span>
+    <span class="c1"># https://glenbambrick.com/tag/perpendicular/</span>
+    <span class="c1"># angle between two points</span>
+    <span class="k">def</span> <span class="nf">_getAngle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">):</span>
+        <span class="n">x_diff</span> <span class="o">=</span> <span class="n">pt2</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">pt1</span><span class="o">.</span><span class="n">x</span>
+        <span class="n">y_diff</span> <span class="o">=</span> <span class="n">pt2</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">pt1</span><span class="o">.</span><span class="n">y</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">y_diff</span><span class="p">,</span> <span class="n">x_diff</span><span class="p">))</span>
+
+    <span class="c1"># start and end points of chainage tick</span>
+    <span class="c1"># get the first end point of a tick</span>
+    <span class="k">def</span> <span class="nf">_getPoint1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">bearing</span><span class="p">,</span> <span class="n">dist</span><span class="p">):</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="n">bearing</span> <span class="o">+</span> <span class="mi">90</span>
+        <span class="n">bearing</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">dist</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">bearing</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">dist</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">bearing</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="c1"># get the second end point of a tick</span>
+    <span class="k">def</span> <span class="nf">_getPoint2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">bearing</span><span class="p">,</span> <span class="n">dist</span><span class="p">):</span>
+        <span class="n">bearing</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">bearing</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">dist</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">bearing</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">dist</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">bearing</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WeightedCharacter"><a class="viewcode-back" href="../../generated/momepy.WeightedCharacter.html#momepy.WeightedCharacter">[docs]</a><span class="k">class</span> <span class="nc">WeightedCharacter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the weighted character</span>
+
+<span class="sd">    Character weighted by the area of the objects within `k` topological steps defined in spatial_weights.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\frac{\\sum_{i=1}^{n} {character_{i} * area_{i}}}{\\sum_{i=1}^{n} area_{i}}</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing objects to analyse</span>
+<span class="sd">    values : str, list, np.array, pd.Series</span>
+<span class="sd">        the name of the gdf dataframe column, np.array, or pd.Series where is stored character to be weighted</span>
+<span class="sd">    spatial_weights : libpysal.weights</span>
+<span class="sd">        spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated</span>
+<span class="sd">        based on left.</span>
+<span class="sd">    unique_id : str</span>
+<span class="sd">        name of the column with unique id used as spatial_weights index.</span>
+<span class="sd">    areas : str, list, np.array, pd.Series (default None)</span>
+<span class="sd">        the name of the left dataframe column, np.array, or pd.Series where is stored area value</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+<span class="sd">    values : GeoDataFrame</span>
+<span class="sd">        Series containing used values</span>
+<span class="sd">    areas : GeoDataFrame</span>
+<span class="sd">        Series containing used areas</span>
+<span class="sd">    sw : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    id : Series</span>
+<span class="sd">        Series containing used unique ID</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.</span>
+<span class="sd">    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; sw = libpysal.weights.DistanceBand.from_dataframe(tessellation_df, threshold=100, silence_warnings=True)</span>
+<span class="sd">    &gt;&gt;&gt; buildings_df[&#39;w_height_100&#39;] = momepy.WeightedCharacter(buildings_df, values=&#39;height&#39;, spatial_weights=sw,</span>
+<span class="sd">                                                                 unique_id=&#39;uID&#39;).series</span>
+<span class="sd">    100%|██████████| 144/144 [00:00&lt;00:00, 361.60it/s]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="WeightedCharacter.__init__"><a class="viewcode-back" href="../../generated/momepy.WeightedCharacter.html#momepy.WeightedCharacter.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">spatial_weights</span><span class="p">,</span> <span class="n">unique_id</span><span class="p">,</span> <span class="n">areas</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sw</span> <span class="o">=</span> <span class="n">spatial_weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">unique_id</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">areas</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">areas</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">area</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">areas</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mm_a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">areas</span>
+            <span class="n">areas</span> <span class="o">=</span> <span class="s2">&quot;mm_a&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mm_vals&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="s2">&quot;mm_vals&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">areas</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">areas</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">values</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">unique_id</span><span class="p">)</span>
+
+        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">total</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">neighbours</span> <span class="o">=</span> <span class="n">spatial_weights</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">neighbours</span><span class="p">:</span>
+                <span class="n">neighbours</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="n">subset</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neighbours</span><span class="p">]</span>
+            <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">subset</span><span class="p">[</span><span class="n">values</span><span class="p">]</span> <span class="o">*</span> <span class="n">subset</span><span class="p">[</span><span class="n">areas</span><span class="p">]))</span> <span class="o">/</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">subset</span><span class="p">[</span><span class="n">areas</span><span class="p">]))</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">results_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CoveredArea"><a class="viewcode-back" href="../../generated/momepy.CoveredArea.html#momepy.CoveredArea">[docs]</a><span class="k">class</span> <span class="nc">CoveredArea</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the area covered by neighbours</span>
+
+<span class="sd">    Total area covered by neighbours defined in spatial_weights and element itself.</span>
+
+<span class="sd">    .. math::</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing Polygon geometry</span>
+<span class="sd">    spatial_weights : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    unique_id : str</span>
+<span class="sd">        name of the column with unique id used as spatial_weights index.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+<span class="sd">    sw : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    id : Series</span>
+<span class="sd">        Series containing used unique ID</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; sw = momepy.sw_high(k=3, gdf=tessellation_df, ids=&#39;uID&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; tessellation_df[&#39;covered3steps&#39;] = mm.CoveredArea(tessellation_df, sw, &#39;uID&#39;).series</span>
+<span class="sd">    100%|██████████| 144/144 [00:00&lt;00:00, 549.15it/s]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CoveredArea.__init__"><a class="viewcode-back" href="../../generated/momepy.CoveredArea.html#momepy.CoveredArea.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">spatial_weights</span><span class="p">,</span> <span class="n">unique_id</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sw</span> <span class="o">=</span> <span class="n">spatial_weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">unique_id</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">unique_id</span><span class="p">)</span>
+
+        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">total</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">neighbours</span> <span class="o">=</span> <span class="n">spatial_weights</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">neighbours</span><span class="p">:</span>
+                <span class="n">neighbours</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="n">areas</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neighbours</span><span class="p">]</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">area</span>
+            <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">areas</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">results_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="PerimeterWall"><a class="viewcode-back" href="../../generated/momepy.PerimeterWall.html#momepy.PerimeterWall">[docs]</a><span class="k">class</span> <span class="nc">PerimeterWall</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the perimeter wall length the joined structure.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing objects to analyse</span>
+<span class="sd">    spatial_weights : libpysal.weights, optional</span>
+<span class="sd">        spatial weights matrix - If None, Queen contiguity matrix will be calculated</span>
+<span class="sd">        based on gdf. It is to denote adjacent buildings (note: based on index, not ID).</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+<span class="sd">    sw : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; buildings_df[&#39;wall_length&#39;] = mm.PerimeterWall(buildings_df).series</span>
+<span class="sd">    Calculating spatial weights...</span>
+<span class="sd">    Spatial weights ready...</span>
+<span class="sd">    100%|██████████| 144/144 [00:00&lt;00:00, 4171.39it/s]</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    It might take a while to compute this character.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PerimeterWall.__init__"><a class="viewcode-back" href="../../generated/momepy.PerimeterWall.html#momepy.PerimeterWall.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">spatial_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+
+        <span class="k">if</span> <span class="n">spatial_weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculating spatial weights...&quot;</span><span class="p">)</span>
+            <span class="kn">from</span> <span class="nn">libpysal.weights</span> <span class="k">import</span> <span class="n">Queen</span>
+
+            <span class="n">spatial_weights</span> <span class="o">=</span> <span class="n">Queen</span><span class="o">.</span><span class="n">from_dataframe</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">silence_warnings</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Spatial weights ready...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sw</span> <span class="o">=</span> <span class="n">spatial_weights</span>
+
+        <span class="c1"># dict to store walls for each uID</span>
+        <span class="n">walls</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">spatial_weights</span><span class="o">.</span><span class="n">component_labels</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gdf</span><span class="p">)))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">gdf</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()),</span> <span class="n">total</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="c1"># if the id is already present in walls, continue (avoid repetition)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">walls</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">comp</span> <span class="o">=</span> <span class="n">spatial_weights</span><span class="o">.</span><span class="n">component_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">to_join</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="n">components</span> <span class="o">==</span> <span class="n">comp</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+                <span class="n">joined</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">to_join</span><span class="p">]</span>
+                <span class="n">dissolved</span> <span class="o">=</span> <span class="n">joined</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span>
+                    <span class="mf">0.01</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">unary_union</span>  <span class="c1"># buffer to avoid multipolygons where buildings touch by corners only</span>
+                <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">to_join</span><span class="p">:</span>
+                    <span class="n">walls</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">=</span> <span class="n">dissolved</span><span class="o">.</span><span class="n">exterior</span><span class="o">.</span><span class="n">length</span>
+
+        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">gdf</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()),</span> <span class="n">total</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">walls</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">results_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SegmentsLength"><a class="viewcode-back" href="../../generated/momepy.SegmentsLength.html#momepy.SegmentsLength">[docs]</a><span class="k">class</span> <span class="nc">SegmentsLength</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the cummulative or mean length of segments.</span>
+
+<span class="sd">    Length of segments within set topological distance from each of them.</span>
+<span class="sd">    Reached topological distance should be captured by spatial_weights. If mean=False</span>
+<span class="sd">    it will return total length, if mean=True it will return mean value.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing streets (edges) to analyse</span>
+<span class="sd">    spatial_weights : libpysal.weights, optional</span>
+<span class="sd">        spatial weights matrix - If None, Queen contiguity matrix will be calculated</span>
+<span class="sd">        based on streets (note: spatial_weights shoud be based on index, not unique ID).</span>
+<span class="sd">    mean : boolean, optional</span>
+<span class="sd">        If mean=False it will return total length, if mean=True it will return mean value</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+<span class="sd">    sw : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    mean : boolean</span>
+<span class="sd">        used mean boolean value</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; streets_df[&#39;length_neighbours&#39;] = mm.SegmentsLength(streets_df, mean=True).series</span>
+<span class="sd">    Calculating spatial weights...</span>
+<span class="sd">    Spatial weights ready...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SegmentsLength.__init__"><a class="viewcode-back" href="../../generated/momepy.SegmentsLength.html#momepy.SegmentsLength.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">spatial_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">mean</span>
+
+        <span class="k">if</span> <span class="n">spatial_weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculating spatial weights...&quot;</span><span class="p">)</span>
+            <span class="kn">from</span> <span class="nn">libpysal.weights</span> <span class="k">import</span> <span class="n">Queen</span>
+
+            <span class="n">spatial_weights</span> <span class="o">=</span> <span class="n">Queen</span><span class="o">.</span><span class="n">from_dataframe</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">silence_warnings</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Spatial weights ready...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sw</span> <span class="o">=</span> <span class="n">spatial_weights</span>
+
+        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">gdf</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">total</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">neighbours</span> <span class="o">=</span> <span class="n">spatial_weights</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">neighbours</span><span class="p">:</span>
+                <span class="n">neighbours</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="n">dims</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">neighbours</span><span class="p">]</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">length</span>
+            <span class="k">if</span> <span class="n">mean</span><span class="p">:</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">results_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+      
+    </p>
+    <p>
+        &copy; Copyright 2018-2019, Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

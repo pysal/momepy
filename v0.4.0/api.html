@@ -1,0 +1,667 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>momepy API reference &#8212; momepy 0.4.0 documentation</title>
+    
+  <link rel="stylesheet" href="_static/css/index.73d71520a4ca3b99cfee5594769eaaae.css">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+    
+    
+  <link rel="preload" as="script" href="_static/js/index.3da636dd464baa7582d2.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "processRefs": false, "processEnvironments": false}})</script>
+    
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="momepy.Blocks" href="generated/momepy.Blocks.html" />
+    <link rel="prev" title="Multiple Centrality Assessment" href="user_guide/graph/centrality.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="http://docs.momepy.org/en/stable/api.html" />
+
+
+
+<script type="application/json" id="READTHEDOCS_DATA">{"ad_free": false, "api_host": "https://readthedocs.org", "build_date": "2020-12-26T11:34:47Z", "builder": "sphinx", "canonical_url": "http://docs.momepy.org/en/stable/", "commit": "19e3a1a6", "docroot": "/docs/", "features": {"docsearch_disabled": false}, "global_analytics_code": "UA-17997319-1", "language": "en", "page": "api", "programming_language": "py", "project": "momepy", "proxied_api_host": "/_", "source_suffix": ".rst", "subprojects": {}, "theme": "pydata_sphinx_theme", "user_analytics_code": "", "version": "v0.4.0"}</script>
+
+<!--
+Using this variable directly instead of using `JSON.parse` is deprecated.
+The READTHEDOCS_DATA global variable will be removed in the future.
+-->
+<script type="text/javascript">
+READTHEDOCS_DATA = JSON.parse(document.getElementById('READTHEDOCS_DATA').innerHTML);
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.4.0" /><meta name="readthedocs-resolver-filename" content="/api.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="index.html">
+    
+      <img src="_static/horizontal_logo.svg" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="index.html">Home</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="install.html">Install</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="user_guide/intro.html">User Guide</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="">API reference</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="contributing.html">Contributing</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="changelog.html">Changelog</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="references.html">References</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/martinfleis/momepy" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://twitter.com/martinfleis" target="_blank" rel="noopener">
+              <span><i class="fab fa-twitter-square"></i></span>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+        
+          
+        
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#elements" class="nav-link">elements</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#dimension" class="nav-link">dimension</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#shape" class="nav-link">shape</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#spatial-distribution" class="nav-link">spatial distribution</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#intensity" class="nav-link">intensity</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#graph" class="nav-link">graph</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#diversity" class="nav-link">diversity</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#spatial-weights" class="nav-link">spatial weights</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#preprocessing" class="nav-link">preprocessing</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#utilities" class="nav-link">utilities</a>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <span class="target" id="module-momepy"><span id="api-ref"></span></span><div class="section" id="momepy-api-reference">
+<h1>momepy API reference<a class="headerlink" href="#momepy-api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="elements">
+<h2>elements<a class="headerlink" href="#elements" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Blocks.html#momepy.Blocks" title="momepy.Blocks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Blocks</span></code></a>(tessellation, edges, buildings, …)</p></td>
+<td><p>Generate blocks based on buildings, tesselation and street network.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.buffered_limit.html#momepy.buffered_limit" title="momepy.buffered_limit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">buffered_limit</span></code></a>(gdf[, buffer])</p></td>
+<td><p>Define limit for <a class="reference internal" href="generated/momepy.Tessellation.html#momepy.Tessellation" title="momepy.Tessellation"><code class="xref py py-class docutils literal notranslate"><span class="pre">momepy.Tessellation</span></code></a> as a buffer around buildings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.enclosures.html#momepy.enclosures" title="momepy.enclosures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enclosures</span></code></a>(primary_barriers[, limit, …])</p></td>
+<td><p>Generate enclosures based on passed barriers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.get_network_id.html#momepy.get_network_id" title="momepy.get_network_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_network_id</span></code></a>(left, right, network_id[, …])</p></td>
+<td><p>Snap each element (preferably building) to the closest street network segment, saves its id.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.get_network_ratio.html#momepy.get_network_ratio" title="momepy.get_network_ratio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_network_ratio</span></code></a>(df, edges[, initial_buffer])</p></td>
+<td><p>Link polygons to network edges based on the proportion of overlap (if a cell intersects more than one edge)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.get_node_id.html#momepy.get_node_id" title="momepy.get_node_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_node_id</span></code></a>(objects, nodes, edges, node_id)</p></td>
+<td><p>Snap each building to closest street network node on the closest network edge.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Tessellation.html#momepy.Tessellation" title="momepy.Tessellation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tessellation</span></code></a>(gdf, unique_id[, limit, …])</p></td>
+<td><p>Generates tessellation.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="dimension">
+<h2>dimension<a class="headerlink" href="#dimension" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Area.html#momepy.Area" title="momepy.Area"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Area</span></code></a>(gdf)</p></td>
+<td><p>Calculates area of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.AverageCharacter.html#momepy.AverageCharacter" title="momepy.AverageCharacter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AverageCharacter</span></code></a>(gdf, values, …[, rng, …])</p></td>
+<td><p>Calculates the average of a character within a set neighbourhood defined in <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.CourtyardArea.html#momepy.CourtyardArea" title="momepy.CourtyardArea"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CourtyardArea</span></code></a>(gdf[, areas])</p></td>
+<td><p>Calculates area of holes within geometry - area of courtyards.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.CoveredArea.html#momepy.CoveredArea" title="momepy.CoveredArea"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CoveredArea</span></code></a>(gdf, spatial_weights, unique_id)</p></td>
+<td><p>Calculates the area covered by neighbours</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.FloorArea.html#momepy.FloorArea" title="momepy.FloorArea"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FloorArea</span></code></a>(gdf, heights[, areas])</p></td>
+<td><p>Calculates floor area of each object based on height and area.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.LongestAxisLength.html#momepy.LongestAxisLength" title="momepy.LongestAxisLength"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LongestAxisLength</span></code></a>(gdf)</p></td>
+<td><p>Calculates the length of the longest axis of object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Perimeter.html#momepy.Perimeter" title="momepy.Perimeter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Perimeter</span></code></a>(gdf)</p></td>
+<td><p>Calculates perimeter of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.PerimeterWall.html#momepy.PerimeterWall" title="momepy.PerimeterWall"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PerimeterWall</span></code></a>(gdf[, spatial_weights, verbose])</p></td>
+<td><p>Calculate the perimeter wall length the joined structure.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.SegmentsLength.html#momepy.SegmentsLength" title="momepy.SegmentsLength"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SegmentsLength</span></code></a>(gdf[, spatial_weights, mean, …])</p></td>
+<td><p>Calculate the cummulative and/or mean length of segments.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.StreetProfile.html#momepy.StreetProfile" title="momepy.StreetProfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StreetProfile</span></code></a>(left, right[, heights, …])</p></td>
+<td><p>Calculates the street profile characters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Volume.html#momepy.Volume" title="momepy.Volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Volume</span></code></a>(gdf, heights[, areas])</p></td>
+<td><p>Calculates volume of each object in given GeoDataFrame based on its height and area.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.WeightedCharacter.html#momepy.WeightedCharacter" title="momepy.WeightedCharacter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WeightedCharacter</span></code></a>(gdf, values, …[, areas, …])</p></td>
+<td><p>Calculates the weighted character</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="shape">
+<h2>shape<a class="headerlink" href="#shape" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.CentroidCorners.html#momepy.CentroidCorners" title="momepy.CentroidCorners"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CentroidCorners</span></code></a>(gdf[, verbose])</p></td>
+<td><p>Calculates mean distance centroid - corners and st.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.CircularCompactness.html#momepy.CircularCompactness" title="momepy.CircularCompactness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CircularCompactness</span></code></a>(gdf[, areas])</p></td>
+<td><p>Calculates compactness index of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.CompactnessWeightedAxis.html#momepy.CompactnessWeightedAxis" title="momepy.CompactnessWeightedAxis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CompactnessWeightedAxis</span></code></a>(gdf[, areas, …])</p></td>
+<td><p>Calculates compactness-weighted axis of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.Convexity.html#momepy.Convexity" title="momepy.Convexity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Convexity</span></code></a>(gdf[, areas])</p></td>
+<td><p>Calculates Convexity index of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Corners.html#momepy.Corners" title="momepy.Corners"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Corners</span></code></a>(gdf[, verbose])</p></td>
+<td><p>Calculates number of corners of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.CourtyardIndex.html#momepy.CourtyardIndex" title="momepy.CourtyardIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CourtyardIndex</span></code></a>(gdf, courtyard_areas[, areas])</p></td>
+<td><p>Calculates courtyard index of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Elongation.html#momepy.Elongation" title="momepy.Elongation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Elongation</span></code></a>(gdf)</p></td>
+<td><p>Calculates elongation of object seen as elongation of its minimum bounding rectangle.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.EquivalentRectangularIndex.html#momepy.EquivalentRectangularIndex" title="momepy.EquivalentRectangularIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EquivalentRectangularIndex</span></code></a>(gdf[, areas, …])</p></td>
+<td><p>Calculates equivalent rectangular index of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.FormFactor.html#momepy.FormFactor" title="momepy.FormFactor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FormFactor</span></code></a>(gdf, volumes[, areas])</p></td>
+<td><p>Calculates form factor of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.FractalDimension.html#momepy.FractalDimension" title="momepy.FractalDimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FractalDimension</span></code></a>(gdf[, areas, perimeters])</p></td>
+<td><p>Calculates fractal dimension of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Linearity.html#momepy.Linearity" title="momepy.Linearity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Linearity</span></code></a>(gdf[, verbose])</p></td>
+<td><p>Calculates linearity of each LineString object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.Rectangularity.html#momepy.Rectangularity" title="momepy.Rectangularity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rectangularity</span></code></a>(gdf[, areas])</p></td>
+<td><p>Calculates rectangularity of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.ShapeIndex.html#momepy.ShapeIndex" title="momepy.ShapeIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShapeIndex</span></code></a>(gdf, longest_axis[, areas])</p></td>
+<td><p>Calculates shape index of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.SquareCompactness.html#momepy.SquareCompactness" title="momepy.SquareCompactness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SquareCompactness</span></code></a>(gdf[, areas, perimeters])</p></td>
+<td><p>Calculates compactness index of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Squareness.html#momepy.Squareness" title="momepy.Squareness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Squareness</span></code></a>(gdf[, verbose])</p></td>
+<td><p>Calculates squareness of each object in given GeoDataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.VolumeFacadeRatio.html#momepy.VolumeFacadeRatio" title="momepy.VolumeFacadeRatio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VolumeFacadeRatio</span></code></a>(gdf, heights[, volumes, …])</p></td>
+<td><p>Calculates volume/facade ratio of each object in given GeoDataFrame.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="spatial-distribution">
+<h2>spatial distribution<a class="headerlink" href="#spatial-distribution" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Alignment.html#momepy.Alignment" title="momepy.Alignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Alignment</span></code></a>(gdf, spatial_weights, unique_id, …)</p></td>
+<td><p>Calculate the mean deviation of solar orientation of objects on adjacent cells from an object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.BuildingAdjacency.html#momepy.BuildingAdjacency" title="momepy.BuildingAdjacency"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BuildingAdjacency</span></code></a>(gdf, …[, …])</p></td>
+<td><p>Calculate the level of building adjacency</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.CellAlignment.html#momepy.CellAlignment" title="momepy.CellAlignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CellAlignment</span></code></a>(left, right, …)</p></td>
+<td><p>Calculate the difference between cell orientation and orientation of object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.MeanInterbuildingDistance.html#momepy.MeanInterbuildingDistance" title="momepy.MeanInterbuildingDistance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeanInterbuildingDistance</span></code></a>(gdf, …[, …])</p></td>
+<td><p>Calculate the mean interbuilding distance</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.NeighborDistance.html#momepy.NeighborDistance" title="momepy.NeighborDistance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighborDistance</span></code></a>(gdf, spatial_weights, unique_id)</p></td>
+<td><p>Calculate the mean distance to adjacent buildings (based on <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.NeighboringStreetOrientationDeviation.html#momepy.NeighboringStreetOrientationDeviation" title="momepy.NeighboringStreetOrientationDeviation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighboringStreetOrientationDeviation</span></code></a>(gdf)</p></td>
+<td><p>Calculate the mean deviation of solar orientation of adjacent streets</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Neighbors.html#momepy.Neighbors" title="momepy.Neighbors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Neighbors</span></code></a>(gdf, spatial_weights, unique_id[, …])</p></td>
+<td><p>Calculate the number of neighbours captured by <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.Orientation.html#momepy.Orientation" title="momepy.Orientation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Orientation</span></code></a>(gdf[, verbose])</p></td>
+<td><p>Calculate the orientation of object</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.SharedWalls.html#momepy.SharedWalls" title="momepy.SharedWalls"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SharedWalls</span></code></a>(gdf)</p></td>
+<td><p>Calculate the length of shared walls of adjacent elements (typically buildings)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.SharedWallsRatio.html#momepy.SharedWallsRatio" title="momepy.SharedWallsRatio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SharedWallsRatio</span></code></a>(gdf[, perimeters])</p></td>
+<td><p>Calculate shared walls ratio of adjacent elements (typically buildings)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.StreetAlignment.html#momepy.StreetAlignment" title="momepy.StreetAlignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StreetAlignment</span></code></a>(left, right, orientations[, …])</p></td>
+<td><p>Calculate the difference between street orientation and orientation of object in degrees</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="intensity">
+<h2>intensity<a class="headerlink" href="#intensity" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.AreaRatio.html#momepy.AreaRatio" title="momepy.AreaRatio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AreaRatio</span></code></a>(left, right, left_areas, right_areas)</p></td>
+<td><p>Calculate covered area ratio or floor area ratio of objects.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.BlocksCount.html#momepy.BlocksCount" title="momepy.BlocksCount"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlocksCount</span></code></a>(gdf, block_id, spatial_weights, …)</p></td>
+<td><p>Calculates the weighted number of blocks</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Count.html#momepy.Count" title="momepy.Count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Count</span></code></a>(left, right, left_id, right_id[, weighted])</p></td>
+<td><p>Calculate the number of elements within an aggregated structure.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.Courtyards.html#momepy.Courtyards" title="momepy.Courtyards"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Courtyards</span></code></a>(gdf[, block_id, spatial_weights, …])</p></td>
+<td><p>Calculate the number of courtyards within the joined structure.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Density.html#momepy.Density" title="momepy.Density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Density</span></code></a>(gdf, values, spatial_weights, unique_id)</p></td>
+<td><p>Calculate the gross density</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.NodeDensity.html#momepy.NodeDensity" title="momepy.NodeDensity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodeDensity</span></code></a>(left, right, spatial_weights[, …])</p></td>
+<td><p>Calculate the density of nodes neighbours on street network defined in <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Reached.html#momepy.Reached" title="momepy.Reached"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Reached</span></code></a>(left, right, left_id, right_id[, …])</p></td>
+<td><p>Calculates the number of objects reached within neighbours on street network</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="graph">
+<h2>graph<a class="headerlink" href="#graph" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.betweenness_centrality.html#momepy.betweenness_centrality" title="momepy.betweenness_centrality"><code class="xref py py-obj docutils literal notranslate"><span class="pre">betweenness_centrality</span></code></a>(graph[, name, mode, …])</p></td>
+<td><p>Calculates the shortest-path betweenness centrality for nodes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.cds_length.html#momepy.cds_length" title="momepy.cds_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cds_length</span></code></a>(graph[, radius, mode, name, …])</p></td>
+<td><p>Calculates length of cul-de-sacs for subgraph around each node if radius is set, or for whole graph, if <code class="docutils literal notranslate"><span class="pre">radius=None</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.closeness_centrality.html#momepy.closeness_centrality" title="momepy.closeness_centrality"><code class="xref py py-obj docutils literal notranslate"><span class="pre">closeness_centrality</span></code></a>(graph[, name, weight, …])</p></td>
+<td><p>Calculates the closeness centrality for nodes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.clustering.html#momepy.clustering" title="momepy.clustering"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clustering</span></code></a>(graph[, name])</p></td>
+<td><p>Calculates the squares clustering coefficient for nodes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.cyclomatic.html#momepy.cyclomatic" title="momepy.cyclomatic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cyclomatic</span></code></a>(graph[, radius, name, distance, …])</p></td>
+<td><p>Calculates cyclomatic complexity for subgraph around each node if radius is set, or for whole graph, if <code class="docutils literal notranslate"><span class="pre">radius=None</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.edge_node_ratio.html#momepy.edge_node_ratio" title="momepy.edge_node_ratio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">edge_node_ratio</span></code></a>(graph[, radius, name, …])</p></td>
+<td><p>Calculates edge / node ratio for subgraph around each node if radius is set, or for whole graph, if <code class="docutils literal notranslate"><span class="pre">radius=None</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.gamma.html#momepy.gamma" title="momepy.gamma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gamma</span></code></a>(graph[, radius, name, distance, verbose])</p></td>
+<td><p>Calculates connectivity gamma index for subgraph around each node if radius is set, or for whole graph, if <code class="docutils literal notranslate"><span class="pre">radius=None</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.mean_node_degree.html#momepy.mean_node_degree" title="momepy.mean_node_degree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_node_degree</span></code></a>(graph[, radius, name, …])</p></td>
+<td><p>Calculates mean node degree for subgraph around each node if radius is set, or for whole graph, if <code class="docutils literal notranslate"><span class="pre">radius=None</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.mean_node_dist.html#momepy.mean_node_dist" title="momepy.mean_node_dist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_node_dist</span></code></a>(graph[, name, length, verbose])</p></td>
+<td><p>Calculates mean distance to neighbouring nodes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.mean_nodes.html#momepy.mean_nodes" title="momepy.mean_nodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean_nodes</span></code></a>(G, attr)</p></td>
+<td><p>Calculates mean value of nodes attr for each edge.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.meshedness.html#momepy.meshedness" title="momepy.meshedness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meshedness</span></code></a>(graph[, radius, name, distance, …])</p></td>
+<td><p>Calculates meshedness for subgraph around each node if radius is set, or for whole graph, if <code class="docutils literal notranslate"><span class="pre">radius=None</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.node_degree.html#momepy.node_degree" title="momepy.node_degree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node_degree</span></code></a>(graph[, name])</p></td>
+<td><p>Calculates node degree for each node.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.proportion.html#momepy.proportion" title="momepy.proportion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">proportion</span></code></a>(graph[, radius, three, four, …])</p></td>
+<td><p>Calculates the proportion of intersection types for subgraph around each node if radius is set, or for whole graph, if <code class="docutils literal notranslate"><span class="pre">radius=None</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.straightness_centrality.html#momepy.straightness_centrality" title="momepy.straightness_centrality"><code class="xref py py-obj docutils literal notranslate"><span class="pre">straightness_centrality</span></code></a>(graph[, weight, …])</p></td>
+<td><p>Calculates the straightness centrality for nodes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.subgraph.html#momepy.subgraph" title="momepy.subgraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subgraph</span></code></a>(graph[, radius, distance, …])</p></td>
+<td><p>Calculates all subgraph-based characters.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="diversity">
+<h2>diversity<a class="headerlink" href="#diversity" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Gini.html#momepy.Gini" title="momepy.Gini"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Gini</span></code></a>(gdf, values, spatial_weights, unique_id)</p></td>
+<td><p>Calculates the Gini index of values within neighbours defined in <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.Percentiles.html#momepy.Percentiles" title="momepy.Percentiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Percentiles</span></code></a>(gdf, values, spatial_weights, …)</p></td>
+<td><p>Calculates the percentiles of values within neighbours defined in <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Range.html#momepy.Range" title="momepy.Range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Range</span></code></a>(gdf, values, spatial_weights, unique_id)</p></td>
+<td><p>Calculates the range of values within neighbours defined in <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.Shannon.html#momepy.Shannon" title="momepy.Shannon"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Shannon</span></code></a>(gdf, values, spatial_weights, unique_id)</p></td>
+<td><p>Calculates the Shannon index of values within neighbours defined in <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Simpson.html#momepy.Simpson" title="momepy.Simpson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Simpson</span></code></a>(gdf, values, spatial_weights, unique_id)</p></td>
+<td><p>Calculates the Simpson’s diversity index of values within neighbours defined in <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.Theil.html#momepy.Theil" title="momepy.Theil"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Theil</span></code></a>(gdf, values, spatial_weights, unique_id)</p></td>
+<td><p>Calculates the Theil measure of inequality of values within neighbours defined in <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.Unique.html#momepy.Unique" title="momepy.Unique"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Unique</span></code></a>(gdf, values, spatial_weights, unique_id)</p></td>
+<td><p>Calculates the number of unique values within neighbours defined in <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.shannon_diversity.html#momepy.shannon_diversity" title="momepy.shannon_diversity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shannon_diversity</span></code></a>(data[, bins, categorical, …])</p></td>
+<td><p>Calculates the Shannon’s diversity index of data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.simpson_diversity.html#momepy.simpson_diversity" title="momepy.simpson_diversity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">simpson_diversity</span></code></a>(data[, bins, categorical, …])</p></td>
+<td><p>Calculates the Simpson’s diversity index of data.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="spatial-weights">
+<h2>spatial weights<a class="headerlink" href="#spatial-weights" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.DistanceBand.html#momepy.DistanceBand" title="momepy.DistanceBand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DistanceBand</span></code></a>(gdf, threshold[, centroid, ids])</p></td>
+<td><p>On demand distance-based spatial weights-like class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.sw_high.html#momepy.sw_high" title="momepy.sw_high"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sw_high</span></code></a>(k[, gdf, weights, ids, contiguity, …])</p></td>
+<td><p>Generate spatial weights based on Queen or Rook contiguity of order k.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="preprocessing">
+<h2>preprocessing<a class="headerlink" href="#preprocessing" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.close_gaps.html#momepy.close_gaps" title="momepy.close_gaps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close_gaps</span></code></a>(gdf, tolerance)</p></td>
+<td><p>Close gaps in LineString geometry where it should be contiguous.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.CheckTessellationInput.html#momepy.CheckTessellationInput" title="momepy.CheckTessellationInput"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CheckTessellationInput</span></code></a>(gdf[, shrink, …])</p></td>
+<td><p>Check input data for <a class="reference internal" href="generated/momepy.Tessellation.html#momepy.Tessellation" title="momepy.Tessellation"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tessellation</span></code></a> for potential errors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.extend_lines.html#momepy.extend_lines" title="momepy.extend_lines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extend_lines</span></code></a>(gdf, tolerance[, target, …])</p></td>
+<td><p>Extends lines from gdf to istelf or target within a set tolerance</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.remove_false_nodes.html#momepy.remove_false_nodes" title="momepy.remove_false_nodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_false_nodes</span></code></a>(gdf)</p></td>
+<td><p>Clean topology of existing LineString geometry by removal of nodes of degree 2.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.preprocess.html#momepy.preprocess" title="momepy.preprocess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocess</span></code></a>(buildings[, size, compactness, …])</p></td>
+<td><p>Preprocesses building geometry to eliminate additional structures being single features.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.snap_street_network_edge.html#momepy.snap_street_network_edge" title="momepy.snap_street_network_edge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">snap_street_network_edge</span></code></a>(edges, buildings, …)</p></td>
+<td><p>Fix street network before performing <a class="reference internal" href="generated/momepy.Blocks.html#momepy.Blocks" title="momepy.Blocks"><code class="xref py py-class docutils literal notranslate"><span class="pre">momepy.Blocks</span></code></a>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="utilities">
+<h2>utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.gdf_to_nx.html#momepy.gdf_to_nx" title="momepy.gdf_to_nx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gdf_to_nx</span></code></a>(gdf_network[, approach, length, …])</p></td>
+<td><p>Convert LineString GeoDataFrame to networkx.MultiGraph or other Graph as per specification.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.limit_range.html#momepy.limit_range" title="momepy.limit_range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">limit_range</span></code></a>(vals, rng)</p></td>
+<td><p>Extract values within selected range</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/momepy.nx_to_gdf.html#momepy.nx_to_gdf" title="momepy.nx_to_gdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nx_to_gdf</span></code></a>(net[, points, lines, …])</p></td>
+<td><p>Convert <code class="docutils literal notranslate"><span class="pre">networkx.Graph</span></code> to LineString GeoDataFrame and Point GeoDataFrame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/momepy.unique_id.html#momepy.unique_id" title="momepy.unique_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unique_id</span></code></a>(objects)</p></td>
+<td><p>Add an attribute with unique ID to each row of GeoDataFrame.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="user_guide/graph/centrality.html" title="previous page">Multiple Centrality Assessment</a>
+    <a class='right-next' id="next-link" href="generated/momepy.Blocks.html" title="next page">momepy.Blocks</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="_static/js/index.3da636dd464baa7582d2.js"></script>
+
+
+    
+    <!-- Google Analytics -->
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-6190355-13', 'auto');
+      ga('set', 'anonymizeIp', true);
+      ga('send', 'pageview');
+    </script>
+    <script async src='https://www.google-analytics.com/analytics.js'></script>
+    <!-- End Google Analytics -->
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2018-2020, Martin Fleischmann.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

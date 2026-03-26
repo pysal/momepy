@@ -1,0 +1,273 @@
+
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>momepy.preprocess &#8212; momepy 0.3.0 documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="momepy.snap_street_network_edge" href="momepy.snap_street_network_edge.html" />
+    <link rel="prev" title="momepy.nx_to_gdf" href="momepy.nx_to_gdf.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+  
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="http://docs.momepy.org/en/stable/generated/momepy.preprocess.html" />
+
+
+
+<script type="text/javascript" src="../_static/readthedocs-data.js"></script>
+
+<!-- Add page-specific data, which must exist in the page js, not global -->
+<script type="text/javascript">
+READTHEDOCS_DATA['page'] = "generated/momepy.preprocess"
+READTHEDOCS_DATA['source_suffix'] = ".rst"
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.3.0" /><meta name="readthedocs-resolver-filename" content="/generated/momepy.preprocess.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    
+    <a class="navbar-brand" href="../index.html">
+      <img src="../_static/horizontal_logo.svg" class="logo" alt="logo">
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../index.html">Home</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../install.html">Install</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../user_guide/intro.html">User Guide</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../api.html">API reference</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../contributing.html">Contributing</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../changelog.html">Changelog</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../references.html">References</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/martinfleis/momepy" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://twitter.com/martinfleis" target="_blank" rel="noopener">
+              <span><i class="fab fa-twitter-square"></i></span>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar">
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+  <div class="bd-toc-item active">
+  
+
+  <ul class="nav bd-sidenav">
+      
+      
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+
+</nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="momepy-preprocess">
+<h1>momepy.preprocess<a class="headerlink" href="#momepy-preprocess" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="momepy.preprocess">
+<code class="sig-prename descclassname">momepy.</code><code class="sig-name descname">preprocess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">buildings</span></em>, <em class="sig-param"><span class="n">size</span><span class="o">=</span><span class="default_value">30</span></em>, <em class="sig-param"><span class="n">compactness</span><span class="o">=</span><span class="default_value">0.2</span></em>, <em class="sig-param"><span class="n">islands</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">loops</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/martinfleis/momepy/blob/v0.3.0/momepy/utils.py#L310-L459"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#momepy.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Preprocesses building geometry to eliminate additional structures being single features.</p>
+<p>Certain data providers (e.g. Ordnance Survey in GB) do not provide building geometry
+as one feature, but divided into different features depending their level (if they are
+on ground floor or not - passages, overhangs). Ideally, these features should share
+one building ID on which they could be dissolved. If this is not the case, series of
+steps needs to be done to minimize errors in morphological analysis.</p>
+<p>This script attempts to preprocess such geometry based on several condidions:
+If feature area is smaller than set size it will be a) deleted if it does not
+touch any other feature; b) will be joined to feature with which it shares the
+longest boundary. If feature is fully within other feature, these will be joined.
+If feature’s circular compactness (<a class="reference internal" href="momepy.CircularCompactness.html#momepy.CircularCompactness" title="momepy.CircularCompactness"><code class="xref py py-class docutils literal notranslate"><span class="pre">momepy.CircularCompactness</span></code></a>)
+is &lt; 0.2, it will be joined to feature with which it shares the longest boundary.
+Function does multiple loops through.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>buildings</strong><span class="classifier">geopandas.GeoDataFrame</span></dt><dd><p>geopandas.GeoDataFrame containing building layer</p>
+</dd>
+<dt><strong>size</strong><span class="classifier">float (default 30)</span></dt><dd><p>maximum area of feature to be considered as additional structure. Set to
+None if not wanted.</p>
+</dd>
+<dt><strong>compactness</strong><span class="classifier">float (default .2)</span></dt><dd><p>if set, function will resolve additional structures identified based on
+their circular compactness.</p>
+</dd>
+<dt><strong>islands</strong><span class="classifier">bool (default True)</span></dt><dd><p>if True, function will resolve additional structures which are fully within
+other structures (share 100% of exterior boundary).</p>
+</dd>
+<dt><strong>loops</strong><span class="classifier">int (default 2)</span></dt><dd><p>number of loops</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool (default True)</span></dt><dd><p>if True, shows progress bars in loops and indication of steps</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>GeoDataFrame</dt><dd><p>GeoDataFrame containing preprocessed geometry</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="momepy.nx_to_gdf.html" title="previous page">momepy.nx_to_gdf</a>
+    <a class='right-next' id="next-link" href="momepy.snap_street_network_edge.html" title="next page">momepy.snap_street_network_edge</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+    <!-- Google Analytics -->
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-6190355-13', 'auto');
+      ga('set', 'anonymizeIp', true);
+      ga('send', 'pageview');
+    </script>
+    <script async src='https://www.google-analytics.com/analytics.js'></script>
+    <!-- End Google Analytics -->
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2018-2020, Martin Fleischmann.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

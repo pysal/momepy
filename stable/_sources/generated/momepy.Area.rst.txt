@@ -1,0 +1,6 @@
+﻿momepy.Area
+===========
+
+.. currentmodule:: momepy
+
+.. autofunction:: Area

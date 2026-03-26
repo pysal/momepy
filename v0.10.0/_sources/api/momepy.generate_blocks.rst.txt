@@ -1,0 +1,6 @@
+﻿momepy.generate\_blocks
+=======================
+
+.. currentmodule:: momepy
+
+.. autofunction:: generate_blocks

@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>momepy.Gini &#8212; momepy 0.3.0 documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="momepy.Range" href="momepy.Range.html" />
+    <link rel="prev" title="momepy.subgraph" href="momepy.subgraph.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+  
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="http://docs.momepy.org/en/stable/generated/momepy.Gini.html" />
+
+
+
+<script type="text/javascript" src="../_static/readthedocs-data.js"></script>
+
+<!-- Add page-specific data, which must exist in the page js, not global -->
+<script type="text/javascript">
+READTHEDOCS_DATA['page'] = "generated/momepy.Gini"
+READTHEDOCS_DATA['source_suffix'] = ".rst"
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.3.0" /><meta name="readthedocs-resolver-filename" content="/generated/momepy.Gini.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    
+    <a class="navbar-brand" href="../index.html">
+      <img src="../_static/horizontal_logo.svg" class="logo" alt="logo">
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../index.html">Home</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../install.html">Install</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../user_guide/intro.html">User Guide</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../api.html">API reference</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../contributing.html">Contributing</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../changelog.html">Changelog</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../references.html">References</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/martinfleis/momepy" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://twitter.com/martinfleis" target="_blank" rel="noopener">
+              <span><i class="fab fa-twitter-square"></i></span>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar">
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+  <div class="bd-toc-item active">
+  
+
+  <ul class="nav bd-sidenav">
+      
+      
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+
+</nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="momepy-gini">
+<h1>momepy.Gini<a class="headerlink" href="#momepy-gini" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="momepy.Gini">
+<em class="property">class </em><code class="sig-prename descclassname">momepy.</code><code class="sig-name descname">Gini</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gdf</span></em>, <em class="sig-param"><span class="n">values</span></em>, <em class="sig-param"><span class="n">spatial_weights</span></em>, <em class="sig-param"><span class="n">unique_id</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/martinfleis/momepy/blob/v0.3.0/momepy/diversity.py#L422-L514"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#momepy.Gini" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Gini index of values within neighbours defined in <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code>.</p>
+<p>Uses <code class="docutils literal notranslate"><span class="pre">inequality.gini.Gini</span></code> under the hood. Requires ‘<cite>inequality</cite>’ package.</p>
+<div class="math notranslate nohighlight">
+\[\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>gdf</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>GeoDataFrame containing morphological tessellation</p>
+</dd>
+<dt><strong>values</strong><span class="classifier">str, list, np.array, pd.Series</span></dt><dd><p>the name of the dataframe column, <code class="docutils literal notranslate"><span class="pre">np.array</span></code>, or <code class="docutils literal notranslate"><span class="pre">pd.Series</span></code> where is stored character value.</p>
+</dd>
+<dt><strong>spatial_weights</strong><span class="classifier">libpysal.weights</span></dt><dd><p>spatial weights matrix</p>
+</dd>
+<dt><strong>unique_id</strong><span class="classifier">str</span></dt><dd><p>name of the column with unique id used as <code class="docutils literal notranslate"><span class="pre">spatial_weights</span></code> index</p>
+</dd>
+<dt><strong>rng</strong><span class="classifier">Two-element sequence containing floats in range of [0,100], optional</span></dt><dd><p>Percentiles over which to compute the range. Each must be
+between 0 and 100, inclusive. The order of the elements is not important.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool (default True)</span></dt><dd><p>if True, shows progress bars in loops and indication of steps</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sw</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">sw_high</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">gdf</span><span class="o">=</span><span class="n">tessellation_df</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="s1">&#39;uID&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tessellation_df</span><span class="p">[</span><span class="s1">&#39;area_Gini&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mm</span><span class="o">.</span><span class="n">Gini</span><span class="p">(</span><span class="n">tessellation_df</span><span class="p">,</span> <span class="s1">&#39;area&#39;</span><span class="p">,</span> <span class="n">sw</span><span class="p">,</span> <span class="s1">&#39;uID&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">series</span>
+<span class="go">100%|██████████| 144/144 [00:00&lt;00:00, 597.37it/s]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>series</strong><span class="classifier">Series</span></dt><dd><p>Series containing resulting values</p>
+</dd>
+<dt><strong>gdf</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>original GeoDataFrame</p>
+</dd>
+<dt><strong>values</strong><span class="classifier">Series</span></dt><dd><p>Series containing used values</p>
+</dd>
+<dt><strong>sw</strong><span class="classifier">libpysal.weights</span></dt><dd><p>spatial weights matrix</p>
+</dd>
+<dt><strong>id</strong><span class="classifier">Series</span></dt><dd><p>Series containing used unique ID</p>
+</dd>
+<dt><strong>rng</strong><span class="classifier">tuple</span></dt><dd><p>range</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="momepy.Gini.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gdf</span></em>, <em class="sig-param"><span class="n">values</span></em>, <em class="sig-param"><span class="n">spatial_weights</span></em>, <em class="sig-param"><span class="n">unique_id</span></em>, <em class="sig-param"><span class="n">rng</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/martinfleis/momepy/blob/v0.3.0/momepy/diversity.py#L468-L514"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#momepy.Gini.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="longtable table">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#momepy.Gini.__init__" title="momepy.Gini.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(gdf, values, spatial_weights, unique_id)</p></td>
+<td><p>Initialize self.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="momepy.subgraph.html" title="previous page">momepy.subgraph</a>
+    <a class='right-next' id="next-link" href="momepy.Range.html" title="next page">momepy.Range</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+    <!-- Google Analytics -->
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-6190355-13', 'auto');
+      ga('set', 'anonymizeIp', true);
+      ga('send', 'pageview');
+    </script>
+    <script async src='https://www.google-analytics.com/analytics.js'></script>
+    <!-- End Google Analytics -->
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2018-2020, Martin Fleischmann.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

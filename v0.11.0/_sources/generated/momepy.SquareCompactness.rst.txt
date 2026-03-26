@@ -1,0 +1,6 @@
+﻿momepy.SquareCompactness
+========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: SquareCompactness

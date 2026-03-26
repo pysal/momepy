@@ -1,0 +1,6 @@
+﻿momepy.Streetscape.compute\_plots
+=================================
+
+.. currentmodule:: momepy
+
+.. automethod:: Streetscape.compute_plots

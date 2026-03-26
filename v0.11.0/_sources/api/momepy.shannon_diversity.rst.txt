@@ -1,0 +1,6 @@
+﻿momepy.shannon\_diversity
+=========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: shannon_diversity

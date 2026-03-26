@@ -1,0 +1,6 @@
+﻿momepy.Shannon
+==============
+
+.. currentmodule:: momepy
+
+.. autofunction:: Shannon

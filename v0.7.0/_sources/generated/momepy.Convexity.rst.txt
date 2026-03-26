@@ -1,0 +1,22 @@
+﻿momepy.Convexity
+================
+
+.. currentmodule:: momepy
+
+.. autoclass:: Convexity
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Convexity.__init__
+   
+   
+
+   
+   
+   

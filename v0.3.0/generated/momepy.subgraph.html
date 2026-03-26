@@ -1,0 +1,289 @@
+
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>momepy.subgraph &#8212; momepy 0.3.0 documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous">
+    <link href="../_static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="momepy.Gini" href="momepy.Gini.html" />
+    <link rel="prev" title="momepy.straightness_centrality" href="momepy.straightness_centrality.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="docsearch:language" content="en">
+  
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="http://docs.momepy.org/en/stable/generated/momepy.subgraph.html" />
+
+
+
+<script type="text/javascript" src="../_static/readthedocs-data.js"></script>
+
+<!-- Add page-specific data, which must exist in the page js, not global -->
+<script type="text/javascript">
+READTHEDOCS_DATA['page'] = "generated/momepy.subgraph"
+READTHEDOCS_DATA['source_suffix'] = ".rst"
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.3.0" /><meta name="readthedocs-resolver-filename" content="/generated/momepy.subgraph.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    
+    <a class="navbar-brand" href="../index.html">
+      <img src="../_static/horizontal_logo.svg" class="logo" alt="logo">
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../index.html">Home</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../install.html">Install</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../user_guide/intro.html">User Guide</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../api.html">API reference</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../contributing.html">Contributing</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../changelog.html">Changelog</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../references.html">References</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/martinfleis/momepy" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://twitter.com/martinfleis" target="_blank" rel="noopener">
+              <span><i class="fab fa-twitter-square"></i></span>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar">
+
+<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+
+
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+  <div class="bd-toc-item active">
+  
+
+  <ul class="nav bd-sidenav">
+      
+      
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+
+</nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="momepy-subgraph">
+<h1>momepy.subgraph<a class="headerlink" href="#momepy-subgraph" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="momepy.subgraph">
+<code class="sig-prename descclassname">momepy.</code><code class="sig-name descname">subgraph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">graph</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">distance</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">meshedness</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">cds_length</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'sum'</span></em>, <em class="sig-param"><span class="n">degree</span><span class="o">=</span><span class="default_value">'degree'</span></em>, <em class="sig-param"><span class="n">length</span><span class="o">=</span><span class="default_value">'mm_len'</span></em>, <em class="sig-param"><span class="n">mean_node_degree</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">proportion</span><span class="o">=</span><span class="default_value">{0: True, 3: True, 4: True}</span></em>, <em class="sig-param"><span class="n">cyclomatic</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">edge_node_ratio</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">local_closeness</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">closeness_weight</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/martinfleis/momepy/blob/v0.3.0/momepy/graph.py#L1240-L1362"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#momepy.subgraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates all subgraph-based characters.</p>
+<p>Generating subgraph might be a time consuming activity. If we want to use the same
+subgraph for more characters, <code class="docutils literal notranslate"><span class="pre">subgraph</span></code> allows this by generating subgraph and
+then analysing it using selected options.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>graph</strong><span class="classifier">networkx.Graph</span></dt><dd><p>Graph representing street network.
+Ideally generated from GeoDataFrame using <a class="reference internal" href="momepy.gdf_to_nx.html#momepy.gdf_to_nx" title="momepy.gdf_to_nx"><code class="xref py py-func docutils literal notranslate"><span class="pre">momepy.gdf_to_nx()</span></code></a></p>
+</dd>
+<dt><strong>radius: int</strong></dt><dd><p>radius defining the extent of subgraph</p>
+</dd>
+<dt><strong>distance</strong><span class="classifier">str, optional</span></dt><dd><p>Use specified edge data key as distance.
+For example, setting <code class="docutils literal notranslate"><span class="pre">distance=’weight’</span></code> will use the edge <code class="docutils literal notranslate"><span class="pre">weight</span></code> to
+measure the distance from the node n.</p>
+</dd>
+<dt><strong>meshedness</strong><span class="classifier">bool, default True</span></dt><dd><p>Calculate meshedness (True/False)</p>
+</dd>
+<dt><strong>cds_length</strong><span class="classifier">bool, default True</span></dt><dd><p>Calculate cul-de-sac length (True/False)</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str (defualt ‘sum’)</span></dt><dd><p>if <code class="docutils literal notranslate"><span class="pre">'sum'</span></code>, calculate total cds_length, if <code class="docutils literal notranslate"><span class="pre">'mean'</span></code> calculate mean cds_length</p>
+</dd>
+<dt><strong>degree</strong><span class="classifier">str</span></dt><dd><p>name of attribute of node degree (<a class="reference internal" href="momepy.node_degree.html#momepy.node_degree" title="momepy.node_degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">momepy.node_degree()</span></code></a>)</p>
+</dd>
+<dt><strong>length</strong><span class="classifier">str, default <cite>mm_len</cite></span></dt><dd><p>name of attribute of segment length (geographical)</p>
+</dd>
+<dt><strong>mean_node_degree</strong><span class="classifier">bool, default True</span></dt><dd><p>Calculate mean node degree (True/False)</p>
+</dd>
+<dt><strong>proportion</strong><span class="classifier">dict, default {3: True, 4: True, 0: True}</span></dt><dd><p>Calculate proportion {3: True/False, 4: True/False, 0: True/False}</p>
+</dd>
+<dt><strong>cyclomatic</strong><span class="classifier">bool, default True</span></dt><dd><p>Calculate cyclomatic complexity (True/False)</p>
+</dd>
+<dt><strong>edge_node_ratio</strong><span class="classifier">bool, default True</span></dt><dd><p>Calculate edge node ratio (True/False)</p>
+</dd>
+<dt><strong>gamma</strong><span class="classifier">bool, default True</span></dt><dd><p>Calculate gamma index (True/False)</p>
+</dd>
+<dt><strong>local_closeness</strong><span class="classifier">bool, default True</span></dt><dd><p>Calculate local closeness centrality (True/False)</p>
+</dd>
+<dt><strong>closeness_weight</strong><span class="classifier">str, optional</span></dt><dd><p>Use the specified edge attribute as the edge distance in shortest
+path calculations in closeness centrality algorithm</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool (default True)</span></dt><dd><p>if True, shows progress bars in loops and indication of steps</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Graph</dt><dd><p>networkx.Graph</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">network_graph</span> <span class="o">=</span> <span class="n">mm</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">network_graph</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="momepy.straightness_centrality.html" title="previous page">momepy.straightness_centrality</a>
+    <a class='right-next' id="next-link" href="momepy.Gini.html" title="next page">momepy.Gini</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    <script src="../_static/js/index.js"></script>
+    
+    <!-- Google Analytics -->
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-6190355-13', 'auto');
+      ga('set', 'anonymizeIp', true);
+      ga('send', 'pageview');
+    </script>
+    <script async src='https://www.google-analytics.com/analytics.js'></script>
+    <!-- End Google Analytics -->
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2018-2020, Martin Fleischmann.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

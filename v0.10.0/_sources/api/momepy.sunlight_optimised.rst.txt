@@ -1,0 +1,6 @@
+﻿momepy.sunlight\_optimised
+==========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: sunlight_optimised

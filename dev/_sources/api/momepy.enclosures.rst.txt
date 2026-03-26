@@ -1,0 +1,6 @@
+﻿momepy.enclosures
+=================
+
+.. currentmodule:: momepy
+
+.. autofunction:: enclosures

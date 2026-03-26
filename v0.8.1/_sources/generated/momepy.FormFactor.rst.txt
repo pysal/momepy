@@ -1,0 +1,6 @@
+﻿momepy.FormFactor
+=================
+
+.. currentmodule:: momepy
+
+.. autofunction:: FormFactor

@@ -1,0 +1,6 @@
+﻿momepy.stroke\_spacing
+======================
+
+.. currentmodule:: momepy
+
+.. autofunction:: stroke_spacing

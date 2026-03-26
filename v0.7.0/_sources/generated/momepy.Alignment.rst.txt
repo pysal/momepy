@@ -1,0 +1,22 @@
+﻿momepy.Alignment
+================
+
+.. currentmodule:: momepy
+
+.. autoclass:: Alignment
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Alignment.__init__
+   
+   
+
+   
+   
+   

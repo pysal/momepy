@@ -1,0 +1,17 @@
+@import url("./basic.css");
+@import url("./bootstrap-sphinx.css");
+
+
+table.longtable.table tr td {
+    width: 50%;
+    text-align: left;
+}
+
+code {
+    color: #3c6cb0;
+    background-color: #f2f7f9;
+}
+
+dt:target, span.highlighted {
+background-color: #e7edef;
+}

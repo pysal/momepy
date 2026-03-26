@@ -1,0 +1,6 @@
+﻿momepy.Squareness
+=================
+
+.. currentmodule:: momepy
+
+.. autofunction:: Squareness

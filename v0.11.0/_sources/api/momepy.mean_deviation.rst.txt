@@ -1,0 +1,6 @@
+﻿momepy.mean\_deviation
+======================
+
+.. currentmodule:: momepy
+
+.. autofunction:: mean_deviation

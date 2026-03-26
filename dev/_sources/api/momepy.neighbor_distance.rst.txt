@@ -1,0 +1,6 @@
+﻿momepy.neighbor\_distance
+=========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: neighbor_distance

@@ -1,0 +1,6 @@
+﻿momepy.AverageCharacter
+=======================
+
+.. currentmodule:: momepy
+
+.. autofunction:: AverageCharacter

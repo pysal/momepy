@@ -1,0 +1,6 @@
+﻿momepy.Orientation
+==================
+
+.. currentmodule:: momepy
+
+.. autofunction:: Orientation

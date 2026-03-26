@@ -1,0 +1,6 @@
+﻿momepy.CentroidCorners
+======================
+
+.. currentmodule:: momepy
+
+.. autofunction:: CentroidCorners

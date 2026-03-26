@@ -1,0 +1,821 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>momepy.DistanceBand &#8212; momepy 0.5.2 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet">
+  <link href="../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blank.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+    
+  <link rel="preload" as="script" href="../_static/js/index.be7d3bbb2ef33a8344ce.js">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    
+    <link rel="canonical" href="http://docs.momepy.org/en/stable/generated/momepy.DistanceBand.html" />
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="momepy.sw_high" href="momepy.sw_high.html" />
+    <link rel="prev" title="momepy.simpson_diversity" href="momepy.simpson_diversity.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+<script async="" src="https://www.google-analytics.com/analytics.js"></script>
+<script>
+                        window.ga = window.ga || function () {
+                            (ga.q = ga.q || []).push(arguments) };
+                        ga.l = +new Date;
+                        ga('create', 'UA-6190355-13', 'auto');
+                        ga('set', 'anonymizeIp', true);
+                        ga('send', 'pageview');
+                    </script>
+
+  
+<!-- RTD Extra Head -->
+
+
+
+<script type="application/json" id="READTHEDOCS_DATA">{"ad_free": false, "api_host": "https://readthedocs.org", "build_date": "2022-01-06T11:18:17Z", "builder": "sphinx", "canonical_url": null, "commit": "ea90c32d", "docroot": "/docs/", "features": {"docsearch_disabled": false}, "global_analytics_code": "UA-17997319-1", "language": "en", "page": "generated/momepy.DistanceBand", "programming_language": "py", "project": "momepy", "proxied_api_host": "/_", "source_suffix": ".rst", "subprojects": {}, "theme": "pydata_sphinx_theme", "user_analytics_code": "", "version": "v0.5.2"}</script>
+
+<!--
+Using this variable directly instead of using `JSON.parse` is deprecated.
+The READTHEDOCS_DATA global variable will be removed in the future.
+-->
+<script type="text/javascript">
+READTHEDOCS_DATA = JSON.parse(document.getElementById('READTHEDOCS_DATA').innerHTML);
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.5.2" /><meta name="readthedocs-resolver-filename" content="/generated/momepy.DistanceBand.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+
+<a class="navbar-brand" href="../index.html">
+  <img src="../_static/horizontal_logo.svg" class="logo" alt="logo">
+</a>
+
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../index.html">
+  Home
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../install.html">
+  Install
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../user_guide/intro.html">
+  User Guide
+ </a>
+</li>
+
+<li class="toctree-l1 current active nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API reference
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../contributing.html">
+  Contributing
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../changelog.html">
+  Changelog
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../references.html">
+  References
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/pysal/momepy" rel="noopener" target="_blank" title="GitHub">
+            <span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://twitter.com/martinfleis" rel="noopener" target="_blank" title="Twitter">
+            <span><i class="fab fa-twitter-square"></i></span>
+            <label class="sr-only">Twitter</label>
+          </a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Blocks.html">
+   momepy.Blocks
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.buffered_limit.html">
+   momepy.buffered_limit
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.COINS.html">
+   momepy.COINS
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.enclosures.html">
+   momepy.enclosures
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.get_network_id.html">
+   momepy.get_network_id
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.get_network_ratio.html">
+   momepy.get_network_ratio
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.get_node_id.html">
+   momepy.get_node_id
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Tessellation.html">
+   momepy.Tessellation
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Area.html">
+   momepy.Area
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.AverageCharacter.html">
+   momepy.AverageCharacter
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.CourtyardArea.html">
+   momepy.CourtyardArea
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.CoveredArea.html">
+   momepy.CoveredArea
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.FloorArea.html">
+   momepy.FloorArea
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.LongestAxisLength.html">
+   momepy.LongestAxisLength
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Perimeter.html">
+   momepy.Perimeter
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.PerimeterWall.html">
+   momepy.PerimeterWall
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.SegmentsLength.html">
+   momepy.SegmentsLength
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.StreetProfile.html">
+   momepy.StreetProfile
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Volume.html">
+   momepy.Volume
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.WeightedCharacter.html">
+   momepy.WeightedCharacter
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.CentroidCorners.html">
+   momepy.CentroidCorners
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.CircularCompactness.html">
+   momepy.CircularCompactness
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.CompactnessWeightedAxis.html">
+   momepy.CompactnessWeightedAxis
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Convexity.html">
+   momepy.Convexity
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Corners.html">
+   momepy.Corners
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.CourtyardIndex.html">
+   momepy.CourtyardIndex
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Elongation.html">
+   momepy.Elongation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.EquivalentRectangularIndex.html">
+   momepy.EquivalentRectangularIndex
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.FormFactor.html">
+   momepy.FormFactor
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.FractalDimension.html">
+   momepy.FractalDimension
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Linearity.html">
+   momepy.Linearity
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Rectangularity.html">
+   momepy.Rectangularity
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.ShapeIndex.html">
+   momepy.ShapeIndex
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.SquareCompactness.html">
+   momepy.SquareCompactness
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Squareness.html">
+   momepy.Squareness
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.VolumeFacadeRatio.html">
+   momepy.VolumeFacadeRatio
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Alignment.html">
+   momepy.Alignment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.BuildingAdjacency.html">
+   momepy.BuildingAdjacency
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.CellAlignment.html">
+   momepy.CellAlignment
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.MeanInterbuildingDistance.html">
+   momepy.MeanInterbuildingDistance
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.NeighborDistance.html">
+   momepy.NeighborDistance
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.NeighboringStreetOrientationDeviation.html">
+   momepy.NeighboringStreetOrientationDeviation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Neighbors.html">
+   momepy.Neighbors
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Orientation.html">
+   momepy.Orientation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.SharedWalls.html">
+   momepy.SharedWalls
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.SharedWallsRatio.html">
+   momepy.SharedWallsRatio
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.StreetAlignment.html">
+   momepy.StreetAlignment
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.AreaRatio.html">
+   momepy.AreaRatio
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.BlocksCount.html">
+   momepy.BlocksCount
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Count.html">
+   momepy.Count
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Courtyards.html">
+   momepy.Courtyards
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Density.html">
+   momepy.Density
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.NodeDensity.html">
+   momepy.NodeDensity
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Reached.html">
+   momepy.Reached
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.betweenness_centrality.html">
+   momepy.betweenness_centrality
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.cds_length.html">
+   momepy.cds_length
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.closeness_centrality.html">
+   momepy.closeness_centrality
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.clustering.html">
+   momepy.clustering
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.cyclomatic.html">
+   momepy.cyclomatic
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.edge_node_ratio.html">
+   momepy.edge_node_ratio
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.gamma.html">
+   momepy.gamma
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.mean_node_degree.html">
+   momepy.mean_node_degree
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.mean_node_dist.html">
+   momepy.mean_node_dist
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.mean_nodes.html">
+   momepy.mean_nodes
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.meshedness.html">
+   momepy.meshedness
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.node_degree.html">
+   momepy.node_degree
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.proportion.html">
+   momepy.proportion
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.straightness_centrality.html">
+   momepy.straightness_centrality
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.subgraph.html">
+   momepy.subgraph
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Gini.html">
+   momepy.Gini
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Percentiles.html">
+   momepy.Percentiles
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Range.html">
+   momepy.Range
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Shannon.html">
+   momepy.Shannon
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Simpson.html">
+   momepy.Simpson
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Theil.html">
+   momepy.Theil
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.Unique.html">
+   momepy.Unique
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.shannon_diversity.html">
+   momepy.shannon_diversity
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.simpson_diversity.html">
+   momepy.simpson_diversity
+  </a>
+ </li>
+</ul>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   momepy.DistanceBand
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.sw_high.html">
+   momepy.sw_high
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.close_gaps.html">
+   momepy.close_gaps
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.CheckTessellationInput.html">
+   momepy.CheckTessellationInput
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.extend_lines.html">
+   momepy.extend_lines
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.remove_false_nodes.html">
+   momepy.remove_false_nodes
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.preprocess.html">
+   momepy.preprocess
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.gdf_to_nx.html">
+   momepy.gdf_to_nx
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.limit_range.html">
+   momepy.limit_range
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.nx_to_gdf.html">
+   momepy.nx_to_gdf
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="momepy.unique_id.html">
+   momepy.unique_id
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+<div
+  id="ethical-ad-placement"
+  class="flat"
+  data-ea-publisher="readthedocs"
+  data-ea-type="readthedocs-sidebar"
+  data-ea-manual="true"
+></div>
+
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+
+<nav id="bd-toc-nav">
+    
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="momepy-distanceband">
+<h1>momepy.DistanceBand<a class="headerlink" href="#momepy-distanceband" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="momepy.DistanceBand">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">momepy.</span></span><span class="sig-name descname"><span class="pre">DistanceBand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/v0.5.2/momepy/weights.py#L10-L55"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.DistanceBand" title="Permalink to this definition">¶</a></dt>
+<dd><p>On demand distance-based spatial weights-like class.</p>
+<p>Mimic the behavior of <code class="docutils literal notranslate"><span class="pre">libpysal.weights.DistanceBand</span></code> but do not compute all
+neighbors at once but only on demand. Only <code class="docutils literal notranslate"><span class="pre">DistanceBand.neighbors[key]</span></code> is
+implemented. Once user asks for <code class="docutils literal notranslate"><span class="pre">DistanceBand.neighbors[key]</span></code>, neighbors for
+specified key will be computed using rtree. The algorithm is significantly
+slower than <code class="docutils literal notranslate"><span class="pre">libpysal.weights.DistanceBand</span></code> but allows for large number of
+neighbors which may cause memory issues in libpysal.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">libpysal.weights.DistanceBand</span></code> if possible. <code class="docutils literal notranslate"><span class="pre">momepy.weights.DistanceBand</span></code>
+only when necessary. <code class="docutils literal notranslate"><span class="pre">DistanceBand.neighbors[key]</span></code> should yield same results as
+<a class="reference internal" href="#momepy.DistanceBand" title="momepy.DistanceBand"><code class="xref py py-class docutils literal notranslate"><span class="pre">momepy.DistanceBand</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>gdf</strong><span class="classifier">GeoDataFrame or GeoSeries</span></dt><dd><p>GeoDataFrame containing objects to be used</p>
+</dd>
+<dt><strong>threshold</strong><span class="classifier">float</span></dt><dd><p>distance band to be used as buffer</p>
+</dd>
+<dt><strong>centroid</strong><span class="classifier">bool (default True)</span></dt><dd><p>use centroid of geometry (as in <code class="docutils literal notranslate"><span class="pre">libpysal.weights.DistanceBand</span></code>).
+If <code class="docutils literal notranslate"><span class="pre">False</span></code>, works with the geometry as it is.</p>
+</dd>
+<dt><strong>ids</strong><span class="classifier">str</span></dt><dd><p>column to be used as geometry ids. If not set, integer position is used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>neighbors[key]</strong><span class="classifier">list</span></dt><dd><p>list of ids of neighboring features</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="table">
+<colgroup>
+<col style="width: 60%" />
+<col style="width: 40%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>fetch_items</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="momepy.DistanceBand.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/v0.5.2/momepy/weights.py#L44-L49"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.DistanceBand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#momepy.DistanceBand.__init__" title="momepy.DistanceBand.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(gdf, threshold[, centroid, ids])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch_items</span></code>(key)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="momepy.simpson_diversity.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">momepy.simpson_diversity</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="momepy.sw_high.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">momepy.sw_high</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <script src="../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2018-2021, Martin Fleischmann and PySAL Developers.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.3.2.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>

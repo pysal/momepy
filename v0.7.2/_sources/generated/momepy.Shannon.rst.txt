@@ -1,0 +1,22 @@
+﻿momepy.Shannon
+==============
+
+.. currentmodule:: momepy
+
+.. autoclass:: Shannon
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Shannon.__init__
+   
+   
+
+   
+   
+   

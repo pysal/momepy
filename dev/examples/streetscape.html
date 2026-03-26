@@ -1,0 +1,1311 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Example of using the Streetscape class &#8212; momepy 0.10.1.dev33+gcea798f29.d20260310 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f00722e8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=d4f48f33"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/streetscape';</script>
+    <link rel="canonical" href="http://docs.momepy.org/en/latest/examples/streetscape.html" />
+    <link rel="icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="momepy API reference" href="../api.html" />
+    <link rel="prev" title="Simplified detection of urban types" href="clustering.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.10.1.dev33+gcea798f29.d20260310" />
+  <script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="latest" /><meta name="readthedocs-resolver-filename" content="/examples/streetscape.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/horizontal_logo_light.svg" class="logo__image only-light" alt="momepy 0.10.1.dev33+gcea798f29.d20260310 documentation - Home"/>
+    <img src="../_static/horizontal_logo_dark.svg" class="logo__image only-dark pst-js-only" alt="momepy 0.10.1.dev33+gcea798f29.d20260310 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Install
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/intro.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-external" href="https://github.com/pysal/momepy/releases">
+    Changelog
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../references.html">
+    References
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/pysal/momepy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/martinfleis" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Install
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/intro.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://github.com/pysal/momepy/releases">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../references.html">
+    References
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/pysal/momepy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/martinfleis" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Simplified detection of urban types</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Example of using the <code class="docutils literal notranslate"><span class="pre">Streetscape</span></code> class</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Examples</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Example of using the <code class="docutils literal notranslate"><span class="pre">Streetscape</span></code> class</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="admonition note">
+<p class="admonition-title">Note</p>
+<div class="line-block">
+<div class="line">This page was generated from <a class="reference external" href="https://github.com/pysal/momepy/blob/master/docs/examples/streetscape.ipynb">examples/streetscape.ipynb</a>.</div>
+<div class="line">Interactive online version: <span class="raw-html"><a href="https://mybinder.org/v2/gh/pysal/momepy/master?urlpath=lab/tree/docs/examples/streetscape.ipynb"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a></span></div>
+</div>
+</div>
+<section id="Example-of-using-the-Streetscape-class">
+<h1>Example of using the <code class="docutils literal notranslate"><span class="pre">Streetscape</span></code> class<a class="headerlink" href="#Example-of-using-the-Streetscape-class" title="Link to this heading">#</a></h1>
+<p>The class is designed for morphological streetscape analysis, focusing on generating nd analyzing streetscape measures based on sight points and sightlines. It attempts to capture the space from the pedestrian point of view.</p>
+<p>For details and citation, refer to <em>Araldi, A., Fleischmann, M., Fusco, G., Novotný, M., 2025. Streetscape morphometrics: Expanding momepy to analyze urban form from the street point of view. SoftwareX 31, 102242.</em> <a class="reference external" href="https://doi.org/10.1016/j.softx.2025.102242">https://doi.org/10.1016/j.softx.2025.102242</a><em>.</em></p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">momepy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">osmnx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ox</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">rioxarray</span>
+</pre></div>
+</div>
+</div>
+<p>Read all the data. Only streets and buildings are required.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">streets</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span>
+    <span class="n">momepy</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s2">&quot;bubenec&quot;</span><span class="p">),</span> <span class="n">layer</span><span class="o">=</span><span class="s2">&quot;streets&quot;</span>
+<span class="p">)</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="mi">5514</span><span class="p">)</span>
+<span class="n">buildings</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span>
+    <span class="n">momepy</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s2">&quot;bubenec&quot;</span><span class="p">),</span> <span class="n">layer</span><span class="o">=</span><span class="s2">&quot;buildings&quot;</span>
+<span class="p">)</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="mi">5514</span><span class="p">)</span>
+<span class="n">plots</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span>
+    <span class="n">momepy</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s2">&quot;bubenec&quot;</span><span class="p">),</span> <span class="n">layer</span><span class="o">=</span><span class="s2">&quot;plots&quot;</span>
+<span class="p">)</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="mi">5514</span><span class="p">)</span>
+<span class="n">dtm</span> <span class="o">=</span> <span class="n">rioxarray</span><span class="o">.</span><span class="n">open_rasterio</span><span class="p">(</span><span class="n">momepy</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s2">&quot;bubenec&quot;</span><span class="p">),</span> <span class="n">layer</span><span class="o">=</span><span class="s2">&quot;dtm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Mimic data on building category and height.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">buildings</span><span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">buildings</span><span class="p">))</span>
+<span class="n">buildings</span><span class="p">[</span><span class="s2">&quot;height&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">buildings</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<p>Initiate the class. This will dricectly compute builk of the sightline indicators based on streets and buildings.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sc</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">Streetscape</span><span class="p">(</span>
+    <span class="n">streets</span><span class="p">,</span> <span class="n">buildings</span><span class="p">,</span> <span class="n">category_col</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="n">height_col</span><span class="o">=</span><span class="s2">&quot;height&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>If you have plots and DTM, you can use two additional methods to compute additional variables.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sc</span><span class="o">.</span><span class="n">compute_plots</span><span class="p">(</span><span class="n">plots</span><span class="p">)</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">compute_slope</span><span class="p">(</span><span class="n">dtm</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The resulting data can be extracted either on a street level:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">street_df</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">street_level</span><span class="p">()</span>
+<span class="n">street_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>N</th>
+      <th>n_l</th>
+      <th>n_r</th>
+      <th>left_os</th>
+      <th>right_os</th>
+      <th>os</th>
+      <th>left_os_std</th>
+      <th>right_os_std</th>
+      <th>os_std</th>
+      <th>left_os_mad</th>
+      <th>...</th>
+      <th>plot_WP_ratio</th>
+      <th>left_plot_WP_ratio</th>
+      <th>right_plot_WP_ratio</th>
+      <th>left_plot_seq_sb_index</th>
+      <th>right_plot_seq_sb_index</th>
+      <th>slope_degree</th>
+      <th>slope_percent</th>
+      <th>n_slopes</th>
+      <th>slope_valid</th>
+      <th>geometry</th>
+    </tr>
+    <tr>
+      <th>street_index</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>57</td>
+      <td>28</td>
+      <td>38</td>
+      <td>33.607135</td>
+      <td>38.163914</td>
+      <td>71.771049</td>
+      <td>14.794107</td>
+      <td>12.059253</td>
+      <td>13.436283</td>
+      <td>13.873261</td>
+      <td>...</td>
+      <td>0.170662</td>
+      <td>0.156054</td>
+      <td>0.184501</td>
+      <td>{96, 101, 103, 104, 82, 308, 87, 89, 92}</td>
+      <td>{102, 105, 309, 310, 311, 383}</td>
+      <td>2.809318</td>
+      <td>0.049073</td>
+      <td>57</td>
+      <td>True</td>
+      <td>LINESTRING (-743681.992 -1040957.169, -743809....</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>22</td>
+      <td>0</td>
+      <td>19</td>
+      <td>50.000000</td>
+      <td>17.497487</td>
+      <td>67.497487</td>
+      <td>0.000000</td>
+      <td>14.015687</td>
+      <td>9.794670</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0.255912</td>
+      <td>0.284263</td>
+      <td>0.230261</td>
+      <td>{242, 243}</td>
+      <td>{240, 238, 239}</td>
+      <td>0.166605</td>
+      <td>0.002908</td>
+      <td>22</td>
+      <td>True</td>
+      <td>LINESTRING (-743916.081 -1041162.952, -743899....</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>43</td>
+      <td>36</td>
+      <td>21</td>
+      <td>13.907200</td>
+      <td>35.792031</td>
+      <td>49.699231</td>
+      <td>16.207022</td>
+      <td>15.188099</td>
+      <td>15.613165</td>
+      <td>11.913767</td>
+      <td>...</td>
+      <td>0.200568</td>
+      <td>0.221176</td>
+      <td>0.181546</td>
+      <td>{78, 79, 80, 81, 82, 308}</td>
+      <td>{83, 87, 311, 89, 90}</td>
+      <td>1.122029</td>
+      <td>0.019587</td>
+      <td>43</td>
+      <td>True</td>
+      <td>LINESTRING (-743689.806 -1041115.822, -743698....</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>24</td>
+      <td>0</td>
+      <td>0</td>
+      <td>50.000000</td>
+      <td>48.865531</td>
+      <td>98.865531</td>
+      <td>0.000000</td>
+      <td>4.101247</td>
+      <td>2.869002</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0.156703</td>
+      <td>0.060853</td>
+      <td>0.248559</td>
+      <td>{380, 381, 382}</td>
+      <td>{385, 103}</td>
+      <td>2.735747</td>
+      <td>0.047794</td>
+      <td>24</td>
+      <td>True</td>
+      <td>LINESTRING (-743618.342 -1040934.607, -743621....</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>15</td>
+      <td>0</td>
+      <td>0</td>
+      <td>50.000000</td>
+      <td>50.000000</td>
+      <td>100.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0.068937</td>
+      <td>0.050164</td>
+      <td>0.058499</td>
+      <td>{390, 391, 398, 400, 401, 404}</td>
+      <td>{388, 391, 401, 403, 404}</td>
+      <td>1.505840</td>
+      <td>0.026294</td>
+      <td>15</td>
+      <td>True</td>
+      <td>LINESTRING (-743701.515 -1040870.813, -743693....</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 106 columns</p>
+</div></div>
+</div>
+<p>It is a GeoDataFrame, so you can directly plot it.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">street_df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;os&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">buildings</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_streetscape_13_0.png" src="../_images/examples_streetscape_13_0.png" />
+</div>
+</div>
+<p>Or for all individual sightline points.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">point_df</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">point_level</span><span class="p">()</span>
+<span class="n">point_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>geometry</th>
+      <th>left_os_count</th>
+      <th>left_os</th>
+      <th>left_sb_count</th>
+      <th>left_sb</th>
+      <th>left_h</th>
+      <th>left_hw</th>
+      <th>left_bc</th>
+      <th>right_os_count</th>
+      <th>right_os</th>
+      <th>...</th>
+      <th>right_plot_seq_sb_index</th>
+      <th>os_count</th>
+      <th>os</th>
+      <th>sb_count</th>
+      <th>sb</th>
+      <th>h</th>
+      <th>hw</th>
+      <th>bc</th>
+      <th>plot_seq_sb</th>
+      <th>plot_seq_sb_depth</th>
+    </tr>
+    <tr>
+      <th>street_index</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>POINT (-743682.367 -1040957.5)</td>
+      <td>1</td>
+      <td>50.000000</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0.000000</td>
+      <td>1</td>
+      <td>50.000000</td>
+      <td>...</td>
+      <td>{383}</td>
+      <td>2</td>
+      <td>50.000000</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0.000000</td>
+      <td>14.568200</td>
+      <td>19.240118</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>POINT (-743684.627 -1040959.485)</td>
+      <td>1</td>
+      <td>50.000000</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0.000000</td>
+      <td>1</td>
+      <td>50.000000</td>
+      <td>...</td>
+      <td>{383}</td>
+      <td>2</td>
+      <td>50.000000</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0.000000</td>
+      <td>10.090066</td>
+      <td>18.011884</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>POINT (-743686.886 -1040961.471)</td>
+      <td>1</td>
+      <td>50.000000</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0.000000</td>
+      <td>1</td>
+      <td>27.593446</td>
+      <td>...</td>
+      <td>{383}</td>
+      <td>2</td>
+      <td>38.796723</td>
+      <td>1</td>
+      <td>27.593446</td>
+      <td>17.0</td>
+      <td>0.616088</td>
+      <td>2.491801</td>
+      <td>10.100149</td>
+      <td>15.658901</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>POINT (-743689.145 -1040963.457)</td>
+      <td>1</td>
+      <td>50.000000</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0.000000</td>
+      <td>1</td>
+      <td>26.229691</td>
+      <td>...</td>
+      <td>{383}</td>
+      <td>2</td>
+      <td>38.114846</td>
+      <td>1</td>
+      <td>26.229691</td>
+      <td>17.0</td>
+      <td>0.648120</td>
+      <td>5.604209</td>
+      <td>9.996735</td>
+      <td>27.216748</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>POINT (-743691.405 -1040965.443)</td>
+      <td>1</td>
+      <td>50.000000</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0.000000</td>
+      <td>1</td>
+      <td>25.412462</td>
+      <td>...</td>
+      <td>{383}</td>
+      <td>2</td>
+      <td>37.706231</td>
+      <td>1</td>
+      <td>25.412462</td>
+      <td>17.0</td>
+      <td>0.668963</td>
+      <td>6.825341</td>
+      <td>9.996961</td>
+      <td>32.570991</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>POINT (-743693.664 -1040967.428)</td>
+      <td>1</td>
+      <td>23.978541</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>6.557431</td>
+      <td>1</td>
+      <td>25.198986</td>
+      <td>...</td>
+      <td>{383}</td>
+      <td>2</td>
+      <td>24.588764</td>
+      <td>1</td>
+      <td>25.198986</td>
+      <td>17.0</td>
+      <td>0.674630</td>
+      <td>11.811294</td>
+      <td>9.997186</td>
+      <td>29.171224</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>POINT (-743695.923 -1040969.414)</td>
+      <td>1</td>
+      <td>14.720375</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>15.763951</td>
+      <td>1</td>
+      <td>26.764536</td>
+      <td>...</td>
+      <td>{383}</td>
+      <td>2</td>
+      <td>20.742455</td>
+      <td>1</td>
+      <td>26.764536</td>
+      <td>17.0</td>
+      <td>0.635169</td>
+      <td>16.722367</td>
+      <td>9.997412</td>
+      <td>25.070210</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>POINT (-743698.182 -1040971.4)</td>
+      <td>1</td>
+      <td>14.705134</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>16.541363</td>
+      <td>1</td>
+      <td>28.184169</td>
+      <td>...</td>
+      <td>{383}</td>
+      <td>2</td>
+      <td>21.444652</td>
+      <td>1</td>
+      <td>28.184169</td>
+      <td>17.0</td>
+      <td>0.603175</td>
+      <td>15.669026</td>
+      <td>9.997637</td>
+      <td>21.235336</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>POINT (-743700.442 -1040973.386)</td>
+      <td>1</td>
+      <td>14.689893</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>19.812513</td>
+      <td>1</td>
+      <td>29.961410</td>
+      <td>...</td>
+      <td>{383}</td>
+      <td>2</td>
+      <td>22.325652</td>
+      <td>1</td>
+      <td>29.961410</td>
+      <td>17.0</td>
+      <td>0.567397</td>
+      <td>13.593521</td>
+      <td>9.997863</td>
+      <td>24.073478</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>POINT (-743702.701 -1040975.371)</td>
+      <td>1</td>
+      <td>14.674652</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>19.807911</td>
+      <td>1</td>
+      <td>31.357056</td>
+      <td>...</td>
+      <td>{383}</td>
+      <td>2</td>
+      <td>23.015854</td>
+      <td>1</td>
+      <td>31.357056</td>
+      <td>17.0</td>
+      <td>0.542143</td>
+      <td>13.355549</td>
+      <td>9.998088</td>
+      <td>25.161555</td>
+    </tr>
+  </tbody>
+</table>
+<p>10 rows × 34 columns</p>
+</div></div>
+</div>
+<p>Again, it is a GeoDataFrame, this time with point geometry.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">point_df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;os&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">buildings</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_streetscape_17_0.png" src="../_images/examples_streetscape_17_0.png" />
+</div>
+</div>
+<section id="Using-OpenStreetMap-data">
+<h2>Using OpenStreetMap data<a class="headerlink" href="#Using-OpenStreetMap-data" title="Link to this heading">#</a></h2>
+<p>You can also use any other data. If you fetch buildings and streets from OSM, you can measure a subset of characters depending on those.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gdf</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">features_from_place</span><span class="p">(</span><span class="s2">&quot;Kahla, Germany&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;building&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+<span class="n">buildings</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">project_gdf</span><span class="p">(</span><span class="n">gdf</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+<span class="n">streets_graph</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_from_place</span><span class="p">(</span><span class="s2">&quot;Kahla, Germany&quot;</span><span class="p">,</span> <span class="n">network_type</span><span class="o">=</span><span class="s2">&quot;drive&quot;</span><span class="p">)</span>
+<span class="n">streets_graph</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">projection</span><span class="o">.</span><span class="n">project_graph</span><span class="p">(</span><span class="n">streets_graph</span><span class="p">)</span>
+<span class="n">edges</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_to_gdfs</span><span class="p">(</span>
+    <span class="n">streets_graph</span><span class="p">,</span>
+    <span class="n">nodes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">edges</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">node_geometry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">fill_edge_geometry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Initiate the class. This time without additional arguments as OSM does not contain category or reliable height.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sc</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">Streetscape</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">buildings</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The measurememnt happens on class initialisation. Now you can simply extract it either on a street level:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">street_df</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">street_level</span><span class="p">()</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">street_df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;os&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">buildings</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgray&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_streetscape_23_0.png" src="../_images/examples_streetscape_23_0.png" />
+</div>
+</div>
+<p>Or on a point level, as before.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">point_df</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">point_level</span><span class="p">()</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">point_df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;os&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">buildings</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgray&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_streetscape_25_0.png" src="../_images/examples_streetscape_25_0.png" />
+</div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="clustering.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Simplified detection of urban types</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../api.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">momepy API reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Using-OpenStreetMap-data">Using OpenStreetMap data</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/examples/streetscape.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2018-, Martin Fleischmann and PySAL Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

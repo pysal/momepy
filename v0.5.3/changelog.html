@@ -1,0 +1,567 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Changelog &#8212; momepy 0.5.3 documentation</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css" />
+    
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    
+    <link rel="canonical" href="http://docs.momepy.org/en/stable/changelog.html" />
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="References" href="references.html" />
+    <link rel="prev" title="Contributing to momepy" href="contributing.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+<script async="" src="https://www.google-analytics.com/analytics.js"></script>
+<script>
+                        window.ga = window.ga || function () {
+                            (ga.q = ga.q || []).push(arguments) };
+                        ga.l = +new Date;
+                        ga('create', 'UA-6190355-13', 'auto');
+                        ga('set', 'anonymizeIp', true);
+                        ga('send', 'pageview');
+                    </script>
+
+  
+<!-- RTD Extra Head -->
+
+
+
+<script type="application/json" id="READTHEDOCS_DATA">{"ad_free": false, "api_host": "https://readthedocs.org", "build_date": "2022-04-09T13:32:31Z", "builder": "sphinx", "canonical_url": null, "commit": "c6b9b2d3", "docroot": "/docs/", "features": {"docsearch_disabled": false}, "global_analytics_code": "UA-17997319-1", "language": "en", "page": "changelog", "programming_language": "py", "project": "momepy", "proxied_api_host": "/_", "source_suffix": ".rst", "subprojects": {}, "theme": "pydata_sphinx_theme", "user_analytics_code": "", "version": "v0.5.3"}</script>
+
+<!--
+Using this variable directly instead of using `JSON.parse` is deprecated.
+The READTHEDOCS_DATA global variable will be removed in the future.
+-->
+<script type="text/javascript">
+READTHEDOCS_DATA = JSON.parse(document.getElementById('READTHEDOCS_DATA').innerHTML);
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.5.3" /><meta name="readthedocs-resolver-filename" content="/changelog.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+
+<a class="navbar-brand" href="index.html">
+  <img src="_static/horizontal_logo.svg" class="logo" alt="logo">
+</a>
+
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="index.html">
+  Home
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="install.html">
+  Install
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="user_guide/intro.html">
+  User Guide
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="examples/index.html">
+  Examples
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="api.html">
+  API reference
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="contributing.html">
+  Contributing
+ </a>
+</li>
+
+<li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
+  Changelog
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="references.html">
+  References
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/pysal/momepy" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://twitter.com/martinfleis" rel="noopener" target="_blank" title="Twitter"><span><i class="fab fa-twitter-square"></i></span>
+            <label class="sr-only">Twitter</label></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+<div
+  id="ethical-ad-placement"
+  class="flat"
+  data-ea-publisher="readthedocs"
+  data-ea-type="readthedocs-sidebar"
+  data-ea-manual="true"
+></div>
+
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-5-3-april-9-2022">
+   Version 0.5.3 (April 9, 2022)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-5-2-january-6-2022">
+   Version 0.5.2 (January 6, 2022)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-5-1-october-20-2021">
+   Version 0.5.1 (October 20, 2021)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-5-0-september-12-2021">
+   Version 0.5.0 (September 12, 2021)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-4-4-april-30-2021">
+   Version 0.4.4 (April 30, 2021)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-4-3-february-16-2021">
+   Version 0.4.3 (February 16, 2021)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-4-2-february-4-2021">
+   Version 0.4.2 (February 4, 2021)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-4-1-january-12-2021">
+   Version 0.4.1 (January 12, 2021)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-4-0-december-26-2020">
+   Version 0.4.0 (December 26, 2020)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-3-0-july-29-2020">
+   Version 0.3.0 (July 29, 2020)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-2-1-april-15-2020">
+   Version 0.2.1 (April 15, 2020)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-2-0-april-13-2020">
+   Version 0.2.0 (April 13, 2020)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#version-0-1-1-december-15-2019">
+   Version 0.1.1 (December 15, 2019)
+  </a>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">#</a></h1>
+<section id="version-0-5-3-april-9-2022">
+<h2>Version 0.5.3 (April 9, 2022)<a class="headerlink" href="#version-0-5-3-april-9-2022" title="Permalink to this headline">#</a></h2>
+<p>Minor patch release primarily fixing an issue with momepy.Blocks and a creation of angular graphs.</p>
+<p>Fixes:</p>
+<ul class="simple">
+<li><p>BUG: Fix angle computation in graph creation with dual approach (#347)</p></li>
+<li><p>BUG: fix issue with blocks within another blocks (#351)</p></li>
+</ul>
+</section>
+<section id="version-0-5-2-january-6-2022">
+<h2>Version 0.5.2 (January 6, 2022)<a class="headerlink" href="#version-0-5-2-january-6-2022" title="Permalink to this headline">#</a></h2>
+<p>Since version 0.5.2, momepy is licensed under the BSD-3-Clause License instead
+of the MIT License, to be in line with the rest of the PySAL ecosystem.</p>
+<p>Fixes:</p>
+<ul class="simple">
+<li><p>BUG: non-default index dropped in Blocks id series (#315)</p></li>
+<li><p>BUG: fix FormFactor formula (#330)</p></li>
+</ul>
+</section>
+<section id="version-0-5-1-october-20-2021">
+<h2>Version 0.5.1 (October 20, 2021)<a class="headerlink" href="#version-0-5-1-october-20-2021" title="Permalink to this headline">#</a></h2>
+<p>Small patch adjusting momepy to changes geopandas 0.10.</p>
+<p>Fixes:</p>
+<ul class="simple">
+<li><p>BUG: non-default index dropped in Blocks id series</p></li>
+<li><p>REF/TST: minimise warnings from geopandas 0.10</p></li>
+</ul>
+</section>
+<section id="version-0-5-0-september-12-2021">
+<h2>Version 0.5.0 (September 12, 2021)<a class="headerlink" href="#version-0-5-0-september-12-2021" title="Permalink to this headline">#</a></h2>
+<p>Enhancements:</p>
+<ul class="simple">
+<li><p>COINS algorithm for analysis of continuity of street networks (#248, #276)</p></li>
+<li><p>ENH: distance decay in Percentiles (#269)</p></li>
+<li><p>ENH: add dropna keyword to Unique (#280)</p></li>
+<li><p>ENH: catch geographic CRS in Tessellation (#298)</p></li>
+<li><p>ENH: support shapely polygon as enclosures limit (#299)</p></li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li><p>BUG/DOC: adapt to mutliindex + remove preprocess (#281)</p></li>
+<li><p>BUG: Tessellation error on non-standard enclosures (#291)</p></li>
+<li><p>BUG: properly clip enclosures by limit (#288)</p></li>
+</ul>
+<p>Other:</p>
+<ul class="simple">
+<li><p>DEP: remove deprecated functions and args (#268)</p></li>
+<li><p>PERF: use dask.bag in Tessellation (#296)</p></li>
+</ul>
+</section>
+<section id="version-0-4-4-april-30-2021">
+<h2>Version 0.4.4 (April 30, 2021)<a class="headerlink" href="#version-0-4-4-april-30-2021" title="Permalink to this headline">#</a></h2>
+<p>Small bug fix affecting <cite>nx_to_gdf</cite> and <cite>NodeDensity</cite>.</p>
+<ul class="simple">
+<li><p>BUG: node ID doesn’t match ID in weights (#274)</p></li>
+</ul>
+</section>
+<section id="version-0-4-3-february-16-2021">
+<h2>Version 0.4.3 (February 16, 2021)<a class="headerlink" href="#version-0-4-3-february-16-2021" title="Permalink to this headline">#</a></h2>
+<p>Small bug fix:</p>
+<ul class="simple">
+<li><p>BUG: UnboundLocalError: local variable ‘cpu_count’ referenced before assignment (#266)</p></li>
+</ul>
+</section>
+<section id="version-0-4-2-february-4-2021">
+<h2>Version 0.4.2 (February 4, 2021)<a class="headerlink" href="#version-0-4-2-february-4-2021" title="Permalink to this headline">#</a></h2>
+<p>Bug fix release:</p>
+<ul class="simple">
+<li><p>BUG: resolve nans in StreetProfile (#251)</p></li>
+<li><p>REGR: fix slowdown in tessellation (#256)</p></li>
+<li><p>BUG: avoid string “geometry” (#257)</p></li>
+<li><p>PERF: move translation in Tessellation (#259)</p></li>
+<li><p>REGR: use convex_hull to mitigate infinity (#260)</p></li>
+</ul>
+</section>
+<section id="version-0-4-1-january-12-2021">
+<h2>Version 0.4.1 (January 12, 2021)<a class="headerlink" href="#version-0-4-1-january-12-2021" title="Permalink to this headline">#</a></h2>
+<ul class="simple">
+<li><p>fixed bug in the automatic selection of number of dask chunks in enclosed tessellation</p></li>
+<li><p>fixed infinity issue in <code class="docutils literal notranslate"><span class="pre">StreetProfile</span></code> (#249)</p></li>
+<li><p>fixed issue changing the original dataframe in <code class="docutils literal notranslate"><span class="pre">DistanceBand</span></code> (#250)</p></li>
+</ul>
+</section>
+<section id="version-0-4-0-december-26-2020">
+<h2>Version 0.4.0 (December 26, 2020)<a class="headerlink" href="#version-0-4-0-december-26-2020" title="Permalink to this headline">#</a></h2>
+<p>Requirements:</p>
+<ul class="simple">
+<li><p>momepy now requires GeoPandas 0.8 or newer</p></li>
+<li><p>momepy now requires pygeos</p></li>
+<li><p>momepy now (optionally) requires mapclassify 2.4.2 or newer</p></li>
+</ul>
+<p>API changes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">network_false_nodes</span></code> is now deprecated. Use new <code class="docutils literal notranslate"><span class="pre">remove_false_nodes</span></code> instead.</p></li>
+</ul>
+<p>Enhancements:</p>
+<ul class="simple">
+<li><p>New performant algorithm <code class="docutils literal notranslate"><span class="pre">remove_false_nodes</span></code> to remove nodes of a degree 2 of a LineString network. (#204)</p></li>
+<li><p>Faster <code class="docutils literal notranslate"><span class="pre">CircularCompactness</span></code> (#205)</p></li>
+<li><p>pygeos-based <code class="docutils literal notranslate"><span class="pre">Tessellation</span></code> (#207)</p></li>
+<li><p>New class <code class="docutils literal notranslate"><span class="pre">Percentiles</span></code> (#209)</p></li>
+<li><p>Various speedups (#209)</p></li>
+<li><p>New <code class="docutils literal notranslate"><span class="pre">enclosures</span></code> function (#211)</p></li>
+<li><p>Enclosed tessellation option in <code class="docutils literal notranslate"><span class="pre">Tessellation</span></code> (#212)</p></li>
+<li><p>Preprocessing module (#214)</p></li>
+<li><p>Preprocessing function to <code class="docutils literal notranslate"><span class="pre">close_gaps</span></code> of LineString geoemtry (#215)</p></li>
+<li><p>Preprocessing function to <code class="docutils literal notranslate"><span class="pre">extend_lines</span></code> (#217)</p></li>
+<li><p>ratio-based network links (#218)</p></li>
+<li><p>vectorize <code class="docutils literal notranslate"><span class="pre">StreetProfile</span></code> (#219)</p></li>
+<li><p>capture MutliLineString in <code class="docutils literal notranslate"><span class="pre">Linearity</span></code> (#236)</p></li>
+<li><p>support MultiPolygons (#234)</p></li>
+<li><p>handle NaNs in <code class="docutils literal notranslate"><span class="pre">limit_range</span></code> (#235)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SharedWalls</span></code> length (#238)</p></li>
+<li><p>refactor <code class="docutils literal notranslate"><span class="pre">Blocks</span></code> using overlay and libpysal (#237)</p></li>
+<li><p>more options in converting to networkx graphs in <code class="docutils literal notranslate"><span class="pre">gdf_to_nx</span></code> (#240)</p></li>
+<li><p>use mapclassify.classify in <code class="docutils literal notranslate"><span class="pre">Simpson</span></code> and <code class="docutils literal notranslate"><span class="pre">Shannon</span></code> (#241)</p></li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li><p>fix nearest neighbor in <code class="docutils literal notranslate"><span class="pre">get_network_ratio</span></code> (#224)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Tessellation</span></code> error when geom collapsed (#226)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Blocks</span></code> empty difference (#230)</p></li>
+</ul>
+</section>
+<section id="version-0-3-0-july-29-2020">
+<h2>Version 0.3.0 (July 29, 2020)<a class="headerlink" href="#version-0-3-0-july-29-2020" title="Permalink to this headline">#</a></h2>
+<p>API changes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Convexeity</span></code> is now <code class="docutils literal notranslate"><span class="pre">Convexity</span></code> (#171)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">local_</span></code> centrality (betweenness, closeness, straightness) has been included in respective global versions (#178)</p></li>
+</ul>
+<p>New features:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CheckTessellationInput</span></code> to check building footprint data for potential issues during <code class="docutils literal notranslate"><span class="pre">Tessellation</span></code> (#163)</p></li>
+<li><p>On demand <code class="docutils literal notranslate"><span class="pre">DistanceBand</span></code> spatial weights (neighbors) for larger weight which would not fit in memory (#165)</p></li>
+</ul>
+<p>Enhancements:</p>
+<ul class="simple">
+<li><p>New documentation (#167)</p></li>
+<li><p>Support network analysis for full network (#176)</p></li>
+<li><p>Options for <code class="docutils literal notranslate"><span class="pre">preprocess</span></code> (#180)</p></li>
+<li><p>Expose underlying <code class="docutils literal notranslate"><span class="pre">simpson</span></code> and <code class="docutils literal notranslate"><span class="pre">shannon</span></code> functions (#183)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MeanInterbuildingDistance</span></code> performance (#187)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">StreetProfile</span></code> performance refactor (#186)</p></li>
+<li><p>Retain attributes in <code class="docutils literal notranslate"><span class="pre">network_false_nodes</span></code> (#189)</p></li>
+<li><p>Performance improvements in <code class="docutils literal notranslate"><span class="pre">elements</span></code> module (#190)</p></li>
+<li><p>Performance refactor of <code class="docutils literal notranslate"><span class="pre">SharedWallsRatio</span></code> (#191)</p></li>
+<li><p>Performance refactor of <code class="docutils literal notranslate"><span class="pre">NeighboringStreetOrientationDeviation</span></code> (#192)</p></li>
+<li><p>Minor performance improvements (#193, #196)</p></li>
+<li><p>Allow specification of verbosity (#195)</p></li>
+<li><p>Perfomance enhancements in <code class="docutils literal notranslate"><span class="pre">sw_high</span></code> (#198)</p></li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Density</span></code> TypeError for islands (#164)</p></li>
+<li><p>Preserve CRS in <code class="docutils literal notranslate"><span class="pre">network_false_nodes</span></code> (#181)</p></li>
+<li><p>Fixed <code class="docutils literal notranslate"><span class="pre">Squareness</span></code> for non-Polygon geom types (#182)</p></li>
+<li><p>CRS lost with older geopandas (#188)</p></li>
+</ul>
+</section>
+<section id="version-0-2-1-april-15-2020">
+<h2>Version 0.2.1 (April 15, 2020)<a class="headerlink" href="#version-0-2-1-april-15-2020" title="Permalink to this headline">#</a></h2>
+<ul class="simple">
+<li><p>fixed regression causing <code class="docutils literal notranslate"><span class="pre">MeanInterbuildingDistance</span></code> failure (#161)</p></li>
+</ul>
+</section>
+<section id="version-0-2-0-april-13-2020">
+<h2>Version 0.2.0 (April 13, 2020)<a class="headerlink" href="#version-0-2-0-april-13-2020" title="Permalink to this headline">#</a></h2>
+<p>API changes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">AverageCharacter</span></code> allows calculation of multiple modes (mean, median, mode) at the same time. Each can be accessed via its own attribute. Apart from <code class="docutils literal notranslate"><span class="pre">mean</span></code>, none is accessible using <code class="docutils literal notranslate"><span class="pre">.series</span></code> anymore. (#147)</p></li>
+</ul>
+<p>Enhancements:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Shannon</span></code> index (#158)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Simpson</span></code> allows Gini-Simpson and Inverse Simpson index modes (#157)</p></li>
+<li><p>Diversity classes support categorical values (#159)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SegmentsLength</span></code> allows sum and mean at the same time (#146)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AverageCharacter</span></code> allows calculation of multiple modes (mean, median, mode) at the same time (#147)</p></li>
+<li><p>Better compatibility with OSMnx Graphs (#149)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Orientation</span></code> support LineString geometry (#156)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AreaRatio</span></code> for uneven number of features (#135)</p></li>
+<li><p>Performance improvements (#144, #145, #152, #155)</p></li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li><p>float precision errors in <code class="docutils literal notranslate"><span class="pre">network_false_nodes</span></code> (#133)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">network_false_nodes</span></code> for multiindex (#136)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BlocksCount</span></code> no neighbors error (#139, #140)</p></li>
+<li><p>LineString Z support in <code class="docutils literal notranslate"><span class="pre">nx_to_gdf</span></code> (#148)</p></li>
+<li><p>accidental ‘rtd’ print (#150)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CentroidCorner</span></code> may fail for Polygon Z (#151)</p></li>
+</ul>
+</section>
+<section id="version-0-1-1-december-15-2019">
+<h2>Version 0.1.1 (December 15, 2019)<a class="headerlink" href="#version-0-1-1-december-15-2019" title="Permalink to this headline">#</a></h2>
+<p>Small bug-fix release:</p>
+<ul class="simple">
+<li><p>fix for <code class="docutils literal notranslate"><span class="pre">AreaRatio</span></code> resetting index of resulting Series (#127)</p></li>
+<li><p>fix for <code class="docutils literal notranslate"><span class="pre">network_false_nodes</span></code> to work with GeoSeries (#128)</p></li>
+<li><p>fix for incomplete spatial_weights and missing neighbors. Instead of raising KeyError momepy now returns np.nan for affected row. np.nan is also returned if there are no neighbors (instead of 0). (#131)</p></li>
+</ul>
+</section>
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="contributing.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Contributing to momepy</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="references.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">References</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+<footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2018-2021, Martin Fleischmann and PySAL Developers.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>

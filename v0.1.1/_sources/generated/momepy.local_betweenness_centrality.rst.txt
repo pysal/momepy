@@ -1,0 +1,6 @@
+momepy.local\_betweenness\_centrality
+=====================================
+
+.. currentmodule:: momepy
+
+.. autofunction:: local_betweenness_centrality

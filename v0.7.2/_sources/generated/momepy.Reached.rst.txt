@@ -1,0 +1,22 @@
+﻿momepy.Reached
+==============
+
+.. currentmodule:: momepy
+
+.. autoclass:: Reached
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Reached.__init__
+   
+   
+
+   
+   
+   

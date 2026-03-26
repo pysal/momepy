@@ -1,0 +1,6 @@
+momepy.local\_straightness\_centrality
+======================================
+
+.. currentmodule:: momepy
+
+.. autofunction:: local_straightness_centrality

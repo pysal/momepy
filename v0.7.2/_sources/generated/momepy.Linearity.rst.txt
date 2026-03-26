@@ -1,0 +1,22 @@
+﻿momepy.Linearity
+================
+
+.. currentmodule:: momepy
+
+.. autoclass:: Linearity
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Linearity.__init__
+   
+   
+
+   
+   
+   

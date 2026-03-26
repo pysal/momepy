@@ -1,0 +1,22 @@
+momepy.Corners
+==============
+
+.. currentmodule:: momepy
+
+.. autoclass:: Corners
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Corners.__init__
+   
+   
+
+   
+   
+   

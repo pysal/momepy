@@ -1,0 +1,6 @@
+﻿momepy.Theil
+============
+
+.. currentmodule:: momepy
+
+.. autofunction:: Theil

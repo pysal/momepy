@@ -1,0 +1,6 @@
+﻿momepy.Range
+============
+
+.. currentmodule:: momepy
+
+.. autofunction:: Range

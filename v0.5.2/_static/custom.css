@@ -1,0 +1,59 @@
+/* default colors */
+
+:root {
+    --pst-color-primary: 227, 46, 0;
+    --pst-color-active-navigation: 227, 46, 0;
+    --pst-color-h1: 11, 76, 99;
+    --pst-color-h2: 11, 76, 99;
+    --pst-color-inline-code: 227, 46, 0;
+}
+
+
+/* customised code blocks */
+
+pre {
+    border: 0px;
+    border-bottom: 1px solid #f41616;
+}
+
+div.nbinput.container div.input_area {
+    background: #fafafa!important;
+    border-bottom: 1px solid #f41616!important;
+    border-top: 0px!important;
+    border-left: 0px!important;
+    border-right: 0px!important;
+    border-radius: 0px!important;
+    box-shadow: 1px 1px 1px #d8d8d8;
+}
+
+div.output_area.stderr {
+    display: none;
+}
+
+.highlight .kn {
+    color: #0aac18;
+}
+
+.highlight .k {
+    color: #0aac18;
+}
+
+.highlight .kc {
+    color: #0aac18;
+}
+
+.highlight .mi {
+    color: #0aac18;
+}
+
+.highlight .mf {
+    color: #0aac18;
+}
+
+.highlight .gp {
+    color: #0aac18;
+}
+
+.admonition.note {
+    border-color: #5a9ce2;
+}

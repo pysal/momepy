@@ -1,0 +1,858 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Migration to momepy 1.0 API &#8212; momepy 0.10.1.dev0+g81880e7.d20250418 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f00722e8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=8da3a2a0"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/migration';</script>
+    <link rel="canonical" href="http://docs.momepy.org/en/v0.10.0/user_guide/migration.html" />
+    <link rel="icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Examples" href="../examples/index.html" />
+    <link rel="prev" title="Consolidation of intersections" href="preprocessing/consolidate_intersections.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.10.1.dev0+g81880e7.d20250418" />
+  <script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.10.0" /><meta name="readthedocs-resolver-filename" content="/user_guide/migration.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/horizontal_logo_light.svg" class="logo__image only-light" alt="momepy 0.10.1.dev0+g81880e7.d20250418 documentation - Home"/>
+    <img src="../_static/horizontal_logo_dark.svg" class="logo__image only-dark pst-js-only" alt="momepy 0.10.1.dev0+g81880e7.d20250418 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Install
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="intro.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-external" href="https://github.com/pysal/momepy/releases">
+    Changelog
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../references.html">
+    References
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/pysal/momepy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/martinfleis" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Install
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="intro.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://github.com/pysal/momepy/releases">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../references.html">
+    References
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/pysal/momepy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/martinfleis" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_structure.html">Data Structure</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="elements/elements.html">Generating morphological elements</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="elements/tessellation.html">Morphological tessellation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elements/enclosed.html">Enclosed tessellation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elements/blocks.html">Tessellation-based blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elements/links.html">Linking elements together</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="simple/simple.html">Calculating simple characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="simple/dimension.html">Dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simple/shape.html">Shape</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="combined/combined.html">Characters based on multiple GeoDataFrames</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="combined/distribution.html">Measuring spatial distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="combined/intensity.html">Measuring density</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="weights/weights.html">Using spatial weights matrix</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="weights/weights_nb.html">Generating spatial graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="weights/examples.html">Examples of usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="weights/diversity.html">Measuring diversity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="weights/two.html">Using two spatial graphs</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="graph/graph.html">Street network analysis</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="graph/convert.html">Converting from GeoDataFrame to Graph and back</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graph/network.html">Street network analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graph/centrality.html">Multiple Centrality Assessment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graph/coins.html">Continuity in street networks</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="preprocessing/preprocessing.html">Data preprocessing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="preprocessing/simple_preprocessing.html">Simple network data preprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preprocessing/roundabout_simplification.html">Simplification of roundabouts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preprocessing/consolidate_intersections.html">Consolidation of intersections</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Migration to momepy 1.0 API</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="intro.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Migration to momepy 1.0 API</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="admonition note">
+<p class="admonition-title">Note</p>
+<div class="line-block">
+<div class="line">This page was generated from <a class="reference external" href="https://github.com/pysal/momepy/blob/master/docs/user_guide/migration.ipynb">user_guide/migration.ipynb</a>.</div>
+<div class="line">Interactive online version: <span class="raw-html"><a href="https://mybinder.org/v2/gh/pysal/momepy/master?urlpath=lab/tree/docs/user_guide/migration.ipynb"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a></span></div>
+</div>
+</div>
+<section id="Migration-to-momepy-1.0-API">
+<h1>Migration to momepy 1.0 API<a class="headerlink" href="#Migration-to-momepy-1.0-API" title="Link to this heading">#</a></h1>
+<p>Starting with version 0.8, momepy contains a completely new API (and refactored internals) that will become the only API in the momepy 1.0. Given this is a complete reimplementation of nearly the entire package, it is not compatible with the legacy class-based API. This notebook contains a succinct migration guide, highlighting the key differences between the two APIs and outlines required changes to existing code to make it compatible with the upcoming 1.0 release.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">momepy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">libpysal</span><span class="w"> </span><span class="kn">import</span> <span class="n">graph</span>
+
+<span class="n">buildings</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span>
+    <span class="n">momepy</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s2">&quot;bubenec&quot;</span><span class="p">),</span> <span class="n">layer</span><span class="o">=</span><span class="s2">&quot;buildings&quot;</span>
+<span class="p">)</span>
+<span class="n">tessellation</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span>
+    <span class="n">momepy</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s2">&quot;bubenec&quot;</span><span class="p">),</span> <span class="n">layer</span><span class="o">=</span><span class="s2">&quot;tessellation&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Functions-over-classes">
+<h2>Functions over classes<a class="headerlink" href="#Functions-over-classes" title="Link to this heading">#</a></h2>
+<p>The first key difference you may notice is the vast majority of functionality is now offered as functions, rather than classes. Take equivalent rectangular index as an example and its assignment as a new column.</p>
+<p>The new API is simple:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">buildings</span><span class="p">[</span><span class="s2">&quot;eri&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">equivalent_rectangular_index</span><span class="p">(</span><span class="n">buildings</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/Users/martin/miniforge3/envs/momepy/lib/python3.11/site-packages/pandas/core/arraylike.py:492: RuntimeWarning: invalid value encountered in oriented_envelope
+  return getattr(ufunc, method)(*new_inputs, **kwargs)
+</pre></div></div>
+</div>
+<p>The old API, which further required extracting the series from the class:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">buildings</span><span class="p">[</span><span class="s2">&quot;eri&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">EquivalentRectangularIndex</span><span class="p">(</span><span class="n">buildings</span><span class="p">)</span><span class="o">.</span><span class="n">series</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/var/folders/2f/fhks6w_d0k556plcv3rfmshw0000gn/T/ipykernel_47459/3862675108.py:1: FutureWarning: Class based API like `momepy.EquivalentRectangularIndex` is deprecated. Replace it with `momepy.equivalent_rectangular_index` to use functional API instead or pin momepy version &lt;1.0. Class-based API will be removed in 1.0.
+  buildings[&#34;eri&#34;] = momepy.EquivalentRectangularIndex(buildings).series
+/Users/martin/miniforge3/envs/momepy/lib/python3.11/site-packages/pandas/core/arraylike.py:492: RuntimeWarning: invalid value encountered in oriented_envelope
+  return getattr(ufunc, method)(*new_inputs, **kwargs)
+</pre></div></div>
+</div>
+<p>When running the code, you will see a warning about the deprecation.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>FutureWarning: Class based API like `momepy.EquivalentRectangularIndex` is deprecated. Replace it with `momepy.equivalent_rectangular_index` to use functional API instead or pin momepy version &lt;1.0. Class-based API will be removed in 1.0.
+</pre></div>
+</div>
+<p>If there is a direct equivalent, it also tells you its name. In some cases, there is no equivalent in <code class="docutils literal notranslate"><span class="pre">momepy</span></code> but one elsewhere.</p>
+<p>Measuring area with the new API will require using <code class="docutils literal notranslate"><span class="pre">geopandas</span></code> directly.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">buildings</span><span class="p">[</span><span class="s2">&quot;area&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buildings</span><span class="o">.</span><span class="n">area</span>
+</pre></div>
+</div>
+</div>
+<p>While the legacy API offered a wrapper.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">buildings</span><span class="p">[</span><span class="s2">&quot;area&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">Area</span><span class="p">(</span><span class="n">buildings</span><span class="p">)</span><span class="o">.</span><span class="n">series</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/var/folders/2f/fhks6w_d0k556plcv3rfmshw0000gn/T/ipykernel_47459/1190336779.py:1: FutureWarning: `momepy.Area` is deprecated. Replace it with `.area` attribute of a GeoDataFrame or pin momepy version &lt;1.0. This class will be removed in 1.0.
+  buildings[&#39;area&#39;] = momepy.Area(buildings).series
+</pre></div></div>
+</div>
+<p>The warning is a bit different but still provides guidance.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>FutureWarning: `momepy.Area` is deprecated. Replace it with `.area` attribute of a GeoDataFrame or pin momepy version &lt;1.0. This class will be removed in 1.0.
+</pre></div>
+</div>
+</section>
+<section id="Dependency-on-libpysal-Graph-over-W">
+<h2>Dependency on libpysal <code class="docutils literal notranslate"><span class="pre">Graph</span></code> over <code class="docutils literal notranslate"><span class="pre">W</span></code><a class="headerlink" href="#Dependency-on-libpysal-Graph-over-W" title="Link to this heading">#</a></h2>
+<p>Spatial relationships in the legacy API are represented using <code class="docutils literal notranslate"><span class="pre">libpysal.weights.W</span></code> objects. In the new one, <code class="docutils literal notranslate"><span class="pre">momepy</span></code> depends on the new <code class="docutils literal notranslate"><span class="pre">libpysal.graph.Graph</span></code> implementation. That has two consequences - different ways of building the object and reliance on <code class="docutils literal notranslate"><span class="pre">GeoDataFrame</span></code> indices.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Graph</span></code> encodes geometries using the index they have in the <code class="docutils literal notranslate"><span class="pre">GeoDataFrame</span></code>. It does not use positional indexing nor custom column. The two objects are tied together via the index. For momepy, this means that indices plays a central role in the implementation and there’s no <code class="docutils literal notranslate"><span class="pre">&quot;unique_id&quot;</span></code> column any longer, which is superseded by index.</p>
+<p>Example of computing a number of neighbors relative to the perimeter of each geometry using the new API:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># build contiguity of order 2</span>
+<span class="n">contiguity_k2</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">build_contiguity</span><span class="p">(</span><span class="n">tessellation</span><span class="p">)</span><span class="o">.</span><span class="n">higher_order</span><span class="p">(</span>
+    <span class="mi">2</span><span class="p">,</span> <span class="n">lower_order</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># measure neighbors</span>
+<span class="n">tessellation</span><span class="p">[</span><span class="s2">&quot;neighbours_weighted&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span>
+    <span class="n">tessellation</span><span class="p">,</span> <span class="n">contiguity_k2</span><span class="p">,</span> <span class="n">weighted</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>And using the old API:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">contiguity_k2</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">sw_high</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">gdf</span><span class="o">=</span><span class="n">tessellation</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="s2">&quot;uID&quot;</span><span class="p">)</span>
+
+<span class="n">tessellation</span><span class="p">[</span><span class="s2">&quot;neighbours&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">Neighbors</span><span class="p">(</span>
+    <span class="n">tessellation</span><span class="p">,</span> <span class="n">contiguity_k2</span><span class="p">,</span> <span class="s2">&quot;uID&quot;</span><span class="p">,</span> <span class="n">weighted</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span><span class="o">.</span><span class="n">series</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/var/folders/2f/fhks6w_d0k556plcv3rfmshw0000gn/T/ipykernel_47459/1307576710.py:1: FutureWarning: `momepy.sw_high` is deprecated. Replace it with .higher_order() method of libpysal.graph.Graph or pin momepy version &lt;1.0. This class will be removed in 1.0.
+  contiguity_k2 = momepy.sw_high(k=2, gdf=tessellation, ids=&#39;uID&#39;)
+/var/folders/2f/fhks6w_d0k556plcv3rfmshw0000gn/T/ipykernel_47459/1307576710.py:3: FutureWarning: Class based API like `momepy.Neighbors` is deprecated. Replace it with `momepy.neighbors` to use functional API instead or pin momepy version &lt;1.0. Class-based API will be removed in 1.0.
+  tessellation[&#39;neighbours&#39;] = momepy.Neighbors(tessellation, contiguity_k2,&#39;uID&#39;, weighted=True).series
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"model_id": "44f9ec7d1da54ae794472e6669c9c458", "version_major": 2, "version_minor": 0}</script></div>
+</div>
+<p>Note that the <code class="docutils literal notranslate"><span class="pre">sw_high</span></code> function allowed bulding contiguity only.</p>
+</section>
+<section id="Reliance-on-index">
+<h2>Reliance on index<a class="headerlink" href="#Reliance-on-index" title="Link to this heading">#</a></h2>
+<p>When we need to capture the relationship between two objects (e.g., a <code class="docutils literal notranslate"><span class="pre">GeoDataFrame</span></code> and its <code class="docutils literal notranslate"><span class="pre">Graph</span></code>), the primary method is to rely on index. Unlike momepy 0.7, which heavily depends on columns with IDs mapping rows of one GeoDataFrame to the other, the new API attempts to minimise use of such columns. Below is the overview of the logic used in various situations.</p>
+<section id="Geometry-and-Graph">
+<h3>Geometry and Graph<a class="headerlink" href="#Geometry-and-Graph" title="Link to this heading">#</a></h3>
+<p>This case is easy. <code class="docutils literal notranslate"><span class="pre">Graph</span></code> is mapped to geometry (either a <code class="docutils literal notranslate"><span class="pre">GeoSeries</span></code> or a <code class="docutils literal notranslate"><span class="pre">GeoDataFrame</span></code>) via index of the GeoPandas object.</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">contiguity</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">build_contiguity</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+<span class="n">momepy</span><span class="o">.</span><span class="n">neighbor_distance</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">contiguity</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case, we ensure that the index of <code class="docutils literal notranslate"><span class="pre">geometry</span></code> does not change and, in some cases, that the order of rows is also preserved to ensure the mapping of values to sparse arrays is not mismatched.</p>
+</section>
+<section id="Series-and-Graph">
+<h3>Series and Graph<a class="headerlink" href="#Series-and-Graph" title="Link to this heading">#</a></h3>
+<p>A subset of the case above is linking a <code class="docutils literal notranslate"><span class="pre">pandas.Series</span></code> to the <code class="docutils literal notranslate"><span class="pre">Graph</span></code>. Such a situation assumes that the index of the <code class="docutils literal notranslate"><span class="pre">Series</span></code> is equal to the index of the original geometry from which the <code class="docutils literal notranslate"><span class="pre">Graph</span></code> was created.</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># typically, the Series is taken directly from the DataFrame</span>
+<span class="n">contiguity</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">build_contiguity</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+<span class="n">momepy</span><span class="o">.</span><span class="n">alignment</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;orientation&quot;</span><span class="p">],</span> <span class="n">contiguity</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="Geometry-and-two-Graphs">
+<h3>Geometry and two Graphs<a class="headerlink" href="#Geometry-and-two-Graphs" title="Link to this heading">#</a></h3>
+<p>Another subset is when you need to link geometry to two Graphs. In that case, both Graphs need to be based on the same index.</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">adjacency_graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">build_contiguity</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+<span class="n">neighborhood_graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">build_distance_band</span><span class="p">(</span>
+    <span class="n">geometry</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">momepy</span><span class="o">.</span><span class="n">mean_interbuilding_distance</span><span class="p">(</span>
+    <span class="n">geometry</span><span class="p">,</span>
+    <span class="n">adjacency_graph</span><span class="p">,</span>
+    <span class="n">neighborhood_graph</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="Geometry-and-Geometry">
+<h2>Geometry and Geometry<a class="headerlink" href="#Geometry-and-Geometry" title="Link to this heading">#</a></h2>
+<p>When linking two geometry arrays together – for example capturing which building belongs to which street segment, or which building belongs to which block/enclosure – you cannot rely solely on indices as the two objects do not match. In this situation, momepy will use the index of one Series, typically the shorter one, and a Series (i.e. a column) in another.</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">buildings</span><span class="p">[</span><span class="s2">&quot;street_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">get_nearest_street</span><span class="p">(</span>
+    <span class="n">buildings</span><span class="p">,</span>
+    <span class="n">street_edges</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">momepy</span><span class="o">.</span><span class="n">street_alignment</span><span class="p">(</span>
+    <span class="n">buildings</span><span class="p">[</span><span class="s2">&quot;orientation&quot;</span><span class="p">],</span>
+    <span class="n">street_edges</span><span class="p">[</span><span class="s2">&quot;orientation&quot;</span><span class="p">],</span>
+    <span class="n">network_id</span><span class="o">=</span><span class="s2">&quot;street_index&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="preprocessing/consolidate_intersections.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Consolidation of intersections</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../examples/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Examples</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Functions-over-classes">Functions over classes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Dependency-on-libpysal-Graph-over-W">Dependency on libpysal <code class="docutils literal notranslate"><span class="pre">Graph</span></code> over <code class="docutils literal notranslate"><span class="pre">W</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Reliance-on-index">Reliance on index</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Geometry-and-Graph">Geometry and Graph</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Series-and-Graph">Series and Graph</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Geometry-and-two-Graphs">Geometry and two Graphs</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#Geometry-and-Geometry">Geometry and Geometry</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/user_guide/migration.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2018-, Martin Fleischmann and PySAL Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

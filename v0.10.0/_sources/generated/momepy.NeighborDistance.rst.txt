@@ -1,0 +1,6 @@
+﻿momepy.NeighborDistance
+=======================
+
+.. currentmodule:: momepy
+
+.. autofunction:: NeighborDistance

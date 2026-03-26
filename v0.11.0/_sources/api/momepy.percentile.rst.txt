@@ -1,0 +1,6 @@
+﻿momepy.percentile
+=================
+
+.. currentmodule:: momepy
+
+.. autofunction:: percentile

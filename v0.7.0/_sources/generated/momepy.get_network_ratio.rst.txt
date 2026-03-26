@@ -1,0 +1,6 @@
+﻿momepy.get\_network\_ratio
+==========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: get_network_ratio

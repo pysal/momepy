@@ -1,0 +1,22 @@
+momepy.Unique
+=============
+
+.. currentmodule:: momepy
+
+.. autoclass:: Unique
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Unique.__init__
+   
+   
+
+   
+   
+   

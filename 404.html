@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting…</title>
+  <script>
+    (function () {
+      const path = window.location.pathname;
+      const origin = window.location.origin;
+      const query = window.location.search;
+      const hash = window.location.hash;
+
+      // Rewrite old paths that used the /en/ prefix. Keep any site base path,
+      // strip /en, and map /latest to /dev.
+      const m = path.match(/^(.*)\/en\/(latest|stable|dev|v\d+\.\d+\.\d+)(\/.*)?$/);
+      if (!m) return;
+
+      const basePath = m[1] || "";
+      const version = m[2] === "latest" ? "dev" : m[2];
+      const rest = m[3] || "/";
+      const target = origin + basePath + "/" + version + rest + query + hash;
+      window.location.replace(target);
+    })();
+  </script>
+</head>
+
+<body>
+  <p>Redirecting…</p>
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+﻿momepy.SharedWalls
+==================
+
+.. currentmodule:: momepy
+
+.. autoclass:: SharedWalls
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~SharedWalls.__init__
+   
+   
+
+   
+   
+   

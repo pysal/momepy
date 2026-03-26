@@ -1,0 +1,23 @@
+﻿momepy.DistanceBand
+===================
+
+.. currentmodule:: momepy
+
+.. autoclass:: DistanceBand
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~DistanceBand.__init__
+      ~DistanceBand.fetch_items
+   
+   
+
+   
+   
+   

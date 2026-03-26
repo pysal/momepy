@@ -1,0 +1,874 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>momepy.FormFactor &#8212; momepy 0.8.2.dev0+ga776357.d20241004 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f00722e8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
+    
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=94c4943f"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/momepy.FormFactor';</script>
+    <link rel="canonical" href="http://docs.momepy.org/en/v0.8.1/generated/momepy.FormFactor.html" />
+    <link rel="icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="momepy.FractalDimension" href="momepy.FractalDimension.html" />
+    <link rel="prev" title="momepy.EquivalentRectangularIndex" href="momepy.EquivalentRectangularIndex.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  
+<!-- RTD Extra Head -->
+
+
+
+<script type="application/json" id="READTHEDOCS_DATA">{"ad_free": false, "api_host": "https://readthedocs.org", "builder": "sphinx", "canonical_url": null, "docroot": "/docs/", "features": {"docsearch_disabled": false}, "global_analytics_code": "UA-17997319-1", "language": "en", "page": "generated/momepy.FormFactor", "programming_language": "py", "project": "momepy", "proxied_api_host": "/_", "source_suffix": ".rst", "subprojects": {}, "theme": "pydata_sphinx_theme", "user_analytics_code": "", "version": "v0.8.1"}</script>
+
+<!--
+Using this variable directly instead of using `JSON.parse` is deprecated.
+The READTHEDOCS_DATA global variable will be removed in the future.
+-->
+<script type="text/javascript">
+READTHEDOCS_DATA = JSON.parse(document.getElementById('READTHEDOCS_DATA').innerHTML);
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.8.1" /><meta name="readthedocs-resolver-filename" content="/generated/momepy.FormFactor.html" /><meta name="readthedocs-http-status" content="200" /></head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/horizontal_logo_light.svg" class="logo__image only-light" alt="momepy 0.8.2.dev0+ga776357.d20241004 documentation - Home"/>
+    <script>document.write(`<img src="../_static/horizontal_logo_dark.svg" class="logo__image only-dark" alt="momepy 0.8.2.dev0+ga776357.d20241004 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Install
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/intro.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-external" href="https://github.com/pysal/momepy/releases">
+    Changelog
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../references.html">
+    References
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/pysal/momepy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/martinfleis" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html">
+    Home
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Install
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/intro.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://github.com/pysal/momepy/releases">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../references.html">
+    References
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/pysal/momepy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/martinfleis" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.morphological_tessellation.html">momepy.morphological_tessellation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.enclosed_tessellation.html">momepy.enclosed_tessellation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.enclosures.html">momepy.enclosures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.generate_blocks.html">momepy.generate_blocks</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.buffered_limit.html">momepy.buffered_limit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.verify_tessellation.html">momepy.verify_tessellation</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.get_nearest_street.html">momepy.get_nearest_street</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.get_nearest_node.html">momepy.get_nearest_node</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.get_network_ratio.html">momepy.get_network_ratio</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.courtyard_area.html">momepy.courtyard_area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.floor_area.html">momepy.floor_area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.longest_axis_length.html">momepy.longest_axis_length</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.perimeter_wall.html">momepy.perimeter_wall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.street_profile.html">momepy.street_profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.volume.html">momepy.volume</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.weighted_character.html">momepy.weighted_character</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.centroid_corner_distance.html">momepy.centroid_corner_distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.circular_compactness.html">momepy.circular_compactness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.compactness_weighted_axis.html">momepy.compactness_weighted_axis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.convexity.html">momepy.convexity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.corners.html">momepy.corners</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.courtyard_index.html">momepy.courtyard_index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.elongation.html">momepy.elongation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.equivalent_rectangular_index.html">momepy.equivalent_rectangular_index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.facade_ratio.html">momepy.facade_ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.form_factor.html">momepy.form_factor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.fractal_dimension.html">momepy.fractal_dimension</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.linearity.html">momepy.linearity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.rectangularity.html">momepy.rectangularity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.shape_index.html">momepy.shape_index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.square_compactness.html">momepy.square_compactness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.squareness.html">momepy.squareness</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.alignment.html">momepy.alignment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.building_adjacency.html">momepy.building_adjacency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.cell_alignment.html">momepy.cell_alignment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.mean_interbuilding_distance.html">momepy.mean_interbuilding_distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.neighbor_distance.html">momepy.neighbor_distance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.neighbors.html">momepy.neighbors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.orientation.html">momepy.orientation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.shared_walls.html">momepy.shared_walls</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.street_alignment.html">momepy.street_alignment</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.courtyards.html">momepy.courtyards</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.describe_agg.html">momepy.describe_agg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.describe_reached_agg.html">momepy.describe_reached_agg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.gini.html">momepy.gini</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.percentile.html">momepy.percentile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.shannon.html">momepy.shannon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.simpson.html">momepy.simpson</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.theil.html">momepy.theil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.values_range.html">momepy.values_range</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.mean_deviation.html">momepy.mean_deviation</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.shannon_diversity.html">momepy.shannon_diversity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.simpson_diversity.html">momepy.simpson_diversity</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.betweenness_centrality.html">momepy.betweenness_centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.cds_length.html">momepy.cds_length</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.closeness_centrality.html">momepy.closeness_centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.clustering.html">momepy.clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.cyclomatic.html">momepy.cyclomatic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.edge_node_ratio.html">momepy.edge_node_ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.gamma.html">momepy.gamma</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.mean_node_degree.html">momepy.mean_node_degree</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.mean_node_dist.html">momepy.mean_node_dist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.mean_nodes.html">momepy.mean_nodes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.meshedness.html">momepy.meshedness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.node_degree.html">momepy.node_degree</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.node_density.html">momepy.node_density</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.proportion.html">momepy.proportion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.straightness_centrality.html">momepy.straightness_centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.subgraph.html">momepy.subgraph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.COINS.html">momepy.COINS</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.gdf_to_nx.html">momepy.gdf_to_nx</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.nx_to_gdf.html">momepy.nx_to_gdf</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.close_gaps.html">momepy.close_gaps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.extend_lines.html">momepy.extend_lines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.remove_false_nodes.html">momepy.remove_false_nodes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.consolidate_intersections.html">momepy.consolidate_intersections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.roundabout_simplification.html">momepy.roundabout_simplification</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.CheckTessellationInput.html">momepy.CheckTessellationInput</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/momepy.FaceArtifacts.html">momepy.FaceArtifacts</a></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../legacy_api.html">Legacy API reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="momepy.Blocks.html">momepy.Blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.get_network_id.html">momepy.get_network_id</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.get_node_id.html">momepy.get_node_id</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Tessellation.html">momepy.Tessellation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Area.html">momepy.Area</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.AverageCharacter.html">momepy.AverageCharacter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.CourtyardArea.html">momepy.CourtyardArea</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.CoveredArea.html">momepy.CoveredArea</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.FloorArea.html">momepy.FloorArea</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.LongestAxisLength.html">momepy.LongestAxisLength</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Perimeter.html">momepy.Perimeter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.PerimeterWall.html">momepy.PerimeterWall</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.SegmentsLength.html">momepy.SegmentsLength</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.StreetProfile.html">momepy.StreetProfile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Volume.html">momepy.Volume</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.WeightedCharacter.html">momepy.WeightedCharacter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.CentroidCorners.html">momepy.CentroidCorners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.CircularCompactness.html">momepy.CircularCompactness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.CompactnessWeightedAxis.html">momepy.CompactnessWeightedAxis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Convexity.html">momepy.Convexity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Corners.html">momepy.Corners</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.CourtyardIndex.html">momepy.CourtyardIndex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Elongation.html">momepy.Elongation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.EquivalentRectangularIndex.html">momepy.EquivalentRectangularIndex</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">momepy.FormFactor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.FractalDimension.html">momepy.FractalDimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Linearity.html">momepy.Linearity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Rectangularity.html">momepy.Rectangularity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.ShapeIndex.html">momepy.ShapeIndex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.SquareCompactness.html">momepy.SquareCompactness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Squareness.html">momepy.Squareness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.VolumeFacadeRatio.html">momepy.VolumeFacadeRatio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Alignment.html">momepy.Alignment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.BuildingAdjacency.html">momepy.BuildingAdjacency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.CellAlignment.html">momepy.CellAlignment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.MeanInterbuildingDistance.html">momepy.MeanInterbuildingDistance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.NeighborDistance.html">momepy.NeighborDistance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.NeighboringStreetOrientationDeviation.html">momepy.NeighboringStreetOrientationDeviation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Neighbors.html">momepy.Neighbors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Orientation.html">momepy.Orientation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.SharedWalls.html">momepy.SharedWalls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.SharedWallsRatio.html">momepy.SharedWallsRatio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.StreetAlignment.html">momepy.StreetAlignment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.AreaRatio.html">momepy.AreaRatio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.BlocksCount.html">momepy.BlocksCount</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Count.html">momepy.Count</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Courtyards.html">momepy.Courtyards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Density.html">momepy.Density</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.NodeDensity.html">momepy.NodeDensity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Reached.html">momepy.Reached</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Gini.html">momepy.Gini</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Percentiles.html">momepy.Percentiles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Range.html">momepy.Range</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Shannon.html">momepy.Shannon</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Simpson.html">momepy.Simpson</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Theil.html">momepy.Theil</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.Unique.html">momepy.Unique</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.DistanceBand.html">momepy.DistanceBand</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.sw_high.html">momepy.sw_high</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.preprocess.html">momepy.preprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.limit_range.html">momepy.limit_range</a></li>
+<li class="toctree-l2"><a class="reference internal" href="momepy.unique_id.html">momepy.unique_id</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+
+  <div id="ethical-ad-placement"
+       class="flat"
+       data-ea-publisher="readthedocs"
+       data-ea-type="readthedocs-sidebar"
+       data-ea-manual="true">
+  </div>
+</div>
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">momepy API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../legacy_api.html" class="nav-link">Legacy API reference</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">momepy.FormFactor</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="momepy-formfactor">
+<h1>momepy.FormFactor<a class="headerlink" href="#momepy-formfactor" title="Link to this heading">#</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="momepy.FormFactor">
+<span class="sig-prename descclassname"><span class="pre">momepy.</span></span><span class="sig-name descname"><span class="pre">FormFactor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volumes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">areas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/main/momepy/utils.py#L54-L137"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.FormFactor" title="Link to this definition">#</a></dt>
+<dd><p>Calculates the form factor of each object in a given GeoDataFrame.</p>
+<div class="math notranslate nohighlight">
+\[surface \over {volume^{2 \over 3}}\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[surface = (perimeter * height) + area\]</div>
+<p>Adapted from <span id="id1">[<a class="reference internal" href="../references.html#id4" title="Loeiz Bourdic, Serge Salat, and Caroline Nowacki. Assessing cities: a new system of cross-scale spatial indicators. Building Research &amp; Information, 40(5):592–605, January 2012. doi:10.1080/09613218.2012.703488.">Bourdic <em>et al.</em>, 2012</a>]</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>gdf</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>A GeoDataFrame containing objects.</p>
+</dd>
+<dt><strong>volumes</strong><span class="classifier">str, list, np.array, pd.Series</span></dt><dd><p>The name of the dataframe column, <code class="docutils literal notranslate"><span class="pre">np.array</span></code>, or <code class="docutils literal notranslate"><span class="pre">pd.Series</span></code> where volume
+values are stored. To calculate volume you can use <a class="reference internal" href="../api/momepy.volume.html#momepy.volume" title="momepy.volume"><code class="xref py py-func docutils literal notranslate"><span class="pre">momepy.volume()</span></code></a>.</p>
+</dd>
+<dt><strong>areas</strong><span class="classifier">str, list, np.array, pd.Series (default None)</span></dt><dd><p>The name of the dataframe column, <code class="docutils literal notranslate"><span class="pre">np.array</span></code>, or <code class="docutils literal notranslate"><span class="pre">pd.Series</span></code> where
+area values stored. If set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, this function will calculate areas
+during the process without saving them separately.</p>
+</dd>
+<dt><strong>heights</strong><span class="classifier">str, list, np.array, pd.Series (default None)</span></dt><dd><p>The name of the dataframe column, <code class="docutils literal notranslate"><span class="pre">np.array</span></code>, or <code class="docutils literal notranslate"><span class="pre">pd.Series</span></code> where height
+values are stored. Note that it cannot be <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>series</strong><span class="classifier">Series</span></dt><dd><p>A Series containing resulting values.</p>
+</dd>
+<dt><strong>gdf</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>The original GeoDataFrame.</p>
+</dd>
+<dt><strong>volumes</strong><span class="classifier">Series</span></dt><dd><p>A Series containing used volume values.</p>
+</dd>
+<dt><strong>areas</strong><span class="classifier">Series</span></dt><dd><p>A Series containing used area values.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">buildings_df</span><span class="p">[</span><span class="s1">&#39;formfactor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">FormFactor</span><span class="p">(</span><span class="n">buildings_df</span><span class="p">,</span> <span class="s1">&#39;volume&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">series</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">buildings_df</span><span class="o">.</span><span class="n">formfactor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">1.9385988170288635</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">volume</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">Volume</span><span class="p">(</span><span class="n">buildings_df</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">series</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">buildings_df</span><span class="p">[</span><span class="s1">&#39;formfactor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">FormFactor</span><span class="p">(</span><span class="n">buildings_df</span><span class="p">,</span> <span class="n">volume</span><span class="p">)</span><span class="o">.</span><span class="n">series</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">buildings_df</span><span class="o">.</span><span class="n">formfactor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">1.9385988170288635</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="momepy.EquivalentRectangularIndex.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">momepy.EquivalentRectangularIndex</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="momepy.FractalDimension.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">momepy.FractalDimension</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#momepy.FormFactor"><code class="docutils literal notranslate"><span class="pre">FormFactor()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/generated/momepy.FormFactor.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2018-, Martin Fleischmann and PySAL Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

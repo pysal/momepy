@@ -1,0 +1,6 @@
+﻿momepy.Reached
+==============
+
+.. currentmodule:: momepy
+
+.. autofunction:: Reached

@@ -1,0 +1,6 @@
+﻿momepy.NodeDensity
+==================
+
+.. currentmodule:: momepy
+
+.. autofunction:: NodeDensity

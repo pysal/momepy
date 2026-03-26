@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>momepy.BuildingAdjacency &#8212; momepy 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script src="../_static/js/jquery-fix.js"></script>
+    <script src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="momepy.CellAlignment" href="momepy.CellAlignment.html" />
+    <link rel="prev" title="momepy.Alignment" href="momepy.Alignment.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="http://docs.momepy.org/en/stable/generated/momepy.BuildingAdjacency.html" />
+
+
+
+<script type="text/javascript" src="../_static/readthedocs-data.js"></script>
+
+<!-- Add page-specific data, which must exist in the page js, not global -->
+<script type="text/javascript">
+READTHEDOCS_DATA['page'] = "generated/momepy.BuildingAdjacency"
+READTHEDOCS_DATA['source_suffix'] = ".rst"
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.2.0" /><meta name="readthedocs-resolver-filename" content="/generated/momepy.BuildingAdjacency.html" /><meta name="readthedocs-http-status" content="200" /></head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html"><span><img src="../_static/favicon.png"></span>
+          momepy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../install.html">Installation</a></li>
+                <li><a href="https://guide.momepy.org/">User Guide</a></li>
+                <li><a href="../api.html">API</a></li>
+                <li><a href="../contributing.html">Contributing</a></li>
+                <li><a href="../references.html">References</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-via-conda">Install via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-via-pip">Install via pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-from-the-repository">Install from the repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#dependencies">Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="http://guide.momepy.org">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">momepy API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../api.html#elements">elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#dimension">dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#shape">shape</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#spatial-distribution">spatial distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#intensity">intensity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#graph">graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#diversity">diversity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#utilities">utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to momepy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#eight-steps-for-contributing">Eight Steps for Contributing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">momepy.BuildingAdjacency</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="momepy-buildingadjacency">
+<h1>momepy.BuildingAdjacency<a class="headerlink" href="#momepy-buildingadjacency" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="momepy.BuildingAdjacency">
+<em class="property">class </em><code class="sig-prename descclassname">momepy.</code><code class="sig-name descname">BuildingAdjacency</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gdf</span></em>, <em class="sig-param"><span class="n">spatial_weights_higher</span></em>, <em class="sig-param"><span class="n">unique_id</span></em>, <em class="sig-param"><span class="n">spatial_weights</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/martinfleis/momepy/blob/v0.2.0/momepy/distribution.py#L748-L836"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#momepy.BuildingAdjacency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the level of building adjacency</p>
+<p>Building adjacency reflects how much buildings tend to join together into larger structures.
+It is calculated as a ratio of joined built-up structures and buildings within
+the extent defined in <cite>spatial_weights_higher</cite>.</p>
+<div class="math notranslate nohighlight">
+\[\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>gdf</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>GeoDataFrame containing objects to analyse</p>
+</dd>
+<dt><strong>spatial_weights_higher</strong><span class="classifier">libpysal.weights</span></dt><dd><p>spatial weights matrix</p>
+</dd>
+<dt><strong>unique_id</strong><span class="classifier">str</span></dt><dd><p>name of the column with unique id used as spatial_weights index</p>
+</dd>
+<dt><strong>spatial_weights</strong><span class="classifier">libpysal.weights, optional</span></dt><dd><p>spatial weights matrix - If None, Queen contiguity matrix will be calculated
+based on gdf. It is to denote adjacent buildings (note: based on unique ID).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Vanderhaegen S and Canters F (2017) Mapping urban form and function at city
+block level using spatial metrics. Landscape and Urban Planning 167: 399–409.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">buildings_df</span><span class="p">[</span><span class="s1">&#39;adjacency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">momepy</span><span class="o">.</span><span class="n">BuildingAdjacency</span><span class="p">(</span><span class="n">buildings_df</span><span class="p">,</span> <span class="n">swh</span><span class="p">,</span> <span class="n">unique_id</span><span class="o">=</span><span class="s1">&#39;uID&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">series</span>
+<span class="go">Calculating spatial weights...</span>
+<span class="go">Spatial weights ready...</span>
+<span class="go">100%|██████████| 144/144 [00:00&lt;00:00, 9301.73it/s]</span>
+<span class="go">Calculating adjacency...</span>
+<span class="go">100%|██████████| 144/144 [00:00&lt;00:00, 335.55it/s]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">buildings_df</span><span class="p">[</span><span class="s1">&#39;adjacency&#39;</span><span class="p">][</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">0.23809523809523808</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>series</strong><span class="classifier">Series</span></dt><dd><p>Series containing resulting values</p>
+</dd>
+<dt><strong>gdf</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>original GeoDataFrame</p>
+</dd>
+<dt><strong>sw_higher</strong><span class="classifier">libpysal.weights</span></dt><dd><p>spatial weights matrix</p>
+</dd>
+<dt><strong>id</strong><span class="classifier">Series</span></dt><dd><p>Series containing used unique ID</p>
+</dd>
+<dt><strong>sw</strong><span class="classifier">libpysal.weights</span></dt><dd><p>spatial weights matrix</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="momepy.BuildingAdjacency.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">gdf</span></em>, <em class="sig-param"><span class="n">spatial_weights_higher</span></em>, <em class="sig-param"><span class="n">unique_id</span></em>, <em class="sig-param"><span class="n">spatial_weights</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/martinfleis/momepy/blob/v0.2.0/momepy/distribution.py#L801-L836"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#momepy.BuildingAdjacency.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#momepy.BuildingAdjacency.__init__" title="momepy.BuildingAdjacency.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(self, gdf, spatial_weights_higher, …)</p></td>
+<td><p>Initialize self.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+<div id="sourcelink">
+  <a href="../_sources/generated/momepy.BuildingAdjacency.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018-2020, Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

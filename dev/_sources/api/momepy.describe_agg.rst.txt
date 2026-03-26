@@ -1,0 +1,6 @@
+﻿momepy.describe\_agg
+====================
+
+.. currentmodule:: momepy
+
+.. autofunction:: describe_agg

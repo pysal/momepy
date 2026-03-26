@@ -1,0 +1,6 @@
+﻿momepy.Unique
+=============
+
+.. currentmodule:: momepy
+
+.. autofunction:: Unique

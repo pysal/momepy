@@ -1,0 +1,6 @@
+﻿momepy.StreetAlignment
+======================
+
+.. currentmodule:: momepy
+
+.. autofunction:: StreetAlignment

@@ -1,0 +1,22 @@
+momepy.Blocks
+=============
+
+.. currentmodule:: momepy
+
+.. autoclass:: Blocks
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Blocks.__init__
+   
+   
+
+   
+   
+   

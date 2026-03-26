@@ -1,0 +1,22 @@
+﻿momepy.Tessellation
+===================
+
+.. currentmodule:: momepy
+
+.. autoclass:: Tessellation
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Tessellation.__init__
+   
+   
+
+   
+   
+   

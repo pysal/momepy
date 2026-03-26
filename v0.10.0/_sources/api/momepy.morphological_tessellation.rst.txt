@@ -1,0 +1,6 @@
+﻿momepy.morphological\_tessellation
+==================================
+
+.. currentmodule:: momepy
+
+.. autofunction:: morphological_tessellation

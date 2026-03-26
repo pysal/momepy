@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>momepy.preprocess &#8212; momepy 0.1.1 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="momepy.snap_street_network_edge" href="momepy.snap_street_network_edge.html" />
+    <link rel="prev" title="momepy.nx_to_gdf" href="momepy.nx_to_gdf.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="http://docs.momepy.org/en/stable/generated/momepy.preprocess.html" />
+
+
+
+<script type="text/javascript" src="../_static/readthedocs-data.js"></script>
+
+<!-- Add page-specific data, which must exist in the page js, not global -->
+<script type="text/javascript">
+READTHEDOCS_DATA['page'] = "generated/momepy.preprocess"
+READTHEDOCS_DATA['source_suffix'] = ".rst"
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.1.1" /><meta name="readthedocs-resolver-filename" content="/generated/momepy.preprocess.html" /><meta name="readthedocs-http-status" content="200" /></head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html"><span><img src="../_static/favicon.png"></span>
+          momepy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../install.html">Installation</a></li>
+                <li><a href="https://guide.momepy.org/">User Guide</a></li>
+                <li><a href="../api.html">API</a></li>
+                <li><a href="../contributing.html">Contributing</a></li>
+                <li><a href="../references.html">References</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-via-conda">Install via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-via-pip">Install via pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-from-the-repository">Install from the repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#dependencies">Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="http://guide.momepy.org">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">momepy API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../api.html#elements">elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#dimension">dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#shape">shape</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#spatial-distribution">spatial distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#intensity">intensity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#graph">graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#diversity">diversity</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#utilities">utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to momepy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#eight-steps-for-contributing">Eight Steps for Contributing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">momepy.preprocess</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="momepy-preprocess">
+<h1>momepy.preprocess<a class="headerlink" href="#momepy-preprocess" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="momepy.preprocess">
+<code class="sig-prename descclassname">momepy.</code><code class="sig-name descname">preprocess</code><span class="sig-paren">(</span><em class="sig-param">buildings</em>, <em class="sig-param">size=30</em>, <em class="sig-param">compactness=True</em>, <em class="sig-param">islands=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/momepy/utils.html#preprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#momepy.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Preprocesses building geometry to eliminate additional structures being single features.</p>
+<p>Certain data providers (e.g. Ordnance Survey in GB) do not provide building geometry
+as one feature, but divided into different features depending their level (if they are
+on ground floor or not - passages, overhangs). Ideally, these features should share
+one building ID on which they could be dissolved. If this is not the case, series of
+steps needs to be done to minimize errors in morphological analysis.</p>
+<p>This script attempts to preprocess such geometry based on several condidions:
+If feature area is smaller than set size it will be a) deleted if it does not
+touch any other feature; b) will be joined to feature with which it shares the
+longest boundary. If feature is fully within other feature, these will be joined.
+If feature’s circular compactness (<code class="xref py py-func docutils literal notranslate"><span class="pre">momepy.circular_compactness()</span></code>)
+is &lt; 0.2, it will be joined to feature with which it shares the longest boundary.
+Function does two loops through.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>buildings</strong><span class="classifier">geopandas.GeoDataFrame</span></dt><dd><p>geopandas.GeoDataFrame containing building layer</p>
+</dd>
+<dt><strong>size</strong><span class="classifier">float (default 30)</span></dt><dd><p>maximum area of feature to be considered as additional structure. Set to
+None if not wanted.</p>
+</dd>
+<dt><strong>compactness</strong><span class="classifier">bool (default True)</span></dt><dd><p>if True, function will resolve additional structures identified based on
+their circular compactness.</p>
+</dd>
+<dt><strong>islands</strong><span class="classifier">bool (default True)</span></dt><dd><p>if True, function will resolve additional structures which are fully within
+other structures (share 100% of exterior boundary).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>GeoDataFrame</dt><dd><p>GeoDataFrame containing preprocessed geometry</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+<div id="sourcelink">
+  <a href="../_sources/generated/momepy.preprocess.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018-2019, Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

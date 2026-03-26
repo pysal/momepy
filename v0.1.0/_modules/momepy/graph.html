@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>momepy.graph &#8212; momepy 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="http://docs.momepy.org/en/latest/_modules/momepy/graph.html" />
+
+
+
+<script type="text/javascript" src="../../_static/readthedocs-data.js"></script>
+
+<!-- Add page-specific data, which must exist in the page js, not global -->
+<script type="text/javascript">
+READTHEDOCS_DATA['page'] = "_modules/momepy/graph"
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.1.0" /><meta name="readthedocs-resolver-filename" content="/_modules/momepy/graph.html" /><meta name="readthedocs-http-status" content="200" /></head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><span><img src="../../_static/favicon.png"></span>
+          momepy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../../install.html">Installation</a></li>
+                <li><a href="https://guide.momepy.org/">User Guide</a></li>
+                <li><a href="../../api.html">API</a></li>
+                <li><a href="../../contributing.html">Contributing</a></li>
+                <li><a href="../../references.html">References</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#install-via-conda">Install via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#install-via-pip">Install via pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#install-from-the-repository">Install from the repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#dependencies">Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="http://guide.momepy.org">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">momepy API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#elements">elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#dimension">dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#shape">shape</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#spatial-distribution">spatial distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#intensity">intensity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#graph">graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#diversity">diversity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#utilities">utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to momepy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../contributing.html#eight-steps-for-contributing">Eight Steps for Contributing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for momepy.graph</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># connectivity.py</span>
+<span class="c1"># definitons of connectivity characters</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;node_degree&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;meshedness&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mean_node_dist&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;cds_length&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mean_node_degree&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;proportion&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;cyclomatic&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;edge_node_ratio&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;gamma&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;clustering&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;local_closeness_centrality&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;closeness_centrality&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;betweenness_centrality&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;local_betweenness_centrality&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;local_straightness_centrality&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;straightness_centrality&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;subgraph&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mean_nodes&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="node_degree"><a class="viewcode-back" href="../../generated/momepy.node_degree.html#momepy.node_degree">[docs]</a><span class="k">def</span> <span class="nf">node_degree</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;degree&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates node degree for each node.</span>
+
+<span class="sd">    Wrapper around `networkx.degree()`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    name : str(default &#39;degree&#39;)</span>
+<span class="sd">        calculated attribute name</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.node_degree(network_graph)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">degree</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">netx</span><span class="p">))</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<span class="k">def</span> <span class="nf">_meshedness</span><span class="p">(</span><span class="n">graph</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates meshedness of a graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">e</span> <span class="o">-</span> <span class="n">v</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">v</span> <span class="o">-</span> <span class="mi">5</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="meshedness"><a class="viewcode-back" href="../../generated/momepy.meshedness.html#momepy.meshedness">[docs]</a><span class="k">def</span> <span class="nf">meshedness</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;meshedness&quot;</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates meshedness for subgraph around each node.</span>
+
+<span class="sd">    Subgraph is generated around each node within set radius. If distance=None,</span>
+<span class="sd">    radius will define topological distance, otherwise it uses values in distance</span>
+<span class="sd">    attribute.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\alpha=\\frac{e-v+1}{2 v-5}</span>
+
+<span class="sd">    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius: int</span>
+<span class="sd">        number of topological steps defining the extent of subgraph</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Feliciotti A (2018) RESILIENCE AND URBAN DESIGN:A SYSTEMS APPROACH TO THE STUDY OF RESILIENCE IN URBAN FORM.</span>
+<span class="sd">    LEARNING FROM THE CASE OF GORBALS. Glasgow.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.meshedness(network_graph, radius=800, distance=&#39;edge_length&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">netx</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+        <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_meshedness</span><span class="p">(</span>
+            <span class="n">sub</span>
+        <span class="p">)</span>  <span class="c1"># save value calulated for subgraph to node</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<div class="viewcode-block" id="mean_node_dist"><a class="viewcode-back" href="../../generated/momepy.mean_node_dist.html#momepy.mean_node_dist">[docs]</a><span class="k">def</span> <span class="nf">mean_node_dist</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;meanlen&quot;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="s2">&quot;mm_len&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates mean distance to neighbouring nodes.</span>
+
+<span class="sd">    Mean of values in `length` attribute.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    length : str, optional</span>
+<span class="sd">        name of attribute of segment length (geographical)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.mean_node_dist(network_graph)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">nbrs</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="o">.</span><span class="n">adj</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">nbr</span><span class="p">,</span> <span class="n">keydict</span> <span class="ow">in</span> <span class="n">nbrs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">eattr</span> <span class="ow">in</span> <span class="n">keydict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eattr</span><span class="p">[</span><span class="n">length</span><span class="p">])</span>
+        <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<span class="k">def</span> <span class="nf">_cds_length</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates cul-de-sac length in a graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lens</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">cds</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="s2">&quot;cdsbool&quot;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cds</span><span class="p">:</span>
+            <span class="n">lens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">graph</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">length</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;sum&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">lens</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">lens</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mode </span><span class="si">{}</span><span class="s2"> is not supported. Use &#39;sum&#39; or &#39;mean&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="cds_length"><a class="viewcode-back" href="../../generated/momepy.cds_length.html#momepy.cds_length">[docs]</a><span class="k">def</span> <span class="nf">cds_length</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">,</span>
+    <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cds_len&quot;</span><span class="p">,</span>
+    <span class="n">degree</span><span class="o">=</span><span class="s2">&quot;degree&quot;</span><span class="p">,</span>
+    <span class="n">length</span><span class="o">=</span><span class="s2">&quot;mm_len&quot;</span><span class="p">,</span>
+    <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates length of cul-de-sacs for subgraph around each node.</span>
+
+<span class="sd">    Subgraph is generated around each node within set radius. If distance=None,</span>
+<span class="sd">    radius will define topological distance, otherwise it uses values in distance</span>
+<span class="sd">    attribute.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius : int</span>
+<span class="sd">        number of topological steps defining the extent of subgraph</span>
+<span class="sd">    mode : str (defualt &#39;sum&#39;)</span>
+<span class="sd">        if &#39;sum&#39;, calculate total length, if &#39;mean&#39; calculate mean length</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    degree : str</span>
+<span class="sd">        name of attribute of node degree (:py:func:`momepy.node_degree`)</span>
+<span class="sd">    length : str, optional</span>
+<span class="sd">        name of attribute of segment length (geographical)</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.cds_length(network_graph, radius=9, mode=&#39;mean&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># node degree needed beforehand</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">netx</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">degree</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">degree</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">netx</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;cdsbool&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">netx</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;cdsbool&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">netx</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+        <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cds_length</span><span class="p">(</span>
+            <span class="n">sub</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">length</span>
+        <span class="p">)</span>  <span class="c1"># save value calulated for subgraph to node</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<span class="k">def</span> <span class="nf">_mean_node_degree</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates mean node degree in a graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">degree</span><span class="p">))</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+
+<div class="viewcode-block" id="mean_node_degree"><a class="viewcode-back" href="../../generated/momepy.mean_node_degree.html#momepy.mean_node_degree">[docs]</a><span class="k">def</span> <span class="nf">mean_node_degree</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;mean_nd&quot;</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates mean node degree for subgraph around each node.</span>
+
+<span class="sd">    Subgraph is generated around each node within set radius. If distance=None,</span>
+<span class="sd">    radius will define topological distance, otherwise it uses values in distance</span>
+<span class="sd">    attribute.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius: int</span>
+<span class="sd">        radius defining the extent of subgraph</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    degree : str</span>
+<span class="sd">        name of attribute of node degree (:py:func:`momepy.node_degree`)</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.mean_node_degree(network_graph, radius=3)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">netx</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+        <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mean_node_degree</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="n">degree</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<span class="k">def</span> <span class="nf">_proportion</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">degree</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the proportion of intersection types in a graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">collections</span>
+
+    <span class="n">values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">degree</span><span class="p">))</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">counts</span>
+
+
+<div class="viewcode-block" id="proportion"><a class="viewcode-back" href="../../generated/momepy.proportion.html#momepy.proportion">[docs]</a><span class="k">def</span> <span class="nf">proportion</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">three</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">four</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dead</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the proportion of intersection types for subgraph around each node.</span>
+
+<span class="sd">    Subgraph is generated around each node within set radius. If distance=None,</span>
+<span class="sd">    radius will define topological distance, otherwise it uses values in distance</span>
+<span class="sd">    attribute.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius: int</span>
+<span class="sd">        number of topological steps defining the extent of subgraph</span>
+<span class="sd">    three : str, optional</span>
+<span class="sd">        attribute name for 3-way intersections proportion</span>
+<span class="sd">    four : str, optional</span>
+<span class="sd">        attribute name for 4-way intersections proportion</span>
+<span class="sd">    dead : str, optional</span>
+<span class="sd">        attribute name for deadends proportion</span>
+<span class="sd">    degree : str</span>
+<span class="sd">        name of attribute of node degree (:py:func:`momepy.node_degree`)</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.proportion(network_graph, three=&#39;threeway&#39;, four=&#39;fourway&#39;, dead=&#39;deadends&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">three</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">four</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dead</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Nothing to calculate. Define names for at least one proportion to be calculated: three, four, dead.&quot;</span>
+        <span class="p">)</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">netx</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">_proportion</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="n">degree</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">three</span><span class="p">:</span>
+            <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">three</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">four</span><span class="p">:</span>
+            <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">four</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dead</span><span class="p">:</span>
+            <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">dead</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<span class="k">def</span> <span class="nf">_cyclomatic</span><span class="p">(</span><span class="n">graph</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the cyclomatic complexity of a graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">e</span> <span class="o">-</span> <span class="n">v</span> <span class="o">+</span> <span class="mi">1</span>
+
+
+<div class="viewcode-block" id="cyclomatic"><a class="viewcode-back" href="../../generated/momepy.cyclomatic.html#momepy.cyclomatic">[docs]</a><span class="k">def</span> <span class="nf">cyclomatic</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cyclomatic&quot;</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates cyclomatic complexity for subgraph around each node.</span>
+
+<span class="sd">    Subgraph is generated around each node within set radius. If distance=None,</span>
+<span class="sd">    radius will define topological distance, otherwise it uses values in distance</span>
+<span class="sd">    attribute.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\alpha=e-v+1</span>
+
+<span class="sd">    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius: int</span>
+<span class="sd">        number of topological steps defining the extent of subgraph</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Bourdic L, Salat S and Nowacki C (2012) Assessing cities: a new system of cross-scale spatial indicators.</span>
+<span class="sd">    Building Research &amp; Information 40(5): 592–605.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.cyclomatic(network_graph, radius=3)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">netx</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+        <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cyclomatic</span><span class="p">(</span>
+            <span class="n">sub</span>
+        <span class="p">)</span>  <span class="c1"># save value calulated for subgraph to node</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<span class="k">def</span> <span class="nf">_edge_node_ratio</span><span class="p">(</span><span class="n">graph</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates edge / node ratio of a graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">e</span> <span class="o">/</span> <span class="n">v</span>
+
+
+<div class="viewcode-block" id="edge_node_ratio"><a class="viewcode-back" href="../../generated/momepy.edge_node_ratio.html#momepy.edge_node_ratio">[docs]</a><span class="k">def</span> <span class="nf">edge_node_ratio</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;edge_node_ratio&quot;</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates edge / node ratio for subgraph around each node.</span>
+
+<span class="sd">    Subgraph is generated around each node within set radius. If distance=None,</span>
+<span class="sd">    radius will define topological distance, otherwise it uses values in distance</span>
+<span class="sd">    attribute.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\alpha=e/v</span>
+
+<span class="sd">    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius: int</span>
+<span class="sd">        number of topological steps defining the extent of subgraph</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.</span>
+<span class="sd">    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.edge_node_ratio(network_graph, radius=3)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">netx</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+        <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_edge_node_ratio</span><span class="p">(</span>
+            <span class="n">sub</span>
+        <span class="p">)</span>  <span class="c1"># save value calulated for subgraph to node</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<span class="k">def</span> <span class="nf">_gamma</span><span class="p">(</span><span class="n">graph</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates gamma index of a graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">return</span> <span class="n">e</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="mi">2</span><span class="p">))</span>  <span class="c1"># save value calulated for subgraph to node</span>
+
+
+<div class="viewcode-block" id="gamma"><a class="viewcode-back" href="../../generated/momepy.gamma.html#momepy.gamma">[docs]</a><span class="k">def</span> <span class="nf">gamma</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gamma&quot;</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates connectivity gamma index for subgraph around each node.</span>
+
+<span class="sd">    Subgraph is generated around each node within set radius. If distance=None,</span>
+<span class="sd">    radius will define topological distance, otherwise it uses values in distance</span>
+<span class="sd">    attribute.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\alpha=\\frac{e}{3(v-2)}</span>
+
+<span class="sd">    where :math:`e` is the number of edges in subgraph and :math:`v` is the number of nodes in subgraph.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius: int</span>
+<span class="sd">        number of topological steps defining the extent of subgraph</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.</span>
+<span class="sd">    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.gamma(network_graph, radius=3)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">netx</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+        <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_gamma</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<div class="viewcode-block" id="clustering"><a class="viewcode-back" href="../../generated/momepy.clustering.html#momepy.clustering">[docs]</a><span class="k">def</span> <span class="nf">clustering</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cluster&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the squares clustering coefficient for nodes.</span>
+
+<span class="sd">    Wrapper around ``networkx.square_clustering``.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.clustering(network_graph)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">square_clustering</span><span class="p">(</span><span class="n">netx</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<span class="k">def</span> <span class="nf">_closeness_centrality</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wf_improved</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">len_graph</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute closeness centrality for nodes. Slight adaptation of networkx</span>
+<span class="sd">    `closeness_centrality` to allow normalisation for local closeness.</span>
+<span class="sd">    Adapted script used in networkx.</span>
+
+<span class="sd">    Closeness centrality [1]_ of a node `u` is the reciprocal of the</span>
+<span class="sd">    average shortest path distance to `u` over all `n-1` reachable nodes.</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        C(u) = \frac{n - 1}{\sum_{v=1}^{n-1} d(v, u)},</span>
+
+<span class="sd">    where `d(v, u)` is the shortest-path distance between `v` and `u`,</span>
+<span class="sd">    and `n` is the number of nodes that can reach `u`. Notice that the</span>
+<span class="sd">    closeness distance function computes the incoming distance to `u`</span>
+<span class="sd">    for directed graphs. To use outward distance, act on `G.reverse()`.</span>
+
+<span class="sd">    Notice that higher values of closeness indicate higher centrality.</span>
+
+<span class="sd">    Wasserman and Faust propose an improved formula for graphs with</span>
+<span class="sd">    more than one connected component. The result is &quot;a ratio of the</span>
+<span class="sd">    fraction of actors in the group who are reachable, to the average</span>
+<span class="sd">    distance&quot; from the reachable actors [2]_. You might think this</span>
+<span class="sd">    scale factor is inverted but it is not. As is, nodes from small</span>
+<span class="sd">    components receive a smaller closeness value. Letting `N` denote</span>
+<span class="sd">    the number of nodes in the graph,</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        C_{WF}(u) = \frac{n-1}{N-1} \frac{n - 1}{\sum_{v=1}^{n-1} d(v, u)},</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    G : graph</span>
+<span class="sd">      A NetworkX graph</span>
+
+<span class="sd">    u : node, optional</span>
+<span class="sd">      Return only the value for node u</span>
+
+<span class="sd">    distance : edge attribute key, optional (default=None)</span>
+<span class="sd">      Use the specified edge attribute as the edge distance in shortest</span>
+<span class="sd">      path calculations</span>
+
+<span class="sd">    len_graph : int</span>
+<span class="sd">        length of complete graph</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    nodes : dictionary</span>
+<span class="sd">      Dictionary of nodes with closeness centrality as the value.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Linton C. Freeman: Centrality in networks: I.</span>
+<span class="sd">       Conceptual clarification. Social Networks 1:215-239, 1979.</span>
+<span class="sd">       http://leonidzhukov.ru/hse/2013/socialnetworks/papers/freeman79-centrality.pdf</span>
+<span class="sd">    .. [2] pg. 201 of Wasserman, S. and Faust, K.,</span>
+<span class="sd">       Social Network Analysis: Methods and Applications, 1994,</span>
+<span class="sd">       Cambridge University Press.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">functools</span>
+
+        <span class="c1"># use Dijkstra&#39;s algorithm with specified attribute as edge weight</span>
+        <span class="n">path_length</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">single_source_dijkstra_path_length</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">length</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">path_length</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">single_source_shortest_path_length</span>
+
+    <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="p">]</span>
+    <span class="n">closeness_centrality</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="n">sp</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">path_length</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+        <span class="n">totsp</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">totsp</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">closeness_centrality</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">totsp</span>
+            <span class="c1"># normalize to number of nodes-1 in connected part</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">len_graph</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">closeness_centrality</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">*=</span> <span class="n">s</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">closeness_centrality</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">return</span> <span class="n">closeness_centrality</span><span class="p">[</span><span class="n">u</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="local_closeness_centrality"><a class="viewcode-back" href="../../generated/momepy.local_closeness_centrality.html#momepy.local_closeness_centrality">[docs]</a><span class="k">def</span> <span class="nf">local_closeness_centrality</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;closeness&quot;</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates local closeness for each node based on the defined distance.</span>
+
+<span class="sd">    Subgraph is generated around each node within set radius. If distance=None,</span>
+<span class="sd">    radius will define topological distance, otherwise it uses values in distance</span>
+<span class="sd">    attribute. Based on networkx.closeness_centrality.</span>
+
+<span class="sd">    Local closeness centrality of a node `u` is the reciprocal of the</span>
+<span class="sd">    average shortest path distance to `u` over all `n-1` nodes within subgraph.</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        C(u) = \\frac{n - 1}{\\sum_{v=1}^{n-1} d(v, u)},</span>
+
+<span class="sd">    where `d(v, u)` is the shortest-path distance between `v` and `u`,</span>
+<span class="sd">    and `n` is the number of nodes that can reach `u`.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius: int</span>
+<span class="sd">        number of topological steps defining the extent of subgraph</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n during ego_graph generation.</span>
+<span class="sd">    weight : str, optional</span>
+<span class="sd">      Use the specified edge attribute as the edge distance in shortest</span>
+<span class="sd">      path calculations in closeness centrality algorithm</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Porta S, Crucitti P and Latora V (2006) The network analysis of urban streets: A primal approach.</span>
+<span class="sd">    Environment and Planning B: Planning and Design 33(5): 705–725.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.local_closeness_centrality(network_graph, radius=400, distance=&#39;edge_length&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">lengraph</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">netx</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+        <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_closeness_centrality</span><span class="p">(</span>
+            <span class="n">sub</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">len_graph</span><span class="o">=</span><span class="n">lengraph</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<div class="viewcode-block" id="closeness_centrality"><a class="viewcode-back" href="../../generated/momepy.closeness_centrality.html#momepy.closeness_centrality">[docs]</a><span class="k">def</span> <span class="nf">closeness_centrality</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;closeness&quot;</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s2">&quot;mm_len&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the closeness centrality for nodes.</span>
+
+<span class="sd">    Wrapper around ``networkx.closeness_centrality``.</span>
+
+<span class="sd">    Closeness centrality of a node `u` is the reciprocal of the</span>
+<span class="sd">    average shortest path distance to `u` over all `n-1` nodes within reachable nodes.</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        C(u) = \\frac{n - 1}{\\sum_{v=1}^{n-1} d(v, u)},</span>
+
+<span class="sd">    where `d(v, u)` is the shortest-path distance between `v` and `u`,</span>
+<span class="sd">    and `n` is the number of nodes that can reach `u`.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    weight : str (default &#39;mm_len&#39;)</span>
+<span class="sd">        attribute holding the weight of edge (e.g. length, angle)</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        kwargs for ``networkx.closeness_centrality``</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.closeness_centrality(network_graph)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">closeness_centrality</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<div class="viewcode-block" id="betweenness_centrality"><a class="viewcode-back" href="../../generated/momepy.betweenness_centrality.html#momepy.betweenness_centrality">[docs]</a><span class="k">def</span> <span class="nf">betweenness_centrality</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;betweenness&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;nodes&quot;</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s2">&quot;mm_len&quot;</span><span class="p">,</span> <span class="n">endpoints</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the shortest-path betweenness centrality for nodes.</span>
+
+<span class="sd">    Wrapper around ``networkx.betweenness_centrality`` or ``networkx.edge_betweenness_centrality``.</span>
+
+<span class="sd">    Betweenness centrality of a node `v` is the sum of the</span>
+<span class="sd">    fraction of all-pairs shortest paths that pass through `v`</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">       c_B(v) =\\sum_{s,t \\in V} \\frac{\\sigma(s, t|v)}{\\sigma(s, t)}</span>
+
+<span class="sd">    where `V` is the set of nodes, :math:`\\sigma(s, t)` is the number of</span>
+<span class="sd">    shortest :math:`(s, t)`-paths,  and :math:`\\sigma(s, t|v)` is the number of</span>
+<span class="sd">    those paths  passing through some  node `v` other than `s, t`.</span>
+<span class="sd">    If `s = t`, :math:`\\sigma(s, t) = 1`, and if `v` in `{s, t}``,</span>
+<span class="sd">    :math:`\\sigma(s, t|v) = 0`.</span>
+
+<span class="sd">    Betweenness centrality of an edge `e` is the sum of the</span>
+<span class="sd">    fraction of all-pairs shortest paths that pass through `e`</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">       c_B(e) =\\sum_{s,t \\in V} \\frac{\\sigma(s, t|e)}{\\sigma(s, t)}</span>
+
+<span class="sd">    where `V` is the set of nodes, :math:`\\sigma(s, t)` is the number of</span>
+<span class="sd">    shortest :math:`(s, t)`-paths, and :math:`\\sigma(s, t|e)` is the number of</span>
+<span class="sd">    those paths passing through edge `e`.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    mode : str, default &#39;nodes&#39;</span>
+<span class="sd">        mode of betweenness calculation. &#39;node&#39; for node-based, &#39;edges&#39; for edge-based</span>
+<span class="sd">    weight : str (default &#39;mm_len&#39;)</span>
+<span class="sd">        attribute holding the weight of edge (e.g. length, angle)</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        kwargs for ``networkx.betweenness_centrality`` or ``networkx.edge_betweenness_centrality``</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Porta S, Crucitti P and Latora V (2006) The network analysis of urban streets: A primal approach.</span>
+<span class="sd">    Environment and Planning B: Planning and Design 33(5): 705–725.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.betweenness_centrality(network_graph)</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    In case of angular betweenness, implementation is based on &quot;Tasos Implementation&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># has to be Graph not MultiGraph as MG is not supported by networkx2.4</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">netx</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">G</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">G</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">weight</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">netx</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">weight</span><span class="p">]:</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="p">{(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span> <span class="n">data</span><span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;nodes&quot;</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">betweenness_centrality</span><span class="p">(</span>
+            <span class="n">G</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">endpoints</span><span class="o">=</span><span class="n">endpoints</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;edges&quot;</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">edge_betweenness_centrality</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">netx</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="n">u</span><span class="p">]</span>
+            <span class="n">netx</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Mode </span><span class="si">{}</span><span class="s2"> is not supported. Use &#39;nodes&#39; or &#39;edges&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<div class="viewcode-block" id="local_betweenness_centrality"><a class="viewcode-back" href="../../generated/momepy.local_betweenness_centrality.html#momepy.local_betweenness_centrality">[docs]</a><span class="k">def</span> <span class="nf">local_betweenness_centrality</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">,</span>
+    <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;betweenness&quot;</span><span class="p">,</span>
+    <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">normalized</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the shortest-path betweenness centrality for nodes within subgraph.</span>
+
+<span class="sd">    Subgraph is generated around each node within set radius. If distance=None,</span>
+<span class="sd">    radius will define topological distance, otherwise it uses values in distance</span>
+<span class="sd">    attribute. Based on ``networkx.betweenness_centrality``.</span>
+
+<span class="sd">    Betweenness centrality of a node `v` is the sum of the</span>
+<span class="sd">    fraction of all-pairs shortest paths that pass through `v`</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">       c_B(v) =\\sum_{s,t \\in V} \\frac{\\sigma(s, t|v)}{\\sigma(s, t)}</span>
+
+<span class="sd">    where `V` is the set of nodes, :math:`\\sigma(s, t)` is the number of</span>
+<span class="sd">    shortest :math:`(s, t)`-paths,  and :math:`\\sigma(s, t|v)` is the number of</span>
+<span class="sd">    those paths  passing through some  node `v` other than `s, t`.</span>
+<span class="sd">    If `s = t`, :math:`\\sigma(s, t) = 1`, and if `v` in `{s, t}``,</span>
+<span class="sd">    :math:`\\sigma(s, t|v) = 0`.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius: int</span>
+<span class="sd">        number of topological steps defining the extent of subgraph</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n during ego_graph generation.</span>
+<span class="sd">    weight : str, optional</span>
+<span class="sd">        Use the specified edge attribute as the edge distance in shortest</span>
+<span class="sd">        path calculations in closeness centrality algorithm</span>
+<span class="sd">    normalized : bool, optional</span>
+<span class="sd">        If True the betweenness values are normalized by `2/((n-1)(n-2))`,</span>
+<span class="sd">        where n is the number of nodes in subgraph.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        kwargs for ``networkx.betweenness_centrality_subset``</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.local_betweenness_centrality(network_graph, radius=800, distance=&#39;edge_length&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># has to be Graph not MultiGraph as MG is not supported by networkx2.4</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">netx</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">G</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">and</span> <span class="n">weight</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">G</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">weight</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">netx</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">weight</span><span class="p">]:</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="p">{(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span> <span class="n">data</span><span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">G</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+        <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">betweenness_centrality</span><span class="p">(</span>
+            <span class="n">sub</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">normalized</span><span class="o">=</span><span class="n">normalized</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)[</span><span class="n">n</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<span class="k">def</span> <span class="nf">_euclidean</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;helper for straightness&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_straightness_centrality</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">normalized</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates straightness centrality.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">straightness_centrality</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+        <span class="n">straightness</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">sp</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">single_source_dijkstra_path_length</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">sp</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="n">target</span><span class="p">:</span>
+                    <span class="n">network_dist</span> <span class="o">=</span> <span class="n">sp</span><span class="p">[</span><span class="n">target</span><span class="p">]</span>
+                    <span class="n">euclidean_dist</span> <span class="o">=</span> <span class="n">_euclidean</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+                    <span class="n">straightness</span> <span class="o">=</span> <span class="n">straightness</span> <span class="o">+</span> <span class="p">(</span><span class="n">euclidean_dist</span> <span class="o">/</span> <span class="n">network_dist</span><span class="p">)</span>
+            <span class="n">straightness_centrality</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">straightness</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">))</span>
+            <span class="c1"># normalize to number of nodes-1 in connected part</span>
+            <span class="k">if</span> <span class="n">normalized</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>
+                    <span class="n">straightness_centrality</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">*=</span> <span class="n">s</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">straightness_centrality</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">straightness_centrality</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">return</span> <span class="n">straightness_centrality</span>
+
+
+<div class="viewcode-block" id="straightness_centrality"><a class="viewcode-back" href="../../generated/momepy.straightness_centrality.html#momepy.straightness_centrality">[docs]</a><span class="k">def</span> <span class="nf">straightness_centrality</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s2">&quot;mm_len&quot;</span><span class="p">,</span> <span class="n">normalized</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;straightness&quot;</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the straightness centrality for nodes.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        C_{S}(i)=\\frac{1}{n-1} \\sum_{j \\in V, j \\neq i} \\frac{d_{i j}^{E u}}{d_{i j}}</span>
+
+<span class="sd">    where :math:`\\mathrm{d}^{\\mathrm{E} \\mathrm{u}}_{\\mathrm{ij}}` is the Euclidean distance</span>
+<span class="sd">    between nodes `i` and `j` along a straight line.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    weight : str (default &#39;mm_len&#39;)</span>
+<span class="sd">        attribute holding length of edge</span>
+<span class="sd">    normalized : bool</span>
+<span class="sd">        normalize to number of nodes-1 in connected part</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Porta S, Crucitti P and Latora V (2006) The network analysis of urban streets: A primal approach.</span>
+<span class="sd">    Environment and Planning B: Planning and Design 33(5): 705–725.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.straightness_centrality(network_graph)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">_straightness_centrality</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">normalized</span><span class="o">=</span><span class="n">normalized</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<div class="viewcode-block" id="local_straightness_centrality"><a class="viewcode-back" href="../../generated/momepy.local_straightness_centrality.html#momepy.local_straightness_centrality">[docs]</a><span class="k">def</span> <span class="nf">local_straightness_centrality</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;straightness&quot;</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s2">&quot;mm_len&quot;</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates local straightness for each node based on the defined distance.</span>
+
+<span class="sd">    Subgraph is generated around each node within set radius. If distance=None,</span>
+<span class="sd">    radius will define topological distance, otherwise it uses values in distance</span>
+<span class="sd">    attribute.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        C_{S}(i)=\\frac{1}{n-1} \\sum_{j \\in V, j \\neq i} \\frac{d_{i j}^{E u}}{d_{i j}}</span>
+
+<span class="sd">    where :math:`\\mathrm{d}^{\\mathrm{E} \\mathrm{u}}_{\\mathrm{ij}}` is the Euclidean distance</span>
+<span class="sd">    between nodes `i` and `j` along a straight line.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius: int</span>
+<span class="sd">        number of topological steps defining the extent of subgraph</span>
+<span class="sd">    name : str, optional</span>
+<span class="sd">        calculated attribute name</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n during ego_graph generation.</span>
+<span class="sd">    weight : str, optional</span>
+<span class="sd">      Use the specified edge attribute as the edge distance in shortest</span>
+<span class="sd">      path calculations in closeness centrality algorithm</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.local_straightness_centrality(network_graph, radius=400, distance=&#39;edge_length&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">netx</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+        <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_straightness_centrality</span><span class="p">(</span>
+            <span class="n">sub</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">normalized</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)[</span><span class="n">n</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<div class="viewcode-block" id="subgraph"><a class="viewcode-back" href="../../generated/momepy.subgraph.html#momepy.subgraph">[docs]</a><span class="k">def</span> <span class="nf">subgraph</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">,</span>
+    <span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">meshedness</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">cds_length</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+    <span class="n">degree</span><span class="o">=</span><span class="s2">&quot;degree&quot;</span><span class="p">,</span>
+    <span class="n">length</span><span class="o">=</span><span class="s2">&quot;mm_len&quot;</span><span class="p">,</span>
+    <span class="n">mean_node_degree</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">proportion</span><span class="o">=</span><span class="p">{</span><span class="mi">3</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="n">cyclomatic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">edge_node_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">gamma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">local_closeness</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">closeness_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates all subgraph-based characters.</span>
+
+<span class="sd">    Generating subgraph might be a time consuming activity. If we want to use the same</span>
+<span class="sd">    subgraph for more characters, ``subgraph`` allows this by generating subgraph and</span>
+<span class="sd">    then analysing it using selected options.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : networkx.Graph</span>
+<span class="sd">        Graph representing street network.</span>
+<span class="sd">        Ideally genereated from GeoDataFrame using :py:func:`momepy.gdf_to_nx`</span>
+<span class="sd">    radius: int</span>
+<span class="sd">        radius defining the extent of subgraph</span>
+<span class="sd">    distance : str, optional</span>
+<span class="sd">        Use specified edge data key as distance.</span>
+<span class="sd">        For example, setting distance=’weight’ will use the edge weight to</span>
+<span class="sd">        measure the distance from the node n.</span>
+<span class="sd">    meshedness : bool, default True</span>
+<span class="sd">        Calculate meshedness (True/False)</span>
+<span class="sd">    cds_length : bool, default True</span>
+<span class="sd">        Calculate cul-de-sac length (True/False)</span>
+<span class="sd">    mode : str (defualt &#39;sum&#39;)</span>
+<span class="sd">        if &#39;sum&#39;, calculate total cds_length, if &#39;mean&#39; calculate mean cds_length</span>
+<span class="sd">    degree : str</span>
+<span class="sd">        name of attribute of node degree (:py:func:`momepy.node_degree`)</span>
+<span class="sd">    length : str, default `mm_len`</span>
+<span class="sd">        name of attribute of segment length (geographical)</span>
+<span class="sd">    mean_node_degree : bool, default True</span>
+<span class="sd">        Calculate mean node degree (True/False)</span>
+<span class="sd">    proportion : dict, default {3: True, 4: True, 0: True}</span>
+<span class="sd">        Calculate proportion {3: True/False, 4: True/False, 0: True/False}</span>
+<span class="sd">    cyclomatic : bool, default True</span>
+<span class="sd">        Calculate cyclomatic complexity (True/False)</span>
+<span class="sd">    edge_node_ratio : bool, default True</span>
+<span class="sd">        Calculate edge node ratio (True/False)</span>
+<span class="sd">    gamma : bool, default True</span>
+<span class="sd">        Calculate gamma index (True/False)</span>
+<span class="sd">    local_closeness : bool, default True</span>
+<span class="sd">        Calculate local closeness centrality (True/False)</span>
+<span class="sd">    closeness_weight : str, optional</span>
+<span class="sd">      Use the specified edge attribute as the edge distance in shortest</span>
+<span class="sd">      path calculations in closeness centrality algorithm</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Graph</span>
+<span class="sd">        networkx.Graph</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; network_graph = mm.subgraph(network_graph)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">netx</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">netx</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)):</span>
+        <span class="n">sub</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">ego_graph</span><span class="p">(</span>
+            <span class="n">netx</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span>
+        <span class="p">)</span>  <span class="c1"># define subgraph of steps=radius</span>
+
+        <span class="k">if</span> <span class="n">meshedness</span><span class="p">:</span>
+            <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;meshedness&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_meshedness</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cds_length</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">netx</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">degree</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">degree</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">netx</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;cdsbool&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">netx</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;cdsbool&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;cds_length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cds_length</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">length</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mean_node_degree</span><span class="p">:</span>
+            <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;mean_node_degree&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mean_node_degree</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="n">degree</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">proportion</span><span class="p">:</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="n">_proportion</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="n">degree</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">proportion</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+                <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;proportion_3&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">proportion</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span>
+                <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;proportion_4&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">proportion</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;proportion_0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cyclomatic</span><span class="p">:</span>
+            <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;cyclomatic&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cyclomatic</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">edge_node_ratio</span><span class="p">:</span>
+            <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;edge_node_ratio&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_edge_node_ratio</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">gamma</span><span class="p">:</span>
+            <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;gamma&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_gamma</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">local_closeness</span><span class="p">:</span>
+            <span class="n">lengraph</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">netx</span><span class="p">)</span>
+            <span class="n">netx</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s2">&quot;local_closeness&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_closeness_centrality</span><span class="p">(</span>
+                <span class="n">sub</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">closeness_weight</span><span class="p">,</span> <span class="n">len_graph</span><span class="o">=</span><span class="n">lengraph</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">netx</span></div>
+
+
+<div class="viewcode-block" id="mean_nodes"><a class="viewcode-back" href="../../generated/momepy.mean_nodes.html#momepy.mean_nodes">[docs]</a><span class="k">def</span> <span class="nf">mean_nodes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates mean value of nodes attr for each edge.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="n">G</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()):</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">+</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">attr</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">G</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean</span></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+      
+    </p>
+    <p>
+        &copy; Copyright 2018-2019, Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

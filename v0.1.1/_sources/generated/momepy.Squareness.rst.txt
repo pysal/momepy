@@ -1,0 +1,22 @@
+momepy.Squareness
+=================
+
+.. currentmodule:: momepy
+
+.. autoclass:: Squareness
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Squareness.__init__
+   
+   
+
+   
+   
+   

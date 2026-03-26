@@ -1,0 +1,6 @@
+﻿momepy.Perimeter
+================
+
+.. currentmodule:: momepy
+
+.. autofunction:: Perimeter

@@ -1,0 +1,6 @@
+﻿momepy.NeighboringStreetOrientationDeviation
+============================================
+
+.. currentmodule:: momepy
+
+.. autofunction:: NeighboringStreetOrientationDeviation

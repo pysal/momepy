@@ -1,0 +1,6 @@
+﻿momepy.Rectangularity
+=====================
+
+.. currentmodule:: momepy
+
+.. autofunction:: Rectangularity

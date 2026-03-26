@@ -1,0 +1,6 @@
+﻿momepy.Density
+==============
+
+.. currentmodule:: momepy
+
+.. autofunction:: Density

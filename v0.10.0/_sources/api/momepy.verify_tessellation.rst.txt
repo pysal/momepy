@@ -1,0 +1,6 @@
+﻿momepy.verify\_tessellation
+===========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: verify_tessellation

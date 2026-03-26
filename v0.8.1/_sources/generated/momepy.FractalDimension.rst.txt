@@ -1,0 +1,6 @@
+﻿momepy.FractalDimension
+=======================
+
+.. currentmodule:: momepy
+
+.. autofunction:: FractalDimension

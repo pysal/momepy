@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>momepy.diversity &#8212; momepy 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="http://docs.momepy.org/en/latest/_modules/momepy/diversity.html" />
+
+
+
+<script type="text/javascript" src="../../_static/readthedocs-data.js"></script>
+
+<!-- Add page-specific data, which must exist in the page js, not global -->
+<script type="text/javascript">
+READTHEDOCS_DATA['page'] = "_modules/momepy/diversity"
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.1.0" /><meta name="readthedocs-resolver-filename" content="/_modules/momepy/diversity.html" /><meta name="readthedocs-http-status" content="200" /></head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><span><img src="../../_static/favicon.png"></span>
+          momepy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../../install.html">Installation</a></li>
+                <li><a href="https://guide.momepy.org/">User Guide</a></li>
+                <li><a href="../../api.html">API</a></li>
+                <li><a href="../../contributing.html">Contributing</a></li>
+                <li><a href="../../references.html">References</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#install-via-conda">Install via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#install-via-pip">Install via pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#install-from-the-repository">Install from the repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#dependencies">Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="http://guide.momepy.org">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">momepy API reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#elements">elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#dimension">dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#shape">shape</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#spatial-distribution">spatial distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#intensity">intensity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#graph">graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#diversity">diversity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#utilities">utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to momepy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../contributing.html#eight-steps-for-contributing">Eight Steps for Contributing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for momepy.diversity</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># diversity.py</span>
+<span class="c1"># definitons of diversity characters</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>  <span class="c1"># progress bar</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Range&quot;</span><span class="p">,</span> <span class="s2">&quot;Theil&quot;</span><span class="p">,</span> <span class="s2">&quot;Simpson&quot;</span><span class="p">,</span> <span class="s2">&quot;Gini&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="Range"><a class="viewcode-back" href="../../generated/momepy.Range.html#momepy.Range">[docs]</a><span class="k">class</span> <span class="nc">Range</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the range of values within neighbours defined in `spatial_weights`.</span>
+
+<span class="sd">    Uses `scipy.stats.iqr` under the hood.</span>
+
+<span class="sd">    .. math::</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing morphological tessellation</span>
+<span class="sd">    values : str, list, np.array, pd.Series</span>
+<span class="sd">        the name of the dataframe column, np.array, or pd.Series where is stored character value.</span>
+<span class="sd">    spatial_weights : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    unique_id : str</span>
+<span class="sd">        name of the column with unique id used as spatial_weights index</span>
+<span class="sd">    rng : Two-element sequence containing floats in range of [0,100], optional</span>
+<span class="sd">        Percentiles over which to compute the range. Each must be</span>
+<span class="sd">        between 0 and 100, inclusive. The order of the elements is not important.</span>
+<span class="sd">    **kwargs : keyword arguments</span>
+<span class="sd">        optional arguments for `scipy.stats.iqr`</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+<span class="sd">    values : Series</span>
+<span class="sd">        Series containing used values</span>
+<span class="sd">    sw : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    id : Series</span>
+<span class="sd">        Series containing used unique ID</span>
+<span class="sd">    rng : tuple</span>
+<span class="sd">        range</span>
+<span class="sd">    kwargs : dict</span>
+<span class="sd">        kwargs</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Dibble J, Prelorendjos A, Romice O, et al. (2017) On the origin of spaces: Morphometric foundations of urban form evolution.</span>
+<span class="sd">    Environment and Planning B: Urban Analytics and City Science 46(4): 707–730.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; sw = momepy.sw_high(k=3, gdf=tessellation_df, ids=&#39;uID&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; tessellation_df[&#39;area_IQR_3steps&#39;] = mm.Range(tessellation_df, &#39;area&#39;, sw, &#39;uID&#39;, rng=(25, 75)).series</span>
+<span class="sd">    100%|██████████| 144/144 [00:00&lt;00:00, 722.50it/s]</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Range.__init__"><a class="viewcode-back" href="../../generated/momepy.Range.html#momepy.Range.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">spatial_weights</span><span class="p">,</span> <span class="n">unique_id</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sw</span> <span class="o">=</span> <span class="n">spatial_weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">unique_id</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">rng</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mm_v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="s2">&quot;mm_v&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">values</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">unique_id</span><span class="p">)</span>
+
+        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">total</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">neighbours</span> <span class="o">=</span> <span class="n">spatial_weights</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">neighbours</span><span class="p">:</span>
+                <span class="n">neighbours</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="n">values_list</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neighbours</span><span class="p">][</span><span class="n">values</span><span class="p">]</span>
+            <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">iqr</span><span class="p">(</span><span class="n">values_list</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">results_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Theil"><a class="viewcode-back" href="../../generated/momepy.Theil.html#momepy.Theil">[docs]</a><span class="k">class</span> <span class="nc">Theil</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the Theil measure of inequality of values within neighbours defined in `spatial_weights`.</span>
+
+<span class="sd">    Uses `inequality.theil.Theil` under the hood. Requires &#39;inequality&#39; or &#39;pysal&#39; package.</span>
+
+<span class="sd">    .. math::</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing morphological tessellation</span>
+<span class="sd">    values : str, list, np.array, pd.Series</span>
+<span class="sd">        the name of the dataframe column, np.array, or pd.Series where is stored character value.</span>
+<span class="sd">    spatial_weights : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    unique_id : str</span>
+<span class="sd">        name of the column with unique id used as spatial_weights index</span>
+<span class="sd">    rng : Two-element sequence containing floats in range of [0,100], optional</span>
+<span class="sd">        Percentiles over which to compute the range. Each must be</span>
+<span class="sd">        between 0 and 100, inclusive. The order of the elements is not important.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+<span class="sd">    values : Series</span>
+<span class="sd">        Series containing used values</span>
+<span class="sd">    sw : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    id : Series</span>
+<span class="sd">        Series containing used unique ID</span>
+<span class="sd">    rng : tuple, optional</span>
+<span class="sd">        range</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; sw = momepy.sw_high(k=3, gdf=tessellation_df, ids=&#39;uID&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; tessellation_df[&#39;area_Theil&#39;] = mm.Theil(tessellation_df, &#39;area&#39;, sw, &#39;uID&#39;).series</span>
+<span class="sd">    100%|██████████| 144/144 [00:00&lt;00:00, 597.37it/s]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Theil.__init__"><a class="viewcode-back" href="../../generated/momepy.Theil.html#momepy.Theil.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">spatial_weights</span><span class="p">,</span> <span class="n">unique_id</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">inequality.theil</span> <span class="k">import</span> <span class="n">Theil</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">pysal.explore.inequality.theil</span> <span class="k">import</span> <span class="n">Theil</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;The &#39;inequality&#39; or &#39;pysal&#39; package is required.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sw</span> <span class="o">=</span> <span class="n">spatial_weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">unique_id</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">rng</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mm_v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="s2">&quot;mm_v&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">values</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">unique_id</span><span class="p">)</span>
+
+        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">total</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">neighbours</span> <span class="o">=</span> <span class="n">spatial_weights</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">neighbours</span><span class="p">:</span>
+                <span class="n">neighbours</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="n">values_list</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neighbours</span><span class="p">][</span><span class="n">values</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">rng</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">momepy</span> <span class="k">import</span> <span class="n">limit_range</span>
+
+                <span class="n">values_list</span> <span class="o">=</span> <span class="n">limit_range</span><span class="p">(</span><span class="n">values_list</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
+            <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Theil</span><span class="p">(</span><span class="n">values_list</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">results_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Simpson"><a class="viewcode-back" href="../../generated/momepy.Simpson.html#momepy.Simpson">[docs]</a><span class="k">class</span> <span class="nc">Simpson</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the Simpson\&#39;s diversity index of values within neighbours defined in `spatial_weights`.</span>
+
+<span class="sd">    Uses `mapclassify.classifiers` under the hood for binning. Requires `mapclassify&gt;=.2.1.0` dependency</span>
+<span class="sd">    or `pysal`.</span>
+
+<span class="sd">    .. math::</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    objects : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing morphological tessellation</span>
+<span class="sd">    values : str, list, np.array, pd.Series</span>
+<span class="sd">        the name of the dataframe column, np.array, or pd.Series where is stored character value.</span>
+<span class="sd">    spatial_weights : libpysal.weights, optional</span>
+<span class="sd">        spatial weights matrix - If None, Queen contiguity matrix of set order will be calculated</span>
+<span class="sd">        based on objects.</span>
+<span class="sd">    order : int</span>
+<span class="sd">        order of Queen contiguity</span>
+<span class="sd">    binning : str</span>
+<span class="sd">        One of mapclassify classification schemes</span>
+<span class="sd">        Options are BoxPlot, EqualInterval, FisherJenks,</span>
+<span class="sd">        FisherJenksSampled, HeadTailBreaks, JenksCaspall,</span>
+<span class="sd">        JenksCaspallForced, JenksCaspallSampled, MaxPClassifier,</span>
+<span class="sd">        MaximumBreaks, NaturalBreaks, Quantiles, Percentiles, StdMean,</span>
+<span class="sd">        UserDefined</span>
+<span class="sd">    **classification_kwds : dict</span>
+<span class="sd">        Keyword arguments for classification scheme</span>
+<span class="sd">        For details see mapclassify documentation:</span>
+<span class="sd">        https://pysal.org/mapclassify</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+<span class="sd">    values : Series</span>
+<span class="sd">        Series containing used values</span>
+<span class="sd">    sw : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    id : Series</span>
+<span class="sd">        Series containing used unique ID</span>
+<span class="sd">    binning : str</span>
+<span class="sd">        binning method</span>
+<span class="sd">    bins : mapclassify.classifiers.Classifier</span>
+<span class="sd">        generated bins</span>
+<span class="sd">    classification_kwds : dict</span>
+<span class="sd">        classification_kwds</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Feliciotti A (2018) RESILIENCE AND URBAN DESIGN:A SYSTEMS APPROACH TO THE STUDY OF RESILIENCE</span>
+<span class="sd">    IN URBAN FORM. LEARNING FROM THE CASE OF GORBALS. Glasgow.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; sw = momepy.sw_high(k=3, gdf=tessellation_df, ids=&#39;uID&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; tessellation_df[&#39;area_Simpson&#39;] = mm.Simpson(tessellation_df, &#39;area&#39;, sw, &#39;uID&#39;).series</span>
+<span class="sd">    100%|██████████| 144/144 [00:00&lt;00:00, 455.83it/s]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Simpson.__init__"><a class="viewcode-back" href="../../generated/momepy.Simpson.html#momepy.Simpson.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">gdf</span><span class="p">,</span>
+        <span class="n">values</span><span class="p">,</span>
+        <span class="n">spatial_weights</span><span class="p">,</span>
+        <span class="n">unique_id</span><span class="p">,</span>
+        <span class="n">binning</span><span class="o">=</span><span class="s2">&quot;HeadTailBreaks&quot;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">classification_kwds</span>
+    <span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">mapclassify.classifiers</span> <span class="k">as</span> <span class="nn">classifiers</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">pysal.viz.mapclassify.classifiers</span> <span class="k">as</span> <span class="nn">classifiers</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;The &#39;mapclassify&#39; or &#39;pysal&#39; package is required&quot;</span><span class="p">)</span>
+
+        <span class="n">schemes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">classifier</span> <span class="ow">in</span> <span class="n">classifiers</span><span class="o">.</span><span class="n">CLASSIFIERS</span><span class="p">:</span>
+            <span class="n">schemes</span><span class="p">[</span><span class="n">classifier</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">classifiers</span><span class="p">,</span> <span class="n">classifier</span><span class="p">)</span>
+        <span class="n">binning</span> <span class="o">=</span> <span class="n">binning</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">binning</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">schemes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Invalid binning. Binning must be in the&quot;</span> <span class="s2">&quot; set: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">schemes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sw</span> <span class="o">=</span> <span class="n">spatial_weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">unique_id</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binning</span> <span class="o">=</span> <span class="n">binning</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classification_kwds</span> <span class="o">=</span> <span class="n">classification_kwds</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mm_v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="s2">&quot;mm_v&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">values</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bins</span> <span class="o">=</span> <span class="n">schemes</span><span class="p">[</span><span class="n">binning</span><span class="p">](</span><span class="n">data</span><span class="p">[</span><span class="n">values</span><span class="p">],</span> <span class="o">**</span><span class="n">classification_kwds</span><span class="p">)</span><span class="o">.</span><span class="n">bins</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">unique_id</span><span class="p">)</span>
+        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">total</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">neighbours</span> <span class="o">=</span> <span class="n">spatial_weights</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">neighbours</span><span class="p">:</span>
+                <span class="n">neighbours</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">values_list</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neighbours</span><span class="p">][</span><span class="n">values</span><span class="p">]</span>
+
+            <span class="n">sample_bins</span> <span class="o">=</span> <span class="n">classifiers</span><span class="o">.</span><span class="n">UserDefined</span><span class="p">(</span><span class="n">values_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">)</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bins</span><span class="p">,</span> <span class="n">sample_bins</span><span class="o">.</span><span class="n">counts</span><span class="p">))</span>
+            <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_simpson_di</span><span class="p">(</span><span class="n">counts</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">results_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_simpson_di</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot; Given a hash { &#39;species&#39;: count } , returns the Simpson Diversity Index</span>
+
+<span class="sd">        &gt;&gt;&gt; simpson_di({&#39;a&#39;: 10, &#39;b&#39;: 20, &#39;c&#39;: 30,})</span>
+<span class="sd">        0.3888888888888889</span>
+
+<span class="sd">        https://gist.github.com/martinjc/f227b447791df8c90568</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Relative abundance &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">/</span> <span class="n">N</span>
+
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Gini"><a class="viewcode-back" href="../../generated/momepy.Gini.html#momepy.Gini">[docs]</a><span class="k">class</span> <span class="nc">Gini</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the Gini index of values within neighbours defined in `spatial_weights`.</span>
+
+<span class="sd">    Uses `inequality.gini.Gini` under the hood. Requires &#39;inequality&#39; or &#39;pysal&#39; package.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        GeoDataFrame containing morphological tessellation</span>
+<span class="sd">    values : str, list, np.array, pd.Series</span>
+<span class="sd">        the name of the dataframe column, np.array, or pd.Series where is stored character value.</span>
+<span class="sd">    spatial_weights : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    unique_id : str</span>
+<span class="sd">        name of the column with unique id used as spatial_weights index</span>
+<span class="sd">    rng : Two-element sequence containing floats in range of [0,100], optional</span>
+<span class="sd">        Percentiles over which to compute the range. Each must be</span>
+<span class="sd">        between 0 and 100, inclusive. The order of the elements is not important.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : Series</span>
+<span class="sd">        Series containing resulting values</span>
+<span class="sd">    gdf : GeoDataFrame</span>
+<span class="sd">        original GeoDataFrame</span>
+<span class="sd">    values : Series</span>
+<span class="sd">        Series containing used values</span>
+<span class="sd">    sw : libpysal.weights</span>
+<span class="sd">        spatial weights matrix</span>
+<span class="sd">    id : Series</span>
+<span class="sd">        Series containing used unique ID</span>
+<span class="sd">    rng : tuple</span>
+<span class="sd">        range</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; sw = momepy.sw_high(k=3, gdf=tessellation_df, ids=&#39;uID&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; tessellation_df[&#39;area_Gini&#39;] = mm.Gini(tessellation_df, &#39;area&#39;, sw, &#39;uID&#39;).series</span>
+<span class="sd">    100%|██████████| 144/144 [00:00&lt;00:00, 597.37it/s]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Gini.__init__"><a class="viewcode-back" href="../../generated/momepy.Gini.html#momepy.Gini.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdf</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">spatial_weights</span><span class="p">,</span> <span class="n">unique_id</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">inequality.gini</span> <span class="k">import</span> <span class="n">Gini</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">pysal.explore.inequality.gini</span> <span class="k">import</span> <span class="n">Gini</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;The &#39;inequality&#39; or &#39;pysal&#39; package is required.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sw</span> <span class="o">=</span> <span class="n">spatial_weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="n">unique_id</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">rng</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mm_v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="s2">&quot;mm_v&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">values</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Values contain negative numbers. Normalise data before&quot;</span>
+                <span class="s2">&quot;using momepy.Gini.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">unique_id</span><span class="p">)</span>
+
+        <span class="n">results_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">(),</span> <span class="n">total</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">neighbours</span> <span class="o">=</span> <span class="n">spatial_weights</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">neighbours</span><span class="p">:</span>
+                <span class="n">neighbours</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+                <span class="n">values_list</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neighbours</span><span class="p">][</span><span class="n">values</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+                <span class="k">if</span> <span class="n">rng</span><span class="p">:</span>
+                    <span class="kn">from</span> <span class="nn">momepy</span> <span class="k">import</span> <span class="n">limit_range</span>
+
+                    <span class="n">values_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">limit_range</span><span class="p">(</span><span class="n">values_list</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">))</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Gini</span><span class="p">(</span><span class="n">values_list</span><span class="p">)</span><span class="o">.</span><span class="n">g</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">results_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">results_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">gdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+      
+    </p>
+    <p>
+        &copy; Copyright 2018-2019, Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

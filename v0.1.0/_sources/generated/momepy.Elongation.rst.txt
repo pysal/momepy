@@ -1,0 +1,22 @@
+momepy.Elongation
+=================
+
+.. currentmodule:: momepy
+
+.. autoclass:: Elongation
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Elongation.__init__
+   
+   
+
+   
+   
+   

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>momepy.Tessellation &#8212; momepy 0.1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="momepy.Area" href="momepy.Area.html" />
+    <link rel="prev" title="momepy.get_node_id" href="momepy.get_node_id.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  
+<!-- RTD Extra Head -->
+
+<!-- 
+Always link to the latest version, as canonical.
+http://docs.readthedocs.org/en/latest/canonical.html
+-->
+<link rel="canonical" href="http://docs.momepy.org/en/latest/generated/momepy.Tessellation.html" />
+
+
+
+<script type="text/javascript" src="../_static/readthedocs-data.js"></script>
+
+<!-- Add page-specific data, which must exist in the page js, not global -->
+<script type="text/javascript">
+READTHEDOCS_DATA['page'] = "generated/momepy.Tessellation"
+READTHEDOCS_DATA['source_suffix'] = ".rst"
+</script>
+
+
+
+<!-- end RTD <extrahead> -->
+<script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="v0.1.0" /><meta name="readthedocs-resolver-filename" content="/generated/momepy.Tessellation.html" /><meta name="readthedocs-http-status" content="200" /></head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html"><span><img src="../_static/favicon.png"></span>
+          momepy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../install.html">Installation</a></li>
+                <li><a href="https://guide.momepy.org/">User Guide</a></li>
+                <li><a href="../api.html">API</a></li>
+                <li><a href="../contributing.html">Contributing</a></li>
+                <li><a href="../references.html">References</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-via-conda">Install via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-via-pip">Install via pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-from-the-repository">Install from the repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#dependencies">Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="http://guide.momepy.org">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">momepy API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#elements">elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#dimension">dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#shape">shape</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#spatial-distribution">spatial distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#intensity">intensity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#graph">graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#diversity">diversity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#utilities">utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to momepy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#eight-steps-for-contributing">Eight Steps for Contributing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">momepy.Tessellation</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="momepy-tessellation">
+<h1>momepy.Tessellation<a class="headerlink" href="#momepy-tessellation" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="momepy.Tessellation">
+<em class="property">class </em><code class="sig-prename descclassname">momepy.</code><code class="sig-name descname">Tessellation</code><span class="sig-paren">(</span><em class="sig-param">gdf</em>, <em class="sig-param">unique_id</em>, <em class="sig-param">limit</em>, <em class="sig-param">shrink=0.4</em>, <em class="sig-param">segment=0.5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/momepy/elements.html#Tessellation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#momepy.Tessellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate morphological tessellation around given buildings or proximity bands around given
+street network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>gdf</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>GeoDataFrame containing building footprints or street network</p>
+</dd>
+<dt><strong>unique_id</strong><span class="classifier">str</span></dt><dd><p>name of the column with unique id</p>
+</dd>
+<dt><strong>limit</strong><span class="classifier">MultiPolygon or Polygon</span></dt><dd><p>MultiPolygon or Polygon defining the study area limiting tessellation (otherwise it could go to infinity).</p>
+</dd>
+<dt><strong>shrink</strong><span class="classifier">float (default 0.4)</span></dt><dd><p>distance for negative buffer to generate space between adjacent polygons (if geometry type of gdf is (Multi)Polygon).</p>
+</dd>
+<dt><strong>segment</strong><span class="classifier">float (default 0.5)</span></dt><dd><p>maximum distance between points after discretisation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>queen_corners is currently experimental method only and can cause errors.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tess</span> <span class="o">=</span> <span class="n">mm</span><span class="o">.</span><span class="n">Tessellation</span><span class="p">(</span><span class="n">buildings_df</span><span class="p">,</span> <span class="s1">&#39;uID&#39;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">mm</span><span class="o">.</span><span class="n">buffered_limit</span><span class="p">(</span><span class="n">buildings_df</span><span class="p">))</span>
+<span class="go">Inward offset...</span>
+<span class="go">Discretization...</span>
+<span class="go">Generating input point array...</span>
+<span class="go">100%|██████████| 144/144 [00:00&lt;00:00, 376.15it/s]</span>
+<span class="go">Generating Voronoi diagram...</span>
+<span class="go">Generating GeoDataFrame...</span>
+<span class="go">Vertices to Polygons: 100%|██████████| 33059/33059 [00:01&lt;00:00, 31532.72it/s]</span>
+<span class="go">Dissolving Voronoi polygons...</span>
+<span class="go">Preparing buffer zone for edge resolving...</span>
+<span class="go">Building R-tree...</span>
+<span class="go">100%|██████████| 42/42 [00:00&lt;00:00, 752.54it/s]</span>
+<span class="go">Cutting...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tess</span><span class="o">.</span><span class="n">tessellation</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="go">    uID     geometry</span>
+<span class="go">0   1       POLYGON ((1603586.677274485 6464344.667944215,...</span>
+<span class="go">1   2       POLYGON ((1603048.399497852 6464176.180701573,...</span>
+<span class="go">2   3       POLYGON ((1603071.342637536 6464158.863329805,...</span>
+<span class="go">3   4       POLYGON ((1603055.834005827 6464093.614718676,...</span>
+<span class="go">4   5       POLYGON ((1603106.417554705 6464130.215958447,...</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tessellation</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>GeoDataFrame containing resulting tessellation</p>
+</dd>
+<dt><strong>gdf</strong><span class="classifier">GeoDataFrame</span></dt><dd><p>original GeoDataFrame</p>
+</dd>
+<dt><strong>id</strong><span class="classifier">Series</span></dt><dd><p>Series containing used unique ID</p>
+</dd>
+<dt><strong>limit</strong><span class="classifier">MultiPolygon or Polygon</span></dt><dd><p>limit</p>
+</dd>
+<dt><strong>shrink</strong><span class="classifier">float</span></dt><dd><p>used shrink value</p>
+</dd>
+<dt><strong>segment</strong><span class="classifier">float</span></dt><dd><p>used segment value</p>
+</dd>
+<dt><strong>sindex</strong><span class="classifier">rtree spatial index</span></dt><dd><p>spatial index of tessellation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">queen_corners</span></code>(self, sensitivity)</p></td>
+<td><p>Experimental: Fix unprecise corners.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="momepy.Tessellation.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">gdf</em>, <em class="sig-param">unique_id</em>, <em class="sig-param">limit</em>, <em class="sig-param">shrink=0.4</em>, <em class="sig-param">segment=0.5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/momepy/elements.html#Tessellation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#momepy.Tessellation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#momepy.Tessellation.__init__" title="momepy.Tessellation.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(self, gdf, unique_id, limit[, …])</p></td>
+<td><p>Initialize self.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">queen_corners</span></code>(self, sensitivity)</p></td>
+<td><p>Experimental: Fix unprecise corners.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+<div id="sourcelink">
+  <a href="../_sources/generated/momepy.Tessellation.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018-2019, Martin Fleischmann, University of Strathclyde, Urban Design Studies Unit.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

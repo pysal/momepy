@@ -1,0 +1,22 @@
+﻿momepy.Percentiles
+==================
+
+.. currentmodule:: momepy
+
+.. autoclass:: Percentiles
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Percentiles.__init__
+   
+   
+
+   
+   
+   

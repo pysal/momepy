@@ -1,0 +1,22 @@
+﻿momepy.Perimeter
+================
+
+.. currentmodule:: momepy
+
+.. autoclass:: Perimeter
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Perimeter.__init__
+   
+   
+
+   
+   
+   

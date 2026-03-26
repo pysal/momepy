@@ -1,0 +1,6 @@
+﻿momepy.enclosed\_tessellation
+=============================
+
+.. currentmodule:: momepy
+
+.. autofunction:: enclosed_tessellation

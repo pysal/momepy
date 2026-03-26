@@ -1,0 +1,6 @@
+﻿momepy.Courtyards
+=================
+
+.. currentmodule:: momepy
+
+.. autofunction:: Courtyards

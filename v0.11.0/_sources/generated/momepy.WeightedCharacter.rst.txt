@@ -1,0 +1,6 @@
+﻿momepy.WeightedCharacter
+========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: WeightedCharacter

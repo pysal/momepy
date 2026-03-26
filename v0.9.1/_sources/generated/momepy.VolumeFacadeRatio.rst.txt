@@ -1,0 +1,6 @@
+﻿momepy.VolumeFacadeRatio
+========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: VolumeFacadeRatio

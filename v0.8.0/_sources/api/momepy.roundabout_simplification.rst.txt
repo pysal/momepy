@@ -1,0 +1,6 @@
+﻿momepy.roundabout\_simplification
+=================================
+
+.. currentmodule:: momepy
+
+.. autofunction:: roundabout_simplification

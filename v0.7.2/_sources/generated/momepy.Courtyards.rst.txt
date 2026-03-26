@@ -1,0 +1,22 @@
+﻿momepy.Courtyards
+=================
+
+.. currentmodule:: momepy
+
+.. autoclass:: Courtyards
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Courtyards.__init__
+   
+   
+
+   
+   
+   
