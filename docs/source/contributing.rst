@@ -180,8 +180,7 @@ Updating User Guide
 
 Updating user guide might be slightly more complicated as it
 consists of collection of reStructuredText files and Jupyter notebooks.
-Changes in reStructuredText are straightforward, changes in notebooks should be done using Jupyter. Make sure that all cells have their correct outputs as notebooks
-are not executed by readthedocs.
+Changes in reStructuredText are straightforward, changes in notebooks should be done using Jupyter. 
 
 7. Formatting the code
 ^^^^^^^^^^^^^^^^^^^^^^
