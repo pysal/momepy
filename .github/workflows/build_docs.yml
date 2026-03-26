@@ -1,7 +1,7 @@
 ---
 name: Build Docs
 
-on: # yamllint disable-line rule:truthy
+on:  # yamllint disable-line rule:truthy
   push:
     branches: [main]
     tags:
@@ -86,12 +86,13 @@ jobs:
 
       - name: Update the versions switcher
         if: ${{ github.ref_type == 'tag' }}
-        run: |
+        run: |  # yamllint disable-line rule:line-length
           git checkout gh-pages
           git fetch
           git pull
           git config --global user.name 'github-actions[bot]'
-          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config --global user.email \
+            '41898282+github-actions[bot]@users.noreply.github.com'
           python update_version_json.py --version ${{ github.ref_name }}
           git add versions.json
           git commit -m "Update versions switcher"
