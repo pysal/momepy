@@ -34,4 +34,12 @@ dependencies:
   - geopy
   - ipywidgets
   - Iprogress
-  - pytest-doctestplus
+  - matplotlib
+  - numpydoc
+  - sphinxcontrib-bibtex
+  - sphinx-autosummary-accessors
+  - sphinx-copybutton
+  - sphinx-immaterial
+  - myst-nb
+  - sphinx
+  - ipykernel
