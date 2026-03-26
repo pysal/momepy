@@ -8,6 +8,8 @@
 import os
 import sys
 
+from packaging.version import Version
+
 sys.path.insert(0, os.path.abspath("../../"))
 
 import momepy  # noqa
@@ -16,7 +18,7 @@ project = "momepy"
 copyright = "2018-, Martin Fleischmann and PySAL Developers"  # noqa: A001
 author = "Martin Fleischmann"
 
-version = momepy.__version__.split("+", 1)[0]  # remove commit hash
+version = Version(momepy.__version__).public  # remove commit hash
 release = version
 
 language = "en"
