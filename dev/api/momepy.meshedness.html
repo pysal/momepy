@@ -1,123 +1,59 @@
 
-<!DOCTYPE html>
 
 
-<html lang="en" data-content_root="../" >
-
+<!doctype html>
+<html lang="en" class="no-js">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <title>momepy.meshedness &#8212; momepy 0.10.1.dev33+gcea798f29.d20260310 documentation</title>
-  
-  
-  
-  <script data-cfasync="false">
-    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
-  </script>
-  <!--
-    this give us a css class that will be invisible only if js is disabled
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
-  
-  <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=f00722e8" />
-    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
-  
-  <!-- So that users can add custom icons -->
-  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
-  <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
-
-    <script src="../_static/documentation_options.js?v=d4f48f33"></script>
-    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
-    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/momepy.meshedness';</script>
-    <link rel="canonical" href="http://docs.momepy.org/en/latest/api/momepy.meshedness.html" />
-    <link rel="icon" href="../_static/favicon.png"/>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="momepy.node_degree" href="momepy.node_degree.html" />
-    <link rel="prev" title="momepy.mean_nodes" href="momepy.mean_nodes.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.10.1.dev33+gcea798f29.d20260310" />
-  <script async type="text/javascript" src="/_/static/javascript/readthedocs-addons.js"></script><meta name="readthedocs-project-slug" content="momepy" /><meta name="readthedocs-version-slug" content="latest" /><meta name="readthedocs-resolver-filename" content="/api/momepy.meshedness.html" /><meta name="readthedocs-http-status" content="200" /></head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
-  
-  
-  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
-  
-  <div id="pst-scroll-pixel-helper"></div>
-  
-  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
-    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
-  
-  <dialog id="pst-search-dialog">
     
-<form class="bd-search d-flex align-items-center"
-      action="../search.html"
-      method="get">
-  <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search"
-         class="form-control"
-         name="q"
-         placeholder="Search the docs ..."
-         aria-label="Search the docs ..."
-         autocomplete="off"
-         autocorrect="off"
-         autocapitalize="off"
-         spellcheck="false"/>
-  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
-
-  <div class="pst-async-banner-revealer d-none">
-  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
-</div>
-
-  
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class="col-lg-3 navbar-header-items__start">
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="momepy.mean_nodes.html">
+      
+      
+        <link rel="next" href="momepy.node_degree.html">
+      
+      
+      <link rel="icon" href="../_static/pysal_favicon.ico">
     
-      <div class="navbar-item">
-
-  
     
-  
+      
+        <title>momepy.meshedness - momepy</title>
+      
+    
+    
+      
+        
+      
+      
 
-<a class="navbar-brand logo" href="../index.html">
-  
-  
-  
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.74c816e3f9967dd6e.min.css?v=6cfe2491" />
+        <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+        <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+        <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=d127c87d" />
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
   
   
     
@@ -125,482 +61,1868 @@
       
     
     
-    <img src="../_static/horizontal_logo_light.svg" class="logo__image only-light" alt="momepy 0.10.1.dev33+gcea798f29.d20260310 documentation - Home"/>
-    <img src="../_static/horizontal_logo_dark.svg" class="logo__image only-dark pst-js-only" alt="momepy 0.10.1.dev33+gcea798f29.d20260310 documentation - Home"/>
-  
-  
-</a></div>
     
-  </div>
-  
-  <div class="col-lg-9 navbar-header-items">
     
-    <div class="me-auto navbar-header-items__center">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
       
-        <div class="navbar-item">
-<nav>
-  <ul class="bd-navbar-elements navbar-nav">
-    
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../index.html">
-    Home
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../install.html">
-    Install
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/intro.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../examples/index.html">
-    Examples
-  </a>
-</li>
-
-
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../api.html">
-    API reference
-  </a>
-</li>
-
-            <li class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button"
-                data-bs-toggle="dropdown" aria-expanded="false"
-                aria-controls="pst-nav-more-links">
-                    More
-                </button>
-                <ul id="pst-nav-more-links" class="dropdown-menu">
-                    
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../contributing.html">
-    Contributing
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-external" href="https://github.com/pysal/momepy/releases">
-    Changelog
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../references.html">
-    References
-  </a>
-</li>
-
-                </ul>
-            </li>
-            
-  </ul>
-</nav></div>
+        
+        <a href="#momepy.meshedness" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
-    <div class="navbar-header-items__end">
+    
       
-        <div class="navbar-item navbar-persistent--container">
-          
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="momepy" class="md-header__button md-logo" aria-label="momepy" data-md-component="logo">
+      <img src="../_static/pysal_logo.svg" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            momepy
+          </span>
         </div>
-      
-      
-        <div class="navbar-item">
-
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
-      
-        <div class="navbar-item"><ul class="navbar-icon-links"
-    aria-label="Icon Links">
-        <li class="nav-item">
-          
-          
-          
-          
-          
-          
-          
-          
-          <a href="https://github.com/pysal/momepy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
-        </li>
-        <li class="nav-item">
-          
-          
-          
-          
-          
-          
-          
-          
-          <a href="https://twitter.com/martinfleis" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Twitter</span></a>
-        </li>
-</ul></div>
-      
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              momepy.meshedness
+            
+          </span>
+        </div>
+      </div>
     </div>
     
-  </div>
+      
+        <form class="md-header__option" data-md-component="palette">
   
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
   
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="red"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="red"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
     </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
+  </div>
 </div>
-
-    </header>
-  
-
-  <div class="bd-container">
-    <div class="bd-container__inner bd-page-width">
-      
-      
-      
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
-        
-
-  
-  <div class="sidebar-header-items sidebar-primary__section">
     
     
-      <div class="sidebar-header-items__center">
-        
-          
-          
-            <div class="navbar-item">
-<nav>
-  <ul class="bd-navbar-elements navbar-nav">
+      <div class="md-header__source">
+        <a href="https://github.com/pysal/momepy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../index.html">
-    Home
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../install.html">
-    Install
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../user_guide/intro.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../examples/index.html">
-    Examples
-  </a>
-</li>
-
-
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../api.html">
-    API reference
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../contributing.html">
-    Contributing
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-external" href="https://github.com/pysal/momepy/releases">
-    Changelog
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../references.html">
-    References
-  </a>
-</li>
-
-  </ul>
-</nav></div>
-          
-        
-      </div>
-    
-    
-    
-      <div class="sidebar-header-items__end">
-        
-          <div class="navbar-item">
-
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
-        
-          <div class="navbar-item"><ul class="navbar-icon-links"
-    aria-label="Icon Links">
-        <li class="nav-item">
-          
-          
-          
-          
-          
-          
-          
-          
-          <a href="https://github.com/pysal/momepy" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
-        </li>
-        <li class="nav-item">
-          
-          
-          
-          
-          
-          
-          
-          
-          <a href="https://twitter.com/martinfleis" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Twitter</span></a>
-        </li>
-</ul></div>
-        
-      </div>
-    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
   </div>
-  
-    <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
-     aria-label="Section Navigation">
-  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.morphological_tessellation.html">momepy.morphological_tessellation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.enclosed_tessellation.html">momepy.enclosed_tessellation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.enclosures.html">momepy.enclosures</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.generate_blocks.html">momepy.generate_blocks</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.buffered_limit.html">momepy.buffered_limit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.verify_tessellation.html">momepy.verify_tessellation</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.get_nearest_street.html">momepy.get_nearest_street</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.get_nearest_node.html">momepy.get_nearest_node</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.get_network_ratio.html">momepy.get_network_ratio</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.courtyard_area.html">momepy.courtyard_area</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.floor_area.html">momepy.floor_area</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.longest_axis_length.html">momepy.longest_axis_length</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.perimeter_wall.html">momepy.perimeter_wall</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.street_profile.html">momepy.street_profile</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.volume.html">momepy.volume</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.weighted_character.html">momepy.weighted_character</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.centroid_corner_distance.html">momepy.centroid_corner_distance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.circular_compactness.html">momepy.circular_compactness</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.compactness_weighted_axis.html">momepy.compactness_weighted_axis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.convexity.html">momepy.convexity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.corners.html">momepy.corners</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.courtyard_index.html">momepy.courtyard_index</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.elongation.html">momepy.elongation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.equivalent_rectangular_index.html">momepy.equivalent_rectangular_index</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.facade_ratio.html">momepy.facade_ratio</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.form_factor.html">momepy.form_factor</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.fractal_dimension.html">momepy.fractal_dimension</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.linearity.html">momepy.linearity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.rectangularity.html">momepy.rectangularity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.shape_index.html">momepy.shape_index</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.square_compactness.html">momepy.square_compactness</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.squareness.html">momepy.squareness</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.sunlight_optimised.html">momepy.sunlight_optimised</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.alignment.html">momepy.alignment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.building_adjacency.html">momepy.building_adjacency</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.cell_alignment.html">momepy.cell_alignment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.mean_interbuilding_distance.html">momepy.mean_interbuilding_distance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.neighbor_distance.html">momepy.neighbor_distance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.neighbors.html">momepy.neighbors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.orientation.html">momepy.orientation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.shared_walls.html">momepy.shared_walls</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.street_alignment.html">momepy.street_alignment</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.courtyards.html">momepy.courtyards</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.describe_agg.html">momepy.describe_agg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.describe_reached_agg.html">momepy.describe_reached_agg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.gini.html">momepy.gini</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.percentile.html">momepy.percentile</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.shannon.html">momepy.shannon</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.simpson.html">momepy.simpson</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.theil.html">momepy.theil</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.values_range.html">momepy.values_range</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.mean_deviation.html">momepy.mean_deviation</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.shannon_diversity.html">momepy.shannon_diversity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.simpson_diversity.html">momepy.simpson_diversity</a></li>
-</ul>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.betweenness_centrality.html">momepy.betweenness_centrality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.cds_length.html">momepy.cds_length</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.closeness_centrality.html">momepy.closeness_centrality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.clustering.html">momepy.clustering</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.cyclomatic.html">momepy.cyclomatic</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.edge_node_ratio.html">momepy.edge_node_ratio</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.gamma.html">momepy.gamma</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.mean_node_degree.html">momepy.mean_node_degree</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.mean_node_dist.html">momepy.mean_node_dist</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.mean_nodes.html">momepy.mean_nodes</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">momepy.meshedness</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.node_degree.html">momepy.node_degree</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.node_density.html">momepy.node_density</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.proportion.html">momepy.proportion</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.straightness_centrality.html">momepy.straightness_centrality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.subgraph.html">momepy.subgraph</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.COINS.html">momepy.COINS</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.gdf_to_nx.html">momepy.gdf_to_nx</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.nx_to_gdf.html">momepy.nx_to_gdf</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.coins_to_nx.html">momepy.coins_to_nx</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.stroke_access.html">momepy.stroke_access</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.stroke_connectivity.html">momepy.stroke_connectivity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.stroke_orthogonality.html">momepy.stroke_orthogonality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.stroke_spacing.html">momepy.stroke_spacing</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.Streetscape.html">momepy.Streetscape</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.Streetscape.compute_plots.html">momepy.Streetscape.compute_plots</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.Streetscape.compute_slope.html">momepy.Streetscape.compute_slope</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.Streetscape.street_level.html">momepy.Streetscape.street_level</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.Streetscape.point_level.html">momepy.Streetscape.point_level</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.close_gaps.html">momepy.close_gaps</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.extend_lines.html">momepy.extend_lines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.remove_false_nodes.html">momepy.remove_false_nodes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.consolidate_intersections.html">momepy.consolidate_intersections</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.roundabout_simplification.html">momepy.roundabout_simplification</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="momepy.CheckTessellationInput.html">momepy.CheckTessellationInput</a></li>
-<li class="toctree-l1"><a class="reference internal" href="momepy.FaceArtifacts.html">momepy.FaceArtifacts</a></li>
-</ul>
-</div>
-</nav></div>
-    </div>
-  
-  
-  <div class="sidebar-primary-items__end sidebar-primary__section">
-      <div class="sidebar-primary-item">
-<div id="ethical-ad-placement"
-      class="flat"
-      data-ea-publisher="readthedocs"
-      data-ea-type="readthedocs-sidebar"
-      data-ea-manual="true">
-</div></div>
+  <div class="md-source__repository">
+    pysal/momepy
   </div>
-
-
+</a>
       </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
       
-      <main id="main-content" class="bd-main" role="main">
+      
+      
+      
         
+          
         
-          <div class="bd-content">
-            <div class="bd-article-container">
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
               
-              <div class="bd-header-article d-print-none">
-<div class="header-article-items header-article__inner">
-  
-    <div class="header-article-items__start">
-      
-        <div class="header-article-item">
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
 
-<nav aria-label="Breadcrumb" class="d-print-none">
-  <ul class="bd-breadcrumbs">
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="momepy" class="md-nav__button md-logo" aria-label="momepy" data-md-component="logo">
+      <img src="../_static/pysal_logo.svg" alt="logo">
+    </a>
+    momepy
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pysal/momepy/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
     
-    <li class="breadcrumb-item breadcrumb-home">
-      <a href="../index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pysal/momepy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Home</span>
+    
+  </span>
+  
+
       </a>
     </li>
+  
+
     
-    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">momepy API reference</a></li>
-    
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">momepy.meshedness</span></li>
-  </ul>
-</nav>
-</div>
       
-    </div>
+      
   
   
-</div>
-</div>
-              
-              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Install</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    <span>User Guide</span>
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            <span>User Guide</span>
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
               
                 
-<div id="searchbox"></div>
-                <article class="bd-article">
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/getting_started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Getting started</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/data_structure.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Data Structure</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/elements/elements.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Generating morphological elements</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/simple/simple.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Calculating simple characters</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/combined/combined.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Characters based on multiple Geo<wbr>Data<wbr>Frames</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/weights/weights.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Using spatial weights matrix</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/graph/graph.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Street network analysis</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/migration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Migration to momepy 1.<wbr>0 API</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../references.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>References</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    <span>Examples</span>
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            <span>Examples</span>
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/clustering.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Simplified detection of urban types</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/streetscape.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Example of using the Streetscape class</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    <span>API</span>
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            <span>API</span>
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    <span>API reference</span>
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            <span>API reference</span>
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api.html#managing-morphological-elements" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Managing morphological elements</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api.html#measuring-dimension" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Measuring dimension</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api.html#measuring-shape" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Measuring shape</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api.html#measuring-spatial-distribution" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Measuring spatial distribution</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api.html#measuring-intensity" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Measuring intensity</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api.html#measuring-diversity" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Measuring diversity</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_7" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api.html#measuring-connectivity" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    <span>Measuring connectivity</span>
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_7" id="__nav_5_1_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_1_7">
+            <span class="md-nav__icon md-icon"></span>
+            <span>Measuring connectivity</span>
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.betweenness_centrality.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>betweenness_<wbr>centrality</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.cds_length.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>cds_<wbr>length</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.closeness_centrality.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>closeness_<wbr>centrality</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.clustering.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>clustering</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.cyclomatic.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>cyclomatic</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.edge_node_ratio.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>edge_<wbr>node_<wbr>ratio</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.gamma.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>gamma</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.mean_node_degree.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>mean_<wbr>node_<wbr>degree</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.mean_node_dist.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>mean_<wbr>node_<wbr>dist</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.mean_nodes.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>mean_<wbr>nodes</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>meshedness</span>
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="#" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>meshedness</span>
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#momepy.meshedness" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness (Python function) — Calculates meshedness for subgraph around each node if radius is set, or for whole graph, if radius=None. A subgraph is generated around each node within set radius. If distance=None, radius will define topological distance, otherwise it uses values in distance attribute."><span>momepy.<wbr>meshedness</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="momepy.meshedness">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness.graph" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness.graph (Python parameter) — A Graph representing a street network. Ideally generated from GeoDataFrame using momepy.gdf_to_nx()."><span>graph</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness.radius" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness.radius (Python parameter) — Include all neighbors of distance &lt;= radius from n."><span>radius</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness.name" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness.name (Python parameter) — The calculated attribute name."><span>name</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness.distance" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness.distance (Python parameter) — Use specified edge data key as distance."><span>distance</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness.verbose" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness.verbose (Python parameter) — If True, shows progress bars in loops and indication of steps."><span>verbose</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness-returns" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Returns</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.node_degree.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>node_<wbr>degree</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.node_density.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>node_<wbr>density</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.proportion.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>proportion</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.straightness_centrality.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>straightness_<wbr>centrality</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.subgraph.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>subgraph</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.COINS.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>COINS</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.gdf_to_nx.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>gdf_<wbr>to_<wbr>nx</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="momepy.nx_to_gdf.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>nx_<wbr>to_<wbr>gdf</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api.html#computing-continuity-graph" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Computing continuity graph</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api.html#measuring-streetscape" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Measuring streetscape</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api.html#data-preprocessing" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Data preprocessing</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    <span>For contributors</span>
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            <span>For contributors</span>
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Contributing</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/pysal/momepy" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Git<wbr>Hub</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/pysal/momepy/releases" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>Changelog</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#momepy.meshedness" class="md-nav__link">
+    
+      <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness (Python function) — Calculates meshedness for subgraph around each node if radius is set, or for whole graph, if radius=None. A subgraph is generated around each node within set radius. If distance=None, radius will define topological distance, otherwise it uses values in distance attribute."><span>momepy.<wbr>meshedness</span></span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="momepy.meshedness">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness-parameters" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Parameters</span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness.graph" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness.graph (Python parameter) — A Graph representing a street network. Ideally generated from GeoDataFrame using momepy.gdf_to_nx()."><span>graph</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness.radius" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness.radius (Python parameter) — Include all neighbors of distance &lt;= radius from n."><span>radius</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness.name" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness.name (Python parameter) — The calculated attribute name."><span>name</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness.distance" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness.distance (Python parameter) — Use specified edge data key as distance."><span>distance</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness.verbose" class="md-nav__link">
+    
+      <span aria-label="Python parameter" class="objinfo-icon objinfo-icon__sub-data" title="Python parameter">p</span>
+    
+    <span class="md-ellipsis">
+      <span title="momepy.meshedness.verbose (Python parameter) — If True, shows progress bars in loops and indication of steps."><span>verbose</span></span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#momepy.meshedness-returns" class="md-nav__link">
+    
+    <span class="md-ellipsis">
+      <span>Returns</span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                
+                
                   
-  <section id="momepy-meshedness">
-<h1>momepy.meshedness<a class="headerlink" href="#momepy-meshedness" title="Link to this heading">#</a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="momepy.meshedness">
-<span class="sig-prename descclassname"><span class="pre">momepy.</span></span><span class="sig-name descname"><span class="pre">meshedness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'meshedness'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/main/momepy/graph.py#L70-L133"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.meshedness" title="Link to this definition">#</a></dt>
+
+
+  
+    <a href="https://github.com/pysal/momepy/blob/main/docs/api/momepy.meshedness.rst" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 9h5.5L13 3.5zM6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.11.89-2 2-2m.12 13.5 3.74 3.74 1.42-1.41-2.33-2.33 2.33-2.33-1.42-1.41zm11.16 0-3.74-3.74-1.42 1.41 2.33 2.33-2.33 2.33 1.42 1.41z"/></svg>
+    </a>
+  
+  
+
+<h1 id="momepy-meshedness">momepy.meshedness<a class="headerlink" href="#momepy-meshedness" title="Link to this heading">¶</a></h1>
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="momepy.meshedness">
+<span class="sig-prename descclassname"><span class="pre">momepy.</span></span><span class="sig-name descname"><span class="pre">meshedness</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.meshedness.graph" title="momepy.meshedness.graph (Python parameter) — A Graph representing a street network. Ideally generated from GeoDataFrame using momepy.gdf_to_nx()."><span class="n"><span class="pre">graph</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.meshedness.radius" title="momepy.meshedness.radius (Python parameter) — Include all neighbors of distance &lt;= radius from n."><span class="n"><span class="pre">radius</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="mi">5</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.meshedness.name" title="momepy.meshedness.name (Python parameter) — The calculated attribute name."><span class="n"><span class="pre">name</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="s1">&#39;meshedness&#39;</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.meshedness.distance" title="momepy.meshedness.distance (Python parameter) — Use specified edge data key as distance."><span class="n"><span class="pre">distance</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.meshedness.verbose" title="momepy.meshedness.verbose (Python parameter) — If True, shows progress bars in loops and indication of steps."><span class="n"><span class="pre">verbose</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">True</span></code></em></span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/main/momepy/graph.py#L70-L133"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.meshedness" title="Link to this definition">¶</a></dt>
 <dd><p>Calculates meshedness for subgraph around each node if radius is set, or for
 whole graph, if <code class="docutils literal notranslate"><span class="pre">radius=None</span></code>. A subgraph is generated around each node within
 set radius. If <code class="docutils literal notranslate"><span class="pre">distance=None</span></code>, radius will define topological distance,
@@ -611,157 +1933,109 @@ otherwise it uses values in distance attribute.</p>
 is the number of nodes in a subgraph.</p>
 <p>Adapted from <span id="id1">[<a class="reference internal" href="../references.html#id7" title="Alessandra Feliciotti. Resilience and urban design: A systems approach to the study of resilience in urban form – Learning from the case of the Gorbals. PhD thesis, University of Strathclyde, Glasgow, January 2018. doi:10.48730/yrsa-7747.">Feliciotti, 2018</a>]</span>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>graph</strong><span class="classifier">networkx.Graph</span></dt><dd><p>A Graph representing a street network.
-Ideally generated from GeoDataFrame using <a class="reference internal" href="momepy.gdf_to_nx.html#momepy.gdf_to_nx" title="momepy.gdf_to_nx"><code class="xref py py-func docutils literal notranslate"><span class="pre">momepy.gdf_to_nx()</span></code></a>.</p>
+<dt class="field-odd" id="momepy.meshedness-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#momepy.meshedness-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="momepy.meshedness.graph"><span class="sig-name descname">graph</span><span class="p"> : </span><span class="desctype"><span class="desctype">networkx.Graph</span></span><a class="headerlink" href="#momepy.meshedness.graph" title="Permalink to this definition">¶</a></dt><dd><p>A Graph representing a street network.
+Ideally generated from GeoDataFrame using <a class="reference internal" href="momepy.gdf_to_nx.html#momepy.gdf_to_nx" title="momepy.gdf_to_nx (Python function) — Convert a LineString GeoDataFrame to a networkx.MultiGraph or other Graph as per specification. Columns are preserved  as edge or node attributes (depending on the approach). Index is not preserved."><code class="xref py py-func docutils literal notranslate"><span class="pre">momepy.gdf_to_nx()</span></code></a>.</p>
 </dd>
-<dt><strong>radius: int, optional</strong></dt><dd><p>Include all neighbors of distance &lt;= radius from <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<dt id="momepy.meshedness.radius"><span class="sig-name descname">radius</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, optional</span></span><a class="headerlink" href="#momepy.meshedness.radius" title="Permalink to this definition">¶</a></dt><dd><p>Include all neighbors of distance &lt;= radius from <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 </dd>
-<dt><strong>name</strong><span class="classifier">str, optional</span></dt><dd><p>The calculated attribute name.</p>
+<dt id="momepy.meshedness.name"><span class="sig-name descname">name</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, optional</span></span><a class="headerlink" href="#momepy.meshedness.name" title="Permalink to this definition">¶</a></dt><dd><p>The calculated attribute name.</p>
 </dd>
-<dt><strong>distance</strong><span class="classifier">str, optional</span></dt><dd><p>Use specified edge data key as distance. For example, setting
+<dt id="momepy.meshedness.distance"><span class="sig-name descname">distance</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, optional</span></span><a class="headerlink" href="#momepy.meshedness.distance" title="Permalink to this definition">¶</a></dt><dd><p>Use specified edge data key as distance. For example, setting
 <code class="docutils literal notranslate"><span class="pre">distance=’weight’</span></code> will use the edge <code class="docutils literal notranslate"><span class="pre">weight</span></code> to
 measure the distance from the node <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 </dd>
-<dt><strong>verbose</strong><span class="classifier">bool (default True)</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, shows progress bars in loops and indication of steps.</p>
+<dt id="momepy.meshedness.verbose"><span class="sig-name descname">verbose</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)">bool</a> (default True)</span></span><a class="headerlink" href="#momepy.meshedness.verbose" title="Permalink to this definition">¶</a></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, shows progress bars in loops and indication of steps.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>netx</strong><span class="classifier">Graph</span></dt><dd><p>A networkx.Graph object if <code class="docutils literal notranslate"><span class="pre">radius</span></code> is set.</p>
-</dd>
-<dt>float</dt><dd><p>The meshedness for the graph if <code class="docutils literal notranslate"><span class="pre">radius=None</span></code>.</p>
+<dt class="field-even" id="momepy.meshedness-returns">Returns<span class="colon">:</span><a class="headerlink" href="#momepy.meshedness-returns" title="Permalink to this headline">¶</a></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>netx</strong> (<em>Graph</em>) – A networkx.Graph object if <code class="docutils literal notranslate"><span class="pre">radius</span></code> is set.</p></li>
+<li><p><em>float</em> – The meshedness for the graph if <code class="docutils literal notranslate"><span class="pre">radius=None</span></code>.</p></li>
+</ul>
+</p>
 </dd>
 </dl>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">network_graph</span> <span class="o">=</span> <span class="n">mm</span><span class="o">.</span><span class="n">meshedness</span><span class="p">(</span>
+<p class="example rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">network_graph</span> <span class="o">=</span> <span class="n">mm</span><span class="o">.</span><span class="n">meshedness</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">network_graph</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="s1">&#39;edge_length&#39;</span>
 <span class="gp">... </span><span class="p">)</span>
-</pre></div>
+</code></pre></div>
 </div>
 </dd></dl>
 
-</section>
 
 
-                </article>
-              
-              
-              
-              
-              
-                <footer class="prev-next-footer d-print-none">
-                  
-<div class="prev-next-area">
-    <a class="left-prev"
-       href="momepy.mean_nodes.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">momepy.mean_nodes</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="momepy.node_degree.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">momepy.node_degree</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
-</div>
-                </footer>
-              
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
             </div>
-            
-            
-              
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#momepy.meshedness"><code class="docutils literal notranslate"><span class="pre">meshedness()</span></code></a></li>
-</ul>
-  </nav></div>
-
-  <div class="sidebar-secondary-item">
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/api/momepy.meshedness.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div></div>
-
-</div></div>
-              
-            
-          </div>
-          <footer class="bd-footer-content">
-            
-          </footer>
+          
+          
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
         
       </main>
+      
+        <footer class="md-footer">
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright 2018-, Martin Fleischmann and PySAL Developers.
+        
     </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    8.2.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+    </div>
+    
   </div>
-  
-  <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
-
-  <footer class="bd-footer">
-<div class="bd-footer__inner bd-page-width">
-  
-    <div class="footer-items__start">
-      
-        <div class="footer-item">
-
-  <p class="copyright">
-    
-      © Copyright 2018-, Martin Fleischmann and PySAL Developers.
-      <br/>
-    
-  </p>
-</div>
-      
-        <div class="footer-item">
-
-  <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
-    <br/>
-  </p>
-</div>
+</footer>
       
     </div>
-  
-  
-  
-    <div class="footer-items__end">
-      
-        <div class="footer-item">
-<p class="theme-version">
-  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
-</p></div>
-      
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
     </div>
-  
-</div>
-
-  </footer>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.top", "search.share", "search.suggest", "toc.follow", "toc.sticky", "content.code.copy", "content.action.edit"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike", "staticVersions": null, "versionPath": "https://pysal.org/momepy/versions.json"}}</script>
+    
+      
+        <script src="../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script id="MathJax-script" src="../_static/mathjax/tex-mml-chtml.js"></script>
+    
   </body>
 </html>

@@ -1,6 +1,0 @@
-﻿momepy.Streetscape.street\_level
-================================
-
-.. currentmodule:: momepy
-
-.. automethod:: Streetscape.street_level

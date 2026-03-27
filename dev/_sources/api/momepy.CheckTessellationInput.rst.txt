@@ -6,17 +6,6 @@
 .. autoclass:: CheckTessellationInput
 
    
-   .. automethod:: __init__
-
-   
-   .. rubric:: Methods
-
-   .. autosummary::
-   
-      ~CheckTessellationInput.__init__
-   
    
 
-   
-   
    

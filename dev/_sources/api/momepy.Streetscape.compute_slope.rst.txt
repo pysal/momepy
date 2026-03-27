@@ -1,6 +1,0 @@
-﻿momepy.Streetscape.compute\_slope
-=================================
-
-.. currentmodule:: momepy
-
-.. automethod:: Streetscape.compute_slope
