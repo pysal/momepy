@@ -95,8 +95,8 @@ conda install -c conda-forge geopandas networkx libpysal tqdm
 
 Required dependencies:
 
-- [geopandas](https://geopandas.org/) (>= 1.0)
-- [libpysal](http://pysal.org/libpysal) (>= 4.12.0)
+- [geopandas](https://geopandas.org/)
+- [libpysal](http://pysal.org/libpysal)
 - [networkx](http://networkx.github.io)
 - [tqdm](https://tqdm.github.io)
 
