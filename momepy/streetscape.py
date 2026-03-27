@@ -50,7 +50,7 @@ class Streetscape:
     * ``par_rel_15``: Relative Parallel Façades within 15 meters[%],
     * ``built_freq``: Building Frequency,
     * ``building_prevalence_Ti``: Prevalence of specific building types [%] (if
-    building classification is provided ``category_col``).
+        building classification is provided ``category_col``).
 
     The method also provides the distribution of measures along the street, providing:
 
