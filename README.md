@@ -54,7 +54,7 @@ G = momepy.straightness_centrality(G)
 
 ## How to cite
 
-To cite `momepy` please use the following [software paper](https://doi.org/10.21105/joss.01807)](<https://doi.org/10.21105/joss.01807>) published in the JOSS.
+To cite `momepy` please use the following [software paper](https://doi.org/10.21105/joss.01807) published in the JOSS.
 
 > Fleischmann, M. (2019) ‘momepy: Urban Morphology Measuring Toolkit’, Journal of Open Source Software, 4(43), p. 1807. doi: 10.21105/joss.01807.
 
