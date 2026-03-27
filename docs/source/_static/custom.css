@@ -17,40 +17,51 @@
   --dataframe-row-hover-bg: rgba(144, 202, 249, 0.16);
 }
 
-div.cell_output table {
+div.cell_output .output.text_html {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+div.cell_output .output.text_html > div {
+  min-width: max-content;
+}
+
+div.cell_output table.dataframe {
+  display: table;
+  overflow-x: auto;
+  width: auto;
   border: none;
   border-collapse: collapse;
   border-spacing: 0;
   color: var(--dataframe-text-color);
   font-size: 1em;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
-div.cell_output thead {
+div.cell_output table.dataframe thead {
   border-bottom: 1px solid var(--dataframe-border-color);
   vertical-align: bottom;
 }
 
-div.cell_output tr,
-div.cell_output th,
-div.cell_output td {
+div.cell_output table.dataframe tr,
+div.cell_output table.dataframe th,
+div.cell_output table.dataframe td {
   text-align: right;
   vertical-align: middle;
   padding: 0.5em 0.5em;
   line-height: normal;
-  white-space: normal;
-  max-width: none;
+  white-space: nowrap;
   border: none;
 }
 
-div.cell_output th {
+div.cell_output table.dataframe th {
   font-weight: bold;
 }
 
-div.cell_output tbody tr:nth-child(odd) {
+div.cell_output table.dataframe tbody tr:nth-child(odd) {
   background: var(--dataframe-row-odd-bg);
 }
 
-div.cell_output tbody tr:hover {
+div.cell_output table.dataframe tbody tr:hover {
   background: var(--dataframe-row-hover-bg);
 }
