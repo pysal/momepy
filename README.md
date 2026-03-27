@@ -44,13 +44,13 @@ Documentation of `momepy` is available at [docs.momepy.org](https://docs.momepy.
 tessellation['area_simpson'] = momepy.simpson(tessellation.area, contiguity_k3)
 ```
 
-![Local Simpson's diversity of area](https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/diversity_22_0.png)
+![Local Simpson's diversity of area](https://docs.momepy.org/v0.11.0/_images/user_guide_weights_diversity_20_0.png)
 
 ```py
 G = momepy.straightness_centrality(G)
 ```
 
-![Straightness centrality](https://raw.githubusercontent.com/pysal/momepy/main/docs/_static/centrality_27_0.png)
+![Straightness centrality](https://docs.momepy.org/v0.11.0/_images/user_guide_graph_centrality_26_0.png)
 
 ## How to cite
 
