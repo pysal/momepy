@@ -12,7 +12,7 @@ from packaging.version import Version
 
 sys.path.insert(0, os.path.abspath("../../"))
 
-import momepy  # noqa
+import momepy
 
 project = "momepy"
 copyright = "2018-, Martin Fleischmann and PySAL Developers"  # noqa: A001
