@@ -149,7 +149,7 @@ html_theme_options = {
         },
     ],
     "version_dropdown": True,
-    "version_json": "https://pysal.org/momepy/versions.json",
+    "version_json": "https://docs.momepy.org/versions.json",
 }
 nb_execution_mode = "cache"
 nb_execution_timeout = -1
