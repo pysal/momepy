@@ -50,9 +50,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags.
 
       - name: setup micromamba
-        uses: mamba-org/setup-micromamba@v2
+        uses: mamba-org/setup-micromamba@v3
         with:
           environment-file: ${{ matrix.environment-file }}
 
@@ -69,4 +71,4 @@ jobs:
             --cov-report term-missing \
             --cov-report xml .
 
-      - uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v6

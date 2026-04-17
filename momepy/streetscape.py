@@ -50,7 +50,7 @@ class Streetscape:
     * ``par_rel_15``: Relative Parallel Façades within 15 meters[%],
     * ``built_freq``: Building Frequency,
     * ``building_prevalence_Ti``: Prevalence of specific building types [%] (if
-    building classification is provided ``category_col``).
+        building classification is provided ``category_col``).
 
     The method also provides the distribution of measures along the street, providing:
 
@@ -840,26 +840,28 @@ class Streetscape:
 
         df["nodes_degree_1"] = self.streets.apply(
             lambda row: (
-                (1 if row.n1_degree == 1 else 0) + (1 if row.n2_degree == 1 else 0)
-            )
-            / 2,
+                ((1 if row.n1_degree == 1 else 0) + (1 if row.n2_degree == 1 else 0))
+                / 2
+            ),
             axis=1,
         )
 
         df["nodes_degree_4"] = self.streets.apply(
             lambda row: (
-                (1 if row.n1_degree == 4 else 0) + (1 if row.n2_degree == 4 else 0)
-            )
-            / 2,
+                ((1 if row.n1_degree == 4 else 0) + (1 if row.n2_degree == 4 else 0))
+                / 2
+            ),
             axis=1,
         )
 
         df["nodes_degree_3_5_plus"] = self.streets.apply(
             lambda row: (
-                (1 if row.n1_degree == 3 or row.n1_degree >= 5 else 0)
-                + (1 if row.n2_degree == 3 or row.n2_degree >= 5 else 0)
-            )
-            / 2,
+                (
+                    (1 if row.n1_degree == 3 or row.n1_degree >= 5 else 0)
+                    + (1 if row.n2_degree == 3 or row.n2_degree >= 5 else 0)
+                )
+                / 2
+            ),
             axis=1,
         )
         df["street_length"] = self.streets.length
@@ -2221,16 +2223,16 @@ class Streetscape:
             point_data["left_plot_seq_sb_index"] = point_data[
                 "left_plot_seq_sb_index"
             ].apply(
-                lambda x: {c for c in x if not pd.isna(c)}
-                if isinstance(x, list)
-                else {x}
+                lambda x: (
+                    {c for c in x if not pd.isna(c)} if isinstance(x, list) else {x}
+                )
             )
             point_data["right_plot_seq_sb_index"] = point_data[
                 "right_plot_seq_sb_index"
             ].apply(
-                lambda x: {c for c in x if not pd.isna(c)}
-                if isinstance(x, list)
-                else {x}
+                lambda x: (
+                    {c for c in x if not pd.isna(c)} if isinstance(x, list) else {x}
+                )
             )
             inds.extend(
                 [

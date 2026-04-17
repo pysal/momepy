@@ -195,12 +195,13 @@ def alignment(orientation: Series, graph: Graph) -> Series:
     ...     buildings.centroid
     ... ).assign_self_weight()
     >>> delaunay
-    <Graph of 144 nodes and 970 nonzero edges indexed by
+    <Graph of 144 nodes and 970 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Alignment of orienation within triangulated neighbors:
 
     >>> momepy.alignment(orientation, delaunay)
+    focal
     0      14.639585
     1       0.217417
     2       0.205626
@@ -253,18 +254,19 @@ def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Serie
 
     >>> delaunay = graph.Graph.build_triangulation(buildings.centroid)
     >>> delaunay
-    <Graph of 144 nodes and 826 nonzero edges indexed by
+    <Graph of 144 nodes and 826 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Mean distance to adjacent buildings within triangulated neighbors:
 
     >>> momepy.neighbor_distance(buildings, delaunay)
+    focal
     0      29.185890
     1      30.244905
     2      47.052305
     3      22.831824
     4      16.183615
-            ...
+             ...
     139    39.698734
     140    20.634252
     141    38.208668
@@ -323,14 +325,14 @@ def mean_interbuilding_distance(
 
     >>> delaunay = graph.Graph.build_triangulation(buildings.centroid)
     >>> delaunay
-    <Graph of 144 nodes and 826 nonzero edges indexed by
+    <Graph of 144 nodes and 826 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Define a spatial graph denoting the neighborhood:
 
     >>> knn15 = graph.Graph.build_knn(buildings.centroid, k=15)
     >>> knn15
-    <Graph of 144 nodes and 2160 nonzero edges indexed by
+    <Graph of 144 nodes and 2160 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
      Measure mean interbuilding distance:
@@ -420,14 +422,14 @@ def building_adjacency(
 
     >>> contig = graph.Graph.build_contiguity(buildings)
     >>> contig
-    <Graph of 144 nodes and 248 nonzero edges indexed by
+    <Graph of 144 nodes and 248 nonzero edges (28 components, 10 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Define a spatial graph denoting the neighborhood:
 
     >>> knn15 = graph.Graph.build_knn(buildings.centroid, k=15)
     >>> knn15
-    <Graph of 144 nodes and 2160 nonzero edges indexed by
+    <Graph of 144 nodes and 2160 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
      Measure mean interbuilding distance:
@@ -483,7 +485,7 @@ def neighbors(
 
     Parameters
     ----------
-    gdf : GeoDataFrame | GeoSeries
+    geometry : GeoDataFrame | GeoSeries
         GeoDataFrame containing geometries to analyse.
     graph : libpysal.graph.Graph
         Graph representing spatial relationships between elements.
@@ -506,7 +508,7 @@ def neighbors(
 
     >>> contig = graph.Graph.build_contiguity(tessellation)
     >>> contig
-    <Graph of 144 nodes and 768 nonzero edges indexed by
+    <Graph of 144 nodes and 768 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Number of neighbors of each tessellation cell:
@@ -526,7 +528,7 @@ def neighbors(
     143     5
     Name: neighbors, Length: 144, dtype: int64
 
-    Weighted by the tessellation area:
+    Weighted by the tessellation perimeter:
 
     >>> momepy.neighbors(tessellation, contig, weighted=True)
     focal

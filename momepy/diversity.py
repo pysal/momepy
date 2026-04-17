@@ -249,7 +249,7 @@ def describe_reached_agg(
 
     >>> queen_contig = graph.Graph.build_contiguity(streets, rook=False)
     >>> queen_contig
-    <Graph of 35 nodes and 148 nonzero edges indexed by
+    <Graph of 35 nodes and 148 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     >>> momepy.describe_reached_agg(
@@ -369,7 +369,7 @@ def values_range(
 
     >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
     >>> knn5
-    <Graph of 144 nodes and 720 nonzero edges indexed by
+    <Graph of 144 nodes and 720 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Range of building area within 5 nearest neighbors:
@@ -464,7 +464,7 @@ def theil(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
 
     >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
     >>> knn5
-    <Graph of 144 nodes and 720 nonzero edges indexed by
+    <Graph of 144 nodes and 720 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Theil index of building area within 5 nearest neighbors:
@@ -584,7 +584,7 @@ def simpson(
 
     >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
     >>> knn5
-    <Graph of 144 nodes and 720 nonzero edges indexed by
+    <Graph of 144 nodes and 720 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Simpson index of building area within 5 nearest neighbors:
@@ -713,7 +713,7 @@ def shannon(
 
     >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
     >>> knn5
-    <Graph of 144 nodes and 720 nonzero edges indexed by
+    <Graph of 144 nodes and 720 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Shannon index of building area within 5 nearest neighbors:
@@ -813,7 +813,7 @@ def gini(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
 
     >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
     >>> knn5
-    <Graph of 144 nodes and 720 nonzero edges indexed by
+    <Graph of 144 nodes and 720 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Gini index of building area within 5 nearest neighbors:
@@ -911,7 +911,7 @@ def percentile(
 
     >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
     >>> knn5
-    <Graph of 144 nodes and 720 nonzero edges indexed by
+    <Graph of 144 nodes and 720 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Percentiles of building area within 5 nearest neighbors:
@@ -983,7 +983,7 @@ def mean_deviation(y: Series, graph: Graph) -> Series:
 
     >>> knn5 = graph.Graph.build_knn(buildings.centroid, k=5)
     >>> knn5
-    <Graph of 144 nodes and 720 nonzero edges indexed by
+    <Graph of 144 nodes and 720 nonzero edges (1 component, 0 isolates) indexed by
      [0, 1, 2, 3, 4, ...]>
 
     Mean deviation of building area and area of 5 nearest neighbors:
