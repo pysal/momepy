@@ -7,12 +7,12 @@ dependencies:
   - esda
   - geopandas
   - inequality
-  - libpysal>=4.12.1
+  - libpysal
   - mapclassify
   - networkx
   - packaging
   - pandas
-  - shapely>=2
+  - shapely
   - tqdm
   # testing
   - neatnet

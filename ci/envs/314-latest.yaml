@@ -7,14 +7,14 @@ dependencies:
   - esda
   - geopandas
   - inequality
-  - libpysal>=4.12.1
+  - libpysal
   - mapclassify
   - networkx
   - numba
   - osmnx
   - packaging
   - rioxarray
-  - shapely>=2
+  - shapely
   - tqdm
   - xvec
   # testing
@@ -26,6 +26,7 @@ dependencies:
   # user guide testing
   - bokeh
   - clustergram
+  - geopy
   - inequality
   - ipywidgets
   - Iprogress
