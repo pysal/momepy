@@ -13,9 +13,7 @@ from shapely import LineString, affinity
 from shapely.geometry import MultiPoint, Polygon, box
 
 import momepy as mm
-import momepy.elements as elements
 
-SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 LPS_G_4_13_0 = Version(libpysal.__version__) > Version("4.13.0")
 GEOS_GE_314 = Version(shapely.geos_version_string) >= Version("3.14.0")
 
@@ -34,31 +32,39 @@ class TestElements:
         )
 
     def test_morphological_tessellation(self):
-        tessellation = mm.morphological_tessellation(self.df_buildings, simplify=False)
+        with pytest.warns(
+            UserWarning,
+            match=(
+                "The 'simplify' is now hard-coded as 'True' internally and "
+                " will be removedas a keyword in a future release."
+            ),
+        ):
+            tessellation = mm.morphological_tessellation(
+                self.df_buildings,
+                simplify=False,
+            )
+        assert tessellation.get_coordinates().shape[0] == 4557
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
         assert_index_equal(tessellation.index, self.df_buildings.index)
         assert isinstance(tessellation, gpd.GeoDataFrame)
 
-        clipped = mm.morphological_tessellation(
-            self.df_buildings, clip=self.limit, simplify=False
-        )
+        clipped = mm.morphological_tessellation(self.df_buildings, clip=self.limit)
 
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
         assert_index_equal(tessellation.index, self.df_buildings.index)
         assert clipped.area.sum() < tessellation.area.sum()
 
-        sparser = mm.morphological_tessellation(
-            self.df_buildings, segment=2, simplify=False
-        )
+        sparser = mm.morphological_tessellation(self.df_buildings, segment=2)
         assert (
             sparser.get_coordinates().shape[0] < tessellation.get_coordinates().shape[0]
         )
 
     def test_morphological_tessellation_buffer_clip(self):
         tessellation = mm.morphological_tessellation(
-            self.df_buildings, clip=self.df_buildings.buffer(50), simplify=False
+            self.df_buildings,
+            clip=self.df_buildings.buffer(50),
         )
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
@@ -85,25 +91,23 @@ class TestElements:
                 ),
             ]
         )
-        tessellation = mm.morphological_tessellation(df, simplify=False)
+        tessellation = mm.morphological_tessellation(df)
         assert (tessellation.geom_type == "Polygon").all()
         assert 144 not in tessellation.index
         assert len(tessellation) == len(df) - 1
 
-    @pytest.mark.skipif(not SHPLY_GE_210, reason="coverage_simplify required")
-    def test_morphological_tessellation_simplify(self):
-        simplified = mm.morphological_tessellation(
-            self.df_buildings,
-        )
-        assert simplified.get_coordinates().shape[0] == 4557
-
-        dense = mm.morphological_tessellation(self.df_buildings, simplify=False)
-        assert dense.get_coordinates().shape[0] == 47505
-
     def test_enclosed_tessellation(self):
-        tessellation = mm.enclosed_tessellation(
-            self.df_buildings, self.enclosures.geometry, simplify=False
-        )
+        with pytest.warns(
+            UserWarning,
+            match=(
+                "The 'simplify' is now hard-coded as 'True' internally and "
+                " will be removedas a keyword in a future release."
+            ),
+        ):
+            tessellation = mm.enclosed_tessellation(
+                self.df_buildings, self.enclosures.geometry, simplify=False
+            )
+
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
         assert (self.df_buildings.index.isin(tessellation.index)).all()
@@ -112,7 +116,6 @@ class TestElements:
         sparser = mm.enclosed_tessellation(
             self.df_buildings,
             self.enclosures.geometry,
-            simplify=False,
             segment=2,
         )
         assert (
@@ -122,7 +125,6 @@ class TestElements:
         no_threshold_check = mm.enclosed_tessellation(
             self.df_buildings,
             self.enclosures.geometry,
-            simplify=False,
             threshold=None,
             n_jobs=1,
         )
@@ -147,7 +149,6 @@ class TestElements:
         threshold_elimination = mm.enclosed_tessellation(
             buildings,
             self.enclosures.geometry,
-            simplify=False,
             threshold=0.99,
             n_jobs=1,
         )
@@ -161,7 +162,6 @@ class TestElements:
         tessellation_df = mm.enclosed_tessellation(
             self.df_buildings,
             self.enclosures,
-            simplify=False,
         )
         assert_geodataframe_equal(tessellation, tessellation_df)
 
@@ -170,7 +170,6 @@ class TestElements:
         tessellation_custom_index = mm.enclosed_tessellation(
             self.df_buildings,
             custom_index,
-            simplify=False,
         )
         assert (tessellation_custom_index.geom_type == "Polygon").all()
         assert tessellation_custom_index.crs == self.df_buildings.crs
@@ -180,7 +179,6 @@ class TestElements:
         tessellation_inner_barrier = mm.enclosed_tessellation(
             self.df_buildings,
             self.enclosures.geometry,
-            simplify=False,
             inner_barriers=self.df_streets,
             cell_size=5,
             neighbor_mode="neumann",
@@ -254,7 +252,6 @@ class TestElements:
         tess = mm.enclosed_tessellation(
             buildings,
             enclosures,
-            simplify=False,
             inner_barriers=inner_barriers,
             cell_size=1,
             neighbor_mode="neumann",
@@ -273,7 +270,6 @@ class TestElements:
         tess_point = mm.enclosed_tessellation(
             buildings,
             enclosures,
-            simplify=False,
             inner_barriers=point_barriers,
             cell_size=1,
             neighbor_mode="moore",
@@ -287,7 +283,6 @@ class TestElements:
         tess_empty = mm.enclosed_tessellation(
             buildings,
             enclosures,
-            simplify=False,
             inner_barriers=empty_barriers,
             cell_size=1,
             neighbor_mode="moore",
@@ -311,7 +306,6 @@ class TestElements:
             mm.enclosed_tessellation(
                 buildings,
                 invalid_enclosures,
-                simplify=False,
                 inner_barriers=self.df_streets.head(1),
                 cell_size=1,
                 threshold=None,
@@ -337,22 +331,11 @@ class TestElements:
             mm.enclosed_tessellation(
                 buildings,
                 enclosures,
-                simplify=False,
                 inner_barriers=self.df_streets.head(1),
                 cell_size=1,
                 neighbor_mode="invalid",
                 threshold=None,
                 n_jobs=1,
-            )
-
-    def test_morphological_and_enclosed_tessellation_require_shapely(self, monkeypatch):
-        monkeypatch.setattr(elements, "SHPLY_GE_210", False)
-        with pytest.raises(ImportError):
-            mm.morphological_tessellation(self.df_buildings.head(1))
-        with pytest.raises(ImportError):
-            mm.enclosed_tessellation(
-                self.df_buildings.head(1),
-                self.enclosures.geometry,
             )
 
     def test_verify_tessellation(self):
@@ -375,7 +358,8 @@ class TestElements:
             ]
         )
         tessellation = mm.morphological_tessellation(
-            df, clip=self.df_streets.buffer(50), simplify=False
+            df,
+            clip=self.df_streets.buffer(50),
         )
         with (
             pytest.warns(
@@ -390,6 +374,40 @@ class TestElements:
         assert_index_equal(
             multi, pd.Index([1, 46, 57, 62, 103, 105, 129, 130, 134, 136, 137])
         )
+
+    def test_simplified_tessellations(self):
+        n_workers = -1
+        tessellations = mm.enclosed_tessellation(
+            self.df_buildings,
+            self.enclosures.geometry,
+            n_jobs=n_workers,
+        )
+        simplified_tessellations = mm.enclosed_tessellation(
+            self.df_buildings, self.enclosures.geometry, n_jobs=n_workers
+        )
+        ## empty enclosures should be unmodified
+        assert_geodataframe_equal(
+            tessellations[tessellations.index < 0],
+            simplified_tessellations[simplified_tessellations.index < 0],
+        )
+
+        ## simplification should not modify the external borders of tesselation cells
+        orig_grouper = tessellations.groupby("enclosure_index")
+        simpl_grouper = simplified_tessellations.groupby("enclosure_index")
+        for idx in np.union1d(
+            tessellations["enclosure_index"].unique(),
+            simplified_tessellations["enclosure_index"].unique(),
+        ):
+            orig_group = orig_grouper.get_group(idx).dissolve().boundary
+            enclosure = self.enclosures.loc[[idx]].dissolve().boundary
+
+            simpl_group = simpl_grouper.get_group(idx).dissolve().boundary
+
+            ## simplified is not different to enclosure
+            assert np.isclose(simpl_group.difference(enclosure).area, 0)
+
+            # simplified is not different to original tess
+            assert np.isclose(simpl_group.difference(orig_group).area, 0)
 
     def test_get_nearest_street(self):
         streets = self.df_streets.copy()
@@ -516,62 +534,21 @@ class TestElements:
         assert len(blocks) == 9
         assert len(blocks.sindex.query(blocks.geometry, "overlaps")[0]) == 0
 
-    @pytest.mark.skipif(not SHPLY_GE_210, reason="coverage_simplify required")
-    def test_simplified_tesselations(self):
-        n_workers = -1
-        tessellations = mm.enclosed_tessellation(
-            self.df_buildings,
-            self.enclosures.geometry,
-            simplify=False,
-            n_jobs=n_workers,
-        )
-        simplified_tessellations = mm.enclosed_tessellation(
-            self.df_buildings, self.enclosures.geometry, simplify=True, n_jobs=n_workers
-        )
-        ## empty enclosures should be unmodified
-        assert_geodataframe_equal(
-            tessellations[tessellations.index < 0],
-            simplified_tessellations[simplified_tessellations.index < 0],
-        )
-        ## simplification should result in less total points
-        orig_points = shapely.get_coordinates(
-            tessellations[tessellations.index >= 0].geometry
-        ).shape
-        simpl_points = shapely.get_coordinates(
-            simplified_tessellations[simplified_tessellations.index >= 0].geometry
-        ).shape
-        assert orig_points > simpl_points
-
-        ## simplification should not modify the external borders of tesselation cells
-        orig_grouper = tessellations.groupby("enclosure_index")
-        simpl_grouper = simplified_tessellations.groupby("enclosure_index")
-        for idx in np.union1d(
-            tessellations["enclosure_index"].unique(),
-            simplified_tessellations["enclosure_index"].unique(),
-        ):
-            orig_group = orig_grouper.get_group(idx).dissolve().boundary
-            enclosure = self.enclosures.loc[[idx]].dissolve().boundary
-
-            simpl_group = simpl_grouper.get_group(idx).dissolve().boundary
-
-            ## simplified is not different to enclosure
-            assert np.isclose(simpl_group.difference(enclosure).area, 0)
-
-            # simplified is not different to original tess
-            assert np.isclose(simpl_group.difference(orig_group).area, 0)
-
     def test_multi_index(self):
         buildings = self.df_buildings.set_index(["uID", "uID"])
         with pytest.raises(
             ValueError,
             match="MultiIndex is not supported in `momepy.morphological_tessellation`.",
         ):
-            mm.morphological_tessellation(buildings, simplify=False)
-        with pytest.raises(
-            ValueError,
-            match="MultiIndex is not supported in `momepy.enclosed_tessellation`.",
-        ):
-            mm.enclosed_tessellation(buildings, self.enclosures, simplify=False)
+            mm.morphological_tessellation(buildings)
+
+        # -- no longer raises since simply is default --
+        # with pytest.raises(
+        #     ValueError,
+        #     match="MultiIndex is not supported in `momepy.enclosed_tessellation`.",
+        # ):
+        #     mm.enclosed_tessellation(buildings, self.enclosures)
+
         with pytest.raises(
             ValueError,
             match="MultiIndex is not supported in `momepy.verify_tessellation`.",
@@ -593,7 +570,7 @@ class TestElements:
 
     def test_tess_single_building_edge_case(self):
         tessellations = mm.enclosed_tessellation(
-            self.df_buildings, self.enclosures.geometry, simplify=False, n_jobs=-1
+            self.df_buildings, self.enclosures.geometry, n_jobs=-1
         )
         orig_grouper = tessellations.groupby("enclosure_index")
         idxs = ~self.df_buildings.index.isin(orig_grouper.get_group(8).index)
@@ -603,9 +580,7 @@ class TestElements:
 
         new_blg = self.df_buildings[idxs]
         new_blg.loc[22, "geometry"] = new_blg.loc[22, "geometry"].buffer(20)
-        new_tess = mm.enclosed_tessellation(
-            new_blg, self.enclosures.geometry, simplify=False, n_jobs=1
-        )
+        new_tess = mm.enclosed_tessellation(new_blg, self.enclosures.geometry, n_jobs=1)
 
         # assert that buildings 1 and 22 intersect the same enclosure
         inp, res = self.enclosures.sindex.query(
@@ -666,7 +641,8 @@ class TestElements:
             self.df_streets, limit=gpd.GeoSeries([convex_hull], crs=self.df_streets.crs)
         )
         enclosed_tess = mm.enclosed_tessellation(
-            self.df_buildings, enclosures=enclosures, simplify=False
+            self.df_buildings,
+            enclosures=enclosures,
         )
         links = mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
 

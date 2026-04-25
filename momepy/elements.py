@@ -11,12 +11,9 @@ from geopandas import GeoDataFrame, GeoSeries
 from joblib import Parallel, delayed
 from libpysal.cg import voronoi_frames
 from libpysal.graph import Graph
-from packaging.version import Version
 from pandas import MultiIndex, Series
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import polygonize
-
-SHPLY_GE_210 = Version(shapely.__version__) >= Version("2.1.0")
 
 __all__ = [
     "morphological_tessellation",
@@ -36,7 +33,7 @@ def morphological_tessellation(
     clip: str | shapely.Geometry | GeoSeries | GeoDataFrame | None = "bounding_box",
     shrink: float = 0.4,
     segment: float = 0.5,
-    simplify: bool = True,
+    simplify: None = None,
     **kwargs,
 ) -> GeoDataFrame:
     """Generate morphological tessellation.
@@ -82,9 +79,10 @@ def morphological_tessellation(
         and suboptimal resulting geometry (when the value is too large). The default
         is empirically derived for the use case on building footprints represented in
         map units. By default 0.5
-    simplify: bool, optional
-        Whether to attempt to simplify the resulting tesselation boundaries with
-        ``shapely.coverage_simplify``. By default True.
+    simplify : None
+        ``simplify`` is now hard-coded as ``True`` internally and will be removed
+        as a keyword in a future release. Whether to attempt to simplify the resulting
+        tessellation boundaries with ``shapely.coverage_simplify``.
     **kwargs
         Additional keyword arguments pased to libpysal.cg.voronoi_frames, such as
         ``grid_size``.
@@ -120,12 +118,17 @@ def morphological_tessellation(
     4  POLYGON ((1603083.134 6464103.971, 1603077.387...
 
     """
-    if simplify and not SHPLY_GE_210:
-        # TODO: remove the keyword and do simplification by default once it is
-        # safe to pin shapely 2.1
-        raise ImportError(
-            "`simplify=True` requires shapely 2.1 or higher. "
-            "Update shapely or set `simplify` to False."
+
+    # TODO: remove ``simplify`` as a keyword argument
+    # TODO: remove this warning block
+    if simplify is not None:
+        warnings.warn(
+            (
+                "The 'simplify' is now hard-coded as 'True' internally and "
+                " will be removedas a keyword in a future release."
+            ),
+            UserWarning,
+            stacklevel=2,
         )
 
     if isinstance(geometry.index, MultiIndex):
@@ -145,10 +148,11 @@ def morphological_tessellation(
         as_gdf=True,
         **kwargs,
     )
-    if simplify:
-        mt.geometry = shapely.coverage_simplify(
-            mt.geometry, tolerance=segment / 2, simplify_boundary=False
-        )
+
+    mt.geometry = shapely.coverage_simplify(
+        mt.geometry, tolerance=segment / 2, simplify_boundary=False
+    )
+
     return mt
 
 
@@ -158,11 +162,11 @@ def enclosed_tessellation(
     shrink: float = 0.4,
     segment: float = 0.5,
     threshold: float | None = 0.05,
-    simplify: bool = True,
     n_jobs: int = -1,
     inner_barriers: GeoSeries | GeoDataFrame | None = None,
     cell_size: float = 1,
     neighbor_mode: str = "moore",
+    simplify: None = None,
     **kwargs,
 ) -> GeoDataFrame:
     """Generate enclosed tessellation
@@ -220,9 +224,10 @@ def enclosed_tessellation(
         inlude it in the tessellation of that enclosure. Resolves sliver geometry
         issues. If None, the check is skipped and all intersecting buildings are
         considered. By default 0.05
-    simplify: bool, optional
-        Whether to attempt to simplify the resulting tesselation boundaries with
-        ``shapely.coverage_simplify``. By default True.
+    simplify : None
+        ``simplify`` is now hard-coded as ``True`` internally and will be removed
+        as a keyword in a future release. Whether to attempt to simplify the resulting
+        tessellation boundaries with ``shapely.coverage_simplify``.
     n_jobs : int, optional
         The number of jobs to run in parallel. -1 means using all available cores.
         By default -1
@@ -293,18 +298,18 @@ def enclosed_tessellation(
     126  POLYGON ((1603499.92 6464243.917, 1603493.299 ...                0
     """
 
-    if simplify and not SHPLY_GE_210:
-        # TODO: remove the keyword and do simplification by default once it is
-        # safe to pin shapely 2.1
-        raise ImportError(
-            "`simplify=True` requires shapely 2.1 or higher. "
-            "Update shapely or set `simplify` to False."
+    # TODO: remove ``simplify`` as a keyword argument
+    # TODO: remove this warning block
+    if simplify is not None:
+        warnings.warn(
+            (
+                "The 'simplify' is now hard-coded as 'True' internally and "
+                " will be removedas a keyword in a future release."
+            ),
+            UserWarning,
+            stacklevel=2,
         )
-
-    if isinstance(geometry.index, MultiIndex):
-        raise ValueError(
-            "MultiIndex is not supported in `momepy.enclosed_tessellation`."
-        )
+    simplify = True
 
     # convert to GeoDataFrame and add position (we will need it later)
     enclosures = enclosures.geometry.to_frame()
