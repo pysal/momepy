@@ -542,7 +542,7 @@ class TestElements:
         ):
             mm.morphological_tessellation(buildings)
 
-        # -- no longer raises since simply is default --
+        # -- no longer raises since simplify is default --
         # with pytest.raises(
         #     ValueError,
         #     match="MultiIndex is not supported in `momepy.enclosed_tessellation`.",

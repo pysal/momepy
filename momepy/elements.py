@@ -309,7 +309,6 @@ def enclosed_tessellation(
             UserWarning,
             stacklevel=2,
         )
-    simplify = True
 
     # convert to GeoDataFrame and add position (we will need it later)
     enclosures = enclosures.geometry.to_frame()
@@ -348,7 +347,7 @@ def enclosed_tessellation(
             shrink,
             segment,
             index_name,
-            simplify,
+            True,  # to_simplify
             inner_barriers,
             cell_size,
             neighbor_mode,
@@ -414,6 +413,9 @@ def _tess(
         Threshold for building inclusion.
     shrink : float
         Shrink distance for tessellation.
+    to_simplify : bool
+        Flag for simplification
+        **NOW ONLY SIMPLIFYING** Remove option entirely here?
     segment : float
         Segmentation distance.
     enclosure_id : str
