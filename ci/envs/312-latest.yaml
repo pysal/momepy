@@ -4,34 +4,23 @@ channels:
   - conda-forge
 dependencies:
   - python=3.12
+  - esda
   - geopandas
   - inequality
   - libpysal>=4.12.0
   - mapclassify
   - networkx
+  - numba
+  - numpy
   - osmnx
   - packaging
-  - pandas!=1.5.0
-  - shapely>=2
-  - esda
-  - tqdm
-  - numba
+  - pandas
   - rioxarray
+  - shapely>=2
+  - tqdm
   - xvec
   # testing
+  - neatnet
   - codecov
   - pytest
   - pytest-cov
-  - neatnet
-  # user guide testing
-  - dask
-  - inequality
-  - jupyter
-  - matplotlib
-  - osmnx
-  - clustergram
-  - bokeh
-  - geopy
-  - ipywidgets
-  - Iprogress
-  - pytest-doctestplus
