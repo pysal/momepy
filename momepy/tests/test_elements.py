@@ -35,8 +35,8 @@ class TestElements:
         with pytest.warns(
             UserWarning,
             match=(
-                "The 'simplify' is now hard-coded as 'True' internally and "
-                " will be removedas a keyword in a future release."
+                "The 'simplify' keyword has no effect and"
+                " will be removed in a future release."
             ),
         ):
             tessellation = mm.morphological_tessellation(
@@ -100,8 +100,8 @@ class TestElements:
         with pytest.warns(
             UserWarning,
             match=(
-                "The 'simplify' is now hard-coded as 'True' internally and "
-                " will be removedas a keyword in a future release."
+                "The 'simplify' keyword has no effect and"
+                " will be removed in a future release."
             ),
         ):
             tessellation = mm.enclosed_tessellation(
@@ -542,12 +542,11 @@ class TestElements:
         ):
             mm.morphological_tessellation(buildings)
 
-        # -- no longer raises since simplify is default --
-        # with pytest.raises(
-        #     ValueError,
-        #     match="MultiIndex is not supported in `momepy.enclosed_tessellation`.",
-        # ):
-        #     mm.enclosed_tessellation(buildings, self.enclosures)
+        with pytest.raises(
+            ValueError,
+            match="MultiIndex is not supported in `momepy.enclosed_tessellation`.",
+        ):
+            mm.enclosed_tessellation(buildings, self.enclosures)
 
         with pytest.raises(
             ValueError,

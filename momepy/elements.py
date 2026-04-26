@@ -33,7 +33,7 @@ def morphological_tessellation(
     clip: str | shapely.Geometry | GeoSeries | GeoDataFrame | None = "bounding_box",
     shrink: float = 0.4,
     segment: float = 0.5,
-    simplify: None = None,
+    simplify: None | bool = None,
     **kwargs,
 ) -> GeoDataFrame:
     """Generate morphological tessellation.
@@ -80,9 +80,7 @@ def morphological_tessellation(
         is empirically derived for the use case on building footprints represented in
         map units. By default 0.5
     simplify : None
-        ``simplify`` is now hard-coded as ``True`` internally and will be removed
-        as a keyword in a future release. Whether to attempt to simplify the resulting
-        tessellation boundaries with ``shapely.coverage_simplify``.
+        Deprecated keyword with no effect. It will be removed in a future release.
     **kwargs
         Additional keyword arguments pased to libpysal.cg.voronoi_frames, such as
         ``grid_size``.
@@ -124,8 +122,8 @@ def morphological_tessellation(
     if simplify is not None:
         warnings.warn(
             (
-                "The 'simplify' is now hard-coded as 'True' internally and "
-                " will be removedas a keyword in a future release."
+                "The 'simplify' keyword has no effect and"
+                " will be removed in a future release."
             ),
             UserWarning,
             stacklevel=2,
@@ -149,9 +147,18 @@ def morphological_tessellation(
         **kwargs,
     )
 
-    mt.geometry = shapely.coverage_simplify(
-        mt.geometry, tolerance=segment / 2, simplify_boundary=False
-    )
+    # GEOS algorithm is a bit fragile...
+    try:
+        mt.geometry = shapely.coverage_simplify(
+            mt.geometry, tolerance=segment / 2, simplify_boundary=False
+        )
+    except Exception as e:
+        warnings.warn(
+            "Geometry simplification failed with the following error."
+            f" Returning original dense output.\n\n{e}",
+            UserWarning,
+            stacklevel=2,
+        )
 
     return mt
 
@@ -162,11 +169,11 @@ def enclosed_tessellation(
     shrink: float = 0.4,
     segment: float = 0.5,
     threshold: float | None = 0.05,
+    simplify: None | bool = None,
     n_jobs: int = -1,
     inner_barriers: GeoSeries | GeoDataFrame | None = None,
     cell_size: float = 1,
     neighbor_mode: str = "moore",
-    simplify: None = None,
     **kwargs,
 ) -> GeoDataFrame:
     """Generate enclosed tessellation
@@ -225,9 +232,7 @@ def enclosed_tessellation(
         issues. If None, the check is skipped and all intersecting buildings are
         considered. By default 0.05
     simplify : None
-        ``simplify`` is now hard-coded as ``True`` internally and will be removed
-        as a keyword in a future release. Whether to attempt to simplify the resulting
-        tessellation boundaries with ``shapely.coverage_simplify``.
+        Deprecated keyword with no effect. It will be removed in a future release.
     n_jobs : int, optional
         The number of jobs to run in parallel. -1 means using all available cores.
         By default -1
@@ -303,11 +308,15 @@ def enclosed_tessellation(
     if simplify is not None:
         warnings.warn(
             (
-                "The 'simplify' is now hard-coded as 'True' internally and "
-                " will be removedas a keyword in a future release."
+                "The 'simplify' keyword has no effect and"
+                " will be removed in a future release."
             ),
             UserWarning,
             stacklevel=2,
+        )
+    if isinstance(geometry.index, MultiIndex):
+        raise ValueError(
+            "MultiIndex is not supported in `momepy.enclosed_tessellation`."
         )
 
     # convert to GeoDataFrame and add position (we will need it later)
@@ -347,7 +356,6 @@ def enclosed_tessellation(
             shrink,
             segment,
             index_name,
-            True,  # to_simplify
             inner_barriers,
             cell_size,
             neighbor_mode,
@@ -393,7 +401,6 @@ def _tess(
     shrink,
     segment,
     enclosure_id,
-    to_simplify,
     inner_barriers,
     cell_size,
     neighbor_mode,
@@ -413,9 +420,6 @@ def _tess(
         Threshold for building inclusion.
     shrink : float
         Shrink distance for tessellation.
-    to_simplify : bool
-        Flag for simplification
-        **NOW ONLY SIMPLIFYING** Remove option entirely here?
     segment : float
         Segmentation distance.
     enclosure_id : str
@@ -465,9 +469,17 @@ def _tess(
             # cells_size edges
             tolerance = ((2 * cell_size) ** 2 / 2) ** 0.5
 
-        if to_simplify:
+        # GEOS algorithm is a bit fragile...
+        try:
             tess.geometry = shapely.coverage_simplify(
                 tess.geometry, tolerance=tolerance, simplify_boundary=False
+            )
+        except Exception as e:
+            warnings.warn(
+                "Geometry simplification failed with the following error."
+                f" Returning original dense output.\n\n{e}",
+                UserWarning,
+                stacklevel=3,
             )
 
         tess[enclosure_id] = ix
@@ -492,7 +504,7 @@ def _voronoi_by_ca(
     barrier_geoms: GeoSeries | GeoDataFrame,
     cell_size: float = 1.0,
     neighbor_mode: str = "moore",
-    barriers_for_inner: GeoSeries | GeoDataFrame = None,
+    barriers_for_inner: GeoSeries | GeoDataFrame | None = None,
 ) -> GeoDataFrame:
     """
     Generate an aggregated Voronoi tessellation as a GeoDataFrame via cellular automata.
