@@ -32,15 +32,15 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
-    "geopandas>=1.0",
-    "libpysal>=4.12.0",
-    "networkx>=3.3",
+    "geopandas>=1.1",
+    "libpysal>=4.12.1",
+    "networkx>=3.4",
     "numpy>=2.0",
     "packaging",
-    "pandas>=2.2",
-    "shapely>=2.0",
+    "pandas>=2.3",
+    "shapely>=2.1",
     "tqdm>=4.67",
 ]
 
@@ -50,10 +50,19 @@ Repository = "https://github.com/pysal/momepy"
 
 [project.optional-dependencies]
 plus = [
-    "numba>=0.60",
+    "esda",
     "inequality",
     "mapclassify",
-    "esda",
+    "numba>=0.60",
+    "osmnx",
+    "rioxarray",
+]
+tests = [
+  "neatnet",
+  "codecov",
+  "pytest",
+  "pytest-cov",
+  "pytest-doctestplus",
 ]
 
 [tool.setuptools.packages.find]

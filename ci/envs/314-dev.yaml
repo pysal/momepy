@@ -4,15 +4,16 @@ channels:
   - conda-forge
 dependencies:
   - python=3.14
-  - packaging
-  - tqdm
   - numba
+  - osmnx
+  - packaging
+  - rioxarray
+  - tqdm
   # testing
   - codecov
   - pytest
   - pytest-cov
   - pip
-  - neatnet
   - pip:
       - --pre \
         --index-url \
@@ -29,3 +30,5 @@ dependencies:
       - git+https://github.com/pysal/mapclassify.git
       - git+https://github.com/pysal/esda.git
       - git+https://github.com/pysal/inequality.git
+      - git+https://github.com/xarray-contrib/xvec.git
+      - git+https://github.com/uscuni/neatnet.git

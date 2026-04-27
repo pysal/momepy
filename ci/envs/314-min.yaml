@@ -1,22 +1,21 @@
 ---
-name: momepy_env
+name: test
 channels:
   - conda-forge
 dependencies:
-  - python
+  - python=3.14
   - esda
   - geopandas
   - inequality
-  - jupyter
   - libpysal
   - mapclassify
-  - matplotlib
-  - neatnet
   - networkx
-  - numba
-  - osmnx
+  - packaging
   - pandas
-  - rioxarray
   - shapely
   - tqdm
-  - xvec
+  # testing
+  - neatnet
+  - codecov
+  - pytest
+  - pytest-cov
