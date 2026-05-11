@@ -29,7 +29,6 @@ dependencies:
   - geopy
   - inequality
   - ipywidgets
-  - Iprogress
   - ipykernel
   - jupyter
   - matplotlib
