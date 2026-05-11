@@ -1616,16 +1616,16 @@
 structures. It is calculated as a ratio of joined built-up structures captured by
 <code class="docutils literal notranslate"><span class="pre">contiguity_graph</span></code> and buildings within the neighborhood defined in
 <code class="docutils literal notranslate"><span class="pre">neighborhood_graph</span></code>.</p>
-<p>Adapted from <span id="id1">[<a class="reference internal" href="../references.html#id17" title="Sven Vanderhaegen and Frank Canters. Mapping urban form and function at city block level using spatial metrics. Landscape and Urban Planning, 167:399–409, November 2017. doi:10.1016/j.landurbplan.2017.05.023.">Vanderhaegen and Canters, 2017</a>]</span>.</p>
+<p>Adapted from <span class="bibtex-citation" id="id1">[<a class="reference internal" href="../references.html#id17" title="Sven Vanderhaegen and Frank Canters. Mapping urban form and function at city block level using spatial metrics. Landscape and Urban Planning, 167:399–409, November 2017. doi:10.1016/j.landurbplan.2017.05.023.">Vanderhaegen and Canters, 2017</a>]</span>.</p>
 <p class="rubric">Notes</p>
 <p>Both graphs must be built on the same index.</p>
 <dl class="field-list simple">
 <dt class="field-odd" id="momepy.building_adjacency-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#momepy.building_adjacency-parameters" title="Permalink to this headline">¶</a></dt>
 <dd class="field-odd"><dl class="simple api-field highlight">
-<dt id="momepy.building_adjacency.contiguity_graph"><span class="sig-name descname">contiguity_graph</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference external" href="https://pysal.org/libpysal/dev/generated/libpysal.graph.Graph.html#libpysal.graph.Graph" title="(in libpysal v4.14.2.dev87)">libpysal.graph.Graph</a></span></span><a class="headerlink" href="#momepy.building_adjacency.contiguity_graph" title="Permalink to this definition">¶</a></dt><dd><p>Graph representing contiguity between geometries, typically a rook contiguity
+<dt id="momepy.building_adjacency.contiguity_graph"><span class="sig-name descname">contiguity_graph</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference external" href="https://pysal.org/libpysal/dev/generated/libpysal.graph.Graph.html#libpysal.graph.Graph" title="(in libpysal v4.14.2.dev89)">libpysal.graph.Graph</a></span></span><a class="headerlink" href="#momepy.building_adjacency.contiguity_graph" title="Permalink to this definition">¶</a></dt><dd><p>Graph representing contiguity between geometries, typically a rook contiguity
 graph derived from buildings.</p>
 </dd>
-<dt id="momepy.building_adjacency.neighborhood_graph"><span class="sig-name descname">neighborhood_graph</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference external" href="https://pysal.org/libpysal/dev/generated/libpysal.graph.Graph.html#libpysal.graph.Graph" title="(in libpysal v4.14.2.dev87)">libpysal.graph.Graph</a></span></span><a class="headerlink" href="#momepy.building_adjacency.neighborhood_graph" title="Permalink to this definition">¶</a></dt><dd><p>Graph representing the extent around each geometry within which to calculate
+<dt id="momepy.building_adjacency.neighborhood_graph"><span class="sig-name descname">neighborhood_graph</span><span class="p"> : </span><span class="desctype"><span class="desctype"><a class="reference external" href="https://pysal.org/libpysal/dev/generated/libpysal.graph.Graph.html#libpysal.graph.Graph" title="(in libpysal v4.14.2.dev89)">libpysal.graph.Graph</a></span></span><a class="headerlink" href="#momepy.building_adjacency.neighborhood_graph" title="Permalink to this definition">¶</a></dt><dd><p>Graph representing the extent around each geometry within which to calculate
 the level of building adjacency. This can be a distance based graph, KNN graph,
 higher order contiguity, etc.</p>
 </dd>
