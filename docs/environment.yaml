@@ -1,0 +1,38 @@
+---
+name: documentation
+channels:
+  - conda-forge
+dependencies:
+  - python=3.14
+  - esda
+  - geopandas
+  - inequality
+  - libpysal
+  - mapclassify
+  - networkx
+  - numba
+  - osmnx
+  - packaging
+  - rioxarray
+  - shapely
+  - tqdm
+  - xvec
+  # docs
+  - neatnet
+  - bokeh
+  - clustergram
+  - geopy
+  - inequality
+  - ipywidgets
+  - Iprogress
+  - ipykernel
+  - jupyter
+  - matplotlib
+  - myst-nb
+  - numpydoc
+  - osmnx
+  - sphinx
+  - sphinxcontrib-bibtex
+  - sphinx-autosummary-accessors
+  - sphinx-copybutton
+  - sphinx-immaterial
