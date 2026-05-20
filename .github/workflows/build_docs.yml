@@ -1,7 +1,7 @@
 ---
 name: Build Docs
 
-on: # yamllint disable-line rule:truthy
+on:  # yamllint disable-line rule:truthy
   push:
     branches: [main]
     tags:
@@ -91,7 +91,7 @@ jobs:
 
       - name: Update the versions switcher
         if: ${{ github.ref_type == 'tag' }}
-        run: | # yamllint disable-line rule:line-length
+        run: |  # yamllint disable-line rule:line-length
           git checkout gh-pages
           git fetch
           git pull
