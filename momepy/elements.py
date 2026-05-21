@@ -13,7 +13,6 @@ from libpysal.cg import voronoi_frames
 from libpysal.graph import Graph
 from pandas import MultiIndex, Series
 from shapely.geometry.base import BaseGeometry
-from shapely.ops import polygonize
 
 __all__ = [
     "morphological_tessellation",
@@ -1422,9 +1421,8 @@ def enclosures(
         A GeoDataFrame, GeoSeries or shapely geometry containing external limit
         of enclosures, i.e. the area which gets partitioned. If ``None`` is passed,
         the internal area of ``primary_barriers`` will be used.
-    additional_barriers : GeoDataFrame
-        A GeoDataFrame or GeoSeries containing additional barriers.
-        (Multi)LineString geometry is expected.
+    additional_barriers : list[GeoDataFrame | GeoSeries]
+        A  list of GeoDataFrames or GeoSeries containing additional barriers.
     enclosure_id : str (default 'eID')
         The name of the ``enclosure_id`` (to be created).
     clip : bool (default False)
@@ -1449,10 +1447,7 @@ def enclosures(
             limit_b = limit
         barriers = pd.concat([primary_barriers.geometry, limit_b.geometry])
     else:
-        barriers = primary_barriers
-    unioned = barriers.union_all()
-    polygons = polygonize(unioned)
-    enclosures = gpd.GeoSeries(list(polygons), crs=primary_barriers.crs)
+        barriers = primary_barriers.geometry
 
     if additional_barriers is not None:
         if not isinstance(additional_barriers, list):
@@ -1460,44 +1455,19 @@ def enclosures(
                 "`additional_barriers` expects a list of GeoDataFrames "
                 f"or GeoSeries. Got {type(additional_barriers)}."
             )
-        additional = pd.concat([gdf.geometry for gdf in additional_barriers])
+        barriers = pd.concat([barriers] + [add.geometry for add in additional_barriers])
 
-        inp, res = enclosures.sindex.query(additional.geometry, predicate="intersects")
-        unique = np.unique(res)
-
-        new = []
-
-        for i in unique:
-            poly = enclosures.array[i]  # get enclosure polygon
-            crossing = inp[res == i]  # get relevant additional barriers
-            buf = shapely.buffer(poly, 0.01)  # to avoid floating point errors
-            crossing_ins = shapely.intersection(
-                buf, additional.array[crossing]
-            )  # keeping only parts of additional barriers within polygon
-            union = shapely.union_all(
-                np.append(crossing_ins, shapely.boundary(poly))
-            )  # union
-            polygons = shapely.get_parts(shapely.polygonize([union]))  # polygonize
-            within = shapely.covered_by(
-                polygons, buf
-            )  # keep only those within original polygon
-            new += list(polygons[within])
-
-        final_enclosures = pd.concat(
-            [
-                gpd.GeoSeries(enclosures).drop(unique),
-                gpd.GeoSeries(new, crs=primary_barriers.crs),
-            ]
-        ).reset_index(drop=True)
-
-        final_enclosures = gpd.GeoDataFrame(
-            {enclosure_id: range(len(final_enclosures))}, geometry=final_enclosures
+    enclosures = shapely.polygonize(
+        shapely.get_parts(
+            shapely.node(shapely.geometrycollections(barriers.geometry.to_numpy()))
         )
+    )
 
-    else:
-        final_enclosures = gpd.GeoDataFrame(
-            {enclosure_id: range(len(enclosures))}, geometry=enclosures
-        )
+    final_enclosures = gpd.GeoDataFrame(
+        {enclosure_id: range(shapely.get_num_geometries(enclosures))},
+        geometry=shapely.get_parts(enclosures),
+        crs=primary_barriers.crs,
+    )
 
     if clip and limit is not None:
         if not limit.geom_type.isin(["Polygon", "MultiPolygon"]).all():
