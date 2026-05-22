@@ -14,6 +14,7 @@ This section covers:
 
 tessellation
 enclosed
+proximity_bands
 blocks
 links
 ```
