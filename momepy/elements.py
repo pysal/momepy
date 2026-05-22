@@ -1617,9 +1617,9 @@ def proximity_bands(
         extended_streets = neatnet.extend_lines(
             geometry, tolerance=21, target=pb.boundary, extension=0.1
         )
-        single_sided = pd.concat([pb.boundary, extended_streets.geometry]).polygonize()
-        single_sided = single_sided.loc[
-            single_sided.sindex.query(
+        ss_pb = pd.concat([pb.boundary, extended_streets.geometry]).polygonize()
+        ss_pb = ss_pb.loc[
+            ss_pb.sindex.query(
                 geometry.geometry,
                 predicate="dwithin",
                 distance=0.1,
@@ -1627,6 +1627,6 @@ def proximity_bands(
             ).sum(axis=1)
             > 0
         ]
-        pb = gpd.GeoDataFrame(geometry=single_sided, crs=geometry.crs)
+        pb = gpd.GeoDataFrame(geometry=ss_pb, crs=geometry.crs)
 
     return pb
