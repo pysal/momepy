@@ -59,7 +59,6 @@ plus = [
     "neatnet",
 ]
 tests = [
-  "neatnet",
   "codecov",
   "pytest",
   "pytest-cov",
