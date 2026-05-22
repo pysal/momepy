@@ -519,9 +519,9 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
 
     """
     warnings.warn(
-        "`close_gaps` is deprecated and will be removed in momepy 1.0. The "
+        "`extend_lines` is deprecated and will be removed in momepy 1.0. The "
         "function has been moved to the `neatnet` package and can be used "
-        "as `neatnet.close_gaps`. See https://uscuni.org/neatnet for details.",
+        "as `neatnet.extend_lines`. See https://uscuni.org/neatnet for details.",
         FutureWarning,
         stacklevel=2,
     )

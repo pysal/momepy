@@ -24,6 +24,7 @@ __all__ = [
     "generate_blocks",
     "buffered_limit",
     "enclosures",
+    "proximity_bands",
     "get_network_ratio",
 ]
 
@@ -41,7 +42,7 @@ def morphological_tessellation(
     Morpohological tessellation is a method to divide space into cells based on
     building footprints and Voronoi tessellation. The function wraps
     :func:`libpysal.cg.voronoi_frames` and provides customized default parameters
-    following :cite:`fleischmann2020`.
+    following :cite:t:`fleischmann2020`.
 
     Tessellation requires data of relatively high level of precision
     and there are three particular patterns causing issues:
@@ -59,7 +60,7 @@ def morphological_tessellation(
 
     All three types can be tested using :class:`momepy.CheckTessellationInput`.
 
-    See :cite:`fleischmann2020` for details of implementation.
+    See :cite:t:`fleischmann2020` for details of implementation.
 
     Parameters
     ----------
@@ -1512,3 +1513,120 @@ def enclosures(
         return final_enclosures.iloc[keep]
 
     return final_enclosures
+
+
+def proximity_bands(
+    geometry: GeoSeries | GeoDataFrame,
+    band: float | int = 20,
+    shrink: float = 1e-3,
+    segment: float = 2,
+    single_sided: bool = False,
+):
+    """Generate proximity bands around street segments.
+
+    Proximity bands partition space within a fixed distance from input street
+    geometry using Voronoi tessellation. They can be used as analytical elements
+    representing the area that can be observed by pedestrians, following
+    :cite:t:`araldi2019`.
+
+    By default, the function returns one band for each input geometry, clipped to
+    a buffer of ``band`` distance around the input. When ``single_sided=True``,
+    the bands are split by the input geometry and each side of a line is returned
+    separately. Single-sided proximity bands require the optional ``neatnet``
+    dependency.
+
+    Parameters
+    ----------
+    geometry : GeoSeries | GeoDataFrame
+        A GeoDataFrame or GeoSeries containing linear geometry around which the
+        proximity bands are generated.
+    band : float | int, optional
+        Distance defining the outer limit of proximity bands around the input
+        geometry. By default 20
+    shrink : float, optional
+        The distance represents the fraction of the length of each LineString clipped on
+        each end to avoid co-located points. By default 1e-3
+    segment : float, optional
+        The maximum distance between points after discretization. A right value is
+        a sweet spot between computational inefficiency (when the value is too low)
+        and suboptimal resulting geometry (when the value is too large). By default 2
+    single_sided : bool, optional
+        If True, split bands by input geometry and return separate bands for each
+        side of each line. Requires ``neatnet``. By default False
+
+    Returns
+    -------
+    GeoDataFrame
+        GeoDataFrame containing proximity bands.
+
+    See also
+    --------
+    momepy.morphological_tessellation
+    momepy.enclosures
+
+    Examples
+    --------
+    >>> path = momepy.datasets.get_path("bubenec")
+    >>> streets = geopandas.read_file(path, layer="streets")
+
+    Generate proximity bands:
+
+    >>> momepy.proximity_bands(streets, band=20).head()
+                                            geometry
+    0  POLYGON ((1603419.571 6464266.747, 1603562.598...
+    1  POLYGON ((1603268.463 6464060.746, 1603282.94 ...
+    2  POLYGON ((1603413.207 6464228.724, 1603413.204...
+    3  POLYGON ((1603640.249 6464408.422, 1603640.262...
+    4  POLYGON ((1603542.571 6464488.59, 1603539.027 ...
+
+    """
+    if single_sided:
+        try:
+            import neatnet
+        except ImportError as err:
+            raise ImportError(
+                "`neatnet` package is required for generation of single-sided "
+                "proximity bands. Install it using `conda install -c conda-forge "
+                "neatnet` or `pip install neatnet`."
+            ) from err
+
+    limit = geometry.buffer(band).union_all()
+    pb = voronoi_frames(
+        geometry,
+        clip=limit,
+        segment=segment,
+        shrink=shrink,
+        return_input=False,
+        as_gdf=True,
+    )
+
+    # GEOS algorithm is a bit fragile...
+    try:
+        pb.geometry = shapely.coverage_simplify(
+            pb.geometry, tolerance=segment / 2, simplify_boundary=False
+        )
+    except Exception as e:
+        warnings.warn(
+            "Geometry simplification failed with the following error."
+            f" Returning original dense output.\n\n{e}",
+            UserWarning,
+            stacklevel=2,
+        )
+
+    if single_sided:
+        extended_streets = neatnet.extend_lines(
+            geometry, tolerance=21, target=pb.boundary, extension=0.1
+        )
+        single_sided = pd.concat([pb.boundary, extended_streets.geometry]).polygonize()
+        single_sided = single_sided.loc[
+            single_sided.sindex.query(
+                geometry.geometry,
+                predicate="dwithin",
+                distance=0.1,
+                output_format="sparse",
+            ).sum(axis=1)
+            > 0
+        ]
+        pb = gpd.GeoDataFrame(geometry=single_sided, crs=geometry.crs)
+
+    return pb

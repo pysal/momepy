@@ -22,6 +22,7 @@ Momepy allows creation of a small subset of bespoke morphological geometric feat
    enclosed_tessellation
    enclosures
    generate_blocks
+   proximity_bands
 
 Additionally, it contains tools supporting these.
 

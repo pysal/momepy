@@ -412,6 +412,51 @@ class TestElements:
             # simplified is not different to original tess
             assert np.isclose(simpl_group.difference(orig_group).area, 0)
 
+    def test_proximity_bands(self):
+        streets = gpd.GeoDataFrame(
+            geometry=[
+                LineString([(0, 0), (10, 0)]),
+                LineString([(0, 10), (10, 10)]),
+            ],
+            crs="EPSG:3857",
+        )
+
+        bands = mm.proximity_bands(streets, band=2, segment=1)
+
+        assert isinstance(bands, gpd.GeoDataFrame)
+        assert bands.crs == streets.crs
+        assert_index_equal(bands.index, streets.index)
+        assert (bands.geom_type == "Polygon").all()
+        assert bands.area.sum() == pytest.approx(streets.buffer(2).union_all().area)
+
+        wider = mm.proximity_bands(streets, band=4, segment=1)
+        assert wider.area.sum() > bands.area.sum()
+
+    def test_proximity_bands_single_sided(self):
+        pytest.importorskip("neatnet")
+
+        streets = gpd.GeoDataFrame(
+            geometry=[
+                LineString([(0, 0), (10, 0)]),
+                LineString([(0, 10), (10, 10)]),
+            ],
+            crs="EPSG:3857",
+        )
+        two_sided = mm.proximity_bands(streets, band=2, segment=1)
+
+        single_sided = mm.proximity_bands(
+            streets,
+            band=2,
+            segment=1,
+            single_sided=True,
+        )
+
+        assert isinstance(single_sided, gpd.GeoDataFrame)
+        assert single_sided.crs == streets.crs
+        assert len(single_sided) == 2 * len(streets)
+        assert (single_sided.geom_type == "Polygon").all()
+        assert single_sided.area.sum() == pytest.approx(two_sided.area.sum())
+
     def test_get_nearest_street(self):
         streets = self.df_streets.copy()
         nearest = mm.get_nearest_street(self.df_buildings, streets)
