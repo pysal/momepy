@@ -1063,6 +1063,30 @@
   
   
     <li class="md-nav__item">
+      <a href="momepy.proximity_bands.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>proximity_<wbr>bands</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="momepy.buffered_limit.html" class="md-nav__link">
         
   
@@ -1702,7 +1726,7 @@
 <h1 id="momepy-enclosures">momepy.enclosures<a class="headerlink" href="#momepy-enclosures" title="Link to this heading">¶</a></h1>
 <dl class="py function objdesc">
 <dt class="sig sig-object highlight sig-wrap py" id="momepy.enclosures">
-<span class="sig-prename descclassname"><span class="pre">momepy.</span></span><span class="sig-name descname"><span class="pre">enclosures</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.enclosures.primary_barriers" title="momepy.enclosures.primary_barriers (Python parameter) — A GeoDataFrame or GeoSeries containing primary barriers. (Multi)LineString geometry is expected."><span class="n"><span class="pre">primary_barriers</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.enclosures.limit" title="momepy.enclosures.limit (Python parameter) — A GeoDataFrame, GeoSeries or shapely geometry containing external limit of enclosures, i.e."><span class="n"><span class="pre">limit</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.enclosures.additional_barriers" title="momepy.enclosures.additional_barriers (Python parameter) — A  list of GeoDataFrames or GeoSeries containing additional barriers."><span class="n"><span class="pre">additional_barriers</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.enclosures.enclosure_id" title="momepy.enclosures.enclosure_id (Python parameter) — The name of the enclosure_id (to be created)."><span class="n"><span class="pre">enclosure_id</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="s1">&#39;eID&#39;</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.enclosures.clip" title="momepy.enclosures.clip (Python parameter) — If True, returns enclosures with representative point within the limit (if given)."><span class="n"><span class="pre">clip</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em></span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/main/momepy/elements.py#L1401-L1484"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.enclosures" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">momepy.</span></span><span class="sig-name descname"><span class="pre">enclosures</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.enclosures.primary_barriers" title="momepy.enclosures.primary_barriers (Python parameter) — A GeoDataFrame or GeoSeries containing primary barriers. (Multi)LineString geometry is expected."><span class="n"><span class="pre">primary_barriers</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.enclosures.limit" title="momepy.enclosures.limit (Python parameter) — A GeoDataFrame, GeoSeries or shapely geometry containing external limit of enclosures, i.e."><span class="n"><span class="pre">limit</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.enclosures.additional_barriers" title="momepy.enclosures.additional_barriers (Python parameter) — A  list of GeoDataFrames or GeoSeries containing additional barriers."><span class="n"><span class="pre">additional_barriers</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.enclosures.enclosure_id" title="momepy.enclosures.enclosure_id (Python parameter) — The name of the enclosure_id (to be created)."><span class="n"><span class="pre">enclosure_id</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="s1">&#39;eID&#39;</span></code></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.enclosures.clip" title="momepy.enclosures.clip (Python parameter) — If True, returns enclosures with representative point within the limit (if given)."><span class="n"><span class="pre">clip</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">False</span></code></em></span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/main/momepy/elements.py#L1402-L1485"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.enclosures" title="Link to this definition">¶</a></dt>
 <dd><p>Generate enclosures based on passed barriers. Enclosures are areas enclosed from
 all sides by at least one type of a barrier. Barriers are typically roads,
 railways, natural features like rivers and other water bodies or coastline.

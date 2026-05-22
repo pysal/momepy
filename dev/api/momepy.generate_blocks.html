@@ -14,7 +14,7 @@
         <link rel="prev" href="momepy.enclosures.html">
       
       
-        <link rel="next" href="momepy.buffered_limit.html">
+        <link rel="next" href="momepy.proximity_bands.html">
       
       
       <link rel="icon" href="../_static/pysal_favicon.ico">
@@ -1029,6 +1029,30 @@
   
   
     <li class="md-nav__item">
+      <a href="momepy.proximity_bands.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <span>momepy.<wbr>proximity_<wbr>bands</span>
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="momepy.buffered_limit.html" class="md-nav__link">
         
   
@@ -1634,7 +1658,7 @@
 <h1 id="momepy-generate-blocks">momepy.generate_blocks<a class="headerlink" href="#momepy-generate-blocks" title="Link to this heading">¶</a></h1>
 <dl class="py function objdesc">
 <dt class="sig sig-object highlight py" id="momepy.generate_blocks">
-<span class="sig-prename descclassname"><span class="pre">momepy.</span></span><span class="sig-name descname"><span class="pre">generate_blocks</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.generate_blocks.tessellation" title="momepy.generate_blocks.tessellation (Python parameter) — A GeoDataFrame containing morphological tessellation."><span class="n"><span class="pre">tessellation</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.generate_blocks.edges" title="momepy.generate_blocks.edges (Python parameter) — A GeoDataFrame containing a street network."><span class="n"><span class="pre">edges</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.generate_blocks.buildings" title="momepy.generate_blocks.buildings (Python parameter) — A GeoDataFrame containing buildings."><span class="n"><span class="pre">buildings</span></span></a></em></span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/main/momepy/elements.py#L1135-L1242"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.generate_blocks" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">momepy.</span></span><span class="sig-name descname"><span class="pre">generate_blocks</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.generate_blocks.tessellation" title="momepy.generate_blocks.tessellation (Python parameter) — A GeoDataFrame containing morphological tessellation."><span class="n"><span class="pre">tessellation</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.generate_blocks.edges" title="momepy.generate_blocks.edges (Python parameter) — A GeoDataFrame containing a street network."><span class="n"><span class="pre">edges</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.generate_blocks.buildings" title="momepy.generate_blocks.buildings (Python parameter) — A GeoDataFrame containing buildings."><span class="n"><span class="pre">buildings</span></span></a></em></span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/main/momepy/elements.py#L1136-L1243"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.generate_blocks" title="Link to this definition">¶</a></dt>
 <dd><p>Generate blocks based on buildings, tessellation, and street network.
 Dissolves tessellation cells based on street-network based polygons.
 Links resulting ID to <code class="docutils literal notranslate"><span class="pre">tessellation</span></code> and returns
