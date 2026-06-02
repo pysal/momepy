@@ -8,7 +8,6 @@ certain performance issues compared to the rest of momepy.
 """
 
 import math
-import warnings
 
 import geopandas as gpd
 import numpy as np
@@ -1051,6 +1050,7 @@ class Streetscape:
         df = df.set_index("street_index").join(self._sightline_indicators.street_length)
 
         self._plot_indicators = df
+        self._aggregate_plot_data = None
 
     def _aggregate_plots(self):
         values = []
@@ -1556,31 +1556,40 @@ class Streetscape:
             if n == 0:
                 continue
 
+            left_os = np.asarray(left_os, dtype=float)
+            right_os = np.asarray(right_os, dtype=float)
+            left_sb = np.asarray(left_sb, dtype=float)
+            right_sb = np.asarray(right_sb, dtype=float)
+            left_h = np.asarray(left_h, dtype=float)
+            right_h = np.asarray(right_h, dtype=float)
+            left_hw = np.asarray(left_hw, dtype=float)
+            right_hw = np.asarray(right_hw, dtype=float)
+            left_bc = np.asarray(left_bc, dtype=float)
+            right_bc = np.asarray(right_bc, dtype=float)
+            front_sb = np.asarray(front_sb, dtype=float)
+            back_sb = np.asarray(back_sb, dtype=float)
+
             # ------------------------
             # OPENNESS
             # ------------------------
-            sum_left_os = np.sum(left_os)
-            sum_right_os = np.sum(right_os)
+            sum_left_os = left_os.sum()
+            sum_right_os = right_os.sum()
 
             ind_left_os = sum_left_os / n
             ind_right_os = sum_right_os / n
             ind_os = ind_left_os + ind_right_os  # ==(left_os+right_os)/n
 
-            full_os = [le + r for le, r in zip(left_os, right_os, strict=False)]
+            full_os = left_os + right_os
             # mediane >> med
             ind_left_os_med = np.median(left_os)
             ind_right_os_med = np.median(right_os)
             ind_os_med = np.median(full_os)
 
             # OPENNESS ROUGHNESS
-            sum_square_error_left_os = np.sum(
-                [(os - ind_left_os) ** 2 for os in left_os]
-            )
-            sum_square_error_right_os = np.sum(
-                [(os - ind_right_os) ** 2 for os in right_os]
-            )
-            sum_abs_error_left_os = np.sum([abs(os - ind_left_os) for os in left_os])
-            sum_abs_error_right_os = np.sum([abs(os - ind_right_os) for os in right_os])
+            sum_square_error_left_os = np.square(left_os - ind_left_os).sum()
+            sum_square_error_right_os = np.square(right_os - ind_right_os).sum()
+            sum_abs_error_left_os = np.abs(left_os - ind_left_os).sum()
+            sum_abs_error_right_os = np.abs(right_os - ind_right_os).sum()
             ind_os_std = math.sqrt(
                 (sum_square_error_left_os + sum_square_error_right_os) / (2 * n - 1)
             )
@@ -1597,12 +1606,8 @@ class Streetscape:
                 ind_left_os_std = math.sqrt((sum_square_error_left_os) / (n - 1))
                 ind_right_os_std = math.sqrt((sum_square_error_right_os) / (n - 1))
 
-            sum_abs_error_left_os_med = np.sum(
-                [abs(os - ind_left_os_med) for os in left_os]
-            )
-            sum_abs_error_right_os_med = np.sum(
-                [abs(os - ind_right_os_med) for os in right_os]
-            )
+            sum_abs_error_left_os_med = np.abs(left_os - ind_left_os_med).sum()
+            sum_abs_error_right_os_med = np.abs(right_os - ind_right_os_med).sum()
             ind_left_os_mad_med = sum_abs_error_left_os_med / n
             ind_right_os_mad_med = sum_abs_error_right_os_med / n
             ind_os_mad_med = (
@@ -1612,13 +1617,13 @@ class Streetscape:
             # ------------------------
             # SETBACK
             # ------------------------
-            rel_left_sb = [x for x in left_sb if not math.isnan(x)]
-            rel_right_sb = [x for x in right_sb if not math.isnan(x)]
+            rel_left_sb = left_sb[~np.isnan(left_sb)]
+            rel_right_sb = right_sb[~np.isnan(right_sb)]
             n_l = len(rel_left_sb)
             n_r = len(rel_right_sb)
             n_l_plus_r = n_l + n_r
-            sum_left_sb = np.sum(rel_left_sb)
-            sum_right_sb = np.sum(rel_right_sb)
+            sum_left_sb = rel_left_sb.sum()
+            sum_right_sb = rel_right_sb.sum()
 
             # SETBACK default values
             ind_left_sb = sum_left_sb / n_l if n_l > 0 else self.sightline_length
@@ -1629,12 +1634,8 @@ class Streetscape:
                 else self.sightline_length
             )
 
-            sum_square_error_left_sb = np.sum(
-                [(x - ind_left_sb) ** 2 for x in rel_left_sb]
-            )
-            sum_square_error_right_sb = np.sum(
-                [(x - ind_right_sb) ** 2 for x in rel_right_sb]
-            )
+            sum_square_error_left_sb = np.square(rel_left_sb - ind_left_sb).sum()
+            sum_square_error_right_sb = np.square(rel_right_sb - ind_right_sb).sum()
 
             ind_left_sb_std = (
                 math.sqrt(sum_square_error_left_sb / (n_l - 1)) if n_l > 1 else 0
@@ -1659,16 +1660,14 @@ class Streetscape:
                 np.median(rel_right_sb) if n_r > 0 else self.sightline_length
             )
             ind_sb_med = (
-                np.median(np.concatenate([rel_left_sb, rel_right_sb]))
+                np.median(np.concatenate((rel_left_sb, rel_right_sb)))
                 if n_l_plus_r > 0
                 else self.sightline_length
             )
 
             # mad
-            sum_abs_error_left_sb = np.sum([abs(x - ind_left_sb) for x in rel_left_sb])
-            sum_abs_error_right_sb = np.sum(
-                [abs(x - ind_right_sb) for x in rel_right_sb]
-            )
+            sum_abs_error_left_sb = np.abs(rel_left_sb - ind_left_sb).sum()
+            sum_abs_error_right_sb = np.abs(rel_right_sb - ind_right_sb).sum()
             ind_left_sb_mad = sum_abs_error_left_sb / n_l if n_l > 0 else 0
             ind_right_sb_mad = sum_abs_error_right_sb / n_r if n_r > 0 else 0
             ind_sb_mad = (
@@ -1678,12 +1677,8 @@ class Streetscape:
             )
 
             # mad_med
-            sum_abs_error_left_sb_med = np.sum(
-                [abs(x - ind_left_sb_med) for x in rel_left_sb]
-            )
-            sum_abs_error_right_sb_med = np.sum(
-                [abs(x - ind_right_sb_med) for x in rel_right_sb]
-            )
+            sum_abs_error_left_sb_med = np.abs(rel_left_sb - ind_left_sb_med).sum()
+            sum_abs_error_right_sb_med = np.abs(rel_right_sb - ind_right_sb_med).sum()
             ind_left_sb_mad_med = sum_abs_error_left_sb_med / n_l if n_l > 0 else 0
             ind_right_sb_mad_med = sum_abs_error_right_sb_med / n_r if n_r > 0 else 0
             ind_sb_mad_med = (
@@ -1695,22 +1690,18 @@ class Streetscape:
             # ------------------------
             # HEIGHT
             # ------------------------
-            rel_left_h = [x for x in left_h if not math.isnan(x)]
-            rel_right_h = [x for x in right_h if not math.isnan(x)]
-            sum_left_h = np.sum(rel_left_h)
-            sum_right_h = np.sum(rel_right_h)
+            rel_left_h = left_h[~np.isnan(left_h)]
+            rel_right_h = right_h[~np.isnan(right_h)]
+            sum_left_h = rel_left_h.sum()
+            sum_right_h = rel_right_h.sum()
 
             # HEIGHT AVERAGE default values
             ind_left_h = sum_left_h / n_l if n_l > 0 else 0
             ind_right_h = sum_right_h / n_r if n_r > 0 else 0
             ind_h = (sum_left_h + sum_right_h) / (n_l_plus_r) if n_l_plus_r > 0 else 0
 
-            sum_square_error_left_h = np.sum(
-                [(x - ind_left_h) ** 2 for x in rel_left_h]
-            )
-            sum_square_error_right_h = np.sum(
-                [(x - ind_right_h) ** 2 for x in rel_right_h]
-            )
+            sum_square_error_left_h = np.square(rel_left_h - ind_left_h).sum()
+            sum_square_error_right_h = np.square(rel_right_h - ind_right_h).sum()
 
             ind_left_h_std = (
                 math.sqrt(sum_square_error_left_h / (n_l - 1)) if n_l > 1 else 0
@@ -1730,10 +1721,10 @@ class Streetscape:
             # ------------------------
             # CRosS_SECTION_PROPORTIOn (cross sectionnal ratio)
             # ------------------------
-            rel_left_hw = [x for x in left_hw if not math.isnan(x)]
-            rel_right_hw = [x for x in right_hw if not math.isnan(x)]
-            sum_left_hw = np.sum(rel_left_hw)
-            sum_right_hw = np.sum(rel_right_hw)
+            rel_left_hw = left_hw[~np.isnan(left_hw)]
+            rel_right_hw = right_hw[~np.isnan(right_hw)]
+            sum_left_hw = rel_left_hw.sum()
+            sum_right_hw = rel_right_hw.sum()
 
             ind_left_hw = sum_left_hw / n_l if n_l > 0 else 0
             ind_right_hw = sum_right_hw / n_r if n_r > 0 else 0
@@ -1741,12 +1732,8 @@ class Streetscape:
                 (sum_left_hw + sum_right_hw) / (n_l_plus_r) if n_l_plus_r > 0 else 0
             )
 
-            sum_square_error_left_hw = np.sum(
-                [(x - ind_left_hw) ** 2 for x in rel_left_hw]
-            )
-            sum_square_error_right_hw = np.sum(
-                [(x - ind_right_hw) ** 2 for x in rel_right_hw]
-            )
+            sum_square_error_left_hw = np.square(rel_left_hw - ind_left_hw).sum()
+            sum_square_error_right_hw = np.square(rel_right_hw - ind_right_hw).sum()
 
             ind_left_hw_std = (
                 math.sqrt(sum_square_error_left_hw / (n_l - 1)) if n_l > 1 else 0
@@ -1766,48 +1753,34 @@ class Streetscape:
             # --------------------------------
             # CRosS_SECTIONNAL OPEn VIEW ANGLE
             # --------------------------------
-            left_angles = [
-                np.rad2deg(np.arctan(hw)) if not math.isnan(hw) else 0 for hw in left_hw
-            ]
-            right_angles = [
-                np.rad2deg(np.arctan(hw)) if not math.isnan(hw) else 0
-                for hw in right_hw
-            ]
-
-            angles = [
-                180 - gamma_l - gamma_r
-                for gamma_l, gamma_r in zip(left_angles, right_angles, strict=False)
-            ]
-            ind_csosva = sum(angles) / n
+            left_angles = np.nan_to_num(np.rad2deg(np.arctan(left_hw)), nan=0)
+            right_angles = np.nan_to_num(np.rad2deg(np.arctan(right_hw)), nan=0)
+            ind_csosva = (180 - left_angles - right_angles).sum() / n
 
             # ------------------------
             # TANGENTE Ratio (front+back/os if setback exists)
             # ------------------------
-            all_tan = []
-            all_tan_ratio = []
-            for f, b, lf, r in zip(front_sb, back_sb, left_os, right_os, strict=False):
-                tan_value = f + b
-                all_tan.append(tan_value)
-                if not math.isnan(lf) and not math.isnan(r):
-                    all_tan_ratio.append(tan_value / (lf + r))
+            all_tan = front_sb + back_sb
+            tan_ratio_mask = ~np.isnan(left_os) & ~np.isnan(right_os)
+            all_tan_ratio = all_tan[tan_ratio_mask] / (
+                left_os[tan_ratio_mask] + right_os[tan_ratio_mask]
+            )
 
             # Tan
-            ind_tan = np.sum(all_tan) / n
+            ind_tan = all_tan.sum() / n
             ind_tan_std = 0.0
             if n > 1:
-                ind_tan_std = math.sqrt(
-                    np.sum([(x - ind_tan) ** 2 for x in all_tan]) / (n - 1)
-                )
+                ind_tan_std = math.sqrt(np.square(all_tan - ind_tan).sum() / (n - 1))
 
             # Tan ratio
             ind_tan_ratio = 0.0
             ind_tan_ratio_std = 0.0
             n_tan_ratio = len(all_tan_ratio)
             if n_tan_ratio > 0:
-                ind_tan_ratio = np.sum(all_tan_ratio) / n_tan_ratio
+                ind_tan_ratio = all_tan_ratio.sum() / n_tan_ratio
                 if n_tan_ratio > 1:
                     ind_tan_ratio_std = math.sqrt(
-                        np.sum([(x - ind_tan_ratio) ** 2 for x in all_tan_ratio])
+                        np.square(all_tan_ratio - ind_tan_ratio).sum()
                         / (n_tan_ratio - 1)
                     )
 
@@ -2039,7 +2012,8 @@ class Streetscape:
             df = df.join(self.prevalences)
 
         if hasattr(self, "plots"):
-            self._aggregate_plots()
+            if self._aggregate_plot_data is None:
+                self._aggregate_plots()
             df = df.join(self._aggregate_plot_data)
 
         if hasattr(self, "slope"):
@@ -2159,12 +2133,8 @@ class Streetscape:
         ]
 
         point_data = point_data.explode(point_data.columns.tolist())
-        point_data["left_ids"] = point_data["left_ids"].apply(
-            lambda x: {c for c in x if not pd.isna(c)} if isinstance(x, list) else {x}
-        )
-        point_data["right_ids"] = point_data["right_ids"].apply(
-            lambda x: {c for c in x if not pd.isna(c)} if isinstance(x, list) else {x}
-        )
+        point_data["left_ids"] = point_data["left_ids"].apply(_ids_to_set)
+        point_data["right_ids"] = point_data["right_ids"].apply(_ids_to_set)
         point_data = point_data.rename(
             columns={"left_ids": "left_seq_sb_index", "right_ids": "right_seq_sb_index"}
         )
@@ -2193,39 +2163,26 @@ class Streetscape:
             # we occasionally have more sightlines per point, so we need to average
             # values
             for row in self._plot_indicators.itertuples():
-                with warnings.catch_warnings():
-                    warnings.filterwarnings(
-                        "ignore", "Mean of empty slice", RuntimeWarning
+                left_parcel_seq_sb.append(
+                    _nanmean_by_counts(row.left_parcel_seq_sb, row.left_parcel_sb_count)
+                )
+                left_parcel_seq_sb_depth.append(
+                    _nanmean_by_counts(
+                        row.left_parcel_seq_sb_depth, row.left_parcel_sb_count
                     )
-                    left_inds = np.cumsum(row.left_parcel_sb_count)[:-1]
-                    left_parcel_seq_sb.append(
-                        [
-                            np.nanmean(x)
-                            for x in np.split(row.left_parcel_seq_sb, left_inds)
-                        ]
+                )
+                right_parcel_seq_sb.append(
+                    _nanmean_by_counts(
+                        row.right_parcel_seq_sb, row.right_parcel_sb_count
                     )
-                    left_parcel_seq_sb_depth.append(
-                        [
-                            np.nanmean(x)
-                            for x in np.split(row.left_parcel_seq_sb_depth, left_inds)
-                        ]
+                )
+                right_parcel_seq_sb_depth.append(
+                    _nanmean_by_counts(
+                        row.right_parcel_seq_sb_depth, row.right_parcel_sb_count
                     )
-
-                    right_inds = np.cumsum(row.right_parcel_sb_count)[:-1]
-                    right_parcel_seq_sb.append(
-                        [
-                            np.nanmean(x)
-                            for x in np.split(row.right_parcel_seq_sb, right_inds)
-                        ]
-                    )
-                    right_parcel_seq_sb_depth.append(
-                        [
-                            np.nanmean(x)
-                            for x in np.split(row.right_parcel_seq_sb_depth, right_inds)
-                        ]
-                    )
-                    left_ids.append(row.left_parcel_ids)
-                    right_ids.append(row.right_parcel_ids)
+                )
+                left_ids.append(row.left_parcel_ids)
+                right_ids.append(row.right_parcel_ids)
 
             point_parcel_data = pd.DataFrame(
                 {
@@ -2257,18 +2214,10 @@ class Streetscape:
 
             point_data["left_plot_seq_sb_index"] = point_data[
                 "left_plot_seq_sb_index"
-            ].apply(
-                lambda x: (
-                    {c for c in x if not pd.isna(c)} if isinstance(x, list) else {x}
-                )
-            )
+            ].apply(_ids_to_set)
             point_data["right_plot_seq_sb_index"] = point_data[
                 "right_plot_seq_sb_index"
-            ].apply(
-                lambda x: (
-                    {c for c in x if not pd.isna(c)} if isinstance(x, list) else {x}
-                )
-            )
+            ].apply(_ids_to_set)
             inds.extend(
                 [
                     "plot_seq_sb",
@@ -2277,17 +2226,20 @@ class Streetscape:
             )
 
         for ind in inds:
+            left_values = point_data[f"left_{ind}"].to_numpy(dtype=float)
+            right_values = point_data[f"right_{ind}"].to_numpy(dtype=float)
             if "count" in ind:
-                sums = point_data[[f"left_{ind}", f"right_{ind}"]].sum(axis=1)
-                nan_mask = (
-                    point_data[[f"left_{ind}", f"right_{ind}"]].isna().all(axis=1)
-                )
-                sums[nan_mask] = np.nan
+                sums = np.nansum((left_values, right_values), axis=0)
+                sums[np.isnan(left_values) & np.isnan(right_values)] = np.nan
                 point_data[ind] = sums
             else:
-                point_data[ind] = point_data[[f"left_{ind}", f"right_{ind}"]].mean(
-                    axis=1
-                )
+                valid_count = (~np.isnan(left_values)).astype(int) + (
+                    ~np.isnan(right_values)
+                ).astype(int)
+                sums = np.nansum((left_values, right_values), axis=0)
+                values = np.full_like(sums, np.nan)
+                np.divide(sums, valid_count, out=values, where=valid_count != 0)
+                point_data[ind] = values
 
         return point_data.set_geometry(
             "sightline_points", crs=self.streets.crs
@@ -2351,3 +2303,34 @@ def lines_angle_from_coords(c1, c2):
             angle = ab + 0
 
     return math.degrees(angle)
+
+
+def _ids_to_set(ids):
+    if isinstance(ids, list):
+        return {i for i in ids if i is not None and i == i}
+    return {ids}
+
+
+def _nanmean_by_counts(values, counts):
+    counts = np.asarray(counts, dtype=int)
+    out = np.full(len(counts), np.nan, dtype=float)
+    if len(counts) == 0 or len(values) == 0:
+        return out.tolist()
+
+    values = np.asarray(values, dtype=float)
+    ends = np.cumsum(counts)
+    starts = ends - counts
+    valid_groups = counts > 0
+    if not valid_groups.any():
+        return out.tolist()
+
+    starts = starts[valid_groups]
+    values_no_nan = np.nan_to_num(values, nan=0)
+    valid_values = ~np.isnan(values)
+
+    sums = np.add.reduceat(values_no_nan, starts)
+    valid_counts = np.add.reduceat(valid_values.astype(int), starts)
+    group_means = np.full(len(starts), np.nan, dtype=float)
+    np.divide(sums, valid_counts, out=group_means, where=valid_counts != 0)
+    out[valid_groups] = group_means
+    return out.tolist()
