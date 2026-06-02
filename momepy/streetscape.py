@@ -511,8 +511,14 @@ class Streetscape:
 
         nearest_sightline_ix = hit_sightline_ix[nearest_positions]
         nearest_building_ix = hit_building_ix[nearest_positions]
+        nearest_distances = hit_distances[nearest_positions]
+        closer_than_default = nearest_distances < match_distances[nearest_sightline_ix]
 
-        match_distances[nearest_sightline_ix] = hit_distances[nearest_positions]
+        nearest_sightline_ix = nearest_sightline_ix[closer_than_default]
+        nearest_building_ix = nearest_building_ix[closer_than_default]
+        nearest_distances = nearest_distances[closer_than_default]
+
+        match_distances[nearest_sightline_ix] = nearest_distances
         match_building_ids[nearest_sightline_ix] = self._building_ids[
             nearest_building_ix
         ]
