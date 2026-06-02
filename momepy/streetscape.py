@@ -1223,67 +1223,6 @@ class Streetscape:
             "uid"
         )
 
-    def _compute_slope(self, road_row):
-        start = road_row.sl_start  # Point z
-        end = road_row.sl_end  # Point z
-        slp = road_row.sl_points  # Multipoint z
-
-        if slp is None:
-            # Case when there is no sight line point (e.g. when the road is too short)
-            # just computes slope between start and end
-            if start.z == self.NODATA_RASTER or end.z == self.NODATA_RASTER:
-                # Case when there is at least one invalid z coord
-                return 0, 0, 0, False
-            slope_percent = abs(start.z - end.z) / shapely.distance(start, end)
-            slope_degree = math.degrees(math.atan(slope_percent))
-
-            return slope_percent, slope_degree, 1, True
-
-        # From Multipoint z to Point z list
-        slp_list = list(slp.geoms)
-
-        points = []
-
-        points.append(start)
-        # From Point z list to all points list
-        for p in slp_list:
-            points.append(p)
-        points.append(end)
-
-        # number of points
-        nb_points = len([start]) + len([end]) + len(slp_list)
-
-        # temporary variables to store inter slope values
-        sum_slope_percent = 0
-        sum_slope_radian = 0
-        sum_nb_points = 0
-
-        # if there is one or more sight line points
-        for i in range(1, nb_points - 1):
-            a = points[i - 1]
-            b = points[i + 1]
-
-            if a.z == self.NODATA_RASTER or b.z == self.NODATA_RASTER:
-                # Case when there is no valid z coord in slpoint
-                continue
-
-            sum_nb_points += 1
-            inter_slope_percent = abs(a.z - b.z) / shapely.distance(a, b)
-
-            sum_slope_percent += inter_slope_percent
-            sum_slope_radian += math.atan(inter_slope_percent)
-
-        if sum_nb_points == 0:
-            # Case when no slpoint has a valid z coord
-            # Unable to compute slope
-            return 0, 0, 0, False
-
-        # compute mean of inter slopes
-        slope_percent = sum_slope_percent / sum_nb_points
-        slope_degree = math.degrees(sum_slope_radian / sum_nb_points)
-
-        return slope_degree, slope_percent, sum_nb_points, True
-
     def compute_slope(self, raster) -> None:
         """Compute slope-based characters
 
@@ -2198,33 +2137,6 @@ def rotate(x, y, xo, yo, theta):  # rotate x,y around xo,yo by theta (rad)
 rad_90 = np.deg2rad(90)
 
 
-def extend_line_end(line, distance):
-    coords = line.coords
-    nbp = len(coords)
-
-    len_ext = distance + 1  # eps
-
-    # extend line start point
-    ax, ay = coords[0]
-    bx, by = coords[1]
-
-    # extend line end point
-    ax, ay = coords[nbp - 1]
-    bx, by = coords[nbp - 2]
-    len_ab = math.sqrt((ax - bx) ** 2 + (ay - by) ** 2)
-    xe = ax + (ax - bx) / len_ab * len_ext
-    ye = ay + (ay - by) / len_ab * len_ext
-    return LineString(coords[0 : nbp - 1] + [[xe, ye]])
-
-
-def lines_angle(l1, l2):
-    v1_a = l1.coords[0]
-    v1_b = l1.coords[-1]
-    v2_a = l2.coords[0]
-    v2_b = l2.coords[-1]
-    return lines_angle_from_coords((v1_a, v1_b), (v2_a, v2_b))
-
-
 def lines_angle_from_coords(c1, c2):
     v1_a, v1_b = c1
     v2_a, v2_b = c2
@@ -2318,7 +2230,7 @@ def _compute_slope_from_arrays(
             return 0, 0, 0, False
         slope_percent = abs(start_z - end_z) / np.linalg.norm(start_coord - end_coord)
         slope_degree = math.degrees(math.atan(slope_percent))
-        return slope_percent, slope_degree, 1, True
+        return slope_degree, slope_percent, 1, True
 
     coords = np.vstack((start_coord, sightline_coords, end_coord))
     z = np.concatenate(([start_z], sightline_z, [end_z]))

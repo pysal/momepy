@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 
 import momepy
+from momepy.streetscape import _compute_slope_from_arrays
 
 
 class TestStreetscape:
@@ -53,6 +54,20 @@ class TestStreetscape:
 
         assert street_df.shape == (35, 81)
         assert point_df.shape == (1277, 26)
+
+    def test_slope_without_sightline_points(self):
+        slope = _compute_slope_from_arrays(
+            np.array([0, 0]),
+            np.array([3, 4]),
+            10,
+            15,
+            np.empty((0, 2)),
+            np.empty(0),
+            -9999,
+        )
+
+        np.testing.assert_allclose(slope[:2], [45, 1])
+        assert slope[2:] == (1, True)
 
     def test_all_values(self):
         rioxarray = pytest.importorskip("rioxarray")
