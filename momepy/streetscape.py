@@ -500,7 +500,104 @@ class Streetscape:
             results_sight_points_distances,
         )
 
-    def _compute_sigthlines_indicators(self, street_row, optimize_on=True):
+    def _compute_building_sightline_matches(self, sightlines):
+        """Compute nearest building hits and coverage for a street's sightlines."""
+        lines = sightlines.geometry.array
+        n_sightlines = len(lines)
+
+        match_distances = np.asarray(
+            [
+                self.sightline_length_PER_SIGHT_TYPE[sight_type]
+                for sight_type in sightlines.sight_type.to_numpy()
+            ],
+            dtype=float,
+        )
+        match_building_ids = np.empty(n_sightlines, dtype=object)
+        match_building_ids[:] = None
+        match_building_heights = np.full(n_sightlines, np.nan, dtype=float)
+        match_building_categories = np.empty(n_sightlines, dtype=object)
+        match_building_categories[:] = None
+        coverage_lengths = np.zeros(n_sightlines, dtype=float)
+        endpoints = shapely.get_point(lines, -1)
+
+        sightline_ix, building_ix = self.rtree_buildings.query(
+            lines, predicate="intersects"
+        )
+        if len(sightline_ix) == 0:
+            return (
+                match_distances,
+                match_building_ids,
+                match_building_heights,
+                match_building_categories,
+                coverage_lengths,
+                endpoints,
+            )
+
+        line_hits = lines.take(sightline_ix)
+        building_hits = self.buildings.geometry.array.take(building_ix)
+        coverage = shapely.length(shapely.intersection(line_hits, building_hits))
+        coverage_lengths = (
+            pd.Series(coverage)
+            .groupby(sightline_ix, sort=False)
+            .sum()
+            .reindex(np.arange(n_sightlines), fill_value=0)
+            .to_numpy()
+        )
+
+        starts = shapely.get_point(line_hits, 0)
+        exteriors = shapely.get_exterior_ring(building_hits)
+        exterior_intersections = shapely.intersection(line_hits, exteriors)
+        hit_mask = ~shapely.is_empty(exterior_intersections)
+        if not hit_mask.any():
+            return (
+                match_distances,
+                match_building_ids,
+                match_building_heights,
+                match_building_categories,
+                coverage_lengths,
+                endpoints,
+            )
+
+        hit_sightline_ix = sightline_ix[hit_mask]
+        hit_building_ix = building_ix[hit_mask]
+        hit_distances = shapely.distance(
+            starts[hit_mask], exterior_intersections[hit_mask]
+        )
+
+        # Stable sorting preserves the first candidate chosen by the original loop
+        # whenever multiple buildings have the same distance from a sightline origin.
+        order = np.argsort(hit_distances, kind="stable")
+        sorted_sightline_ix = hit_sightline_ix[order]
+        _, first_positions = np.unique(sorted_sightline_ix, return_index=True)
+        nearest_positions = order[first_positions]
+
+        nearest_sightline_ix = hit_sightline_ix[nearest_positions]
+        nearest_building_ix = hit_building_ix[nearest_positions]
+
+        match_distances[nearest_sightline_ix] = hit_distances[nearest_positions]
+        match_building_ids[nearest_sightline_ix] = self.buildings[
+            "street_index"
+        ].to_numpy()[nearest_building_ix]
+
+        if self.height_col:
+            match_building_heights[nearest_sightline_ix] = self.buildings[
+                self.height_col
+            ].to_numpy()[nearest_building_ix]
+        if self.category_col:
+            match_building_categories[nearest_sightline_ix] = self.buildings[
+                self.category_col
+            ].to_numpy()[nearest_building_ix]
+
+        return (
+            match_distances,
+            match_building_ids,
+            match_building_heights,
+            match_building_categories,
+            coverage_lengths,
+            endpoints,
+        )
+
+    def _compute_sigthlines_indicators(self, street_row, _optimize_on=True):
         street_uid = street_row.street_index
         street_geom = street_row.geometry
 
@@ -576,12 +673,48 @@ class Streetscape:
                 right_ids_all,
             ], None
 
-        # ------- SIGHT LINES
-        # Extract building in SIGHTLINES buffer (e.g: 50m)
+        if len(sightlines_points) == 0:
+            return [
+                current_street_uid,
+                current_street_sightlines_points,
+                current_street_left_os_count,
+                current_street_left_os,
+                current_street_left_sb_count,
+                current_street_left_sb,
+                current_street_left_h,
+                current_street_left_hw,
+                current_street_left_bc,
+                current_street_left_seq_sb_ids,
+                current_street_left_seq_sb_categories,
+                current_street_right_os_count,
+                current_street_right_os,
+                current_street_right_sb_count,
+                current_street_right_sb,
+                current_street_right_h,
+                current_street_right_hw,
+                current_street_right_bc,
+                current_street_right_seq_sb_ids,
+                current_street_right_seq_sb_categories,
+                current_street_front_sb,
+                current_street_back_sb,
+                left_seq_sightlines_end_points,
+                right_seq_sightlines_end_points,
+                left_ids_all,
+                right_ids_all,
+            ], gdf_sightlines
+
+        (
+            match_distances,
+            match_building_ids,
+            match_building_heights,
+            match_building_categories,
+            coverage_lengths,
+            endpoints,
+        ) = self._compute_building_sightline_matches(gdf_sightlines)
 
         # iterate throught sightlines groups.
         # Eeach sigh points could have many sub sighpoint in case of snail effect)
-        for _, group in gdf_sightlines.groupby("point_id"):
+        for _point_id, group in gdf_sightlines.groupby("point_id", sort=False):
             front_sl_tan_sb = self.tangent_length
             back_sl_tan_sb = self.tangent_length
             left_sl_count = 0
@@ -603,73 +736,15 @@ class Streetscape:
 
             # iterate throught each sightline links to the sigh point:
             # LEFT(1-*),RIGHT(1-*),FRONT(1), BACK(1)
-            for row_s in group.itertuples(index=False):
-                sightline_geom = row_s.geometry
-                sightline_side = row_s.sight_type
-                sightline_length = self.sightline_length_PER_SIGHT_TYPE[sightline_side]
-                # extract possible candidates
-                if optimize_on and sightline_side >= self.SIGHTLINE_FRONT:
-                    # = OPTIM TEST
-                    # cut tan line in 3 block (~100m)
-                    length_3 = sightline_geom.length / 3.0
-                    a = sightline_geom.coords[0]
-                    b = sightline_geom.coords[-1]
-                    end_points = [
-                        sightline_geom.interpolate(length_3),
-                        sightline_geom.interpolate(length_3 * 2),
-                        b,
-                    ]
-
-                    gdf_sightline_buildings = None
-                    start_point = a
-                    for end_point in end_points:
-                        sub_line = LineString([start_point, end_point])
-                        gdf_sightline_buildings = self.buildings.iloc[
-                            self.rtree_buildings.query(sub_line, predicate="intersects")
-                        ]
-                        if len(gdf_sightline_buildings) > 0:
-                            break
-                        start_point = end_point
-                else:
-                    gdf_sightline_buildings = self.buildings.iloc[
-                        self.rtree_buildings.query(
-                            sightline_geom, predicate="intersects"
-                        )
-                    ]
-
-                s_pt1 = shapely.get_point(sightline_geom, 0)
-                endpoint = shapely.get_point(sightline_geom, -1)
-
-                # agregate
-                match_sl_distance = (
-                    sightline_length  # set max distance if no polygon intersect
-                )
-                match_sl_building_id = None
-                match_sl_building_category = None
-                match_sl_building_height = 0
-
-                sl_cr_total = 0
-                for _, res in gdf_sightline_buildings.iterrows():
-                    # building geom
-                    geom = res.geometry
-                    isect = sightline_geom.intersection(geom.exterior)
-                    if not isect.is_empty:
-                        dist = s_pt1.distance(isect)
-                        if dist < match_sl_distance:
-                            match_sl_distance = dist
-                            match_sl_building_id = res.street_index
-                            match_sl_building_height = (
-                                res[self.height_col] if self.height_col else np.nan
-                            )
-                            match_sl_building_category = (
-                                res[self.category_col] if self.category_col else None
-                            )
-
-                        # coverage ratio between sight line and candidate building
-                        # (geom: building geom)
-                        _coverage_isec = sightline_geom.intersection(geom)
-                        # display(type(coverage_isec))
-                        sl_cr_total += _coverage_isec.length
+            for sightline_pos, sightline_side in zip(
+                group.index.to_numpy(), group.sight_type.to_numpy(), strict=False
+            ):
+                match_sl_distance = match_distances[sightline_pos]
+                match_sl_building_id = match_building_ids[sightline_pos]
+                match_sl_building_height = match_building_heights[sightline_pos]
+                match_sl_building_category = match_building_categories[sightline_pos]
+                sl_cr_total = coverage_lengths[sightline_pos]
+                endpoint = endpoints[sightline_pos]
 
                 if sightline_side == self.SIGHTLINE_LEFT:
                     left_sl_count += 1
