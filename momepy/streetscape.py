@@ -195,6 +195,14 @@ class Streetscape:
         buildings = buildings.copy()
         buildings["street_index"] = np.arange(len(buildings))
         self.buildings = buildings
+        self._building_geometries = self.buildings.geometry.array
+        self._building_ids = self.buildings["street_index"].to_numpy()
+        self._building_heights = (
+            self.buildings[height_col].to_numpy() if height_col else None
+        )
+        self._building_categories = (
+            self.buildings[category_col].to_numpy() if category_col else None
+        )
 
         self.rtree_buildings = self.buildings.sindex
 
@@ -221,146 +229,108 @@ class Streetscape:
                 [],
             )
 
-        distances = [self.intersection_offset]
         nb_inter_nodes = int(math.floor(remaining_length / self.sightline_spacing))
-        offset = remaining_length / nb_inter_nodes
-        distance = self.intersection_offset
-
-        for _ in range(0, nb_inter_nodes):
-            distance = distance + offset
-            distances.append(distance)
-
-        results_sight_points = []
-        results_sight_points_distances = []
-        results_sightlines = []
-
-        previous_sigh_line_left = None
-        previous_sigh_line_right = None
+        distances = np.linspace(
+            self.intersection_offset,
+            line_length - self.intersection_offset,
+            nb_inter_nodes + 1,
+        )
 
         # semi_ortho_segment_size = self.sightline_spacing/2
         semi_ortho_segment_size = self.intersection_offset / 2
 
-        sightline_index = 0
-
-        last_pure_sightline_left_position_in_array = -1
-
         field_geometry = 0
         field_uid = 1
+
+        seg_st = shapely.line_interpolate_point(
+            line, distances - semi_ortho_segment_size
+        )
+        seg_mid = shapely.line_interpolate_point(line, distances)
+        seg_end = shapely.line_interpolate_point(
+            line, distances + semi_ortho_segment_size
+        )
+
+        mid_coords = shapely.get_coordinates(seg_mid)
+        direction = shapely.get_coordinates(seg_end) - shapely.get_coordinates(seg_st)
+        direction = direction / np.linalg.norm(direction, axis=1)[:, np.newaxis]
+
+        vec_anti = np.column_stack((-direction[:, 1], direction[:, 0]))
+        vec_clock = np.column_stack((direction[:, 1], -direction[:, 0]))
+        prof_st = mid_coords + vec_anti * self.sightline_length
+        prof_end = mid_coords + vec_clock * self.sightline_length
+
+        tangent_length = self.sightline_length + self.tangent_length + 1
+        tan_back = mid_coords + direction * tangent_length
+        tan_front = mid_coords - direction * tangent_length
+
+        n_points = len(distances)
+        point_ids = np.repeat(np.arange(n_points), 4)
+        sight_types = np.tile(
+            [
+                self.SIGHTLINE_LEFT,
+                self.SIGHTLINE_RIGHT,
+                self.SIGHTLINE_BACK,
+                self.SIGHTLINE_FRONT,
+            ],
+            n_points,
+        )
+
+        start_coords = np.repeat(mid_coords, 4, axis=0)
+        end_coords = np.empty_like(start_coords)
+        end_coords[0::4] = prof_st
+        end_coords[1::4] = prof_end
+        end_coords[2::4] = tan_back
+        end_coords[3::4] = tan_front
+
+        results_sightlines = [
+            [geom, point_id, sight_type]
+            for geom, point_id, sight_type in zip(
+                shapely.linestrings(np.stack((start_coords, end_coords), axis=1)),
+                point_ids,
+                sight_types,
+                strict=False,
+            )
+        ]
 
         # SECOND PART : TANGENT SIGHTLINES #
 
         # Start iterating along the line
-        for distance in distances:
-            # Get the start, mid and end points for this segment
-
-            seg_st = line.interpolate(distance - semi_ortho_segment_size)
-            seg_mid = line.interpolate(distance)
-            seg_end = line.interpolate(distance + semi_ortho_segment_size)
-
-            # Get a displacement vector for this segment
-            vec = np.array(
-                [
-                    [
-                        seg_end.x - seg_st.x,
-                    ],
-                    [
-                        seg_end.y - seg_st.y,
-                    ],
-                ]
-            )
-
-            # Rotate the vector 90 deg clockwise and 90 deg counter clockwise
-            rot_anti = np.array([[0, -1], [1, 0]])
-            rot_clock = np.array([[0, 1], [-1, 0]])
-            vec_anti = np.dot(rot_anti, vec)
-            vec_clock = np.dot(rot_clock, vec)
-
-            # Normalise the perpendicular vectors
-            len_anti = ((vec_anti**2).sum()) ** 0.5
-            vec_anti = vec_anti / len_anti
-            len_clock = ((vec_clock**2).sum()) ** 0.5
-            vec_clock = vec_clock / len_clock
-
-            # Scale them up to the profile length
-            vec_anti = vec_anti * self.sightline_length
-            vec_clock = vec_clock * self.sightline_length
-
-            # Calculate displacements from midpoint
-            prof_st = (
-                seg_mid.x + float(vec_anti[0][0]),
-                seg_mid.y + float(vec_anti[1][0]),
-            )
-            prof_end = (
-                seg_mid.x + float(vec_clock[0][0]),
-                seg_mid.y + float(vec_clock[1][0]),
-            )
-
-            results_sight_points.append(seg_mid)
-            results_sight_points_distances.append(distance)
-
-            sightline_left = LineString([seg_mid, prof_st])
-            sightline_right = LineString([seg_mid, prof_end])
-
-            # append LEFT sight line
-            rec = [
-                sightline_left,  # field_geometry
-                sightline_index,  # field_uid
-                self.SIGHTLINE_LEFT,  # FIELD_type
+        for sightline_index in range(n_points):
+            sightline_left = results_sightlines[sightline_index * 4][field_geometry]
+            sightline_right = results_sightlines[sightline_index * 4 + 1][
+                field_geometry
             ]
-            results_sightlines.append(rec)
-
-            # back up for dead end population
-            last_pure_sightline_left_position_in_array = len(results_sightlines) - 1
-
-            # append RIGHT sight line
-            rec = [
-                sightline_right,  # field_geometry
-                sightline_index,  # field_uid
-                self.SIGHTLINE_RIGHT,  # FIELD_type
-            ]
-            results_sightlines.append(rec)
-
-            line_tan_back = LineString(
-                [
-                    seg_mid,
-                    rotate(prof_end[0], prof_end[1], seg_mid.x, seg_mid.y, rad_90),
-                ]
-            )
-            line_tan_front = LineString(
-                [seg_mid, rotate(prof_st[0], prof_st[1], seg_mid.x, seg_mid.y, rad_90)]
-            )
-
-            # extends tanline to reach parametrized width
-            line_tan_back = extend_line_end(line_tan_back, self.tangent_length)
-            line_tan_front = extend_line_end(line_tan_front, self.tangent_length)
-
-            # append tangent sigline front view
-            rec = [
-                line_tan_back,  # field_geometry
-                sightline_index,  # FIELD_type
-                self.SIGHTLINE_BACK,
-            ]
-            results_sightlines.append(rec)
-
-            # append tangent sigline front view
-            rec = [
-                line_tan_front,  # field_geometry
-                sightline_index,  # field_uid
-                self.SIGHTLINE_FRONT,
-            ]
-            results_sightlines.append(rec)
 
             # THIRD PART: SIGHTLINE ENRICHMENT #
 
             # Populate lost space between consecutive sight lines with high deviation
             # (>angle_tolerance)
-            if previous_sigh_line_left is not None:
-                for this_line, prev_line, side in [
-                    (sightline_left, previous_sigh_line_left, self.SIGHTLINE_LEFT),
-                    (sightline_right, previous_sigh_line_right, self.SIGHTLINE_RIGHT),
+            if sightline_index > 0:
+                for this_line, prev_line, side, this_coords, prev_coords in [
+                    (
+                        sightline_left,
+                        results_sightlines[(sightline_index - 1) * 4][field_geometry],
+                        self.SIGHTLINE_LEFT,
+                        (mid_coords[sightline_index], prof_st[sightline_index]),
+                        (mid_coords[sightline_index - 1], prof_st[sightline_index - 1]),
+                    ),
+                    (
+                        sightline_right,
+                        results_sightlines[(sightline_index - 1) * 4 + 1][
+                            field_geometry
+                        ],
+                        self.SIGHTLINE_RIGHT,
+                        (mid_coords[sightline_index], prof_end[sightline_index]),
+                        (
+                            mid_coords[sightline_index - 1],
+                            prof_end[sightline_index - 1],
+                        ),
+                    ),
                 ]:
                     # angle between consecutive sight line
-                    deviation = round(lines_angle(prev_line, this_line), 1)
+                    deviation = round(
+                        lines_angle_from_coords(prev_coords, this_coords), 1
+                    )
                     # DEBUG_VALUES.append([this_line.coords[1],deviation])
                     # condition 1: large deviation
                     if abs(deviation) <= self.angle_tolerance:
@@ -382,12 +352,10 @@ class Streetscape:
                     angle = 0
                     for _ in range(0, nb_new_sightlines_this):
                         angle -= theta_rad
-                        x0 = this_line.coords[0][0]
-                        y0 = this_line.coords[0][1]
-                        x = this_line.coords[1][0]
-                        y = this_line.coords[1][1]
+                        x0, y0 = this_coords[0]
+                        x, y = this_coords[1]
                         new_line = LineString(
-                            [this_line.coords[0], rotate(x, y, x0, y0, angle)]
+                            [this_coords[0], rotate(x, y, x0, y0, angle)]
                         )
                         rec = [
                             new_line,  # field_geometry
@@ -400,12 +368,10 @@ class Streetscape:
                     angle = 0
                     for _ in range(0, nb_new_sightlines_prev):
                         angle += theta_rad
-                        x0 = prev_line.coords[0][0]
-                        y0 = prev_line.coords[0][1]
-                        x = prev_line.coords[1][0]
-                        y = prev_line.coords[1][1]
+                        x0, y0 = prev_coords[0]
+                        x, y = prev_coords[1]
                         new_line = LineString(
-                            [prev_line.coords[0], rotate(x, y, x0, y0, angle)]
+                            [prev_coords[0], rotate(x, y, x0, y0, angle)]
                         )
                         rec = [
                             new_line,  # field_geometry
@@ -413,14 +379,6 @@ class Streetscape:
                             side,  # FIELD_type
                         ]
                         results_sightlines.append(rec)
-
-            # ==
-
-            # iterate
-            previous_sigh_line_left = sightline_left
-            previous_sigh_line_right = sightline_right
-
-            sightline_index += 1
 
         # ==
         # SPECIFIC ENRICHMENT FOR SIGHTPOINTS corresponding to DEAD ENDs
@@ -433,8 +391,8 @@ class Streetscape:
                     dead_end_start,
                 ),
                 (
-                    results_sightlines[last_pure_sightline_left_position_in_array + 1],
-                    results_sightlines[last_pure_sightline_left_position_in_array],
+                    results_sightlines[(n_points - 1) * 4 + 1],
+                    results_sightlines[(n_points - 1) * 4],
                     dead_end_end,
                 ),
             ]:
@@ -496,8 +454,8 @@ class Streetscape:
             gpd.GeoDataFrame(
                 results_sightlines, columns=["geometry", "point_id", "sight_type"]
             ),
-            results_sight_points,
-            results_sight_points_distances,
+            list(seg_mid),
+            distances.tolist(),
         )
 
     def _compute_building_sightline_matches(self, sightlines):
@@ -534,14 +492,10 @@ class Streetscape:
             )
 
         line_hits = lines.take(sightline_ix)
-        building_hits = self.buildings.geometry.array.take(building_ix)
+        building_hits = self._building_geometries.take(building_ix)
         coverage = shapely.length(shapely.intersection(line_hits, building_hits))
-        coverage_lengths = (
-            pd.Series(coverage)
-            .groupby(sightline_ix, sort=False)
-            .sum()
-            .reindex(np.arange(n_sightlines), fill_value=0)
-            .to_numpy()
+        coverage_lengths = np.bincount(
+            sightline_ix, weights=coverage, minlength=n_sightlines
         )
 
         starts = shapely.get_point(line_hits, 0)
@@ -575,18 +529,18 @@ class Streetscape:
         nearest_building_ix = hit_building_ix[nearest_positions]
 
         match_distances[nearest_sightline_ix] = hit_distances[nearest_positions]
-        match_building_ids[nearest_sightline_ix] = self.buildings[
-            "street_index"
-        ].to_numpy()[nearest_building_ix]
+        match_building_ids[nearest_sightline_ix] = self._building_ids[
+            nearest_building_ix
+        ]
 
         if self.height_col:
-            match_building_heights[nearest_sightline_ix] = self.buildings[
-                self.height_col
-            ].to_numpy()[nearest_building_ix]
+            match_building_heights[nearest_sightline_ix] = self._building_heights[
+                nearest_building_ix
+            ]
         if self.category_col:
-            match_building_categories[nearest_sightline_ix] = self.buildings[
-                self.category_col
-            ].to_numpy()[nearest_building_ix]
+            match_building_categories[nearest_sightline_ix] = self._building_categories[
+                nearest_building_ix
+            ]
 
         return (
             match_distances,
@@ -712,9 +666,16 @@ class Streetscape:
             endpoints,
         ) = self._compute_building_sightline_matches(gdf_sightlines)
 
+        point_ids = gdf_sightlines["point_id"].to_numpy()
+        sight_types = gdf_sightlines["sight_type"].to_numpy()
+        sort_order = np.argsort(point_ids, kind="stable")
+        sorted_point_ids = point_ids[sort_order]
+        _, group_starts = np.unique(sorted_point_ids, return_index=True)
+        group_ends = np.r_[group_starts[1:], len(sort_order)]
+
         # iterate throught sightlines groups.
         # Eeach sigh points could have many sub sighpoint in case of snail effect)
-        for _point_id, group in gdf_sightlines.groupby("point_id", sort=False):
+        for group_start, group_end in zip(group_starts, group_ends, strict=False):
             front_sl_tan_sb = self.tangent_length
             back_sl_tan_sb = self.tangent_length
             left_sl_count = 0
@@ -736,9 +697,8 @@ class Streetscape:
 
             # iterate throught each sightline links to the sigh point:
             # LEFT(1-*),RIGHT(1-*),FRONT(1), BACK(1)
-            for sightline_pos, sightline_side in zip(
-                group.index.to_numpy(), group.sight_type.to_numpy(), strict=False
-            ):
+            for sightline_pos in sort_order[group_start:group_end]:
+                sightline_side = sight_types[sightline_pos]
                 match_sl_distance = match_distances[sightline_pos]
                 match_sl_building_id = match_building_ids[sightline_pos]
                 match_sl_building_height = match_building_heights[sightline_pos]
@@ -2367,6 +2327,12 @@ def lines_angle(l1, l2):
     v1_b = l1.coords[-1]
     v2_a = l2.coords[0]
     v2_b = l2.coords[-1]
+    return lines_angle_from_coords((v1_a, v1_b), (v2_a, v2_b))
+
+
+def lines_angle_from_coords(c1, c2):
+    v1_a, v1_b = c1
+    v2_a, v2_b = c2
     start_x = v1_b[0] - v1_a[0]
     start_y = v1_b[1] - v1_a[1]
     dest_x = v2_b[0] - v2_a[0]
