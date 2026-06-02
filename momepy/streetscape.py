@@ -243,9 +243,6 @@ class Streetscape:
         # semi_ortho_segment_size = self.sightline_spacing/2
         semi_ortho_segment_size = self.intersection_offset / 2
 
-        field_geometry = 0
-        field_uid = 1
-
         seg_st = shapely.line_interpolate_point(
             line, distances - semi_ortho_segment_size
         )
@@ -268,8 +265,8 @@ class Streetscape:
         tan_front = mid_coords - direction * tangent_length
 
         n_points = len(distances)
-        point_ids = np.repeat(np.arange(n_points), 4)
-        sight_types = np.tile(
+        base_point_ids = np.repeat(np.arange(n_points), 4)
+        base_sight_types = np.tile(
             [
                 self.SIGHTLINE_LEFT,
                 self.SIGHTLINE_RIGHT,
@@ -289,8 +286,8 @@ class Streetscape:
         sightline_geometries = list(
             shapely.linestrings(np.stack((start_coords, end_coords), axis=1))
         )
-        point_ids = point_ids.tolist()
-        sight_types = sight_types.tolist()
+        point_ids = base_point_ids.tolist()
+        sight_types = base_sight_types.tolist()
 
         # SECOND PART : TANGENT SIGHTLINES #
 
@@ -374,29 +371,24 @@ class Streetscape:
         # SPECIFIC ENRICHMENT FOR SIGHTPOINTS corresponding to DEAD ENDs
         # ==
         if dead_end_start or dead_end_end:
-            for prev_sg, this_sg, dead_end in [
+            for prev_line, prev_point_id, this_line, this_point_id, dead_end in [
                 (
-                    (sightline_geometries[0], point_ids[0]),
-                    (sightline_geometries[1], point_ids[1]),
+                    sightline_geometries[0],
+                    point_ids[0],
+                    sightline_geometries[1],
+                    point_ids[1],
                     dead_end_start,
                 ),
                 (
-                    (
-                        sightline_geometries[(n_points - 1) * 4 + 1],
-                        point_ids[(n_points - 1) * 4 + 1],
-                    ),
-                    (
-                        sightline_geometries[(n_points - 1) * 4],
-                        point_ids[(n_points - 1) * 4],
-                    ),
+                    sightline_geometries[(n_points - 1) * 4 + 1],
+                    point_ids[(n_points - 1) * 4 + 1],
+                    sightline_geometries[(n_points - 1) * 4],
+                    point_ids[(n_points - 1) * 4],
                     dead_end_end,
                 ),
             ]:
                 if not dead_end:
                     continue
-                # angle between consecutive dead end sight line LEFT and RIGHT (~180)
-                prev_line = prev_sg[field_geometry]  # FIRST sight line LEFT side
-                this_line = this_sg[field_geometry]  # FIRST sight line LEFT side
 
                 # special case --> dead end .. so 180 °
                 deviation = 180
@@ -422,7 +414,7 @@ class Streetscape:
                     )
 
                     sightline_geometries.append(new_line)
-                    point_ids.append(this_sg[field_uid])
+                    point_ids.append(this_point_id)
                     sight_types.append(self.SIGHTLINE_LEFT)
 
                     # add S2 new sight line on this current sight line
@@ -437,7 +429,7 @@ class Streetscape:
                         [prev_line.coords[0], rotate(x, y, x0, y0, angle)]
                     )
                     sightline_geometries.append(new_line)
-                    point_ids.append(prev_sg[field_uid])
+                    point_ids.append(prev_point_id)
                     sight_types.append(self.SIGHTLINE_RIGHT)
             # ==
         return (
