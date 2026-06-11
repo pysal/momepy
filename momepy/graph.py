@@ -69,11 +69,11 @@ def _meshedness(graph: nx.Graph) -> float:
 
 def meshedness(
     graph: nx.Graph,
-    radius: int = 5,
+    radius: int | None = 5,
     name: str = "meshedness",
     distance: Any | None = None,
     verbose: bool = True,
-) -> nx.Graph:
+) -> nx.Graph | float:
     """
     Calculates meshedness for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``. A subgraph is generated around each node within
@@ -93,8 +93,9 @@ def meshedness(
     graph : networkx.Graph
         A Graph representing a street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`.
-    radius: int, optional
-        Include all neighbors of distance <= radius from ``n``.
+    radius: int | None, optional
+        Include all neighbors of distance <= radius from ``n``. If None, calculate the
+        metric for the entire graph.
     name : str, optional
         The calculated attribute name.
     distance : str, optional
@@ -188,14 +189,14 @@ def _cds_length(graph: nx.Graph, mode, length):
 
 def cds_length(
     graph: nx.Graph,
-    radius: int = 5,
+    radius: int | None = 5,
     mode: str = "sum",
     name: str = "cds_len",
     degree: str = "degree",
     length: str = "mm_len",
     distance: Any | None = None,
     verbose: bool = True,
-) -> nx.Graph:
+) -> nx.Graph | float:
     """
     Calculates length of cul-de-sacs for subgraph around each node if radius is set,
     or for whole graph, if ``radius=None``. A subgraph is generated around each node
@@ -208,8 +209,9 @@ def cds_length(
     graph : networkx.Graph
         A Graph representing a street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`.
-    radius : int
-        Include all neighbors of distance <= radius from ``n``.
+    radius: int | None, optional
+        Include all neighbors of distance <= radius from ``n``. If None, calculate the
+        metric for the entire graph.
     mode : str (default 'sum')
         If ``'sum'``, calculate total length, if ``'mean'`` calculate mean length.
     name : str, optional
@@ -268,12 +270,12 @@ def _mean_node_degree(graph: nx.Graph, degree):
 
 def mean_node_degree(
     graph: nx.Graph,
-    radius: int = 5,
+    radius: int | None = 5,
     name: str = "mean_nd",
     degree: str = "degree",
     distance: Any | None = None,
     verbose: bool = True,
-) -> nx.Graph:
+) -> nx.Graph | float:
     """
     Calculates mean node degree for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``. A subgraph is generated around each node within
@@ -285,8 +287,9 @@ def mean_node_degree(
     graph : networkx.Graph
         A Graph representing a street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`.
-    radius: int
-        Include all neighbors of distance <= radius from ``n``.
+    radius: int | None, optional
+        Include all neighbors of distance <= radius from ``n``. If None, calculate the
+        metric for the entire graph.
     name : str, optional
         The calculated attribute name.
     degree : str
@@ -332,14 +335,14 @@ def _proportion(graph: nx.Graph, degree):
 
 def proportion(
     graph: nx.Graph,
-    radius: int = 5,
+    radius: int | None = 5,
     three: str | None = None,
     four: str | None = None,
     dead: str | None = None,
     degree: str = "degree",
     distance: Any | None = None,
     verbose: bool = True,
-) -> nx.Graph:
+) -> nx.Graph | float:
     """
     Calculates the proportion of intersection types for subgraph around each node if
     radius is set, or for whole graph, if ``radius=None``. A subgraph is generated
@@ -351,8 +354,9 @@ def proportion(
     graph : networkx.Graph
         A Graph representing a street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`.
-    radius: int
-        Include all neighbors of distance <= radius from ``n``.
+    radius: int | None, optional
+        Include all neighbors of distance <= radius from ``n``. If None, calculate the
+        metrics for the entire graph.
     three : str, optional
         The attribute name for 3-way intersections proportion.
     four : str, optional
@@ -424,11 +428,11 @@ def _cyclomatic(graph: nx.Graph) -> int:
 
 def cyclomatic(
     graph: nx.Graph,
-    radius: int = 5,
+    radius: int | None = 5,
     name: str = "cyclomatic",
     distance: Any | None = None,
     verbose: bool = True,
-) -> nx.Graph:
+) -> nx.Graph | float:
     """
     Calculates cyclomatic complexity for subgraph around each node if radius is set, or
     for whole graph, if ``radius=None``. A subgraph is generated around each node
@@ -448,8 +452,9 @@ def cyclomatic(
     graph : networkx.Graph
         A Graph representing a street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`.
-    radius: int
-        Include all neighbors of distance <= radius from ``n``.
+    radius: int | None, optional
+        Include all neighbors of distance <= radius from ``n``. If None, calculate the
+        metric for the entire graph.
     name : str, optional
         The calculated attribute name.
     distance : str, optional
@@ -495,11 +500,11 @@ def _edge_node_ratio(graph: nx.Graph) -> float:
 
 def edge_node_ratio(
     graph: nx.Graph,
-    radius: int = 5,
+    radius: int | None = 5,
     name: str = "edge_node_ratio",
     distance: Any | None = None,
     verbose: bool = True,
-) -> nx.Graph:
+) -> nx.Graph | float:
     """
     Calculates edge / node ratio for subgraph around each node if radius is set, or for
     whole graph, if ``radius=None``. A subgraph is generated around each node within
@@ -519,8 +524,9 @@ def edge_node_ratio(
     graph : networkx.Graph
         A Graph representing a street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`.
-    radius: int
-        Include all neighbors of distance <= radius from ``n``.
+    radius: int | None, optional
+        Include all neighbors of distance <= radius from ``n``. If None, calculate the
+        metric for the entire graph.
     name : str, optional
         The calculated attribute name.
     distance : str, optional
@@ -568,11 +574,11 @@ def _gamma(graph: nx.Graph):
 
 def gamma(
     graph: nx.Graph,
-    radius: int = 5,
+    radius: int | None = 5,
     name: str = "gamma",
     distance: Any | None = None,
     verbose: bool = True,
-) -> nx.Graph:
+) -> nx.Graph | float:
     """
     Calculates connectivity gamma index for subgraph around each node if radius is set,
     or for whole graph, if ``radius=None``. A subgraph is generated around each node
@@ -592,8 +598,9 @@ def gamma(
     graph : networkx.Graph
         A Graph representing a street network.
         Ideally generated from GeoDataFrame using :func:`momepy.gdf_to_nx`.
-    radius: int
-        Include all neighbors of distance <= radius from ``n``.
+    radius: int | None, optional
+        Include all neighbors of distance <= radius from ``n``. If None, calculate the
+        metric for the entire graph.
     name : str, optional
         The calculated attribute name.
     distance : str, optional
