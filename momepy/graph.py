@@ -432,7 +432,7 @@ def cyclomatic(
     name: str = "cyclomatic",
     distance: Any | None = None,
     verbose: bool = True,
-) -> nx.Graph | float:
+) -> nx.Graph | int:
     """
     Calculates cyclomatic complexity for subgraph around each node if radius is set, or
     for whole graph, if ``radius=None``. A subgraph is generated around each node
@@ -468,7 +468,7 @@ def cyclomatic(
     -------
     netx : Graph
         A networkx.Graph object if ``radius`` is set.
-    float
+    int
         The cyclomatic complexity for the graph if ``radius=None``.
 
     Examples
