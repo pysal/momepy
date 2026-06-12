@@ -903,7 +903,7 @@ def betweenness_centrality(
     graph = nx.Graph()
     for u, v, k, data in netx.edges(data=True, keys=True):
         if graph.has_edge(u, v):
-            if graph[u][v][weight] > netx[u][v][k][weight]:
+            if weight and graph[u][v][weight] > netx[u][v][k][weight]:
                 nx.set_edge_attributes(graph, {(u, v): data})
         else:
             graph.add_edge(u, v, **data)
