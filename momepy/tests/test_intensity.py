@@ -91,6 +91,14 @@ class TestIntensity:
         assert_series_equal(alternative_density, density)
         assert_series_equal(alternative_weighted, weighted)
 
+    def test_node_density_global(self):
+        g = mm.gdf_to_nx(self.df_streets, integer_labels=True)
+        g = mm.node_degree(g)
+        uw, w = mm.node_density(g, radius=None)
+
+        assert uw == 0.0048752188210261
+        assert w == 0.0068925507469679344
+
     def test_area_ratio(self):
         def area_ratio(overlay, covering, agg_key):
             res = mm.describe_agg(covering, agg_key)
