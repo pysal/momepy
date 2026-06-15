@@ -109,9 +109,13 @@ Details are available in the [documentation](https://docs.momepy.org/).
 
 If you have a question regarding momepy, feel free to open an [issue](https://github.com/pysal/momepy/issues/new/choose) or a new [discussion](https://github.com/pysal/momepy/discussions) on GitHub.
 
-## Acknowledgments
+## Funding
 
-The initial release of momepy was a result of research of [Urban Design Studies Unit (UDSU)](<http://udsu-strath.com>) supported by the Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with the University of Strathclyde in Glasgow, UK. Further development was supported by the [Geographic Data Science Lab](https://www.liverpool.ac.uk/geographic-data-science/) of the University of Liverpool within the [Urban Grammar AI](https://urbangrammarai.xyz) research project.
+- Axel and Margaret Ax:son Johnson Foundation as a part of “The Urban Form Resilience Project” in partnership with the University of Strathclyde in Glasgow, UK.
+
+- UK Research and Innovation (UKRI) through the Economic and Social Research Council's grant “Learning an urban grammar from satellite data through AI”, project reference `ES/ T005238/1`.
+
+- Charles University’s Primus programme through the project "Influence of Socioeconomic and Cultural Factors on Urban Structure in Central Europe", project reference `PRIMUS/24/SCI/023`.
 
 ---
 Copyright (c) 2018-, Martin Fleischmann and PySAL Developers
