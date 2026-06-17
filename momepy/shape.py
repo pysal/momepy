@@ -455,6 +455,24 @@ def shape_index(
     return np.sqrt(geometry.area / np.pi) / (0.5 * longest_axis_length)
 
 
+def _check_no_multipolygons(geometry: GeoDataFrame | GeoSeries, func_name: str) -> None:
+    """Ensure no MultiPolygons are present when relying on polygon exteriors.
+
+    Corner-based metrics use ``GeoSeries.exterior``, which is undefined for
+    MultiPolygons. Without this check the metrics either fail with a cryptic
+    length-mismatch error or silently return ``NaN``. Raising here gives users an
+    actionable message instead.
+    """
+    if (geometry.geom_type == "MultiPolygon").any():
+        raise ValueError(
+            f"momepy.{func_name} does not support MultiPolygon geometries when "
+            "include_interiors=False, as it relies on polygon exteriors. Explode "
+            "MultiPolygons into single-part Polygons first (e.g. "
+            "``geometry.explode(ignore_index=True)``) or pass "
+            "include_interiors=True."
+        )
+
+
 def corners(
     geometry: GeoDataFrame | GeoSeries,
     eps: float = 10,
@@ -508,6 +526,7 @@ def corners(
     if include_interiors:
         coords = geometry.reset_index(drop=True).get_coordinates(index_parts=False)
     else:
+        _check_no_multipolygons(geometry, "corners")
         coords = geometry.reset_index(drop=True).exterior.get_coordinates(
             index_parts=False
         )
@@ -571,6 +590,7 @@ def squareness(
     if include_interiors:
         coords = geometry.reset_index(drop=True).get_coordinates(index_parts=False)
     else:
+        _check_no_multipolygons(geometry, "squareness")
         coords = geometry.reset_index(drop=True).exterior.get_coordinates(
             index_parts=False
         )
@@ -729,6 +749,7 @@ def centroid_corner_distance(
     if include_interiors:
         coords = geometry.get_coordinates(index_parts=False)
     else:
+        _check_no_multipolygons(geometry, "centroid_corner_distance")
         coords = geometry.exterior.get_coordinates(index_parts=False)
     coords[["cent_x", "cent_y"]] = geometry.centroid.get_coordinates(index_parts=False)
     ccd = coords.groupby(level=0).apply(_ccd, eps=eps)

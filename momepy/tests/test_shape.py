@@ -1,6 +1,8 @@
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import pytest
+import shapely
 from libpysal.graph import Graph
 from pandas.testing import assert_frame_equal, assert_series_equal
 
@@ -271,6 +273,32 @@ class TestShape:
         )
         r = mm.centroid_corner_distance(self.df_buildings, include_interiors=True)
         assert_frame_equal(r.describe(), expected)
+
+    @pytest.mark.parametrize(
+        "func", ["corners", "squareness", "centroid_corner_distance"]
+    )
+    def test_corner_metrics_multipolygon(self, func):
+        # corner-based metrics rely on polygon exteriors, which are undefined for
+        # MultiPolygons. With include_interiors=False this used to raise a cryptic
+        # length-mismatch error (corners, squareness) or silently return NaN
+        # (centroid_corner_distance). See GH#739.
+        polygons = self.df_buildings.geometry.iloc[:3]
+        multi = gpd.GeoSeries(
+            [shapely.MultiPolygon([poly]) for poly in polygons],
+            crs=self.df_buildings.crs,
+        )
+
+        with pytest.raises(
+            ValueError, match="does not support MultiPolygon geometries"
+        ):
+            getattr(mm, func)(multi)
+
+        # include_interiors=True handles MultiPolygons and must keep working
+        getattr(mm, func)(multi, include_interiors=True)
+
+        # exploding into single-part Polygons is the documented workaround
+        exploded = multi.explode(ignore_index=True)
+        getattr(mm, func)(exploded)
 
     def test_linearity(self):
         expected = {
