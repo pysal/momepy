@@ -1,0 +1,6 @@
+﻿momepy.shared\_walls
+====================
+
+.. currentmodule:: momepy
+
+.. autofunction:: shared_walls

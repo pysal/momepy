@@ -1,0 +1,6 @@
+﻿momepy.simpson\_diversity
+=========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: simpson_diversity

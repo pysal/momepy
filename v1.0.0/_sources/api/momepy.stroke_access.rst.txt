@@ -1,0 +1,6 @@
+﻿momepy.stroke\_access
+=====================
+
+.. currentmodule:: momepy
+
+.. autofunction:: stroke_access

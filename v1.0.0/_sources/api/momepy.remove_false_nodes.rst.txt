@@ -1,0 +1,6 @@
+﻿momepy.remove\_false\_nodes
+===========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: remove_false_nodes

@@ -1,0 +1,6 @@
+﻿momepy.stroke\_orthogonality
+============================
+
+.. currentmodule:: momepy
+
+.. autofunction:: stroke_orthogonality

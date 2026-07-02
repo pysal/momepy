@@ -1,0 +1,383 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Converting from GeoDataFrame to Graph and back\n",
+    "\n",
+    "The model situation expects to have all input data for analysis in `GeoDataFrames`, including street network (e.g. from shapefile)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:34.903036Z",
+     "iopub.status.busy": "2024-06-14T22:02:34.902343Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.085893Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.085574Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "import geopandas as gpd\n",
+    "import matplotlib.pyplot as plt\n",
+    "import momepy\n",
+    "import networkx as nx"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.087731Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.087551Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.143234Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.142977Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "streets = gpd.read_file(momepy.datasets.get_path(\"bubenec\"), layer=\"streets\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.144871Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.144739Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.191189Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.190950Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = streets.plot(figsize=(8, 8))\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We have to convert this LineString GeoDataFrame to a `networkx.Graph`. We use `momepy.gdf_to_nx` and later `momepy.nx_to_gdf` as a pair of interconnected functions. `gdf_to_nx` supports both primal and dual graphs. The primal approach will save the length of each segment to be used as a weight later, while dual will save the angle between segments (allowing angular centrality)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.192695Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.192594Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.195760Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.195535Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "graph = momepy.gdf_to_nx(streets, approach=\"primal\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.197136Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.197047Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.341060Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.340781Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "f, ax = plt.subplots(1, 3, figsize=(18, 6), sharex=True, sharey=True)\n",
+    "streets.plot(color=\"#e32e00\", ax=ax[0])\n",
+    "for i, facet in enumerate(ax):\n",
+    "    facet.set_title((\"Streets\", \"Primal graph\", \"Overlay\")[i])\n",
+    "    facet.axis(\"off\")\n",
+    "nx.draw(\n",
+    "    graph, {n: [n[0], n[1]] for n in list(graph.nodes)}, ax=ax[1], node_size=15\n",
+    ")\n",
+    "streets.plot(color=\"#e32e00\", ax=ax[2], zorder=-1)\n",
+    "nx.draw(\n",
+    "    graph, {n: [n[0], n[1]] for n in list(graph.nodes)}, ax=ax[2], node_size=15\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.342516Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.342416Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.352218Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.351987Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "dual = momepy.gdf_to_nx(streets, approach=\"dual\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.353619Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.353536Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.492918Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.492663Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "f, ax = plt.subplots(1, 3, figsize=(18, 6), sharex=True, sharey=True)\n",
+    "streets.plot(color=\"#e32e00\", ax=ax[0])\n",
+    "for i, facet in enumerate(ax):\n",
+    "    facet.set_title((\"Streets\", \"Dual graph\", \"Overlay\")[i])\n",
+    "    facet.axis(\"off\")\n",
+    "nx.draw(\n",
+    "    dual, {n: [n[0], n[1]] for n in list(dual.nodes)}, ax=ax[1], node_size=15\n",
+    ")\n",
+    "streets.plot(color=\"#e32e00\", ax=ax[2], zorder=-1)\n",
+    "nx.draw(\n",
+    "    dual, {n: [n[0], n[1]] for n in list(dual.nodes)}, ax=ax[2], node_size=15\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "At this moment (almost) any `networkx` method can be used. For illustration, we will measure the node degree. Using `networkx`, we can do:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.494445Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.494344Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.496205Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.495987Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "degree = dict(nx.degree(graph))\n",
+    "nx.set_node_attributes(graph, degree, \"degree\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "However, node degree is implemented in momepy so we can use directly:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.497527Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.497434Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.499259Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.499051Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "graph = momepy.node_degree(graph, name=\"degree\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Once we have finished our network-based analysis, we want to convert the graph back to a geodataframe. For that, we will use `momepy.nx_to_gdf`, which gives us several options of what to export.\n",
+    "\n",
+    "- `lines`\n",
+    "    - original LineString geodataframe\n",
+    "- `points`\n",
+    "    - point geometry representing street network intersections (nodes of primal graph)\n",
+    "- `spatial_weights`\n",
+    "    - spatial weights for nodes capturing their relationship within a network\n",
+    "\n",
+    "Moreover, `edges` will contain `node_start` and `node_end` columns capturing the ID of both nodes at its ends."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.500605Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.500513Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.505333Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.505122Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "nodes, edges, sw = momepy.nx_to_gdf(\n",
+    "    graph, points=True, lines=True, spatial_weights=True\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.506561Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.506474Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.551892Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.551625Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = nodes.plot(\n",
+    "    column=\"degree\",\n",
+    "    cmap=\"tab20b\",\n",
+    "    markersize=(nodes[\"degree\"] * 100),\n",
+    "    zorder=2,\n",
+    "    figsize=(8, 8),\n",
+    ")\n",
+    "edges.plot(ax=ax, color=\"lightgrey\", zorder=1)\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.553394Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.553298Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.557752Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.557508Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "nodes.head(3)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:02:36.559081Z",
+     "iopub.status.busy": "2024-06-14T22:02:36.559006Z",
+     "iopub.status.idle": "2024-06-14T22:02:36.562168Z",
+     "shell.execute_reply": "2024-06-14T22:02:36.561946Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "edges.head(3)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Preserving the order and index\n",
+    "\n",
+    "By default, the conversion to Graph and back does not preserve the index of the original GeoDataFrame and the order of rows. If you want to ensure that the roundtrip results in equally sorted GeoDataFrame with matching index, use `preserve_index=True`. This option adds one or two (depending on they type of the index) additional attributes to edges and uses them in conversion from Graph to rebuild the index and the order of rows.\n",
+    "\n",
+    "See the default:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "streets[\"position\"] = range(len(streets))\n",
+    "streets.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We have added a column tracking the original position. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "graph = momepy.gdf_to_nx(streets)\n",
+    "edges = momepy.nx_to_gdf(graph, points=False)\n",
+    "edges.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Using `preserve_index=True` fixes the order and in case of a custom index rebuilds it."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "graph = momepy.gdf_to_nx(streets, preserve_index=True)\n",
+    "edges = momepy.nx_to_gdf(graph, points=False)\n",
+    "edges.head()"
+   ]
+  }
+ ],
+ "metadata": {
+  "celltoolbar": "Tags",
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.9"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

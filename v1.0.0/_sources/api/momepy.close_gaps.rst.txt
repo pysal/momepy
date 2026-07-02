@@ -1,0 +1,6 @@
+﻿momepy.close\_gaps
+==================
+
+.. currentmodule:: momepy
+
+.. autofunction:: close_gaps

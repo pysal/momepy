@@ -1,0 +1,6 @@
+﻿momepy.stroke\_connectivity
+===========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: stroke_connectivity

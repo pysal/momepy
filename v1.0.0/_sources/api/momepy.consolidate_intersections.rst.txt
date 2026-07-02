@@ -1,0 +1,6 @@
+﻿momepy.consolidate\_intersections
+=================================
+
+.. currentmodule:: momepy
+
+.. autofunction:: consolidate_intersections

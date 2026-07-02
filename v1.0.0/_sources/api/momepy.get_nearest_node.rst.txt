@@ -1,0 +1,6 @@
+﻿momepy.get\_nearest\_node
+=========================
+
+.. currentmodule:: momepy
+
+.. autofunction:: get_nearest_node

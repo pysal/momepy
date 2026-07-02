@@ -1,0 +1,594 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Examples of usage\n",
+    "\n",
+    "Spatial graphs are used across `momepy`. This notebook will illustrate its use on three examples."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:32.260783Z",
+     "iopub.status.busy": "2024-06-14T22:03:32.260543Z",
+     "iopub.status.idle": "2024-06-14T22:03:33.635677Z",
+     "shell.execute_reply": "2024-06-14T22:03:33.635343Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "import momepy\n",
+    "import osmnx as ox\n",
+    "from libpysal import graph"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We will again use `osmnx` to get the data for our example and after preprocessing of building layer will generate tessellation layer."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:33.637560Z",
+     "iopub.status.busy": "2024-06-14T22:03:33.637367Z",
+     "iopub.status.idle": "2024-06-14T22:03:36.931803Z",
+     "shell.execute_reply": "2024-06-14T22:03:36.931522Z"
+    },
+    "tags": [
+     "hide_output"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "gdf = ox.features_from_place(\"Kahla, Germany\", tags={\"building\": True})\n",
+    "buildings = ox.projection.project_gdf(gdf).reset_index()\n",
+    "\n",
+    "limit = momepy.buffered_limit(buildings)\n",
+    "tessellation = momepy.morphological_tessellation(buildings, clip=limit)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## First order contiguity\n",
+    "\n",
+    "### Distance to neighbours\n",
+    "\n",
+    "To calculate the mean distance to neighbouring buildings, we need queen contiguity weights of the first order capturing the relationship between immediate neighbours. Relationship between buildings is here represented by relationships between their tessellation cells."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:36.933559Z",
+     "iopub.status.busy": "2024-06-14T22:03:36.933460Z",
+     "iopub.status.idle": "2024-06-14T22:03:38.073509Z",
+     "shell.execute_reply": "2024-06-14T22:03:38.073281Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "contiguity = graph.Graph.build_contiguity(tessellation)\n",
+    "contiguity"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true,
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:38.075014Z",
+     "iopub.status.busy": "2024-06-14T22:03:38.074925Z",
+     "iopub.status.idle": "2024-06-14T22:03:38.098453Z",
+     "shell.execute_reply": "2024-06-14T22:03:38.098170Z"
+    },
+    "jupyter": {
+     "outputs_hidden": true
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "buildings[\"neighbour_dist\"] = momepy.neighbor_distance(buildings, contiguity)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:38.099941Z",
+     "iopub.status.busy": "2024-06-14T22:03:38.099860Z",
+     "iopub.status.idle": "2024-06-14T22:03:39.341262Z",
+     "shell.execute_reply": "2024-06-14T22:03:39.340972Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = buildings.plot(\n",
+    "    column=\"neighbour_dist\",\n",
+    "    scheme=\"naturalbreaks\",\n",
+    "    k=8,\n",
+    "    legend=True,\n",
+    "    cmap=\"Spectral\",\n",
+    "    figsize=(8, 8),\n",
+    ")\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Higher order / distance\n",
+    "\n",
+    "However, typical usage of spatial graphs is to capture the vicinity of each feature. As illustrated in the [previous notebook](weights_nb.ipynb), there are multiple options on how to capture it. In this example, we will use queen contiguity of the higher order (3) based on morphological tessellation. Because we want to treat the building itself as part of its neighborhood, we assing self weights on top."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:39.342975Z",
+     "iopub.status.busy": "2024-06-14T22:03:39.342758Z",
+     "iopub.status.idle": "2024-06-14T22:03:39.462193Z",
+     "shell.execute_reply": "2024-06-14T22:03:39.461956Z"
+    },
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "contiguity_k3 = contiguity.higher_order(3).assign_self_weight()\n",
+    "contiguity_k3"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Neighborhood description\n",
+    "\n",
+    "Mean value of selected character within a vicinity of each cell (or building, plot) is a simple example. Most of the common descriptive statistics are available using the method `Graph.describe()`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:39.463673Z",
+     "iopub.status.busy": "2024-06-14T22:03:39.463596Z",
+     "iopub.status.idle": "2024-06-14T22:03:40.824107Z",
+     "shell.execute_reply": "2024-06-14T22:03:40.823871Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "describe_k3 = contiguity_k3.describe(tessellation.area)\n",
+    "describe_k3.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:40.825633Z",
+     "iopub.status.busy": "2024-06-14T22:03:40.825530Z",
+     "iopub.status.idle": "2024-06-14T22:03:41.289430Z",
+     "shell.execute_reply": "2024-06-14T22:03:41.289190Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = tessellation.plot(\n",
+    "    column=describe_k3[\"mean\"],\n",
+    "    legend=True,\n",
+    "    scheme=\"quantiles\",\n",
+    "    k=10,\n",
+    "    cmap=\"Blues_r\",\n",
+    "    figsize=(8, 8),\n",
+    ")\n",
+    "buildings.plot(ax=ax, color=\"white\", alpha=0.4)\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:41.290875Z",
+     "iopub.status.busy": "2024-06-14T22:03:41.290763Z",
+     "iopub.status.idle": "2024-06-14T22:03:41.837752Z",
+     "shell.execute_reply": "2024-06-14T22:03:41.837510Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "ax = tessellation.plot(\n",
+    "    column=describe_k3[\"median\"],\n",
+    "    legend=True,\n",
+    "    scheme=\"quantiles\",\n",
+    "    k=10,\n",
+    "    cmap=\"Blues_r\",\n",
+    "    figsize=(8, 8),\n",
+    ")\n",
+    "buildings.plot(ax=ax, color=\"white\", alpha=0.4)\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In some cases, we might want to eliminate the effect of outliers. To do so, we can specify the quantile range on which should `describe` work. Below we will measure only interquartile mean."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:41.839290Z",
+     "iopub.status.busy": "2024-06-14T22:03:41.839184Z",
+     "iopub.status.idle": "2024-06-14T22:03:43.691152Z",
+     "shell.execute_reply": "2024-06-14T22:03:43.690855Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "describe_k3_iqr = contiguity_k3.describe(tessellation.area, q=(25, 75))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:43.692915Z",
+     "iopub.status.busy": "2024-06-14T22:03:43.692809Z",
+     "iopub.status.idle": "2024-06-14T22:03:44.246594Z",
+     "shell.execute_reply": "2024-06-14T22:03:44.246356Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = tessellation.plot(\n",
+    "    column=describe_k3_iqr[\"mean\"],\n",
+    "    legend=True,\n",
+    "    scheme=\"quantiles\",\n",
+    "    k=10,\n",
+    "    cmap=\"Greens_r\",\n",
+    "    figsize=(8, 8),\n",
+    ")\n",
+    "buildings.plot(ax=ax, color=\"white\", alpha=0.4)\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Weighted character\n",
+    "\n",
+    "The weighted average is another example using the same spatial graphs. For illustration, we can try area-weighted circular compactness:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:44.248225Z",
+     "iopub.status.busy": "2024-06-14T22:03:44.248117Z",
+     "iopub.status.idle": "2024-06-14T22:03:44.277323Z",
+     "shell.execute_reply": "2024-06-14T22:03:44.277058Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "circular_compactness = momepy.circular_compactness(buildings)\n",
+    "buildings[\"weighted_circom\"] = momepy.weighted_character(\n",
+    "    circular_compactness, buildings.area, contiguity_k3\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:44.278886Z",
+     "iopub.status.busy": "2024-06-14T22:03:44.278805Z",
+     "iopub.status.idle": "2024-06-14T22:03:44.514975Z",
+     "shell.execute_reply": "2024-06-14T22:03:44.514704Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = buildings.plot(\n",
+    "    column=\"weighted_circom\",\n",
+    "    legend=True,\n",
+    "    scheme=\"quantiles\",\n",
+    "    k=15,\n",
+    "    cmap=\"viridis\",\n",
+    "    figsize=(8, 8),\n",
+    ")\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Density\n",
+    "\n",
+    "We will again use our Manhattan case study to illustrate using graphs in capturing gross density."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:44.516518Z",
+     "iopub.status.busy": "2024-06-14T22:03:44.516418Z",
+     "iopub.status.idle": "2024-06-14T22:03:50.312020Z",
+     "shell.execute_reply": "2024-06-14T22:03:50.311743Z"
+    },
+    "tags": [
+     "hide_output"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "point = (40.731603, -73.977857)\n",
+    "dist = 1000\n",
+    "gdf = ox.features_from_point(point, dist=dist, tags={\"building\": True})\n",
+    "gdf_projected = ox.projection.project_gdf(gdf)\n",
+    "buildings = gdf_projected[\n",
+    "    gdf_projected.geom_type.isin([\"Polygon\", \"MultiPolygon\"])\n",
+    "].reset_index()\n",
+    "\n",
+    "limit = momepy.buffered_limit(buildings)\n",
+    "tessellation = momepy.morphological_tessellation(buildings, clip=limit)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:50.314032Z",
+     "iopub.status.busy": "2024-06-14T22:03:50.313932Z",
+     "iopub.status.idle": "2024-06-14T22:03:50.817890Z",
+     "shell.execute_reply": "2024-06-14T22:03:50.817635Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = tessellation.plot(figsize=(8, 8))\n",
+    "buildings.plot(ax=ax, color=\"white\", alpha=0.5)\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "To get gross density, we need to know floor areas:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:50.820124Z",
+     "iopub.status.busy": "2024-06-14T22:03:50.820018Z",
+     "iopub.status.idle": "2024-06-14T22:03:50.823912Z",
+     "shell.execute_reply": "2024-06-14T22:03:50.823653Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "def clean_heights(x):\n",
+    "    try:\n",
+    "        return float(x)\n",
+    "    except ValueError:\n",
+    "        return 0\n",
+    "\n",
+    "\n",
+    "buildings[\"height\"] = buildings[\"height\"].fillna(0).apply(clean_heights)\n",
+    "buildings[\"floors\"] = buildings[\"height\"] // 3\n",
+    "\n",
+    "buildings[\"floor_area\"] = buildings.area * buildings[\"floors\"]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Gross density can be expressed as sum of floor area in a neighborhood divided by sum areas within the same neighborhoods. `Graph.describe()` is perfect for that.\n",
+    "\n",
+    "First, build the Graph."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:50.825389Z",
+     "iopub.status.busy": "2024-06-14T22:03:50.825311Z",
+     "iopub.status.idle": "2024-06-14T22:03:52.930442Z",
+     "shell.execute_reply": "2024-06-14T22:03:52.930196Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "contiguity_ny_k3 = (\n",
+    "    graph.Graph.build_contiguity(tessellation)\n",
+    "    .higher_order(3)\n",
+    "    .assign_self_weight()\n",
+    ")\n",
+    "contiguity_ny_k3"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Then you can measure sums and derive gross density."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:52.931993Z",
+     "iopub.status.busy": "2024-06-14T22:03:52.931889Z",
+     "iopub.status.idle": "2024-06-14T22:03:52.940013Z",
+     "shell.execute_reply": "2024-06-14T22:03:52.939765Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "areas = contiguity_ny_k3.describe(tessellation.area, statistics=[\"sum\"])[\"sum\"]\n",
+    "floor_areas = contiguity_ny_k3.describe(\n",
+    "    buildings[\"floor_area\"], statistics=[\"sum\"]\n",
+    ")[\"sum\"]\n",
+    "\n",
+    "tessellation[\"gross_density\"] = floor_areas / areas"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:52.941543Z",
+     "iopub.status.busy": "2024-06-14T22:03:52.941467Z",
+     "iopub.status.idle": "2024-06-14T22:03:53.737468Z",
+     "shell.execute_reply": "2024-06-14T22:03:53.737213Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = tessellation.plot(\n",
+    "    column=\"gross_density\",\n",
+    "    legend=True,\n",
+    "    scheme=\"naturalbreaks\",\n",
+    "    k=10,\n",
+    "    figsize=(8, 8),\n",
+    ")\n",
+    "buildings.plot(ax=ax, color=\"white\", alpha=0.5)\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In a similar way can be done gross coverage."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:53.739397Z",
+     "iopub.status.busy": "2024-06-14T22:03:53.739312Z",
+     "iopub.status.idle": "2024-06-14T22:03:53.747522Z",
+     "shell.execute_reply": "2024-06-14T22:03:53.747244Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "areas = contiguity_ny_k3.describe(tessellation.area, statistics=[\"sum\"])[\"sum\"]\n",
+    "blg_areas = contiguity_ny_k3.describe(buildings.area, statistics=[\"sum\"])[\"sum\"]\n",
+    "\n",
+    "tessellation[\"gross_coverage\"] = blg_areas / areas"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T22:03:53.749027Z",
+     "iopub.status.busy": "2024-06-14T22:03:53.748941Z",
+     "iopub.status.idle": "2024-06-14T22:03:54.282670Z",
+     "shell.execute_reply": "2024-06-14T22:03:54.282424Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = tessellation.plot(figsize=(8, 8), column=\"gross_coverage\", legend=True)\n",
+    "buildings.plot(ax=ax, color=\"white\", alpha=0.5)\n",
+    "ax.set_axis_off()"
+   ]
+  }
+ ],
+ "metadata": {
+  "celltoolbar": "Tags",
+  "kernelspec": {
+   "display_name": "momepy",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.9"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

@@ -1,0 +1,6 @@
+﻿momepy.extend\_lines
+====================
+
+.. currentmodule:: momepy
+
+.. autofunction:: extend_lines

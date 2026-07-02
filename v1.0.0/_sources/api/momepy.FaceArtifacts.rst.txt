@@ -1,0 +1,11 @@
+﻿momepy.FaceArtifacts
+====================
+
+.. currentmodule:: momepy
+
+.. autoclass:: FaceArtifacts
+
+   
+   
+
+   

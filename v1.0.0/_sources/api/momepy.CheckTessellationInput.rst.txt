@@ -1,0 +1,11 @@
+﻿momepy.CheckTessellationInput
+=============================
+
+.. currentmodule:: momepy
+
+.. autoclass:: CheckTessellationInput
+
+   
+   
+
+   

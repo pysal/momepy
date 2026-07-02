@@ -1,0 +1,20 @@
+﻿momepy.Streetscape
+==================
+
+.. currentmodule:: momepy
+
+.. autoclass:: Streetscape
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Streetscape.compute_plots
+      ~Streetscape.compute_slope
+      ~Streetscape.point_level
+      ~Streetscape.street_level
+   
+
+   

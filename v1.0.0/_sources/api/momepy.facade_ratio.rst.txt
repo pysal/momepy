@@ -1,0 +1,6 @@
+﻿momepy.facade\_ratio
+====================
+
+.. currentmodule:: momepy
+
+.. autofunction:: facade_ratio

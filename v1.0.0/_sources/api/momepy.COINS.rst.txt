@@ -1,0 +1,18 @@
+﻿momepy.COINS
+============
+
+.. currentmodule:: momepy
+
+.. autoclass:: COINS
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~COINS.stroke_attribute
+      ~COINS.stroke_gdf
+   
+
+   

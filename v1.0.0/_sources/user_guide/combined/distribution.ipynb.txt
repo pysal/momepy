@@ -1,0 +1,459 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Measuring spatial distribution\n",
+    "\n",
+    "Spatial distribution can be captured many ways. This notebook show couple of them, based on orientation and street corridor."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:15.716650Z",
+     "iopub.status.busy": "2024-06-14T21:54:15.716530Z",
+     "iopub.status.idle": "2024-06-14T21:54:17.438941Z",
+     "shell.execute_reply": "2024-06-14T21:54:17.438637Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "import matplotlib.pyplot as plt\n",
+    "import momepy\n",
+    "import osmnx as ox"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:17.440915Z",
+     "iopub.status.busy": "2024-06-14T21:54:17.440716Z",
+     "iopub.status.idle": "2024-06-14T21:54:20.695759Z",
+     "shell.execute_reply": "2024-06-14T21:54:20.695458Z"
+    },
+    "tags": [
+     "hide_output"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "gdf = ox.features_from_place(\"Kahla, Germany\", tags={\"building\": True})\n",
+    "buildings = ox.projection.project_gdf(gdf).reset_index()\n",
+    "\n",
+    "limit = momepy.buffered_limit(buildings)\n",
+    "tessellation = momepy.morphological_tessellation(buildings, clip=limit)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:20.697476Z",
+     "iopub.status.busy": "2024-06-14T21:54:20.697392Z",
+     "iopub.status.idle": "2024-06-14T21:54:20.936728Z",
+     "shell.execute_reply": "2024-06-14T21:54:20.936473Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "streets_graph = ox.graph_from_place(\"Kahla, Germany\", network_type=\"drive\")\n",
+    "streets_graph = ox.projection.project_graph(streets_graph)\n",
+    "edges = ox.graph_to_gdfs(\n",
+    "    streets_graph,\n",
+    "    nodes=False,\n",
+    "    edges=True,\n",
+    "    node_geometry=False,\n",
+    "    fill_edge_geometry=True,\n",
+    ").reset_index(drop=True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Alignment\n",
+    "\n",
+    "We can measure alignment of different elements to their neighbours (for which `Graph` is needed) or to different elements. We will explore cell alignment (difference of orientation of buildings and cells) and street alignment (difference of orientation of buildings and street segments).\n",
+    "\n",
+    "### Cell alignment\n",
+    "\n",
+    "For `cell_alignment` we need to know orientations, so let's calculate them first. Orientation is defined as an orientation of the longext axis of bounding rectangle in range [0,45). It captures the deviation of orientation from cardinal directions:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:20.938263Z",
+     "iopub.status.busy": "2024-06-14T21:54:20.938177Z",
+     "iopub.status.idle": "2024-06-14T21:54:21.095446Z",
+     "shell.execute_reply": "2024-06-14T21:54:21.095152Z"
+    },
+    "scrolled": true,
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "buildings[\"orientation\"] = momepy.orientation(buildings)\n",
+    "tessellation[\"orientation\"] = momepy.orientation(tessellation)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:21.097060Z",
+     "iopub.status.busy": "2024-06-14T21:54:21.096972Z",
+     "iopub.status.idle": "2024-06-14T21:54:21.327090Z",
+     "shell.execute_reply": "2024-06-14T21:54:21.326825Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "buildings.plot(\n",
+    "    column=\"orientation\", legend=True, cmap=\"Spectral\", figsize=(10, 10)\n",
+    ").set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "`cell_alignment` requires both orientation arrays:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:21.328935Z",
+     "iopub.status.busy": "2024-06-14T21:54:21.328831Z",
+     "iopub.status.idle": "2024-06-14T21:54:21.331017Z",
+     "shell.execute_reply": "2024-06-14T21:54:21.330813Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "buildings[\"cell_align\"] = momepy.cell_alignment(\n",
+    "    buildings.orientation, tessellation.orientation\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:21.332284Z",
+     "iopub.status.busy": "2024-06-14T21:54:21.332189Z",
+     "iopub.status.idle": "2024-06-14T21:54:21.548765Z",
+     "shell.execute_reply": "2024-06-14T21:54:21.548507Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "buildings.plot(\n",
+    "    column=\"cell_align\", legend=True, cmap=\"Reds\", figsize=(10, 10)\n",
+    ").set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "No really clear pattern is visible in this case, but it might be in other, especially comparing building orientation with plots.\n",
+    "\n",
+    "### Street alignment\n",
+    "\n",
+    "Street alignment works on the same principle as cell alignment. What we do not have at this moment is street index linked to buildings:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:21.550353Z",
+     "iopub.status.busy": "2024-06-14T21:54:21.550249Z",
+     "iopub.status.idle": "2024-06-14T21:54:21.615026Z",
+     "shell.execute_reply": "2024-06-14T21:54:21.614810Z"
+    },
+    "tags": [
+     "hide_output"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "buildings[\"street_index\"] = momepy.get_nearest_street(buildings, edges)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "`street_alignment` then requires orientations of both builings and streets and the index of the nearest street."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:21.616463Z",
+     "iopub.status.busy": "2024-06-14T21:54:21.616387Z",
+     "iopub.status.idle": "2024-06-14T21:54:21.620692Z",
+     "shell.execute_reply": "2024-06-14T21:54:21.620473Z"
+    },
+    "tags": [
+     "hide_output"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "buildings[\"str_align\"] = momepy.street_alignment(\n",
+    "    buildings.orientation, momepy.orientation(edges), buildings[\"street_index\"]\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:21.621946Z",
+     "iopub.status.busy": "2024-06-14T21:54:21.621865Z",
+     "iopub.status.idle": "2024-06-14T21:54:21.912791Z",
+     "shell.execute_reply": "2024-06-14T21:54:21.912412Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = edges.plot(color=\"grey\", linewidth=0.5, figsize=(10, 10))\n",
+    "buildings.plot(ax=ax, column=\"str_align\", legend=True)\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Street profile\n",
+    "\n",
+    "`street_profile` captures several characters at the same time. It generates a series of perpendicular ticks of set length and set spacing and returns mean widths of street profile, their standard deviation, mean height and its standard deviation, profile as a ratio of widht and height and degree of openness. If heights are not passed, it will not return them and profile. We will use Manhattan example to illustrate how it works. Building `height` column is converted to float and buildings are exploded to avoid multipolygons."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:21.915013Z",
+     "iopub.status.busy": "2024-06-14T21:54:21.914911Z",
+     "iopub.status.idle": "2024-06-14T21:54:22.195961Z",
+     "shell.execute_reply": "2024-06-14T21:54:22.195695Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "point = (40.731603, -73.977857)\n",
+    "dist = 1000\n",
+    "gdf = ox.features_from_point(point, dist=dist, tags={\"building\": True})\n",
+    "buildings = ox.projection.project_gdf(gdf)\n",
+    "buildings = buildings[buildings.geom_type.isin([\"Polygon\", \"MultiPolygon\"])]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:22.197572Z",
+     "iopub.status.busy": "2024-06-14T21:54:22.197485Z",
+     "iopub.status.idle": "2024-06-14T21:54:22.226568Z",
+     "shell.execute_reply": "2024-06-14T21:54:22.226316Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "def clean_heights(x):\n",
+    "    try:\n",
+    "        return float(x)\n",
+    "    except ValueError:\n",
+    "        return 0\n",
+    "\n",
+    "\n",
+    "buildings[\"height\"] = buildings[\"height\"].fillna(0).apply(clean_heights)\n",
+    "buildings = buildings.explode(ignore_index=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:22.228074Z",
+     "iopub.status.busy": "2024-06-14T21:54:22.227997Z",
+     "iopub.status.idle": "2024-06-14T21:54:22.606406Z",
+     "shell.execute_reply": "2024-06-14T21:54:22.606151Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "streets_graph = ox.graph_from_point(point, dist, network_type=\"drive\")\n",
+    "streets_graph = ox.projection.project_graph(streets_graph)\n",
+    "edges = ox.graph_to_gdfs(\n",
+    "    streets_graph,\n",
+    "    nodes=False,\n",
+    "    edges=True,\n",
+    "    node_geometry=False,\n",
+    "    fill_edge_geometry=True,\n",
+    ").reset_index()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:22.608029Z",
+     "iopub.status.busy": "2024-06-14T21:54:22.607941Z",
+     "iopub.status.idle": "2024-06-14T21:54:22.850463Z",
+     "shell.execute_reply": "2024-06-14T21:54:22.850209Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "ax = buildings.plot(figsize=(10, 10), color=\"lightgrey\")\n",
+    "edges.plot(ax=ax)\n",
+    "ax.set_axis_off()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:22.853228Z",
+     "iopub.status.busy": "2024-06-14T21:54:22.853126Z",
+     "iopub.status.idle": "2024-06-14T21:54:23.548221Z",
+     "shell.execute_reply": "2024-06-14T21:54:23.547927Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "profile = momepy.street_profile(edges, buildings, height=buildings[\"height\"])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We can assign measrued characters as columns of edges gdf:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:23.549887Z",
+     "iopub.status.busy": "2024-06-14T21:54:23.549802Z",
+     "iopub.status.idle": "2024-06-14T21:54:23.556253Z",
+     "shell.execute_reply": "2024-06-14T21:54:23.556029Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "edges[profile.columns] = profile\n",
+    "edges[profile.columns].head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-06-14T21:54:23.557584Z",
+     "iopub.status.busy": "2024-06-14T21:54:23.557505Z",
+     "iopub.status.idle": "2024-06-14T21:54:25.884697Z",
+     "shell.execute_reply": "2024-06-14T21:54:25.884411Z"
+    },
+    "tags": [
+     "hide_input"
+    ]
+   },
+   "outputs": [],
+   "source": [
+    "f, axes = plt.subplots(figsize=(15, 25), ncols=2, nrows=3)\n",
+    "edges.plot(ax=axes[0][0], column=\"width\", legend=True, cmap=\"Blues_r\")\n",
+    "buildings.plot(ax=axes[0][0], color=\"lightgrey\")\n",
+    "edges.plot(ax=axes[0][1], column=\"width_deviation\", legend=True)\n",
+    "buildings.plot(ax=axes[0][1], color=\"lightgrey\")\n",
+    "axes[0][0].set_axis_off()\n",
+    "axes[0][0].set_title(\"width\")\n",
+    "axes[0][1].set_axis_off()\n",
+    "axes[0][1].set_title(\"width_deviation\")\n",
+    "edges.plot(ax=axes[1][0], column=\"hw_ratio\", legend=True, cmap=\"Spectral\")\n",
+    "buildings.plot(ax=axes[1][0], color=\"lightgrey\")\n",
+    "edges.plot(ax=axes[1][1], column=\"openness\", legend=True, cmap=\"Greens\")\n",
+    "buildings.plot(ax=axes[1][1], color=\"lightgrey\")\n",
+    "axes[1][0].set_axis_off()\n",
+    "axes[1][0].set_title(\"profile\")\n",
+    "axes[1][1].set_axis_off()\n",
+    "axes[1][1].set_title(\"openness\")\n",
+    "edges.plot(ax=axes[2][0], column=\"height\", legend=True, cmap=\"Reds\")\n",
+    "buildings.plot(ax=axes[2][0], color=\"lightgrey\")\n",
+    "edges.plot(ax=axes[2][1], column=\"height_deviation\", legend=True)\n",
+    "buildings.plot(ax=axes[2][1], color=\"lightgrey\")\n",
+    "axes[2][0].set_axis_off()\n",
+    "axes[2][0].set_title(\"height\")\n",
+    "axes[2][1].set_axis_off()\n",
+    "axes[2][1].set_title(\"height_deviations\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "celltoolbar": "Tags",
+  "kernelspec": {
+   "display_name": "momepy",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.9"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

@@ -1,0 +1,6 @@
+﻿momepy.centroid\_corner\_distance
+=================================
+
+.. currentmodule:: momepy
+
+.. autofunction:: centroid_corner_distance

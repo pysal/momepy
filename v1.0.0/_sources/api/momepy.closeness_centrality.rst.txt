@@ -1,0 +1,6 @@
+﻿momepy.closeness\_centrality
+============================
+
+.. currentmodule:: momepy
+
+.. autofunction:: closeness_centrality

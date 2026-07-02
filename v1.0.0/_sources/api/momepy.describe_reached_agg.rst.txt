@@ -1,0 +1,6 @@
+﻿momepy.describe\_reached\_agg
+=============================
+
+.. currentmodule:: momepy
+
+.. autofunction:: describe_reached_agg
