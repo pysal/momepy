@@ -1,6 +1,0 @@
-﻿momepy.Volume
-=============
-
-.. currentmodule:: momepy
-
-.. autofunction:: Volume

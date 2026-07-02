@@ -1,6 +1,0 @@
-﻿momepy.Alignment
-================
-
-.. currentmodule:: momepy
-
-.. autofunction:: Alignment

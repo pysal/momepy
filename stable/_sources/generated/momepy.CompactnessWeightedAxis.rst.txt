@@ -1,6 +1,0 @@
-﻿momepy.CompactnessWeightedAxis
-==============================
-
-.. currentmodule:: momepy
-
-.. autofunction:: CompactnessWeightedAxis

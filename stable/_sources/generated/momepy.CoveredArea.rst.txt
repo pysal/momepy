@@ -1,6 +1,0 @@
-﻿momepy.CoveredArea
-==================
-
-.. currentmodule:: momepy
-
-.. autofunction:: CoveredArea

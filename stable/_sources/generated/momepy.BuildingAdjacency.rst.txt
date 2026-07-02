@@ -1,6 +1,0 @@
-﻿momepy.BuildingAdjacency
-========================
-
-.. currentmodule:: momepy
-
-.. autofunction:: BuildingAdjacency

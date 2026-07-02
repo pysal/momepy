@@ -1,6 +1,0 @@
-﻿momepy.SegmentsLength
-=====================
-
-.. currentmodule:: momepy
-
-.. autofunction:: SegmentsLength

@@ -1,6 +1,0 @@
-﻿momepy.Blocks
-=============
-
-.. currentmodule:: momepy
-
-.. autofunction:: Blocks

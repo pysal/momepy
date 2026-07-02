@@ -1,6 +1,0 @@
-﻿momepy.StreetProfile
-====================
-
-.. currentmodule:: momepy
-
-.. autofunction:: StreetProfile

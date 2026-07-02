@@ -1,6 +1,0 @@
-﻿momepy.CourtyardArea
-====================
-
-.. currentmodule:: momepy
-
-.. autofunction:: CourtyardArea

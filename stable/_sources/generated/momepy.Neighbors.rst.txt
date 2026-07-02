@@ -1,6 +1,0 @@
-﻿momepy.Neighbors
-================
-
-.. currentmodule:: momepy
-
-.. autofunction:: Neighbors

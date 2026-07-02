@@ -1,6 +1,0 @@
-﻿momepy.CircularCompactness
-==========================
-
-.. currentmodule:: momepy
-
-.. autofunction:: CircularCompactness

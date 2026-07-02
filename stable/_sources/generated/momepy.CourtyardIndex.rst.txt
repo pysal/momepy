@@ -1,6 +1,0 @@
-﻿momepy.CourtyardIndex
-=====================
-
-.. currentmodule:: momepy
-
-.. autofunction:: CourtyardIndex

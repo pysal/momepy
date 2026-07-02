@@ -1,6 +1,0 @@
-﻿momepy.LongestAxisLength
-========================
-
-.. currentmodule:: momepy
-
-.. autofunction:: LongestAxisLength

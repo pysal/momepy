@@ -1,6 +1,0 @@
-﻿momepy.Count
-============
-
-.. currentmodule:: momepy
-
-.. autofunction:: Count

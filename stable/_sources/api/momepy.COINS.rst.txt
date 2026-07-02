@@ -6,19 +6,13 @@
 .. autoclass:: COINS
 
    
-   .. automethod:: __init__
-
    
    .. rubric:: Methods
 
    .. autosummary::
    
-      ~COINS.__init__
       ~COINS.stroke_attribute
       ~COINS.stroke_gdf
    
-   
 
-   
-   
    

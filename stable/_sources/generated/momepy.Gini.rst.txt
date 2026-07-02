@@ -1,6 +1,0 @@
-﻿momepy.Gini
-===========
-
-.. currentmodule:: momepy
-
-.. autofunction:: Gini

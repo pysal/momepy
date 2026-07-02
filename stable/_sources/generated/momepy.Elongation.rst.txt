@@ -1,6 +1,0 @@
-﻿momepy.Elongation
-=================
-
-.. currentmodule:: momepy
-
-.. autofunction:: Elongation

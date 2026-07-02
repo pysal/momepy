@@ -1,6 +1,0 @@
-﻿momepy.EquivalentRectangularIndex
-=================================
-
-.. currentmodule:: momepy
-
-.. autofunction:: EquivalentRectangularIndex

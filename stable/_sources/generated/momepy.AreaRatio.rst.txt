@@ -1,6 +1,0 @@
-﻿momepy.AreaRatio
-================
-
-.. currentmodule:: momepy
-
-.. autofunction:: AreaRatio

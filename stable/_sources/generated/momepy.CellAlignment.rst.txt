@@ -1,6 +1,0 @@
-﻿momepy.CellAlignment
-====================
-
-.. currentmodule:: momepy
-
-.. autofunction:: CellAlignment

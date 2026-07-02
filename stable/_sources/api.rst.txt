@@ -9,11 +9,6 @@
 momepy API reference
 ======================
 
-The current version of momepy includes two implementations of most of the functionality
-due to the ongoing migration period moving from the legacy class-based API to a new
-function-based API. This page outlines the stable API. For the legacy functionality, see
-:doc:`Legacy API  <legacy_api>`.
-
 Managing morphological elements
 -------------------------------
 .. _elements:
@@ -27,6 +22,7 @@ Momepy allows creation of a small subset of bespoke morphological geometric feat
    enclosed_tessellation
    enclosures
    generate_blocks
+   proximity_bands
 
 Additionally, it contains tools supporting these.
 
@@ -47,6 +43,7 @@ And tools linking various elements together.
 
 Measuring dimension
 -------------------
+
 
 A set of functions to measure dimensions of geometric elements:
 
@@ -206,10 +203,6 @@ Specialised class for the advanced streetscape analysis.
    :toctree: api/
 
    Streetscape
-   Streetscape.compute_plots
-   Streetscape.compute_slope
-   Streetscape.street_level
-   Streetscape.point_level
 
 Data preprocessing
 ------------------
@@ -236,9 +229,3 @@ Additionally, there are methods for data assessment.
 
 
 Further analysis can be done directly using methods available in :class:`libpysal.graph.Graph`.
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-
-   legacy_api

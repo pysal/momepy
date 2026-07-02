@@ -1,6 +1,0 @@
-﻿momepy.ShapeIndex
-=================
-
-.. currentmodule:: momepy
-
-.. autofunction:: ShapeIndex

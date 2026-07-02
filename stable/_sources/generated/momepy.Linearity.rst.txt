@@ -1,6 +1,0 @@
-﻿momepy.Linearity
-================
-
-.. currentmodule:: momepy
-
-.. autofunction:: Linearity

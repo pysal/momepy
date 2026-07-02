@@ -1,0 +1,6 @@
+﻿momepy.proximity\_bands
+=======================
+
+.. currentmodule:: momepy
+
+.. autofunction:: proximity_bands

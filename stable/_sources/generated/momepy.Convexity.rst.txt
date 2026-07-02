@@ -1,6 +1,0 @@
-﻿momepy.Convexity
-================
-
-.. currentmodule:: momepy
-
-.. autofunction:: Convexity

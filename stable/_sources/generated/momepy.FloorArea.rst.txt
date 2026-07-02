@@ -1,6 +1,0 @@
-﻿momepy.FloorArea
-================
-
-.. currentmodule:: momepy
-
-.. autofunction:: FloorArea

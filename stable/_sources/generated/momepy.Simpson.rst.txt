@@ -1,6 +1,0 @@
-﻿momepy.Simpson
-==============
-
-.. currentmodule:: momepy
-
-.. autofunction:: Simpson

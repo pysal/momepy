@@ -1,6 +1,0 @@
-﻿momepy.Corners
-==============
-
-.. currentmodule:: momepy
-
-.. autofunction:: Corners

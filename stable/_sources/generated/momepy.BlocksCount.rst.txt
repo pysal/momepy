@@ -1,6 +1,0 @@
-﻿momepy.BlocksCount
-==================
-
-.. currentmodule:: momepy
-
-.. autofunction:: BlocksCount

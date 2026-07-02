@@ -1,6 +1,0 @@
-﻿momepy.MeanInterbuildingDistance
-================================
-
-.. currentmodule:: momepy
-
-.. autofunction:: MeanInterbuildingDistance
