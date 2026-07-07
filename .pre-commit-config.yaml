@@ -17,11 +17,15 @@ repos:
     hooks:
       - id: yamllint
         files: "."
-        args: [
-          -d,
-          "{extends: default, ignore: .github/ISSUE_TEMPLATE/*}",
-          ".",
-        ]
+        args:
+          - -d
+          - |
+            extends: default
+            ignore: .github/ISSUE_TEMPLATE/*
+            rules:
+              line-length:
+                max: 88
+          - "."
 
 ci:
   autofix_prs: false
