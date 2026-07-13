@@ -362,7 +362,6 @@ def weighted_character(
     Measure the area-weighted character:
 
     >>> momepy.weighted_character(elongation, buildings.area, knn5)
-    focal
     0      0.808190
     1      0.817306
     2      0.627589

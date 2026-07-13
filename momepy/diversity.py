@@ -470,13 +470,12 @@ def theil(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
     Theil index of building area within 5 nearest neighbors:
 
     >>> momepy.theil(buildings.area, knn5)
-    focal
     0      0.106079
     1      0.023256
     2      0.800522
     3      0.016015
     4      0.013829
-            ...
+             ...
     139    0.547522
     140    0.041755
     141    0.098827
@@ -488,13 +487,12 @@ def theil(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
     specified percentile range (``q``).
 
     >>> momepy.theil(buildings.area, knn5, q=(25, 75))
-    focal
     0      1.144550e-02
     1      3.121656e-06
     2      1.295882e-02
     3      1.772730e-07
     4      2.913017e-06
-            ...
+               ...
     139    5.402548e-01
     140    6.658486e-03
     141    3.330720e-02
@@ -590,13 +588,12 @@ def simpson(
     Simpson index of building area within 5 nearest neighbors:
 
     >>> momepy.simpson(buildings.area, knn5)
-    focal
     0      1.00
     1      0.68
     2      0.36
     3      0.68
     4      0.68
-        ...
+           ...
     139    0.68
     140    0.44
     141    0.44
@@ -607,13 +604,12 @@ def simpson(
     In some occasions, you may want to override the binning method:
 
     >>> momepy.simpson(buildings.area, knn5, binning="fisher_jenks", k=8)
-    focal
     0      0.28
     1      0.68
     2      0.36
     3      0.68
     4      0.68
-        ...
+           ...
     139    0.44
     140    0.28
     141    0.28
@@ -719,13 +715,12 @@ def shannon(
     Shannon index of building area within 5 nearest neighbors:
 
     >>> momepy.shannon(buildings.area, knn5)
-    focal
     0     -0.000000
     1      0.500402
     2      1.054920
     3      0.500402
     4      0.500402
-            ...
+             ...
     139    0.500402
     140    0.950271
     141    0.950271
@@ -736,13 +731,12 @@ def shannon(
     In some occasions, you may want to override the binning method:
 
     >>> momepy.shannon(buildings.area, knn5, binning="fisher_jenks", k=8)
-    focal
     0      1.332179
     1      0.500402
     2      1.054920
     3      0.500402
     4      0.500402
-            ...
+             ...
     139    0.950271
     140    1.332179
     141    1.332179
@@ -819,13 +813,12 @@ def gini(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
     Gini index of building area within 5 nearest neighbors:
 
     >>> momepy.gini(buildings.area, knn5)
-    focal
     0      0.228493
     1      0.102110
     2      0.605867
     3      0.085589
     4      0.080435
-            ...
+             ...
     139    0.525724
     140    0.156737
     141    0.239009
@@ -837,13 +830,12 @@ def gini(y: Series, graph: Graph, q: tuple | list | None = None) -> Series:
     specified percentile range (``q``).
 
     >>> momepy.gini(buildings.area, knn5, q=(25, 75))
-    focal
     0      0.073817
     1      0.001264
     2      0.077521
     3      0.000321
     4      0.001264
-            ...
+             ...
     139    0.505618
     140    0.055096
     141    0.130501
