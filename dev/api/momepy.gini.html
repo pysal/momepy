@@ -1702,7 +1702,7 @@
 <h1 id="momepy-gini">momepy.gini<a class="headerlink" href="#momepy-gini" title="Link to this heading">¶</a></h1>
 <dl class="py function objdesc">
 <dt class="sig sig-object highlight py" id="momepy.gini">
-<span class="sig-prename descclassname"><span class="pre">momepy.</span></span><span class="sig-name descname"><span class="pre">gini</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.gini.y" title="momepy.gini.y (Python parameter) — A DataFrame or Series containing the values to be analysed."><span class="n"><span class="pre">y</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.gini.graph" title="momepy.gini.graph (Python parameter) — A spatial weights matrix for the data."><span class="n"><span class="pre">graph</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.gini.q" title="momepy.gini.q (Python parameter) — A two-element sequence containing floats between 0 and 100 (inclusive) that are the percentiles over which to compute the range. The order of the elements is not important."><span class="n"><span class="pre">q</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/main/momepy/diversity.py#L774-L870"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.gini" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">momepy.</span></span><span class="sig-name descname"><span class="pre">gini</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.gini.y" title="momepy.gini.y (Python parameter) — A DataFrame or Series containing the values to be analysed."><span class="n"><span class="pre">y</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.gini.graph" title="momepy.gini.graph (Python parameter) — A spatial weights matrix for the data."><span class="n"><span class="pre">graph</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#momepy.gini.q" title="momepy.gini.q (Python parameter) — A two-element sequence containing floats between 0 and 100 (inclusive) that are the percentiles over which to compute the range. The order of the elements is not important."><span class="n"><span class="pre">q</span></span></a><span class="o"><span class="pre">=</span></span><code class="code python default_value docutils literal highlight highlight-python"><span class="kc">None</span></code></em></span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/pysal/momepy/blob/main/momepy/diversity.py#L768-L862"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#momepy.gini" title="Link to this definition">¶</a></dt>
 <dd><p>Calculates the Gini index of values within neighbours defined in <code class="docutils literal notranslate"><span class="pre">graph</span></code>.
 Uses <code class="docutils literal notranslate"><span class="pre">inequality.gini.Gini</span></code> under the hood. Requires ‘<cite>inequality</cite>’ package.</p>
 <p class="rubric">Notes</p>
@@ -1750,13 +1750,12 @@ The order of the elements is not important.</p>
 </div>
 <p>Gini index of building area within 5 nearest neighbors:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">momepy</span><span class="o">.</span><span class="n">gini</span><span class="p">(</span><span class="n">buildings</span><span class="o">.</span><span class="n">area</span><span class="p">,</span> <span class="n">knn5</span><span class="p">)</span>
-<span class="go">focal</span>
 <span class="go">0      0.228493</span>
 <span class="go">1      0.102110</span>
 <span class="go">2      0.605867</span>
 <span class="go">3      0.085589</span>
 <span class="go">4      0.080435</span>
-<span class="go">        ...</span>
+<span class="go">         ...</span>
 <span class="go">139    0.525724</span>
 <span class="go">140    0.156737</span>
 <span class="go">141    0.239009</span>
@@ -1768,13 +1767,12 @@ The order of the elements is not important.</p>
 <p>To eliminate the effect of outliers, you can take into account only values within a
 specified percentile range (<code class="docutils literal notranslate"><span class="pre">q</span></code>).</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">momepy</span><span class="o">.</span><span class="n">gini</span><span class="p">(</span><span class="n">buildings</span><span class="o">.</span><span class="n">area</span><span class="p">,</span> <span class="n">knn5</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">75</span><span class="p">))</span>
-<span class="go">focal</span>
 <span class="go">0      0.073817</span>
 <span class="go">1      0.001264</span>
 <span class="go">2      0.077521</span>
 <span class="go">3      0.000321</span>
 <span class="go">4      0.001264</span>
-<span class="go">        ...</span>
+<span class="go">         ...</span>
 <span class="go">139    0.505618</span>
 <span class="go">140    0.055096</span>
 <span class="go">141    0.130501</span>
