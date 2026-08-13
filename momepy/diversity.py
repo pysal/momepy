@@ -11,7 +11,7 @@ try:
     HAS_NUMBA = True
 except (ModuleNotFoundError, ImportError):
     HAS_NUMBA = False
-    from libpysal.common import jit as njit
+    from libpysal.common import jit as njit  # type: ignore
 
 from libpysal.graph._utils import (
     _compute_stats,
