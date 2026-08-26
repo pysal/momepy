@@ -1,3 +1,5 @@
+import warnings
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -169,6 +171,31 @@ class TestDimensions:
         assert mm.street_profile(lines, blg, height=blg["height"], distance=2)[
             "hw_ratio"
         ].equals(pd.Series([np.nan, 0.35]))
+
+    def test_street_profile_geographic_crs_warns(self):
+        # https://github.com/pysal/momepy/issues/369
+        # ticks are generated in CRS units, so degrees silently yield
+        # meaningless widths instead of metres
+        streets = self.df_streets.to_crs(4326)
+        buildings = self.df_buildings.to_crs(4326)
+        with pytest.warns(
+            UserWarning,
+            match="Geometry is in a geographic CRS. Results from 'street_profile'",
+        ):
+            mm.street_profile(streets, buildings)
+
+    def test_street_profile_projected_crs_does_not_warn(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", UserWarning)
+            mm.street_profile(self.df_streets, self.df_buildings)
+
+    def test_street_profile_missing_crs_does_not_warn(self):
+        # an unset CRS is not reported, matching geopandas
+        streets = self.df_streets.set_crs(None, allow_override=True)
+        buildings = self.df_buildings.set_crs(None, allow_override=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", UserWarning)
+            mm.street_profile(streets, buildings)
 
     def test_weighted_char(self):
         weighted = mm.weighted_character(
