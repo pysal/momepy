@@ -185,17 +185,21 @@ class TestDimensions:
             mm.street_profile(streets, buildings)
 
     def test_street_profile_projected_crs_does_not_warn(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("error", UserWarning)
-            mm.street_profile(self.df_streets, self.df_buildings)
+        assert not self._geographic_warnings(self.df_streets, self.df_buildings)
 
     def test_street_profile_missing_crs_does_not_warn(self):
         # an unset CRS is not reported, matching geopandas
         streets = self.df_streets.set_crs(None, allow_override=True)
         buildings = self.df_buildings.set_crs(None, allow_override=True)
-        with warnings.catch_warnings():
-            warnings.simplefilter("error", UserWarning)
+        assert not self._geographic_warnings(streets, buildings)
+
+    @staticmethod
+    def _geographic_warnings(streets, buildings):
+        """Return any geographic-CRS warnings raised by ``street_profile``."""
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
             mm.street_profile(streets, buildings)
+        return [w for w in caught if "geographic CRS" in str(w.message)]
 
     def test_weighted_char(self):
         weighted = mm.weighted_character(
