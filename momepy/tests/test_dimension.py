@@ -187,3 +187,37 @@ class TestDimensions:
             check_names=False,
             exact=False,
         )
+
+
+class TestGeographicCRSWarning:
+    def setup_method(self):
+        test_file_path = mm.datasets.get_path("bubenec")
+        self.buildings = gpd.read_file(test_file_path, layer="buildings")
+        self.streets = gpd.read_file(test_file_path, layer="streets")
+        self.buildings_ll = self.buildings.to_crs(4326)
+        self.streets_ll = self.streets.to_crs(4326)
+
+    def test_courtyard_area(self):
+        with pytest.warns(UserWarning, match="geographic CRS"):
+            mm.courtyard_area(self.buildings_ll)
+
+    def test_longest_axis_length(self):
+        with pytest.warns(UserWarning, match="geographic CRS"):
+            mm.longest_axis_length(self.buildings_ll)
+
+    def test_perimeter_wall(self):
+        with pytest.warns(UserWarning, match="geographic CRS"):
+            mm.perimeter_wall(self.buildings_ll)
+
+    def test_street_profile(self):
+        with pytest.warns(UserWarning, match="geographic CRS"):
+            mm.street_profile(self.streets_ll, self.buildings_ll)
+
+    def test_no_warning_projected(self, recwarn):
+        mm.longest_axis_length(self.buildings)
+        mm.courtyard_area(self.buildings)
+        assert not [w for w in recwarn if "geographic CRS" in str(w.message)]
+
+    def test_no_warning_without_crs(self, recwarn):
+        mm.longest_axis_length(self.buildings.set_crs(None, allow_override=True))
+        assert not [w for w in recwarn if "geographic CRS" in str(w.message)]
