@@ -8,6 +8,8 @@ from libpysal.graph import Graph
 from numpy.typing import NDArray
 from pandas import DataFrame, Series
 
+from .utils import _warn_geographic_crs
+
 __all__ = [
     "volume",
     "floor_area",
@@ -158,6 +160,7 @@ def courtyard_area(geometry: GeoDataFrame | GeoSeries) -> Series:
     >>> ca.sum()
     np.float64(353.33274206543274)
     """
+    _warn_geographic_crs(geometry)
     return Series(
         shapely.area(
             shapely.polygons(shapely.get_exterior_ring(geometry.geometry.array))
@@ -205,6 +208,7 @@ def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
     143     15.472821
     Name: geometry, Length: 144, dtype: float64
     """
+    _warn_geographic_crs(geometry)
     return shapely.minimum_bounding_radius(geometry.geometry) * 2
 
 
@@ -269,6 +273,7 @@ def perimeter_wall(
     143    342.909172
     Name: perimeter_wall, Length: 144, dtype: float64
     """
+    _warn_geographic_crs(geometry)
 
     if graph is None:
         graph = Graph.build_contiguity(geometry, rook=False)
@@ -457,6 +462,7 @@ def street_profile(
     3  50.000000  1.000000              NaN        NaN               NaN       NaN
     4  50.000000  1.000000              NaN        NaN               NaN       NaN
     """
+    _warn_geographic_crs(streets, buildings)
 
     # filter relevant buildings and streets
     inp, res = shapely.STRtree(streets.geometry).query(

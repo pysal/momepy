@@ -17,6 +17,27 @@ __all__ = [
 ]
 
 
+def _warn_geographic_crs(*objects, stacklevel=3):
+    """Warn if any of the inputs is in a geographic CRS.
+
+    Measurements such as area, length or distance are expressed in degrees for
+    geographic coordinate reference systems, so results of morphometric
+    characters are most likely meaningless. Inputs without a CRS or objects
+    without a ``crs`` attribute are ignored.
+    """
+    for obj in objects:
+        crs = getattr(obj, "crs", None)
+        if crs is not None and crs.is_geographic:
+            warnings.warn(
+                "The input geometry is in a geographic CRS. Results are likely "
+                "incorrect. Use 'to_crs()' to re-project geometries to a projected "
+                "CRS before this operation.",
+                UserWarning,
+                stacklevel=stacklevel,
+            )
+            return
+
+
 def unique_id(objects):
     """
     Add an attribute with a unique ID to each row of a GeoDataFrame.
