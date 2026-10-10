@@ -562,3 +562,33 @@ def _azimuth(point1, point2):
     """Return the azimuth between 2 shapely points (interval 0 - 180)."""
     angle = np.arctan2(point2[0] - point1[0], point2[1] - point1[1])
     return np.degrees(angle) % 180
+
+
+def _warn_if_geographic(gdf, func_name):
+    """Warn when a planar measurement is requested on a geographic CRS.
+
+    Distances and areas derived from longitude/latitude are expressed in degrees,
+    so any function measuring in linear units returns meaningless values. This
+    mirrors the warning ``geopandas`` raises for its own planar operations.
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame | GeoSeries
+        The object whose ``crs`` is checked. A missing CRS is not reported,
+        matching ``geopandas`` behaviour.
+    func_name : str
+        The name of the calling momepy function, used in the warning message.
+
+    Returns
+    -------
+    None
+    """
+    if gdf.crs and gdf.crs.is_geographic:
+        warnings.warn(
+            "Geometry is in a geographic CRS. Results from "
+            f"'{func_name}' are likely incorrect. Use "
+            "'GeoDataFrame.to_crs()' to re-project geometries to a "
+            "projected CRS before this operation.",
+            UserWarning,
+            stacklevel=3,
+        )
