@@ -20,7 +20,7 @@ from tqdm.auto import tqdm
 from .coins import COINS
 from .graph import node_degree
 from .shape import circular_compactness
-from .utils import gdf_to_nx, nx_to_gdf
+from .utils import gdf_to_nx, nx_to_gdf, warn_geographic_crs
 
 __all__ = [
     "preprocess",
@@ -34,6 +34,7 @@ __all__ = [
 ]
 
 
+@warn_geographic_crs
 def preprocess(
     buildings, size=30, compactness=0.2, islands=True, loops=2, verbose=True
 ):
@@ -84,7 +85,7 @@ def preprocess(
         "Use the explicit tools available in the package `geoplanar`. "
         "See https://geoplanar.readthedocs.io for details.",
         FutureWarning,
-        stacklevel=2,
+        stacklevel=3,
     )
     blg = buildings.copy()
     blg = blg.explode(ignore_index=True)
@@ -167,6 +168,7 @@ def preprocess(
     return blg[buildings.columns]
 
 
+@warn_geographic_crs
 def remove_false_nodes(gdf):
     """
     Clean topology of existing LineString geometry by removal of nodes of degree 2.
@@ -193,7 +195,7 @@ def remove_false_nodes(gdf):
         "as `neatnet.remove_interstitial_nodes`. See https://uscuni.org/neatnet for "
         "details.",
         FutureWarning,
-        stacklevel=2,
+        stacklevel=3,
     )
     if isinstance(gdf, gpd.GeoDataFrame | gpd.GeoSeries):
         # explode to avoid MultiLineStrings
@@ -358,6 +360,7 @@ class CheckTessellationInput:
 
     warnings.filterwarnings("ignore", "GeoSeries.isna", UserWarning)
 
+    @warn_geographic_crs
     def __init__(self, gdf, shrink=0.4, collapse=True, split=True, overlap=True):
         data = gdf[~gdf.is_empty]
 
@@ -419,6 +422,7 @@ class CheckTessellationInput:
         )
 
 
+@warn_geographic_crs
 def close_gaps(gdf, tolerance):
     """Close gaps in LineString geometry where it should be contiguous.
 
@@ -446,7 +450,7 @@ def close_gaps(gdf, tolerance):
         "function has been moved to the `neatnet` package and can be used "
         "as `neatnet.close_gaps`. See https://uscuni.org/neatnet for details.",
         FutureWarning,
-        stacklevel=2,
+        stacklevel=3,
     )
     geom = gdf.geometry.array
     coords = shapely.get_coordinates(geom)
@@ -479,6 +483,7 @@ def close_gaps(gdf, tolerance):
     return gpd.GeoSeries(snapped, crs=gdf.crs)
 
 
+@warn_geographic_crs
 def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
     """Extends lines from gdf to itself or target within a set tolerance
 
@@ -523,7 +528,7 @@ def extend_lines(gdf, tolerance, target=None, barrier=None, extension=0):
         "function has been moved to the `neatnet` package and can be used "
         "as `neatnet.extend_lines`. See https://uscuni.org/neatnet for details.",
         FutureWarning,
-        stacklevel=2,
+        stacklevel=3,
     )
     # explode to avoid MultiLineStrings
     # reset index due to the bug in GeoPandas explode
@@ -1000,6 +1005,7 @@ def _ext_lines_to_center(edges, incoming_all, idx_out):
     return new_edges
 
 
+@warn_geographic_crs
 def roundabout_simplification(
     edges,
     polys=None,
@@ -1074,7 +1080,7 @@ def roundabout_simplification(
         "The functionality has been superseded by the `neatnet` package. "
         " See https://uscuni.org/neatnet for details.",
         FutureWarning,
-        stacklevel=2,
+        stacklevel=3,
     )
 
     if len(edges[edges.geom_type != "LineString"]) > 0:
@@ -1622,6 +1628,7 @@ class FaceArtifacts:
     is virtually guaranteed to not happen in practice.
     """
 
+    @warn_geographic_crs
     def __init__(
         self,
         gdf,
@@ -1635,7 +1642,7 @@ class FaceArtifacts:
             "class has been moved to the `neatnet` package and can be used "
             "as `neatnet.FaceArtifacts`. See https://uscuni.org/neatnet for details.",
             FutureWarning,
-            stacklevel=2,
+            stacklevel=3,
         )
         try:
             from esda import shape
@@ -1660,7 +1667,7 @@ class FaceArtifacts:
                 "Input roads could not not be polygonized. "
                 "Identification of face artifacts not possible.",
                 UserWarning,
-                stacklevel=2,
+                stacklevel=3,
             )
             self.kde = None
             self.pdf = None
@@ -1767,7 +1774,7 @@ class FaceArtifacts:
                 "distribution of the face artifact index does not follow the "
                 "expected shape.",
                 UserWarning,
-                stacklevel=2,
+                stacklevel=3,
             )
             self.threshold = None
             self.face_artifacts = None

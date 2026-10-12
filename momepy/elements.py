@@ -14,6 +14,8 @@ from libpysal.graph import Graph
 from pandas import MultiIndex, Series
 from shapely.geometry.base import BaseGeometry
 
+from .utils import warn_geographic_crs
+
 __all__ = [
     "morphological_tessellation",
     "enclosed_tessellation",
@@ -28,6 +30,7 @@ __all__ = [
 ]
 
 
+@warn_geographic_crs
 def morphological_tessellation(
     geometry: GeoSeries | GeoDataFrame,
     clip: str | shapely.Geometry | GeoSeries | GeoDataFrame | None = "bounding_box",
@@ -126,7 +129,7 @@ def morphological_tessellation(
                 " will be removed in a future release."
             ),
             UserWarning,
-            stacklevel=2,
+            stacklevel=3,
         )
 
     if isinstance(geometry.index, MultiIndex):
@@ -157,12 +160,13 @@ def morphological_tessellation(
             "Geometry simplification failed with the following error."
             f" Returning original dense output.\n\n{e}",
             UserWarning,
-            stacklevel=2,
+            stacklevel=3,
         )
 
     return mt
 
 
+@warn_geographic_crs
 def enclosed_tessellation(
     geometry: GeoSeries | GeoDataFrame,
     enclosures: GeoSeries | GeoDataFrame,
@@ -312,7 +316,7 @@ def enclosed_tessellation(
                 " will be removed in a future release."
             ),
             UserWarning,
-            stacklevel=2,
+            stacklevel=3,
         )
     if isinstance(geometry.index, MultiIndex):
         raise ValueError(
@@ -905,6 +909,7 @@ def _assign_adjacent_seed_cells(
     return new_states
 
 
+@warn_geographic_crs
 def verify_tessellation(tessellation, geometry):
     """Check whether result matches buildings and contains only Polygons.
 
@@ -963,7 +968,7 @@ def verify_tessellation(tessellation, geometry):
                 f"during generation. Index of the affected elements: {collapsed}."
             ),
             category=UserWarning,
-            stacklevel=2,
+            stacklevel=3,
         )
 
     # check MultiPolygons - usually caused by error in input geometry
@@ -978,11 +983,12 @@ def verify_tessellation(tessellation, geometry):
                 f"elements: {list(multipolygons)}."
             ),
             category=UserWarning,
-            stacklevel=2,
+            stacklevel=3,
         )
     return collapsed, multipolygons
 
 
+@warn_geographic_crs
 def get_nearest_street(
     buildings: GeoSeries | GeoDataFrame,
     streets: GeoSeries | GeoDataFrame,
@@ -1042,6 +1048,7 @@ def get_nearest_street(
     return ids
 
 
+@warn_geographic_crs
 def get_nearest_node(
     buildings: GeoSeries | GeoDataFrame,
     nodes: GeoDataFrame,
@@ -1133,6 +1140,7 @@ def get_nearest_node(
     return pd.Series(a, index=buildings.index)
 
 
+@warn_geographic_crs
 def generate_blocks(
     tessellation: GeoDataFrame, edges: GeoDataFrame, buildings: GeoDataFrame
 ) -> tuple[GeoDataFrame, Series]:
@@ -1243,6 +1251,7 @@ def generate_blocks(
     return blocks, tessellation_id
 
 
+@warn_geographic_crs
 def buffered_limit(
     gdf: GeoDataFrame | GeoSeries,
     buffer: float | str = 100,
@@ -1308,6 +1317,7 @@ def buffered_limit(
     return gdf.buffer(buffer, **kwargs).union_all()
 
 
+@warn_geographic_crs
 def get_network_ratio(df, edges, initial_buffer=500):
     """
     Link polygons to network edges based on the proportion of overlap (if a cell
@@ -1399,6 +1409,7 @@ def get_network_ratio(df, edges, initial_buffer=500):
     return result
 
 
+@warn_geographic_crs
 def enclosures(
     primary_barriers,
     limit=None,
@@ -1485,6 +1496,7 @@ def enclosures(
     return final_enclosures
 
 
+@warn_geographic_crs
 def proximity_bands(
     geometry: GeoSeries | GeoDataFrame,
     band: float | int = 20,
@@ -1580,7 +1592,7 @@ def proximity_bands(
             "Geometry simplification failed with the following error."
             f" Returning original dense output.\n\n{e}",
             UserWarning,
-            stacklevel=2,
+            stacklevel=3,
         )
 
     if single_sided:
