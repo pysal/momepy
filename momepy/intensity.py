@@ -3,9 +3,12 @@ from geopandas import GeoDataFrame, GeoSeries
 from libpysal.graph import Graph
 from pandas import Series
 
+from .utils import warn_geographic_crs
+
 __all__ = ["courtyards"]
 
 
+@warn_geographic_crs
 def courtyards(
     geometry: GeoDataFrame | GeoSeries, graph: Graph, buffer: float = 0.01
 ) -> Series:

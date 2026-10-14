@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import functools
 import math
 import warnings
 
@@ -15,6 +16,33 @@ __all__ = [
     "nx_to_gdf",
     "limit_range",
 ]
+
+
+def warn_geographic_crs(func):
+    """Warn when a geometry input of the decorated function is in a geographic CRS.
+
+    Morphometric characters (areas, lengths, distances) are expressed in degrees
+    for geographic coordinate reference systems, so the results are most likely
+    meaningless. Every argument that has a ``crs`` attribute is checked. Inputs
+    without a CRS are ignored.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        for obj in (*args, *kwargs.values()):
+            crs = getattr(obj, "crs", None)
+            if crs is not None and crs.is_geographic:
+                warnings.warn(
+                    "The input geometry is in a geographic CRS. Results are likely "
+                    "incorrect. Use 'to_crs()' to re-project geometries to a "
+                    "projected CRS before this operation.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                break
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 def unique_id(objects):

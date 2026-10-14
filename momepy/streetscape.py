@@ -16,6 +16,7 @@ import shapely
 from shapely import LineString
 
 import momepy
+from momepy.utils import warn_geographic_crs
 
 
 class Streetscape:
@@ -141,6 +142,7 @@ class Streetscape:
     characters but is several orders of magnitude faster.
     """
 
+    @warn_geographic_crs
     def __init__(
         self,
         streets: gpd.GeoDataFrame,

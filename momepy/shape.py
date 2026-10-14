@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 from pandas import DataFrame, MultiIndex, Series
 
 from momepy import dimension as _dimension
+from momepy.utils import warn_geographic_crs
 
 __all__ = [
     "form_factor",
@@ -27,6 +28,7 @@ __all__ = [
 ]
 
 
+@warn_geographic_crs
 def form_factor(
     geometry: GeoDataFrame | GeoSeries,
     height: NDArray[np.float64] | Series,
@@ -89,6 +91,7 @@ def form_factor(
     return Series(res, index=geometry.index, name="form_factor")
 
 
+@warn_geographic_crs
 def fractal_dimension(
     geometry: GeoDataFrame | GeoSeries,
 ) -> Series:
@@ -129,6 +132,7 @@ def fractal_dimension(
     return (2 * np.log(geometry.length / 4)) / np.log(geometry.area)
 
 
+@warn_geographic_crs
 def facade_ratio(
     geometry: GeoDataFrame | GeoSeries,
 ) -> Series:
@@ -170,6 +174,7 @@ def facade_ratio(
     return geometry.area / geometry.length
 
 
+@warn_geographic_crs
 def circular_compactness(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the circular compactness of each object given its geometry.
 
@@ -210,6 +215,7 @@ def circular_compactness(geometry: GeoDataFrame | GeoSeries) -> Series:
     )
 
 
+@warn_geographic_crs
 def square_compactness(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the square compactness of each object given its geometry.
 
@@ -250,6 +256,7 @@ def square_compactness(geometry: GeoDataFrame | GeoSeries) -> Series:
     return ((np.sqrt(geometry.area) * 4) / geometry.length) ** 2
 
 
+@warn_geographic_crs
 def convexity(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the convexity of each object given its geometry.
 
@@ -288,6 +295,7 @@ def convexity(geometry: GeoDataFrame | GeoSeries) -> Series:
     return geometry.area / geometry.geometry.convex_hull.area
 
 
+@warn_geographic_crs
 def courtyard_index(
     geometry: GeoDataFrame | GeoSeries,
     courtyard_area: NDArray[np.float64] | Series | None = None,
@@ -354,6 +362,7 @@ def courtyard_index(
     return courtyard_area / geometry.area
 
 
+@warn_geographic_crs
 def rectangularity(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the rectangularity of each object given its geometry.
 
@@ -394,6 +403,7 @@ def rectangularity(geometry: GeoDataFrame | GeoSeries) -> Series:
     )
 
 
+@warn_geographic_crs
 def shape_index(
     geometry: GeoDataFrame | GeoSeries,
     longest_axis_length: NDArray[np.float64] | Series | None = None,
@@ -473,6 +483,7 @@ def _check_no_multipolygons(geometry: GeoDataFrame | GeoSeries, func_name: str) 
         )
 
 
+@warn_geographic_crs
 def corners(
     geometry: GeoDataFrame | GeoSeries,
     eps: float = 10,
@@ -536,6 +547,7 @@ def corners(
     return cc
 
 
+@warn_geographic_crs
 def squareness(
     geometry: GeoDataFrame | GeoSeries,
     eps: float = 10,
@@ -600,6 +612,7 @@ def squareness(
     return sq
 
 
+@warn_geographic_crs
 def equivalent_rectangular_index(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the equivalent rectangular index of each object given its geometry.
 
@@ -642,6 +655,7 @@ def equivalent_rectangular_index(geometry: GeoDataFrame | GeoSeries) -> Series:
     )
 
 
+@warn_geographic_crs
 def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the elongation of each object given its geometry.
 
@@ -696,6 +710,7 @@ def elongation(geometry: GeoDataFrame | GeoSeries) -> Series:
     return Series(res, index=geometry.index, name="elongation")
 
 
+@warn_geographic_crs
 def centroid_corner_distance(
     geometry: GeoDataFrame | GeoSeries,
     eps: float = 10,
@@ -757,6 +772,7 @@ def centroid_corner_distance(
     return ccd
 
 
+@warn_geographic_crs
 def linearity(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the linearity of each LineString
 
@@ -802,6 +818,7 @@ def linearity(geometry: GeoDataFrame | GeoSeries) -> Series:
     )
 
 
+@warn_geographic_crs
 def compactness_weighted_axis(
     geometry: GeoDataFrame | GeoSeries,
     longest_axis_length: NDArray[np.float64] | Series | None = None,
@@ -906,6 +923,7 @@ def _true_angles_mask(
     return np.logical_or(degrees <= 180 - eps, degrees >= 180 + eps)
 
 
+@warn_geographic_crs
 def sunlight_optimised(
     geometry, graph, fr_ratio=8, elongation_ratio=0.9, min_courtyard_area=1
 ):

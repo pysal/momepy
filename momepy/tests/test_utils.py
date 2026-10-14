@@ -241,3 +241,43 @@ class TestUtils:
             mm.limit_range(np.array([np.nan, np.nan, np.nan]), rng=(25, 75)),
             np.array([np.nan, np.nan, np.nan]),
         )
+
+
+class TestWarnGeographicCRS:
+    def setup_method(self):
+        test_file_path = mm.datasets.get_path("bubenec")
+        self.gdf = gpd.read_file(test_file_path, layer="buildings")
+
+    @staticmethod
+    @mm.utils.warn_geographic_crs
+    def _func(geometry, other=None):
+        """Docstring."""
+        return len(geometry) if other is None else len(other)
+
+    def test_warns_geographic(self):
+        with pytest.warns(UserWarning, match="geographic CRS"):
+            assert self._func(self.gdf.to_crs(4326)) == len(self.gdf)
+
+    def test_warns_geographic_keyword_and_second_argument(self):
+        ll = self.gdf.to_crs(4326)
+        with pytest.warns(UserWarning, match="geographic CRS"):
+            self._func(self.gdf, other=ll)
+        with pytest.warns(UserWarning, match="geographic CRS"):
+            self._func(geometry=ll)
+
+    def test_no_warning_projected(self, recwarn):
+        self._func(self.gdf)
+        assert not recwarn.list
+
+    def test_no_warning_without_crs(self, recwarn):
+        self._func(self.gdf.set_crs(None, allow_override=True))
+        self._func([1, 2, 3])
+        assert not recwarn.list
+
+    def test_preserves_metadata(self):
+        assert self._func.__name__ == "_func"
+        assert self._func.__doc__ == "Docstring."
+
+    def test_applied_to_public_functions(self):
+        with pytest.warns(UserWarning, match="geographic CRS"):
+            mm.longest_axis_length(self.gdf.to_crs(4326))
