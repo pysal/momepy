@@ -207,25 +207,12 @@ Specialised class for the advanced streetscape analysis.
 Data preprocessing
 ------------------
 
-Most of the algorithms have certain expectations about the quality of input data. The
-`preprocessing` module helps adapting the input data and fixing common issues.
-
-.. autosummary::
-   :toctree: api/
-
-   close_gaps
-   extend_lines
-   remove_false_nodes
-   consolidate_intersections
-   roundabout_simplification
-
-Additionally, there are methods for data assessment.
+Methods for data assessment.
 
 .. autosummary::
    :toctree: api/
 
    CheckTessellationInput
-   FaceArtifacts
 
 
 Further analysis can be done directly using methods available in :class:`libpysal.graph.Graph`.
