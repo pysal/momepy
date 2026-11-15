@@ -695,7 +695,7 @@ class Streetscape:
                     left_seq_sightlines_end_points.append(endpoint)
                     left_sl_distance_total += match_sl_distance
                     left_sl_cr_total += sl_cr_total
-                    if match_sl_building_id:
+                    if match_sl_building_id is not None:
                         left_sl_building_count += 1
                         left_sl_building_sb.append(match_sl_distance)
                         left_sl_building_sb_heights.append(match_sl_building_height)
@@ -714,7 +714,7 @@ class Streetscape:
                     right_seq_sightlines_end_points.append(endpoint)
                     right_sl_distance_total += match_sl_distance
                     right_sl_cr_total += sl_cr_total
-                    if match_sl_building_id:
+                    if match_sl_building_id is not None:
                         right_sl_building_count += 1
                         right_sl_building_sb.append(match_sl_distance)
                         right_sl_building_sb_heights.append(match_sl_building_height)
