@@ -94,7 +94,7 @@ html_theme_options = {
     },
     "site_url": "https://docs.momepy.org",
     "repo_url": "https://github.com/pysal/momepy/",
-    "edit_uri": "blob/main/docs",
+    "edit_uri": "blob/main/docs/source",
     "repo_name": "pysal/momepy",
     "features": [
         # "navigation.expand",
