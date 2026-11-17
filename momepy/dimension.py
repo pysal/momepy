@@ -8,6 +8,8 @@ from libpysal.graph import Graph
 from numpy.typing import NDArray
 from pandas import DataFrame, Series
 
+from .utils import warn_geographic_crs
+
 __all__ = [
     "volume",
     "floor_area",
@@ -122,6 +124,7 @@ def floor_area(
     return area * (height // floor_height)
 
 
+@warn_geographic_crs
 def courtyard_area(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates area of holes within geometry - area of courtyards.
 
@@ -168,6 +171,7 @@ def courtyard_area(geometry: GeoDataFrame | GeoSeries) -> Series:
     )
 
 
+@warn_geographic_crs
 def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculates the length of the longest axis of object.
 
@@ -208,6 +212,7 @@ def longest_axis_length(geometry: GeoDataFrame | GeoSeries) -> Series:
     return shapely.minimum_bounding_radius(geometry.geometry) * 2
 
 
+@warn_geographic_crs
 def perimeter_wall(
     geometry: GeoDataFrame | GeoSeries, graph: Graph | None = None, buffer: float = 0.01
 ) -> Series:
@@ -382,6 +387,7 @@ def weighted_character(
     return stats / agg_area
 
 
+@warn_geographic_crs
 def street_profile(
     streets: GeoDataFrame,
     buildings: GeoDataFrame,

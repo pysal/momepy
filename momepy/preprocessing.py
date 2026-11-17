@@ -6,6 +6,8 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
+from .utils import warn_geographic_crs
+
 __all__ = [
     "CheckTessellationInput",
 ]
@@ -66,6 +68,7 @@ class CheckTessellationInput:
 
     warnings.filterwarnings("ignore", "GeoSeries.isna", UserWarning)
 
+    @warn_geographic_crs
     def __init__(self, gdf, shrink=0.4, collapse=True, split=True, overlap=True):
         data = gdf[~gdf.is_empty]
 
