@@ -1,5 +1,6 @@
 import geopandas as gpd
 import pytest
+from shapely.geometry import LineString
 
 import momepy as mm
 
@@ -108,6 +109,102 @@ class TestGraph:
             "closeness"
         ] == pytest.approx(check2)
 
+    def test_closeness_centrality_angular(self):
+        # GH #463: angular closeness centrality on the dual graph must
+        # match the hand calculation reported in the issue. The network is
+        # the seven-segment example from the report (segments are the dual
+        # nodes, numbered 1-7 in the report). The hand-calculated values
+        # are Cc1 = 0.009318217, Cc2 = 0.010 and Cc3 = 0.008379888.
+        lines = [
+            [
+                (297108.3850011958, -785292.0947180807),
+                (297180.5067213175, -785260.8175321289),
+            ],
+            [
+                (297244.8884953555, -785230.7877799053),
+                (297180.5067213175, -785260.8175321289),
+            ],
+            [
+                (297110.80210419616, -785160.477173293),
+                (297180.5067213175, -785260.8175321289),
+            ],
+            [
+                (297042.3441068098, -785190.6891610724),
+                (297108.3850011958, -785292.0947180807),
+            ],
+            [
+                (297178.32290327916, -785127.9463243468),
+                (297244.8884953555, -785230.7877799053),
+            ],
+            [
+                (297110.80210419616, -785160.477173293),
+                (297042.3441068098, -785190.6891610724),
+            ],
+            [
+                (297178.32290327916, -785127.9463243468),
+                (297110.80210419616, -785160.477173293),
+            ],
+        ]
+        gdf = gpd.GeoDataFrame(
+            geometry=[LineString(line) for line in lines], crs="epsg:32625"
+        )
+        dual = mm.gdf_to_nx(gdf, approach="dual")
+
+        # nodes are added in the order of the input rows
+        nodes = list(dual.nodes)
+        for node, line in zip(nodes, lines, strict=True):
+            assert dual.nodes[node]["geometry"].equals(LineString(line))
+
+        net = mm.closeness_centrality(dual, weight="angle", verbose=False)
+        check = [
+            0.009317962,
+            0.009997581,
+            0.008379147,
+            0.008323356,
+            0.008300193,
+            0.009937100,
+            0.009291048,
+        ]
+        assert [net.nodes[node]["closeness"] for node in nodes] == pytest.approx(
+            check, rel=1e-6
+        )
+        # the first three match the hand calculation from the issue
+        assert net.nodes[nodes[0]]["closeness"] == pytest.approx(0.009318217, rel=1e-3)
+        assert net.nodes[nodes[1]]["closeness"] == pytest.approx(0.010, rel=1e-3)
+        assert net.nodes[nodes[2]]["closeness"] == pytest.approx(0.008379888, rel=1e-3)
+
+        # a path may not turn twice at the same primal node: from segment
+        # 1 to segment 3 the direct turn (101.34) is shorter than the
+        # shortcut via segment 2 (1.56 + 80.22 = 81.78), which turns twice
+        # at the same node without traversing segment 2
+        assert mm.graph._angular_path_lengths(dual, nodes[0], "angle")[
+            nodes[2]
+        ] == pytest.approx(101.3420, rel=1e-4)
+
+        # local (radius) closeness uses the same angular paths
+        net = mm.closeness_centrality(dual, weight="angle", radius=1, verbose=False)
+        check_radius1 = [
+            0.008184492,
+            0.008347832,
+            0.007414628,
+            0.003711288,
+            0.003688980,
+            0.008324140,
+            0.008161716,
+        ]
+        assert [net.nodes[node]["closeness"] for node in nodes] == pytest.approx(
+            check_radius1, rel=1e-6
+        )
+
+        # a dual graph without angle attributes falls back to weight 1 per
+        # edge, matching networkx Dijkstra behaviour, instead of failing
+        dual_no_angle = mm.gdf_to_nx(gdf, approach="dual", angles=False)
+        net = mm.closeness_centrality(dual_no_angle, weight="angle", verbose=False)
+        topo = mm.closeness_centrality(dual, weight=None, verbose=False)
+        assert [net.nodes[node]["closeness"] for node in nodes] == pytest.approx(
+            [topo.nodes[node]["closeness"] for node in nodes], rel=1e-9
+        )
+
     def test_betweenness_centrality(self):
         net = mm.betweenness_centrality(self.network)
         net2 = mm.betweenness_centrality(self.network, mode="edges")
@@ -116,7 +213,7 @@ class TestGraph:
             mm.betweenness_centrality(self.network, mode="nonexistent")
         node = 0.2413793103448276
         edge = 0.16995073891625617
-        ang_b = 0.16134453781512606
+        ang_b = 0.16470588235294117
         assert net.nodes[(1603650.450422848, 6464368.600601688)]["betweenness"] == node
         assert (
             net2.edges[

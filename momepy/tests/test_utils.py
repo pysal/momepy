@@ -102,7 +102,7 @@ class TestUtils:
             (1603499.42326969, 6464328.7520580515),
             (1603510.1061735682, 6464204.555117119),
             0,
-        ] == {"ang": 117.18288698243317}
+        ] == {"ang": 116.35253362172823}
 
         dual = mm.gdf_to_nx(
             self.df_streets, approach="dual", angles=False, multigraph=False
@@ -121,10 +121,50 @@ class TestUtils:
         assert dual.edges[
             (1603499.42326969, 6464328.7520580515),
             (1603510.1061735682, 6464204.555117119),
-        ] == {"angle": 117.18288698243317}
+        ] == {"angle": 116.35253362172823}
 
         with pytest.raises(ValueError, match="Directed graphs are not supported"):
             mm.gdf_to_nx(self.df_streets, approach="dual", directed=True)
+
+    def test_gdf_to_nx_dual_angle_incident_leg(self):
+        # GH #463: the angle between two segments is measured at their
+        # shared endpoint, from the direction of each segment at that
+        # endpoint (the incident leg). A bent segment must not be measured
+        # by its chord, which cuts across the bend.
+        # Segment 1 bends 90 degrees: (0, 0) -> (10, 0) -> (10, 10), so
+        # its direction at the shared (10, 10) endpoint is north, while
+        # segment 2 leaves the shared endpoint eastwards. The incident-leg
+        # angle is 90 degrees; the chord angle would be 45 degrees.
+        gdf = gpd.GeoDataFrame(
+            geometry=[
+                LineString([(0, 0), (10, 0), (10, 10)]),
+                LineString([(10, 10), (20, 10)]),
+            ],
+            crs="epsg:32625",
+        )
+        dual = mm.gdf_to_nx(gdf, approach="dual")
+        assert dual.number_of_edges() == 1
+        assert list(dual.edges(data=True))[0][2]["angle"] == pytest.approx(90.0)
+
+        # same, with the shared endpoint first on the bent segment:
+        # (10, 10) -> (0, 10) -> (0, 20) leaves (10, 10) westwards while
+        # the other segment leaves northwards. The incident-leg angle is
+        # 90 degrees; the chord angle would be 135 degrees.
+        gdf = gpd.GeoDataFrame(
+            geometry=[
+                LineString([(10, 10), (0, 10), (0, 20)]),
+                LineString([(10, 10), (10, 20)]),
+            ],
+            crs="epsg:32625",
+        )
+        dual = mm.gdf_to_nx(gdf, approach="dual")
+        assert dual.number_of_edges() == 1
+        assert list(dual.edges(data=True))[0][2]["angle"] == pytest.approx(90.0)
+
+        # a point that is not an endpoint of the LineString has no
+        # incident leg
+        with pytest.raises(ValueError, match="not an endpoint"):
+            mm.utils._adjacent_vertex([(0, 0), (1, 0)], (5, 5))
 
     def test_gdf_to_nx_labels(self):
         nx = mm.gdf_to_nx(self.df_streets, integer_labels=True)

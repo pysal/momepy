@@ -46,6 +46,26 @@ def _angle(a, b, c):
     return abs((a2 - a1 + 180) % 360 - 180)
 
 
+def _adjacent_vertex(coords, shared):
+    """
+    Vertex of a LineString adjacent to the ``shared`` endpoint.
+
+    The direction of a LineString at its endpoint is given by the incident
+    leg, i.e. the vertex next to the endpoint, not by the far endpoint.
+    Using the far endpoint would measure the chord, which cuts across
+    any bend within the segment.
+    """
+    coords = list(coords)
+    if coords[0] == shared:
+        return coords[1]
+    if coords[-1] == shared:
+        return coords[-2]
+    raise ValueError(
+        "The shared node is not an endpoint of the LineString, so there "
+        "is no incident leg to measure the angle from."
+    )
+
+
 def _generate_primal(
     graph, gdf_network, fields, multigraph, oneway_column=None, preserve_index=False
 ):
@@ -148,7 +168,14 @@ def _generate_dual(
                     remaining = [e for e in points if e not in [shared[0]]]
                     if len(remaining) == 2:
                         if angles:
-                            angle_value = _angle(remaining[0], shared[0], remaining[1])
+                            # angle between the incident legs at the shared
+                            # node, i.e. the vertex adjacent to the shared
+                            # endpoint on each segment
+                            angle_value = _angle(
+                                _adjacent_vertex(row.geometry.coords, shared[0]),
+                                shared[0],
+                                _adjacent_vertex(geom.coords, shared[0]),
+                            )
                             if multigraph:
                                 graph.add_edge(
                                     start, end, key=0, **{angle: angle_value}
