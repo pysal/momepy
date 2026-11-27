@@ -2,11 +2,7 @@ import geopandas as gpd
 import neatnet
 import networkx as nx
 import numpy as np
-
-# import pandas as pd
 import pytest
-
-#  from pandas.testing import assert_index_equal, assert_series_equal
 from shapely.geometry import LineString
 
 import momepy as mm

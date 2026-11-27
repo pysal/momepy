@@ -19,7 +19,7 @@ class TestCOINS:
         assert result.shape == (10, 2)
 
         expected_index = pd.RangeIndex(stop=10, name="stroke_group")
-        assert_index_equal(result.index, expected_index)
+        assert_index_equal(result.index, expected_index, exact="equiv")
 
         expected_segments = pd.Series(
             [8, 19, 17, 13, 5, 14, 2, 3, 3, 5],
@@ -154,7 +154,7 @@ class TestCOINS:
                 "geometry",
             ]
         )
-        assert_index_equal(result.columns, expected_columns)
+        assert_index_equal(result.columns, expected_columns, exact="equiv")
 
         assert not result.drop(columns="orientation").isna().any().any()
 

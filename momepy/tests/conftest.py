@@ -10,7 +10,9 @@ def assert_result(result, expected, geometry, rel=None, abs=None, **kwargs):  # 
     for key, value in expected.items():
         assert getattr(result, key)() == pytest.approx(value, rel=rel, abs=abs)
     assert isinstance(result, pd.Series)
-    assert_index_equal(result.index, geometry.index, **kwargs)
+    assert_index_equal(
+        result.index, geometry.index, exact=kwargs.pop("exact", "equiv"), **kwargs
+    )
 
 
 def assert_frame_result(result, expected, geometry, **kwargs):
@@ -24,4 +26,6 @@ def assert_frame_result(result, expected, geometry, **kwargs):
             assert np.max(result) == pytest.approx(value)
         elif key == "min":
             assert np.min(result) == pytest.approx(value)
-    assert_index_equal(result.index, geometry.index, **kwargs)
+    assert_index_equal(
+        result.index, geometry.index, exact=kwargs.pop("exact", "equiv"), **kwargs
+    )
