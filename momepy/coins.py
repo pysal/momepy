@@ -341,7 +341,7 @@ class COINS:
             ],
             crs=self.gdf_projection,
         )
-        edge_gdf.set_index("_unique_id", inplace=True)
+        edge_gdf = edge_gdf.set_index("_unique_id")
 
         return edge_gdf
 
@@ -369,7 +369,7 @@ class COINS:
             columns=["stroke_group", "n_segments", "geometry"],
             crs=self.gdf_projection,
         )
-        edge_gdf.set_index("stroke_group", inplace=True)
+        edge_gdf = edge_gdf.set_index("stroke_group")
 
         return edge_gdf
 
