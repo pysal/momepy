@@ -272,7 +272,7 @@ def gdf_to_nx(
     """  # noqa
     gdf_network = gdf_network.copy()
     if "key" in gdf_network.columns:
-        gdf_network.rename(columns={"key": "__key"}, inplace=True)
+        gdf_network = gdf_network.rename(columns={"key": "__key"})
 
     if multigraph and directed:
         net = nx.MultiDiGraph()

@@ -46,14 +46,14 @@ class TestElements:
         assert tessellation.get_coordinates().shape[0] == 4557
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
-        assert_index_equal(tessellation.index, self.df_buildings.index)
+        assert_index_equal(tessellation.index, self.df_buildings.index, exact="equiv")
         assert isinstance(tessellation, gpd.GeoDataFrame)
 
         clipped = mm.morphological_tessellation(self.df_buildings, clip=self.limit)
 
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
-        assert_index_equal(tessellation.index, self.df_buildings.index)
+        assert_index_equal(tessellation.index, self.df_buildings.index, exact="equiv")
         assert clipped.area.sum() < tessellation.area.sum()
 
         sparser = mm.morphological_tessellation(self.df_buildings, segment=2)
@@ -68,7 +68,7 @@ class TestElements:
         )
         assert (tessellation.geom_type == "Polygon").all()
         assert tessellation.crs == self.df_buildings.crs
-        assert_index_equal(tessellation.index, self.df_buildings.index)
+        assert_index_equal(tessellation.index, self.df_buildings.index, exact="equiv")
 
     def test_morphological_tessellation_errors(self):
         df = self.df_buildings
@@ -153,7 +153,9 @@ class TestElements:
             n_jobs=1,
         )
         assert not threshold_elimination.index.duplicated().any()
-        assert_index_equal(threshold_elimination.index, tessellation.index)
+        assert_index_equal(
+            threshold_elimination.index, tessellation.index, exact="equiv"
+        )
         assert_geodataframe_equal(
             tessellation.sort_values("geometry").reset_index(drop=True),
             threshold_elimination.sort_values("geometry").reset_index(drop=True),
@@ -373,9 +375,11 @@ class TestElements:
             ),
         ):
             collapsed, multi = mm.verify_tessellation(tessellation, df)
-        assert_index_equal(collapsed, pd.Index([144]))
+        assert_index_equal(collapsed, pd.Index([144]), exact="equiv")
         assert_index_equal(
-            multi, pd.Index([1, 46, 57, 62, 103, 105, 129, 130, 134, 136, 137])
+            multi,
+            pd.Index([1, 46, 57, 62, 103, 105, 129, 130, 134, 136, 137]),
+            exact="equiv",
         )
 
     def test_simplified_tessellations(self):
@@ -425,7 +429,7 @@ class TestElements:
 
         assert isinstance(bands, gpd.GeoDataFrame)
         assert bands.crs == streets.crs
-        assert_index_equal(bands.index, streets.index)
+        assert_index_equal(bands.index, streets.index, exact="equiv")
         assert (bands.geom_type == "Polygon").all()
         assert bands.area.sum() == pytest.approx(streets.buffer(2).union_all().area)
 
@@ -490,7 +494,7 @@ class TestElements:
         node_index = mm.get_nearest_node(self.df_buildings, nodes, edges, edge_index)
 
         assert len(node_index) == len(self.df_buildings)
-        assert_index_equal(node_index.index, self.df_buildings.index)
+        assert_index_equal(node_index.index, self.df_buildings.index, exact="equiv")
         expected = np.array(
             [
                 0.0,
@@ -521,7 +525,7 @@ class TestElements:
         node_index = mm.get_nearest_node(self.df_buildings, nodes, edges, edge_index)
 
         assert len(node_index) == len(self.df_buildings)
-        assert_index_equal(node_index.index, self.df_buildings.index)
+        assert_index_equal(node_index.index, self.df_buildings.index, exact="equiv")
         expected = np.array(
             [1.0, 2.0, 3.0, 4.0, 9.0, 11.0, 14.0, 15.0, 16.0, 20.0, 22.0, 25.0, np.nan]
         )
@@ -700,7 +704,9 @@ class TestElements:
         enclosed_tess.index = [str(uuid.uuid4()) for _ in range(len(enclosed_tess))]
         links2 = mm.get_network_ratio(enclosed_tess, self.df_streets, initial_buffer=10)
 
-        assert_index_equal(enclosed_tess.index, links2.index, check_order=False)
+        assert_index_equal(
+            enclosed_tess.index, links2.index, check_order=False, exact="equiv"
+        )
         expected_head = [[34], [0, 34], [0], [0, 15, 3, 14, 4, 7], [34]]
         expected_tail = [[8], [16], [8], [32], [21]]
 

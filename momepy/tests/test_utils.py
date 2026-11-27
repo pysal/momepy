@@ -53,7 +53,7 @@ class TestUtils:
         assert dual.number_of_nodes() == 35
         assert dual.number_of_edges() == 74
         self.df_streets["ix"] = np.arange(0, len(self.df_streets) * 2, 2)
-        self.df_streets.set_index("ix", inplace=True)
+        self.df_streets = self.df_streets.set_index("ix")
         dual2 = mm.gdf_to_nx(self.df_streets, approach="dual")
         assert dual2.number_of_nodes() == 35
         assert dual2.number_of_edges() == 74
