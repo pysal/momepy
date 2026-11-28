@@ -8,6 +8,8 @@ from libpysal.graph import Graph
 from numpy.typing import NDArray
 from pandas import DataFrame, Series
 
+from momepy.utils import _warn_if_geographic
+
 __all__ = [
     "volume",
     "floor_area",
@@ -457,6 +459,7 @@ def street_profile(
     3  50.000000  1.000000              NaN        NaN               NaN       NaN
     4  50.000000  1.000000              NaN        NaN               NaN       NaN
     """
+    _warn_if_geographic(streets, "street_profile")
 
     # filter relevant buildings and streets
     inp, res = shapely.STRtree(streets.geometry).query(
