@@ -6,6 +6,8 @@ from numpy.typing import NDArray
 from pandas import Series
 from scipy import sparse
 
+from .utils import warn_geographic_crs
+
 __all__ = [
     "orientation",
     "shared_walls",
@@ -19,6 +21,7 @@ __all__ = [
 ]
 
 
+@warn_geographic_crs
 def orientation(geometry: GeoDataFrame | GeoSeries) -> Series:
     """Calculate the orientation of objects.
 
@@ -86,6 +89,7 @@ def orientation(geometry: GeoDataFrame | GeoSeries) -> Series:
     )
 
 
+@warn_geographic_crs
 def shared_walls(
     geometry: GeoDataFrame | GeoSeries, strict: bool = True, tolerance: float = 0.01
 ) -> Series:
@@ -222,6 +226,7 @@ def alignment(orientation: Series, graph: Graph) -> Series:
     return r
 
 
+@warn_geographic_crs
 def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Series:
     """Calculate the mean distance to adjacent elements.
 
@@ -283,6 +288,7 @@ def neighbor_distance(geometry: GeoDataFrame | GeoSeries, graph: Graph) -> Serie
     return mean_distance
 
 
+@warn_geographic_crs
 def mean_interbuilding_distance(
     geometry: GeoDataFrame | GeoSeries,
     adjacency_graph: Graph,
@@ -468,6 +474,7 @@ def building_adjacency(
     return result
 
 
+@warn_geographic_crs
 def neighbors(
     geometry: GeoDataFrame | GeoSeries, graph: Graph, weighted=False
 ) -> Series:
